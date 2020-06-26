@@ -1,6 +1,6 @@
 (* CastANet - cGUI.mli *)
 
-val main_window : GWindow.window
+val window : GWindow.window
 
 module Zoom : sig
   val toggles : (char * GButton.toggle_button) list 

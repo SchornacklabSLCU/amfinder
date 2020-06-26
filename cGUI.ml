@@ -2,7 +2,7 @@
 
 open CExt
 
-let main_window =
+let window =
   ignore (GMain.init ());
   let wnd = GWindow.window
     ~title:"CastANet Annotation Editor 1.0"
@@ -15,7 +15,7 @@ let spacing = 5
 let border_width = spacing
 
 module Box = struct
-  let v = GPack.vbox ~spacing:2 ~border_width ~packing:main_window#add ()
+  let v = GPack.vbox ~spacing:2 ~border_width ~packing:window#add ()
   let h = GPack.hbox ~spacing   ~border_width ~packing:v#add ()
 end
 
@@ -124,7 +124,7 @@ let tiles =
   
 
 let main_window_backcolor () =
-  let c = main_window#misc#style#bg `NORMAL in
+  let c = window#misc#style#bg `NORMAL in
   let r, g, b = Gdk.Color.(red c, green c, blue c) in
   float (r lsr 8) /. 255.0,
   float (g lsr 8) /. 255.0,

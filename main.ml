@@ -12,7 +12,7 @@ let _ =
   if Array.length Sys.argv = 2 && Sys.file_exists Sys.argv.(1) then (
     CEvent.mouse_pointer ();
     CEvent.keyboard ();    
-    CGUI.main_window#show ();
+    CGUI.window#show ();
     tagger_time CDraw.load Sys.argv.(1);
     CEvent.icons ();
     List.iter (fun (_, radio) ->

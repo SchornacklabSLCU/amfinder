@@ -34,7 +34,7 @@ let toggles =
   ) CGUI.Zoom.toggles 
    
 let keyboard () =
-  let connect = CGUI.main_window#event#connect in
+  let connect = CGUI.window#event#connect in
   connect#key_press (CDraw.Cursor.arrow_key_press ~toggles);
   connect#key_press update_annotations;
   ()
