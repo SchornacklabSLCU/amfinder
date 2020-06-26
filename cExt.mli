@@ -6,8 +6,11 @@
 (** Extended strings. *)
 val tagger_string_fold_left : ('a -> char -> 'a) -> 'a -> string -> 'a
 
-val tagger_string_fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
-(** [fold_right]-style function for strings. *)
+(** Operations on strings. *)
+module CString : sig
+  val fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
+  (** [fold_right]-style function for strings. *)
+end
 
 val tagger_matrix_iteri : (int -> int -> 'a -> unit) -> 'a array array -> unit
 (** Matrix iterator. *)

@@ -1,7 +1,5 @@
 (* CastANet - cGUI.ml *)
 
-open CExt
-
 let window =
   ignore (GMain.init ());
   let wnd = GWindow.window
@@ -11,13 +9,16 @@ let window =
   wnd#connect#destroy GMain.quit;
   wnd
 
+
 let spacing = 5
 let border_width = spacing
+
 
 module Box = struct
   let v = GPack.vbox ~spacing:2 ~border_width ~packing:window#add ()
   let h = GPack.hbox ~spacing   ~border_width ~packing:v#add ()
 end
+
 
 module Pane = struct
   let make label rows columns =
@@ -29,6 +30,7 @@ module Pane = struct
   let left = make "Magnified view" 2 1
   let right = make "Whole image" 1 2
 end
+
 
 module Zoom = struct
   let bbox = GPack.table ~rows:1 ~columns:7 
@@ -50,13 +52,12 @@ module Zoom = struct
   
   let toggles_full =
     let n = ref (-1) in
-    tagger_string_fold_left
-      (fun res chr -> incr n;
-        let elt = add_item chr !n in 
-        (chr, elt) :: res) [] CAnnot.codes
-    |> List.rev
-  
-  let toggles = List.map (fun (c, (t, _)) -> c, t) toggles_full
+    List.map (fun chr ->
+      incr n;
+      (chr, add_item chr !n)
+    ) CAnnot.code_list
+
+  let toggles = List.map (fun (x, y) -> x, fst y) toggles_full
   
   let toggle_from_char chr =
     String.index CAnnot.codes chr
@@ -193,7 +194,7 @@ module Layers = struct
 
   let master_full = create `SPECIAL
   let master = fst master_full
-  let radios_full = tagger_string_fold_left (
+  let radios_full = CExt.tagger_string_fold_left (
     fun res chr ->
       let radio = create ~group:master (`CHR chr) in 
       (chr, radio) :: res 

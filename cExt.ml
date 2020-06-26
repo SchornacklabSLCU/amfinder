@@ -23,13 +23,15 @@ let tagger_string_fold_left f ini s =
       loop (i + 1) elt
     else res
   in loop 0 ini
-     
-let tagger_string_fold_right f str ini =
-  let len = String.length str in
-  let rec loop i =
-    if i < len then f str.[i] (loop (i + 1))
-    else ini
-  in loop 0
+
+module CString = struct
+  let fold_right f str ini =
+    let len = String.length str in
+    let rec loop i =
+      if i < len then f str.[i] (loop (i + 1))
+      else ini
+    in loop 0
+end
 
 let tagger_matrix_iteri f = Array.(iteri (fun r -> iteri (f r)))
 

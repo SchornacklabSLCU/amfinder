@@ -6,7 +6,7 @@ open Printf
 
 let codes = "AVIEHRD"
 let ncodes = String.length codes
-let code_list = tagger_string_fold_right List.cons codes []
+let code_list = CExt.CString.fold_right List.cons codes []
 let index_list = Array.(of_list code_list |> mapi (fun i c -> c, i) |> to_list)
 
 type t = A of float array
