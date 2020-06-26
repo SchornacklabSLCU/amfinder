@@ -41,27 +41,24 @@ module HToolbox = struct
   let set_icon image button rgba grey () =
     image#set_pixbuf (if button#active then rgba else grey)
 
-  let add_item chr i =
-    let grey = CIcon.get chr `GREY `LARGE in 
-    let btn = GButton.toggle_button 
+  let add_item i chr =
+    let toggle = GButton.toggle_button 
       ~relief:`NONE
       ~packing:(bbox#attach ~left:i ~top:0) () in
-    let image = GMisc.image ~width:48 ~packing:btn#set_image () in
-    image#set_pixbuf grey;
-    btn, image
+    let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
+    icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
+    toggle, icon
   
-  let toggles_full =
-    let n = ref (-1) in
-    List.map (fun chr ->
-      incr n;
-      (chr, add_item chr !n)
-    ) CAnnot.code_list
+  let toggles_full = Array.of_list CAnnot.code_list
+    |> Array.mapi add_item
+    |> Array.to_list
+    |> List.combine CAnnot.code_list
 
   let toggles = List.map (fun (x, y) -> x, fst y) toggles_full
   
-  let toggle_from_char chr =
-    String.index CAnnot.codes chr
-    |> List.nth toggles |> snd
+  let toggle_from_char chr = String.index CAnnot.codes chr
+    |> List.nth toggles
+    |> snd
   
   let lock = ref false
   
