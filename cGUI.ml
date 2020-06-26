@@ -172,6 +172,11 @@ module Layers = struct
     ~packing:(Pane.right#attach ~left:1 ~top:0 ~expand:`Y ~fill:`NONE) ()
   let packing = toolbar#insert
 
+  let separator () = ignore (GButton.separator_tool_item ~packing ())
+  let morespace () =
+    let item = GButton.tool_item ~expand:false ~packing () in
+    ignore (GPack.vbox ~height:5 ~packing:item#add ())
+
   let create ?group typ =
     let active, f = match typ with
       | `CHR chr -> false, CIcon.get chr `GREY 
@@ -185,56 +190,47 @@ module Layers = struct
     let item = GButton.tool_item ~packing () in
     GMisc.label ~justify:`CENTER ~markup ~packing:item#add ()
 
-  let _ = GButton.separator_tool_item ~packing ()
-
-  let _ = label "<small>Layer</small>" 
-  let _ =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    GPack.vbox ~height:5 ~packing:item#add ()
+  let _ = 
+    separator ();
+    label "<small>Layer</small>";
+    morespace ()
 
   let master_full = create `SPECIAL
   let master = fst master_full
-  let radios_full = CExt.tagger_string_fold_left (
-    fun res chr ->
-      let radio = create ~group:master (`CHR chr) in 
-      (chr, radio) :: res 
-  ) [] CAnnot.codes
+  let radios_full =
+    List.map (fun c -> c, create ~group:master (`CHR c)) CAnnot.code_list
   let radios = List.map (fun (a, (b, _)) -> (a, b)) radios_full
 
   let get_active () =
     if master#get_active then `SPECIAL
     else `CHR (fst (List.find (fun x -> (snd x)#get_active) radios))
     
-  let _ = GButton.separator_tool_item ~packing ()
+  let _ = separator ()
   
   let export = GButton.tool_button ~stock:`SAVE ~packing ()
   let preferences = GButton.tool_button ~stock:`PREFERENCES ~packing ()
   
-  let _ = GButton.separator_tool_item ~packing ()
+  let _ = separator ()
   
-  let _ = label "<small>Coordinates</small>"
   let _ =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    GPack.vbox ~height:5 ~packing:item#add ()
+    label "<small>Coordinates</small>";
+    morespace ()
+  
   let row = label "<tt><small><b>R:</b> 000</small></tt>"
   let column = label "<tt><small><b>C:</b> 000</small></tt>" 
   
-  let _ = GButton.separator_tool_item ~packing ()
+  let _ = separator ()
   
   let confidence_title = label "<small>Confidence</small>"
-  let _ =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    GPack.vbox ~height:5 ~packing:item#add ()
+  let _ = morespace ()
+
   let confidence = label "<tt><small><b>n. a.</b></small></tt>"
-  let _ =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    GPack.vbox ~height:5 ~packing:item#add ()
+  let _ = morespace ()
+
   let confidence_color = label "<tt><span background='white' \
       foreground='white'>DDDDD</span></tt>"
-  let _ =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    GPack.vbox ~height:5 ~packing:item#add ()
-  let _ = GButton.separator_tool_item ~packing ()
+  let _ = morespace (); separator ()
+
 end
 
 let status = 
