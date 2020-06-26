@@ -197,37 +197,37 @@ module VToolbox = struct
     radio, image
 
   let _ = separator ()
-  let _ = label "<small>Layer</small>"
 
+  let _ = label "<small>Layer</small>"
   let master_full = create `SPECIAL
   let master = fst master_full
   let radios_full =
     List.map (fun c -> c, create ~group:master (`CHR c)) CAnnot.code_list
   let radios = List.map (fun (a, (b, _)) -> (a, b)) radios_full
-
-  let get_active () =
-    if master#get_active then `SPECIAL
-    else `CHR (fst (List.find (fun x -> (snd x)#get_active) radios))
-    
+   
   let _ = separator ()
   
   let export = GButton.tool_button ~stock:`SAVE ~packing ()
   let preferences = GButton.tool_button ~stock:`PREFERENCES ~packing ()
   
   let _ = separator ()
-  let _ = label "<small>Coordinates</small>"
-  
+
+  let _ = label "<small>Coordinates</small>" 
   let row = label ~vspace:false "<tt><small><b>R:</b> 000</small></tt>"
   let column = label ~vspace:false "<tt><small><b>C:</b> 000</small></tt>" 
   
   let _ = separator ()
   
-  let confidence_title = label "<small>Confidence</small>"
+  let _ = label "<small>Confidence</small>"
   let confidence = label "<tt><small><b>n. a.</b></small></tt>"
-
   let confidence_color = label "<tt><span background='white' \
       foreground='white'>DDDDD</span></tt>"
+
   let _ = separator ()
+
+  let get_active () =
+    if master#get_active then `SPECIAL
+    else `CHR (fst (List.find (fun x -> (snd x)#get_active) radios))
 
 end
 
