@@ -39,6 +39,8 @@ let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) img =
   stroke t;
   surface
 
+let palette_name = `CIVIDIS
+
 module Layer = struct
   let master = CExt.memoize
     begin fun () ->
@@ -66,8 +68,8 @@ module Layer = struct
     | `SPECIAL -> master ()
     | `CHR chr -> match CAnnot.annotation_type () with
       | `BINARY -> List.assoc chr (categories ())
-      | `GRADIENT -> let grp = CAnnot.get_group ~palette:`SUNSET ann chr in
-        CPalette.surface grp `SUNSET
+      | `GRADIENT -> let grp = CAnnot.get_group ~palette:palette_name ann chr in
+        CPalette.surface palette_name grp
    
 end
 
@@ -93,7 +95,7 @@ let update_confidence_text_area r c =
                (100. *. prob);
               ksprintf CGUI.VToolbox.confidence_color#set_label
                 "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
-                (CPalette.color i `SUNSET) (CPalette.color i `SUNSET)
+                (CPalette.color palette_name i) (CPalette.color palette_name i)
             ) else erase_confidence ()
           end
       | _ -> ()

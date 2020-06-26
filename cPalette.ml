@@ -6,7 +6,11 @@ type t = {
   surfaces : Cairo.Surface.t array; (* memoized. *)
 }
 
-type id = [ `VIRIDIS | `SUNSET ]
+type id = [
+  | `CIVIDIS
+  | `SUNSET
+  | `VIRIDIS
+]
 
 let edge = ref 0
 
@@ -34,6 +38,15 @@ let make colors () = {
   surfaces = make_surface_table colors;
 }
 
+let cividis =
+  let f = make [|
+    "#00204D"; "#00285F"; "#002F6F"; "#05366E"; "#233E6C";
+    "#34456B"; "#414D6B"; "#4C546C"; "#575C6D"; "#61646F";
+    "#6A6C71"; "#737475"; "#7C7B78"; "#868379"; "#918C78";
+    "#9B9477"; "#A69D75"; "#B2A672"; "#BCAF6F"; "#C8B86A";
+    "#D3C164"; "#E0CB5E"; "#ECD555"; "#F8DF4B"; "#FFEA46"; 
+  |] in CExt.memoize f
+
 let viridis = 
   let f = make [|
     "#440154"; "#481567"; "#482677"; "#453781"; "#404788";
@@ -53,14 +66,13 @@ let sunset =
 
 let set_tile_edge n = edge := n
 
-let max_group = function
-  | `VIRIDIS -> (viridis ()).max_group
-  | `SUNSET -> (sunset ()).max_group
+let get f typ =
+  let get_palette = match typ with
+    | `CIVIDIS -> cividis
+    | `SUNSET -> sunset
+    | `VIRIDIS -> viridis
+  in f (get_palette ())
 
-let surface n = function
-  | `VIRIDIS -> (viridis ()).surfaces.(n)
-  | `SUNSET -> (sunset ()).surfaces.(n)
-
-let color n = function
-  | `VIRIDIS -> (viridis ()).colors.(n)
-  | `SUNSET -> (sunset ()).colors.(n)
+let max_group = get (fun pal -> pal.max_group)
+let surface = get (fun pal n -> pal.surfaces.(n))
+let color = get (fun pal n -> pal.colors.(n))

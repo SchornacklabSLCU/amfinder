@@ -2,7 +2,11 @@
 
 (** Color palettes. *)
 
-type id = [ `VIRIDIS | `SUNSET ]
+type id = [
+  | `CIVIDIS
+  | `SUNSET 
+  | `VIRIDIS
+]
 (** The available palettes. *)
 
 val set_tile_edge : int -> unit
@@ -14,10 +18,10 @@ val max_group : id -> int
   * (this is zero-based, so the total number of groups is obtained by adding one
   * to the returned value). *)
 
-val surface : int -> id -> Cairo.Surface.t
-(** [surface n id] returns the Cairo surface corresponding to group [n] in
+val surface : id -> int -> Cairo.Surface.t
+(** [surface id n] returns the Cairo surface corresponding to group [n] in
   * palette [id]. *)
   
-val color : int -> id -> string
-(** [color n id] returns the HTML color (["#RRGGBB"]) corresponding to 
+val color : id -> int -> string
+(** [color id n] returns the HTML color (["#RRGGBB"]) corresponding to 
   * group [n] in palette [id]. *)
