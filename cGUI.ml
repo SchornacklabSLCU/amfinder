@@ -32,7 +32,7 @@ module Pane = struct
 end
 
 
-module Zoom = struct
+module HToolbox = struct
   let bbox = GPack.table ~rows:1 ~columns:7 
     ~col_spacings:10
     ~homogeneous:true

@@ -6,7 +6,7 @@ val window : GWindow.window
 (** Application main window. *)
 
 (** Magnified view (left pane). *)
-module Zoom : sig
+module HToolbox : sig
   val toggles : (char * GButton.toggle_button) list 
   val toggles_full : (char * (GButton.toggle_button * GMisc.image)) list
   val toggle_any : char -> unit

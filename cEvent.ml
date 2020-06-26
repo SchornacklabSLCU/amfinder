@@ -3,7 +3,7 @@
 let update_annotations ev =
   begin try
     let key = Char.uppercase_ascii (GdkEvent.Key.string ev).[0] in
-    if String.contains "AVEIRDH" key then CGUI.Zoom.toggle_any key
+    if String.contains "AVEIRDH" key then CGUI.HToolbox.toggle_any key
   with _ -> () end;
   false
 
@@ -24,14 +24,14 @@ let icons () =
     and grey = CIcon.get chr `GREY `LARGE in
     let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
     ignore (btn#connect#toggled ~callback);
-  ) CGUI.Zoom.toggles_full
+  ) CGUI.HToolbox.toggles_full
 
 let toggles =
   List.map (fun (key, toggle) ->
     let id = toggle#connect#toggled 
       ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
     in key, toggle, id
-  ) CGUI.Zoom.toggles 
+  ) CGUI.HToolbox.toggles 
    
 let keyboard () =
   let connect = CGUI.window#event#connect in
