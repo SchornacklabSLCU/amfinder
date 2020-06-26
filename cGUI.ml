@@ -1,5 +1,7 @@
 (* CastANet - cGUI.ml *)
 
+open Printf
+
 let window =
   ignore (GMain.init ());
   let wnd = GWindow.window
@@ -111,11 +113,11 @@ let tiles =
   Array.init 3 (fun top -> 
     Array.init 3 (fun left ->
       let packing = table#attach ~left ~top ~expand:`NONE ~fill:`NONE in
-      let pixmap = GDraw.pixmap ~width ~height () in
       let box = GPack.vbox ~width:(edge + 2) ~height:(edge + 2) ~packing () in
       let event = GBin.event_box ~packing:box#add () in
-      if top = 1 && left = 1 then event#misc#modify_bg [`NORMAL, `RGB (255 lsl 8, 0, 0)]
-      else event#misc#modify_bg [`NORMAL, `RGB (0xb0 lsl 8, 0xb0 lsl 8, 0xb0 lsl 8)];
+      if top = 1 && left = 1 then event#misc#modify_bg [`NORMAL, `NAME "red"]
+      else event#misc#modify_bg [`NORMAL, `NAME "gray60"];
+      let pixmap = GDraw.pixmap ~width ~height () in
       let image = GMisc.pixmap ~xalign:0.5 ~yalign:0.5 pixmap ~packing:event#add () in
       box, image
   ))
@@ -172,59 +174,59 @@ module VToolbox = struct
 
   let packing = toolbar#insert
 
-  let separator () = ignore (GButton.separator_tool_item ~packing ())
+  module Create = struct
+    let separator () = ignore (GButton.separator_tool_item ~packing ())
+    let morespace () =
+      let item = GButton.tool_item ~expand:false ~packing () in
+      ignore (GPack.vbox ~height:5 ~packing:item#add ())
+    let label ?(vspace = true) markup =
+      let item = GButton.tool_item ~packing () in
+      let markup = sprintf "<small>%s</small>" markup in
+      let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
+      if vspace then morespace ();
+      label
+    let radio ?group typ =
+      let active, f = match typ with
+        | `CHR chr -> false, CIcon.get chr `GREY 
+        | `SPECIAL -> true, CIcon.get_special `RGBA (* is active *) in
+      let radio = GButton.radio_tool_button ?group ~active ~packing () in
+      let image = GMisc.image ~width:24 ~packing:radio#set_icon_widget () in
+      image#set_pixbuf (f `SMALL);
+      radio, image
+  end
+  
+  let _ = Create.separator ()
 
-  let morespace () =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    ignore (GPack.vbox ~height:5 ~packing:item#add ())
+  let _ = Create.label "Layer"
+  let master = Create.radio `SPECIAL
 
-  let label ?(vspace = true) markup =
-    let item = GButton.tool_item ~packing () in
-    let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
-    if vspace then morespace ();
-    label
-
-  let create ?group typ =
-    let active, f = match typ with
-      | `CHR chr -> false, CIcon.get chr `GREY 
-      | `SPECIAL -> true, CIcon.get_special `RGBA (* is active *) in
-    let radio = GButton.radio_tool_button ?group ~active ~packing () in
-    let image = GMisc.image ~width:24 ~packing:radio#set_icon_widget () in
-    image#set_pixbuf (f `SMALL);
-    radio, image
-
-  let _ = separator ()
-
-  let _ = label "<small>Layer</small>"
-  let master_full = create `SPECIAL
-  let master = fst master_full
-  let radios_full =
-    List.map (fun c -> c, create ~group:master (`CHR c)) CAnnot.code_list
-  let radios = List.map (fun (a, (b, _)) -> (a, b)) radios_full
+  let radios =
+    let group = fst master in
+    List.map (fun c -> c, Create.radio ~group (`CHR c)) CAnnot.code_list
    
-  let _ = separator ()
+  let _ = Create.separator ()
   
   let export = GButton.tool_button ~stock:`SAVE ~packing ()
   let preferences = GButton.tool_button ~stock:`PREFERENCES ~packing ()
   
-  let _ = separator ()
+  let _ = Create.separator ()
 
-  let _ = label "<small>Coordinates</small>" 
-  let row = label ~vspace:false "<tt><small><b>R:</b> 000</small></tt>"
-  let column = label ~vspace:false "<tt><small><b>C:</b> 000</small></tt>" 
+  let _ = Create.label "Coordinates" 
+  let row = Create.label ~vspace:false "<tt><b>R:</b> 000</tt>"
+  let column = Create.label ~vspace:false "<tt><b>C:</b> 000</tt>" 
   
-  let _ = separator ()
+  let _ = Create.separator ()
   
-  let _ = label "<small>Confidence</small>"
-  let confidence = label "<tt><small><b>n. a.</b></small></tt>"
-  let confidence_color = label "<tt><span background='white' \
+  let _ = Create.label "Confidence"
+  let confidence = Create.label "<tt><b> n/a </b></tt>"
+  let confidence_color = Create.label "<tt><span background='white' \
       foreground='white'>DDDDD</span></tt>"
 
-  let _ = separator ()
+  let _ = Create.separator ()
 
   let get_active () =
-    if master#get_active then `SPECIAL
-    else `CHR (fst (List.find (fun x -> (snd x)#get_active) radios))
+    if (fst master)#get_active then `SPECIAL
+    else `CHR (fst (List.find (fun (_, (x, _)) -> x#get_active) radios))
 
 end
 

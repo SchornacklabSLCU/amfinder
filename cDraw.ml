@@ -90,7 +90,7 @@ module Layer = struct
 end
 
 let erase_confidence () =
-  CGUI.VToolbox.confidence#set_label "<tt><small><b>n. a.</b></small></tt>";
+  CGUI.VToolbox.confidence#set_label "<tt><small><b> n/a </b></small></tt>";
   CGUI.VToolbox.confidence_color#set_label "<tt><span background='white' \
     foreground='white'>DDDDD</span></tt>"
 
