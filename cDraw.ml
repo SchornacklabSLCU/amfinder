@@ -245,7 +245,7 @@ module GUI = struct
 
   let update_active_toggles t =
     let ann = curr_annotation () |> CAnnot.get_active in
-    List.iter (fun (key, toggle, id) ->
+    Array.iter (fun (key, toggle, id) ->
       GtkSignal.handler_block toggle#as_widget id;
       toggle#set_active (String.contains ann key);
       GtkSignal.handler_unblock toggle#as_widget id
@@ -304,7 +304,7 @@ module Cursor = struct
       in eval f)
     ~f_col:(fun c -> c)
 
-  let arrow_key_press ?(toggles = []) ev =
+  let arrow_key_press ?(toggles = [||]) ev =
     let sym, modi = GdkEvent.Key.(keyval ev, state ev) in
     let jump = 
       if List.mem `CONTROL modi then 25 else
@@ -318,7 +318,7 @@ module Cursor = struct
     end toggles;
     false
 
-  let at_mouse_pointer ?(toggles = []) ev =
+  let at_mouse_pointer ?(toggles = [||]) ev =
     Gaux.may (fun img ->
       let open GdkEvent.Button in
       let x = truncate (x ev) - CImage.xini img

@@ -19,15 +19,15 @@ let icons () =
   and grey = CIcon.get_special `GREY `SMALL in
   let callback () = img#set_pixbuf (if btn#get_active then rgba else grey) in
   ignore (btn#connect#toggled ~callback);
-  List.iter (fun (chr, (btn, img)) ->
+  Array.iter (fun (chr, (btn, img)) ->
     let rgba = CIcon.get chr `RGBA `LARGE
     and grey = CIcon.get chr `GREY `LARGE in
     let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
     ignore (btn#connect#toggled ~callback);
-  ) CGUI.HToolbox.toggles_full
+  ) CGUI.HToolbox.toggles
 
 let toggles =
-  List.map (fun (key, toggle) ->
+  Array.map (fun (key, (toggle, _)) ->
     let id = toggle#connect#toggled 
       ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
     in key, toggle, id

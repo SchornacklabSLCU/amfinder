@@ -51,27 +51,32 @@ module HToolbox = struct
     icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
     toggle, icon
   
-  let toggles_full = Array.of_list CAnnot.code_list
+  let toggles = Array.of_list CAnnot.code_list
     |> Array.mapi add_item
     |> Array.to_list
     |> List.combine CAnnot.code_list
-
-  let toggles = List.map (fun (x, y) -> x, fst y) toggles_full
-  
-  let toggle_from_char chr = String.index CAnnot.codes chr
-    |> List.nth toggles
-    |> snd
+    |> Array.of_list
+ 
+  let toggle_action f chr =
+    let _, (toggle, _) = toggles.(String.index CAnnot.codes chr) in
+    f toggle
+ 
+  let get_toggle_status = toggle_action (fun t -> t#active)
+  let set_toggle_status status = toggle_action (fun t -> 
+    match status with
+    | `INVERT -> t#set_active (not t#active)
+    | `BOOL b -> t#set_active b)
   
   let lock = ref false
   
   let activate t = 
     lock := true;
-    String.iter (fun c -> (toggle_from_char c)#set_active true) t;
+    String.iter (set_toggle_status (`BOOL true)) t;
     lock := false
   
   let deactivate t =
     lock := true;
-    String.iter (fun c -> (toggle_from_char c)#set_active false) t;
+    String.iter (set_toggle_status (`BOOL false)) t;
     lock := false
   
   let check chr =
@@ -86,14 +91,12 @@ module HToolbox = struct
       |  _  -> assert false in
     activate required;
     deactivate forbidden;
-    if not (toggle_from_char chr)#active then deactivate erased
+    if not (get_toggle_status chr) then deactivate erased
  
-  let toggle_any chr =
-    let toggle = toggle_from_char chr in
-    toggle#set_active (not toggle#active); check chr
+  let toggle_any chr = set_toggle_status `INVERT chr; check chr
    
   let _ = 
-    List.iter (fun (chr, toggle) ->
+    Array.iter (fun (chr, (toggle, _)) ->
       toggle#connect#toggled ~callback:(fun () ->
         if not !lock then check chr); ()
     ) toggles
