@@ -67,3 +67,5 @@ module VToolbox : sig
 end
 
 val status : GMisc.label
+(** Label used as a status bar. It displays general information related to the 
+  * loaded image, such as height and width (in pixels). *)
