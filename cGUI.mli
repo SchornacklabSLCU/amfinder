@@ -1,7 +1,11 @@
 (* CastANet - cGUI.mli *)
 
-val window : GWindow.window
+(** Graphics user interface. *)
 
+val window : GWindow.window
+(** Application main window. *)
+
+(** Magnified view (left pane). *)
 module Zoom : sig
   val toggles : (char * GButton.toggle_button) list 
   val toggles_full : (char * (GButton.toggle_button * GMisc.image)) list
@@ -12,6 +16,7 @@ val edge : int
 
 val tiles : (GPack.box * GMisc.image) array array
 
+(** Whole image (right pane). *)
 module Thumbnail : sig
   val frame : GBin.frame
   val area : GMisc.drawing_area
