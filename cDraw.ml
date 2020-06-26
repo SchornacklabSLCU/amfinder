@@ -90,30 +90,30 @@ module Layer = struct
 end
 
 let erase_confidence () =
-  CGUI.Layers.confidence#set_label "<tt><small><b>n. a.</b></small></tt>";
-  CGUI.Layers.confidence_color#set_label "<tt><span background='white' \
+  CGUI.VToolbox.confidence#set_label "<tt><small><b>n. a.</b></small></tt>";
+  CGUI.VToolbox.confidence_color#set_label "<tt><span background='white' \
     foreground='white'>DDDDD</span></tt>"
 
 let update_text_areas ~r ~c () =
-  ksprintf CGUI.Layers.row#set_label
+  ksprintf CGUI.VToolbox.row#set_label
     "<tt><small><b>R:</b> %03d</small></tt>" r;
-  ksprintf CGUI.Layers.column#set_label
+  ksprintf CGUI.VToolbox.column#set_label
     "<tt><small><b>C:</b> %03d</small></tt>" c;
   Gaux.may (fun img ->
     begin match CImage.annotation ~r ~c img with
       | Some t when CAnnot.annotation_type () = `GRADIENT -> 
         if CAnnot.is_empty t then erase_confidence ()
         else begin 
-          match CGUI.Layers.get_active () with
+          match CGUI.VToolbox.get_active () with
           | `SPECIAL -> erase_confidence ()
           | `CHR chr -> let size = Layer.viridis_length - 1 in
             let i = CAnnot.get_group ~size t chr in
             let prob = CAnnot.get t chr in
             if prob > 0.0 then (
-              ksprintf CGUI.Layers.confidence#set_label 
+              ksprintf CGUI.VToolbox.confidence#set_label 
                 "<tt><small><b>%-3.0f %%</b></small></tt>" 
                (100. *. prob);
-              ksprintf CGUI.Layers.confidence_color#set_label
+              ksprintf CGUI.VToolbox.confidence_color#set_label
                 "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
                 Layer.viridis_palette.(i) Layer.viridis_palette.(i)
             ) else erase_confidence ()
@@ -161,7 +161,7 @@ let surface ?(sync = false) r c s =
 let annot ?(sync = false) r c =
   Gaux.may (fun img ->
     Gaux.may (fun ann ->
-      let typ = CGUI.Layers.get_active () in
+      let typ = CGUI.VToolbox.get_active () in
       let draw = match typ with
         | `SPECIAL -> not (CAnnot.is_empty ann)
         | `CHR chr -> CAnnot.mem ann chr in

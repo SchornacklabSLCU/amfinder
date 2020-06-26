@@ -13,8 +13,8 @@ let icons () =
     and grey = CIcon.get chr `GREY `SMALL in
     let callback () = img#set_pixbuf (if btn#get_active then rgba else grey) in
     ignore (btn#connect#toggled ~callback)
-  ) CGUI.Layers.radios_full;
-  let btn, img = CGUI.Layers.master_full in
+  ) CGUI.VToolbox.radios_full;
+  let btn, img = CGUI.VToolbox.master_full in
   let rgba = CIcon.get_special `RGBA `SMALL
   and grey = CIcon.get_special `GREY `SMALL in
   let callback () = img#set_pixbuf (if btn#get_active then rgba else grey) in

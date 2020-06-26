@@ -163,7 +163,8 @@ module Thumbnail = struct
     ignore (area#misc#connect#size_allocate create_drawing_toolbox)  
 end
 
-module Layers = struct
+
+module VToolbox = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS

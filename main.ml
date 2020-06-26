@@ -17,10 +17,10 @@ let _ =
     CEvent.icons ();
     List.iter (fun (_, radio) ->
       radio#connect#toggled ~callback:(may_show_layer radio); ()
-    ) CGUI.Layers.radios;
-    CGUI.Layers.master#connect#toggled
-      ~callback:(may_show_layer CGUI.Layers.master);
-    may_show_layer CGUI.Layers.master ();
+    ) CGUI.VToolbox.radios;
+    CGUI.VToolbox.master#connect#toggled
+      ~callback:(may_show_layer CGUI.VToolbox.master);
+    may_show_layer CGUI.VToolbox.master ();
     CDraw.GUI.magnified_view ();
     CGUI.status#set_label (CImage.digest (CDraw.curr_image ()));
     GMain.main ()
