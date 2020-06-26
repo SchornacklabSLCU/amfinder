@@ -24,25 +24,22 @@ let hbox = GPack.hbox
   ~border_width
   ~packing:vbox#add ()
 
-let left_pane = 
-  let frame = GBin.frame ~label:"Magnified view" ~packing:hbox#add () in
-  GPack.table
-    ~rows:2 ~columns:1
-    ~border_width ~row_spacings:spacing
-    ~packing:frame#add ()
-
-let right_pane = 
-  let frame = GBin.frame ~label:"Whole image" ~packing:hbox#add () in
-  GPack.table
-    ~rows:1 ~columns:2
-    ~border_width ~col_spacings:spacing
-    ~packing:frame#add ()
+module Pane = struct
+  let make label rows columns =
+    let packing = (GBin.frame ~label ~packing:hbox#add ())#add in
+    GPack.table ~rows ~columns 
+      ~row_spacings:spacing
+      ~col_spacings:spacing 
+      ~border_width ~packing ()
+  let left = make "Magnified view" 2 1
+  let right = make "Whole image" 1 2
+end
 
 module Zoom = struct
   let bbox = GPack.table ~rows:1 ~columns:7 
     ~col_spacings:10
     ~homogeneous:true
-    ~packing:(left_pane#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE) () 
+    ~packing:(Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE) () 
 
   let set_icon image button rgba grey () =
     image#set_pixbuf (if button#active then rgba else grey)
@@ -111,7 +108,7 @@ end
 
 let table = 
   (* No expansion means widget size will be preserved. *)
-  let packing = left_pane#attach ~top:1 ~left:0 ~expand:`NONE ~fill:`NONE in
+  let packing = Pane.left#attach ~top:1 ~left:0 ~expand:`NONE ~fill:`NONE in
   GPack.table ~rows:3 ~columns:3 ~homogeneous:true ~packing ()
 
 let edge = 180
@@ -140,7 +137,7 @@ let main_window_backcolor () =
 
 module Thumbnail = struct
   let frame = GBin.frame ~width:600 
-    ~packing:(right_pane#attach ~left:0 ~top:0) ()
+    ~packing:(Pane.right#attach ~left:0 ~top:0) ()
   let area = GMisc.drawing_area ~packing:frame#add ()
   let memo = ref Obj.(magic (), magic ())
   let cairo () = snd !memo
@@ -183,7 +180,7 @@ module Layers = struct
     ~style:`ICONS
     ~width:75
     ~height:565
-    ~packing:(right_pane#attach ~left:1 ~top:0 ~expand:`Y ~fill:`NONE) ()
+    ~packing:(Pane.right#attach ~left:1 ~top:0 ~expand:`Y ~fill:`NONE) ()
   let packing = toolbar#insert
 
   let create ?group typ =
