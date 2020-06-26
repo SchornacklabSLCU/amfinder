@@ -29,11 +29,11 @@ end
 (** Keyboard- and mouse-responsive cursor drawing functions. *)
 module Cursor : sig
   val arrow_key_press :
-    ?toggles:(char * GButton.toggle_button * GtkSignal.id) list ->
+    ?toggles:(char * GButton.toggle_button * GtkSignal.id) array ->
     GdkEvent.Key.t -> bool
   (** Moves the cursor when an arrow key is pressed. *)
   val at_mouse_pointer : 
-    ?toggles:(char * GButton.toggle_button * GtkSignal.id) list ->
+    ?toggles:(char * GButton.toggle_button * GtkSignal.id) array ->
     GdkEvent.Button.t -> bool
   (** Move the cursor to the mouse pointer. *)
 end
