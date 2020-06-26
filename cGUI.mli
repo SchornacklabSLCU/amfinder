@@ -61,6 +61,9 @@ module VToolbox : sig
     * the label [confidence] (see above). *)
 
   val get_active : unit -> [`CHR of char | `SPECIAL]
+  (** Indicates which layer is currently active ([`SPECIAL] corresponds to
+    * [master], while [`CHR _] corresponds to elements of the list [radios]
+    * (see above). *)
 end
 
 val status : GMisc.label
