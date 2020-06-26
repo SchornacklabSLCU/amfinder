@@ -29,7 +29,7 @@ module Thumbnail : sig
 end
 
 (** Annotation layers. *)
-module Layers : sig
+module VToolbox : sig
   val toolbar : GButton.toolbar
   open GButton
   val master : radio_tool_button
