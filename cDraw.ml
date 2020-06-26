@@ -105,11 +105,7 @@ let erase_confidence () =
   CGUI.VToolbox.confidence_color#set_label "<tt><span background='white' \
     foreground='white'>DDDDD</span></tt>"
 
-let update_text_areas ~r ~c () =
-  ksprintf CGUI.VToolbox.row#set_label
-    "<tt><small><b>R:</b> %03d</small></tt>" r;
-  ksprintf CGUI.VToolbox.column#set_label
-    "<tt><small><b>C:</b> %03d</small></tt>" c;
+let update_confidence_text_area r c =
   Gaux.may (fun img ->
     begin match CImage.annotation ~r ~c img with
       | Some t when CAnnot.annotation_type () = `GRADIENT -> 
@@ -133,6 +129,13 @@ let update_text_areas ~r ~c () =
     end
   ) !curr
 
+let update_text_areas ~r ~c () =
+  ksprintf CGUI.VToolbox.row#set_label
+    "<tt><small><b>R:</b> %03d</small></tt>" r;
+  ksprintf CGUI.VToolbox.column#set_label
+    "<tt><small><b>C:</b> %03d</small></tt>" c;
+  update_confidence_text_area r c
+
 
 
 let curr_annotation () =
@@ -144,7 +147,11 @@ let curr_annotation () =
     | Some x -> x 
 
 let set_curr_annotation active chr =
-  CAnnot.(if active then add else rem) (curr_annotation ()) chr
+  Gaux.may (fun img ->
+    CAnnot.(if active then add else rem) (curr_annotation ()) chr;
+    let r, c = CImage.cursor_pos img in
+    update_confidence_text_area r c
+  ) !curr
 
 let tile ?(sync = false) r c =
   Gaux.may (fun img ->
