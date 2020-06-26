@@ -38,6 +38,7 @@ let make colors () = {
   surfaces = make_surface_table colors;
 }
 
+(* source: https://kite.com/python/docs/bokeh.palettes.cividis *)
 let cividis =
   let f = make [|
     "#00204D"; "#00285F"; "#002F6F"; "#05366E"; "#233E6C";
@@ -47,6 +48,7 @@ let cividis =
     "#D3C164"; "#E0CB5E"; "#ECD555"; "#F8DF4B"; "#FFEA46"; 
   |] in CExt.memoize f
 
+(* source: https://www.thinkingondata.com/something-about-viridis-library/ *)
 let viridis = 
   let f = make [|
     "#440154"; "#481567"; "#482677"; "#453781"; "#404788";
