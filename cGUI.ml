@@ -14,19 +14,14 @@ let main_window =
 let spacing = 5
 let border_width = spacing
 
-let vbox = GPack.vbox
-  ~spacing:2
-  ~border_width
-  ~packing:main_window#add ()
-
-let hbox = GPack.hbox
-  ~spacing
-  ~border_width
-  ~packing:vbox#add ()
+module Box = struct
+  let v = GPack.vbox ~spacing:2 ~border_width ~packing:main_window#add ()
+  let h = GPack.hbox ~spacing   ~border_width ~packing:v#add ()
+end
 
 module Pane = struct
   let make label rows columns =
-    let packing = (GBin.frame ~label ~packing:hbox#add ())#add in
+    let packing = (GBin.frame ~label ~packing:Box.h#add ())#add in
     GPack.table ~rows ~columns 
       ~row_spacings:spacing
       ~col_spacings:spacing 
@@ -250,6 +245,6 @@ end
 
 let status = 
   let lbl = GMisc.label ~xalign:0.0 ~yalign:0.0
-    ~packing:(vbox#pack ~expand:false) () in
+    ~packing:(Box.v#pack ~expand:false) () in
   lbl#set_use_markup true;
   lbl
