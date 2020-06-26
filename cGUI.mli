@@ -12,6 +12,7 @@ module HToolbox : sig
   val toggle_any : char -> unit
 end
 
+
 (** Magnified view of the cursor area. *)
 module Magnify : sig
   val edge : int
@@ -21,15 +22,23 @@ module Magnify : sig
     * annotations shown in [HToolbox] correspond to the central tile. *)
 end
 
+
 (** Whole image (right pane). *)
 module Thumbnail : sig
   val area : GMisc.drawing_area
+  (** Drawing area were the whole image is displayed. *)
   val cairo : unit -> Cairo.context
+  (** Cairo context used to overlay annotation information. *)
   val pixmap : unit -> GDraw.pixmap
+  (** Backing pixmap used to draw offscreen. *)
   val width : unit -> int
+  (** Width of the drawing area, in pixels. *)
   val height : unit -> int
+  (** height of the drawing area, in pixels. *)
   val refresh : GdkEvent.Expose.t -> bool
+  (** Call to this functions refreshes the display. *)
   val synchronize : unit -> unit
+  (** Synchronize the backing [pixmap] with the foreground [area]. *)
 end
 
 
