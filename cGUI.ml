@@ -123,13 +123,6 @@ let tiles =
   ))
   
 
-let main_window_backcolor () =
-  let c = window#misc#style#bg `NORMAL in
-  let r, g, b = Gdk.Color.(red c, green c, blue c) in
-  float (r lsr 8) /. 255.0,
-  float (g lsr 8) /. 255.0,
-  float (b lsr 8) /. 255.0
-
 module Thumbnail = struct
   let frame = GBin.frame ~width:600 
     ~packing:(Pane.right#attach ~left:0 ~top:0) ()

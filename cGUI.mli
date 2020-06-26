@@ -12,8 +12,6 @@ val edge : int
 
 val tiles : (GPack.box * GMisc.image) array array
 
-val main_window_backcolor : unit -> float * float * float
-
 module Thumbnail : sig
   val frame : GBin.frame
   val area : GMisc.drawing_area
