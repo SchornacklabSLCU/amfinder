@@ -15,12 +15,12 @@ let _ =
     CGUI.window#show ();
     tagger_time CDraw.load Sys.argv.(1);
     CEvent.icons ();
-    List.iter (fun (_, radio) ->
+    List.iter (fun (_, (radio, _)) ->
       radio#connect#toggled ~callback:(may_show_layer radio); ()
     ) CGUI.VToolbox.radios;
-    CGUI.VToolbox.master#connect#toggled
-      ~callback:(may_show_layer CGUI.VToolbox.master);
-    may_show_layer CGUI.VToolbox.master ();
+    let master = fst CGUI.VToolbox.master in
+    master#connect#toggled ~callback:(may_show_layer master);
+    may_show_layer master ();
     CDraw.GUI.magnified_view ();
     CGUI.status#set_label (CImage.digest (CDraw.curr_image ()));
     GMain.main ()
