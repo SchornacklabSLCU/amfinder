@@ -165,18 +165,27 @@ end
 
 
 module VToolbox = struct
+
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
     ~width:75
     ~height:565
     ~packing:(Pane.right#attach ~left:1 ~top:0 ~expand:`Y ~fill:`NONE) ()
+
   let packing = toolbar#insert
 
   let separator () = ignore (GButton.separator_tool_item ~packing ())
+
   let morespace () =
     let item = GButton.tool_item ~expand:false ~packing () in
     ignore (GPack.vbox ~height:5 ~packing:item#add ())
+
+  let label ?(vspace = true) markup =
+    let item = GButton.tool_item ~packing () in
+    let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
+    if vspace then morespace ();
+    label
 
   let create ?group typ =
     let active, f = match typ with
@@ -187,14 +196,8 @@ module VToolbox = struct
     image#set_pixbuf (f `SMALL);
     radio, image
 
-  let label markup =
-    let item = GButton.tool_item ~packing () in
-    GMisc.label ~justify:`CENTER ~markup ~packing:item#add ()
-
-  let _ = 
-    separator ();
-    label "<small>Layer</small>";
-    morespace ()
+  let _ = separator ()
+  let _ = label "<small>Layer</small>"
 
   let master_full = create `SPECIAL
   let master = fst master_full
@@ -212,25 +215,19 @@ module VToolbox = struct
   let preferences = GButton.tool_button ~stock:`PREFERENCES ~packing ()
   
   let _ = separator ()
+  let _ = label "<small>Coordinates</small>"
   
-  let _ =
-    label "<small>Coordinates</small>";
-    morespace ()
-  
-  let row = label "<tt><small><b>R:</b> 000</small></tt>"
-  let column = label "<tt><small><b>C:</b> 000</small></tt>" 
+  let row = label ~vspace:false "<tt><small><b>R:</b> 000</small></tt>"
+  let column = label ~vspace:false "<tt><small><b>C:</b> 000</small></tt>" 
   
   let _ = separator ()
   
   let confidence_title = label "<small>Confidence</small>"
-  let _ = morespace ()
-
   let confidence = label "<tt><small><b>n. a.</b></small></tt>"
-  let _ = morespace ()
 
   let confidence_color = label "<tt><span background='white' \
       foreground='white'>DDDDD</span></tt>"
-  let _ = morespace (); separator ()
+  let _ = separator ()
 
 end
 
