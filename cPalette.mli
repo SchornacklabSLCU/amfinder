@@ -4,7 +4,7 @@
 
 type id = [
   | `CIVIDIS
-  | `SUNSET 
+  | `PLASMA 
   | `VIRIDIS
 ]
 (** The available palettes. *)

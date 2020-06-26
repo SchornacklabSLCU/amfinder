@@ -39,7 +39,7 @@ let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) img =
   stroke t;
   surface
 
-let palette_name = `CIVIDIS
+let palette_name = `PLASMA
 
 module Layer = struct
   let master = CExt.memoize
@@ -87,7 +87,7 @@ let update_confidence_text_area r c =
           match CGUI.VToolbox.get_active () with
           | `SPECIAL -> erase_confidence ()
           | `CHR chr ->
-            let i = CAnnot.get_group ~palette:`SUNSET t chr in
+            let i = CAnnot.get_group ~palette:palette_name t chr in
             let prob = CAnnot.get t chr in
             if prob > 0.0 then (
               ksprintf CGUI.VToolbox.confidence#set_label 

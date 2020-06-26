@@ -8,7 +8,7 @@ type t = {
 
 type id = [
   | `CIVIDIS
-  | `SUNSET
+  | `PLASMA
   | `VIRIDIS
 ]
 
@@ -38,7 +38,9 @@ let make colors () = {
   surfaces = make_surface_table colors;
 }
 
-(* source: https://kite.com/python/docs/bokeh.palettes.cividis *)
+(* R source:
+ *  library(cividis)
+ *  cividis(25) *)
 let cividis =
   let f = make [|
     "#00204D"; "#00285F"; "#002F6F"; "#05366E"; "#233E6C";
@@ -48,22 +50,28 @@ let cividis =
     "#D3C164"; "#E0CB5E"; "#ECD555"; "#F8DF4B"; "#FFEA46"; 
   |] in CExt.memoize f
 
-(* source: https://www.thinkingondata.com/something-about-viridis-library/ *)
+(* R source:
+ *  library(viridis)
+ *  viridis_pal(option='C')(25) *)
+let plasma =
+  let f = make [|
+    "#0D0887"; "#270592"; "#3B049A"; "#4C02A1"; "#5D01A6";
+    "#6E00A8"; "#7E03A8"; "#8E0BA5"; "#9C179E"; "#A92395";
+    "#B52F8C"; "#C13B82"; "#CC4678"; "#D5536F"; "#DE5F65";
+    "#E56B5D"; "#ED7953"; "#F3864A"; "#F89441"; "#FCA338";
+    "#FDB32F"; "#FDC328"; "#FBD424"; "#F6E726"; "#F0F921";
+  |] in CExt.memoize f 
+
+(* R source:
+ *  library(scales)
+ *  viridis_pal()(25) *)
 let viridis = 
   let f = make [|
-    "#440154"; "#481567"; "#482677"; "#453781"; "#404788";
-    "#39568C"; "#33638D"; "#2D708E"; "#287D8E"; "#238A8D";
-    "#1F968B"; "#20A387"; "#29AF7F"; "#3CBB75"; "#55C667";
-    "#73D055"; "#95D840"; "#B8DE29"; "#DCE319"; "#FDE725";
-  |] in CExt.memoize f
-  
-let sunset =
-  let f = make [|
-    "#4B2991"; "#5A2995"; "#692A99"; "#782B9D"; "#872CA2";
-    "#952EA0"; "#A3319F"; "#B1339E"; "#C0369D"; "#CA3C97";
-    "#D44292"; "#DF488D"; "#EA4F88"; "#ED5983"; "#F2637F";
-    "#F66D7A"; "#FA7876"; "#F98477"; "#F89078"; "#F79C79";
-    "#F6A97A"; "#F3B584"; "#F1C18E"; "#EFCC98"; "#EDD9A3";
+    "#440154"; "#471164"; "#481F70"; "#472D7B"; "#443A83";
+    "#404688"; "#3B528B"; "#365D8D"; "#31688E"; "#2C728E"; 
+    "#287C8E"; "#24868E"; "#21908C"; "#1F9A8A"; "#20A486"; 
+    "#27AD81"; "#35B779"; "#47C16E"; "#5DC863"; "#75D054"; 
+    "#8FD744"; "#AADC32"; "#C7E020"; "#E3E418"; "#FDE725";
   |] in CExt.memoize f
 
 let set_tile_edge n = edge := n
@@ -71,7 +79,7 @@ let set_tile_edge n = edge := n
 let get f typ =
   let get_palette = match typ with
     | `CIVIDIS -> cividis
-    | `SUNSET -> sunset
+    | `PLASMA -> plasma
     | `VIRIDIS -> viridis
   in f (get_palette ())
 
