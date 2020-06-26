@@ -100,28 +100,31 @@ module HToolbox = struct
 end
 
 
+module Magnify = struct
+  let table = 
+    let packing = Pane.left#attach ~top:1 ~left:0 ~expand:`NONE ~fill:`NONE in
+    GPack.table ~rows:3 ~columns:3 ~homogeneous:true ~packing ()
 
-let table = 
-  (* No expansion means widget size will be preserved. *)
-  let packing = Pane.left#attach ~top:1 ~left:0 ~expand:`NONE ~fill:`NONE in
-  GPack.table ~rows:3 ~columns:3 ~homogeneous:true ~packing ()
+  let edge = 180
 
-let edge = 180
+  let event_box top left packing =
+    let event = GBin.event_box ~packing () in
+    let color = if top = 1 && left = 1 then "red" else "gray60" in
+    event#misc#modify_bg [`NORMAL, `NAME color];
+    event#add
 
-let tiles =
-  let width = edge and height = edge in
-  Array.init 3 (fun top -> 
-    Array.init 3 (fun left ->
-      let packing = table#attach ~left ~top ~expand:`NONE ~fill:`NONE in
-      let box = GPack.vbox ~width:(edge + 2) ~height:(edge + 2) ~packing () in
-      let event = GBin.event_box ~packing:box#add () in
-      if top = 1 && left = 1 then event#misc#modify_bg [`NORMAL, `NAME "red"]
-      else event#misc#modify_bg [`NORMAL, `NAME "gray60"];
-      let pixmap = GDraw.pixmap ~width ~height () in
-      let image = GMisc.pixmap ~xalign:0.5 ~yalign:0.5 pixmap ~packing:event#add () in
-      box, image
-  ))
-  
+  let tiles =
+    let width = edge and height = edge in
+    Array.init 3 (fun top -> 
+      Array.init 3 (fun left ->
+        let packing = table#attach ~left ~top ~expand:`NONE ~fill:`NONE in
+        let box = GPack.vbox ~width:(edge + 2) ~height:(edge + 2) ~packing () in
+        let packing = event_box top left box#add
+        and pixmap = GDraw.pixmap ~width ~height () in
+        let image = GMisc.pixmap ~xalign:0.5 ~yalign:0.5 pixmap ~packing () in
+        image
+    ))
+end
 
 module Thumbnail = struct
   let frame = GBin.frame ~width:600 
@@ -203,12 +206,7 @@ module VToolbox = struct
   let radios =
     let group = fst master in
     List.map (fun c -> c, Create.radio ~group (`CHR c)) CAnnot.code_list
-   
-  let _ = Create.separator ()
-  
-  let export = GButton.tool_button ~stock:`SAVE ~packing ()
-  let preferences = GButton.tool_button ~stock:`PREFERENCES ~packing ()
-  
+ 
   let _ = Create.separator ()
 
   let _ = Create.label "Coordinates" 
@@ -224,10 +222,14 @@ module VToolbox = struct
 
   let _ = Create.separator ()
 
+  let export = GButton.tool_button ~stock:`SAVE ~packing ()
+  let preferences = GButton.tool_button ~stock:`PREFERENCES ~packing ()
+
+  let _ = Create.separator ()
+
   let get_active () =
     if (fst master)#get_active then `SPECIAL
     else `CHR (fst (List.find (fun (_, (x, _)) -> x#get_active) radios))
-
 end
 
 let status = 

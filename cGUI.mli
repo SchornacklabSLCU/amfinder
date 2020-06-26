@@ -12,13 +12,17 @@ module HToolbox : sig
   val toggle_any : char -> unit
 end
 
-val edge : int
-
-val tiles : (GPack.box * GMisc.image) array array
+(** Magnified view of the cursor area. *)
+module Magnify : sig
+  val edge : int
+  (** Size (in pixels) of an individual tile.  *)
+  val tiles : GMisc.image array array
+  (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
+    * annotations shown in [HToolbox] correspond to the central tile. *)
+end
 
 (** Whole image (right pane). *)
 module Thumbnail : sig
-  val frame : GBin.frame
   val area : GMisc.drawing_area
   val cairo : unit -> Cairo.context
   val pixmap : unit -> GDraw.pixmap
@@ -38,13 +42,7 @@ module VToolbox : sig
   val radios : (char * (GButton.radio_tool_button * GMisc.image)) list
   (** Layer-specific radio buttons. When active, only tiles bearing the
     * corresponding annotation are displayed. *)
-  
-  val export : GButton.tool_button
-  (** Saves the current display as a PNG file (currently not implemented). *)
-  
-  val preferences : GButton.tool_button
-  (** Shows preferences dialog (currently not implemented). *)
-  
+   
   val row : GMisc.label
   (** Indicates the current row index. *)
 
@@ -64,6 +62,12 @@ module VToolbox : sig
   (** Indicates which layer is currently active ([`SPECIAL] corresponds to
     * [master], while [`CHR _] corresponds to elements of the list [radios]
     * (see above). *)
+
+  val export : GButton.tool_button
+  (** Saves the current display as a PNG file (currently not implemented). *)
+  
+  val preferences : GButton.tool_button
+  (** Shows preferences dialog (currently not implemented). *)
 end
 
 val status : GMisc.label

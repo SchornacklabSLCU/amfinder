@@ -56,7 +56,18 @@ module Layer = struct
     "#39568C"; "#33638D"; "#2D708E"; "#287D8E"; "#238A8D";
     "#1F968B"; "#20A387"; "#29AF7F"; "#3CBB75"; "#55C667";
     "#73D055"; "#95D840"; "#B8DE29"; "#DCE319"; "#FDE725" |]
-  let viridis_length = Array.length viridis_palette
+  
+  let viridis_length = Array.length viridis_palette 
+    
+  let sunset_palette = [|
+    "#4B2991"; "#5A2995"; "#692A99"; "#782B9D"; "#872CA2";
+    "#952EA0"; "#A3319F"; "#B1339E"; "#C0369D"; "#CA3C97";
+    "#D44292"; "#DF488D"; "#EA4F88"; "#ED5983"; "#F2637F";
+    "#F66D7A"; "#FA7876"; "#F98477"; "#F89078"; "#F79C79";
+    "#F6A97A"; "#F3B584"; "#F1C18E"; "#EFCC98"; "#EDD9A3";
+  |]
+    
+  let sunset_length = Array.length sunset_palette
 
   let viridis_surfaces = CExt.memoize
     (fun () ->
@@ -217,7 +228,7 @@ module GUI = struct
           let pixbuf = match CImage.tile r c img `LARGE with
             | None -> missing_image ()
             | Some x -> x
-          in (snd CGUI.tiles.(i).(j))#set_pixbuf pixbuf
+          in CGUI.Magnify.tiles.(i).(j)#set_pixbuf pixbuf
         done
       done;  
     ) !curr
