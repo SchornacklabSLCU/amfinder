@@ -51,35 +51,6 @@ module Layer = struct
   let colors = [ "#cdde87"; "#ffe680"; "#aaeeff"; "#afc6e9"; 
                  "#ffb380"; "#eeaaff"; "#ff8080" ]
 
-  let viridis_palette = [|
-    "#440154"; "#481567"; "#482677"; "#453781"; "#404788";
-    "#39568C"; "#33638D"; "#2D708E"; "#287D8E"; "#238A8D";
-    "#1F968B"; "#20A387"; "#29AF7F"; "#3CBB75"; "#55C667";
-    "#73D055"; "#95D840"; "#B8DE29"; "#DCE319"; "#FDE725" |]
-  
-  let viridis_length = Array.length viridis_palette 
-    
-  let sunset_palette = [|
-    "#4B2991"; "#5A2995"; "#692A99"; "#782B9D"; "#872CA2";
-    "#952EA0"; "#A3319F"; "#B1339E"; "#C0369D"; "#CA3C97";
-    "#D44292"; "#DF488D"; "#EA4F88"; "#ED5983"; "#F2637F";
-    "#F66D7A"; "#FA7876"; "#F98477"; "#F89078"; "#F79C79";
-    "#F6A97A"; "#F3B584"; "#F1C18E"; "#EFCC98"; "#EDD9A3";
-  |]
-    
-  let sunset_length = Array.length sunset_palette
-
-  let viridis_surfaces = CExt.memoize
-    (fun () ->
-      match !curr with
-      | None -> assert false
-      | Some img -> Array.map 
-        (fun clr ->
-          let r, g, b = tagger_html_to_float clr in
-          make_cairo_surface ~r ~g ~b ~a:0.8 img
-        ) viridis_palette
-    )
-
   let categories = CExt.memoize
     begin fun () ->
       let f img =
@@ -95,8 +66,8 @@ module Layer = struct
     | `SPECIAL -> master ()
     | `CHR chr -> match CAnnot.annotation_type () with
       | `BINARY -> List.assoc chr (categories ())
-      | `GRADIENT -> let grp = CAnnot.get_group ~size:(viridis_length - 1) ann chr in
-        (viridis_surfaces ()).(grp)
+      | `GRADIENT -> let grp = CAnnot.get_group ~palette:`SUNSET ann chr in
+        CPalette.surface grp `SUNSET
    
 end
 
@@ -113,8 +84,8 @@ let update_confidence_text_area r c =
         else begin 
           match CGUI.VToolbox.get_active () with
           | `SPECIAL -> erase_confidence ()
-          | `CHR chr -> let size = Layer.viridis_length - 1 in
-            let i = CAnnot.get_group ~size t chr in
+          | `CHR chr ->
+            let i = CAnnot.get_group ~palette:`SUNSET t chr in
             let prob = CAnnot.get t chr in
             if prob > 0.0 then (
               ksprintf CGUI.VToolbox.confidence#set_label 
@@ -122,7 +93,7 @@ let update_confidence_text_area r c =
                (100. *. prob);
               ksprintf CGUI.VToolbox.confidence_color#set_label
                 "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
-                Layer.viridis_palette.(i) Layer.viridis_palette.(i)
+                (CPalette.color i `SUNSET) (CPalette.color i `SUNSET)
             ) else erase_confidence ()
           end
       | _ -> ()

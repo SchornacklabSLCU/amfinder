@@ -39,7 +39,7 @@ val get : t -> char -> float
 val rem : t -> char -> unit
 (** [rem t c] removes tag [c] from the annotation [t]. *)
 
-val get_group : ?size:int -> t -> char -> int
+val get_group : ?palette:CPalette.id -> t -> char -> int
 (** Returns the group which the probability belongs. By default, returns 
   * deciles (useful when using a color gradient). *)
 

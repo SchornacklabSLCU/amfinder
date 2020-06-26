@@ -64,6 +64,7 @@ let create ~ui_width ~ui_height path =
   Create.info "tile matrix rows: %d; columns: %d; edge: %d pixels" nr nc edge;
   let large_tiles = Create.get_large_tiles nr nc edge image in
   let small_edge = min (ui_width / nc) (ui_height / nr) in
+  CPalette.set_tile_edge small_edge;
   let small_tiles = tagger_matrix_map (Create.scale ~edge:small_edge) large_tiles in
   let annotations = Create.annotations path small_tiles in
   let xini = (ui_width - small_edge * nc) / 2

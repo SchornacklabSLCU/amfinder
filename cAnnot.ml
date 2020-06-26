@@ -30,10 +30,11 @@ let mem = generator (fun t i -> Array.get t i > 0.0) false
 let rem = generator (fun t i -> Array.set t i 0.0) ()
 let get = generator Array.get 0.0
 
-let get_group ?(size = 10) (A t) chr =
+let get_group ?(palette = `VIRIDIS) (A t) chr =
   match List.assoc_opt chr index_list with
   | None -> assert false
-  | Some i -> let x = t.(i) and r = 1.0 /. (float size) in
+  | Some i -> let size = CPalette.max_group palette in
+    let x = t.(i) and r = 1.0 /. (float size) in
     let res = x /. r in
     let tmp = truncate res in
     if x -. r *. (float tmp) > 0.0 then tmp + 1 else tmp
