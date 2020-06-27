@@ -3,7 +3,7 @@
 let update_annotations ev =
   begin try
     let key = Char.uppercase_ascii (GdkEvent.Key.string ev).[0] in
-    if String.contains "AVEIRDH" key then CGUI.HToolbox.toggle_any key
+    if String.contains CAnnot.codes key then CGUI.HToolbox.toggle_any key
   with _ -> () end;
   false
 
