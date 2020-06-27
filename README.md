@@ -10,14 +10,14 @@ Graphical user interface to assist with the annotation of mycorrhiza images.
 
 Install the OCaml package manager [OPAM](https://opam.ocaml.org/):
 
-```bash
-# apt instal opam
+```
+# apt install opam
 ```
 
 and follow OPAM instructions for initialization and update.
 Then, install the Lablgtk2 and Cairo2 libraries:
 
-```bash
+```
 $ opam install lablgtk2
 $ opam install cairo2
 ```
