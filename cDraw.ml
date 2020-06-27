@@ -39,7 +39,6 @@ let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) img =
   stroke t;
   surface
 
-let palette_name = `PLASMA
 
 module Layer = struct
   let master = CExt.memoize
@@ -68,8 +67,9 @@ module Layer = struct
     | `SPECIAL -> master ()
     | `CHR chr -> match CAnnot.annotation_type () with
       | `BINARY -> List.assoc chr (categories ())
-      | `GRADIENT -> let grp = CAnnot.get_group ~palette:palette_name ann chr in
-        CPalette.surface palette_name grp
+      | `GRADIENT -> let palette = CSettings.palette () in
+        let grp = CAnnot.get_group ~palette ann chr in
+        CPalette.surface palette grp
    
 end
 
@@ -86,8 +86,8 @@ let update_confidence_text_area r c =
         else begin 
           match CGUI.VToolbox.get_active () with
           | `SPECIAL -> erase_confidence ()
-          | `CHR chr ->
-            let i = CAnnot.get_group ~palette:palette_name t chr in
+          | `CHR chr -> let palette = CSettings.palette () in
+            let i = CAnnot.get_group ~palette:palette t chr in
             let prob = CAnnot.get t chr in
             if prob > 0.0 then (
               ksprintf CGUI.VToolbox.confidence#set_label 
@@ -95,7 +95,7 @@ let update_confidence_text_area r c =
                (100. *. prob);
               ksprintf CGUI.VToolbox.confidence_color#set_label
                 "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
-                (CPalette.color palette_name i) (CPalette.color palette_name i)
+                (CPalette.color palette i) (CPalette.color palette i)
             ) else erase_confidence ()
           end
       | _ -> ()
