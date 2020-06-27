@@ -26,6 +26,16 @@ let icons () =
     ignore (btn#connect#toggled ~callback);
   ) CGUI.HToolbox.toggles
 
+let layers () =
+  let activate radio () = if radio#get_active then CDraw.active_layer () in
+  List.iter (fun x ->
+    let radio = fst (snd x) in
+    ignore (radio#connect#toggled ~callback:(activate radio))
+  ) CGUI.VToolbox.radios;
+  let master = fst CGUI.VToolbox.master in
+  master#connect#toggled ~callback:(activate master);
+  activate master ()
+
 let toggles =
   Array.map (fun (key, (toggle, _)) ->
     let id = toggle#connect#toggled 
@@ -46,3 +56,6 @@ let mouse_pointer () =
   area#event#connect#leave_notify CDraw.MouseTracker.hide;
   area#event#connect#button_press (CDraw.Cursor.at_mouse_pointer ~toggles);
   ()
+
+let initialize () =
+  List.iter (fun f -> f ()) [icons; layers; keyboard; mouse_pointer]
