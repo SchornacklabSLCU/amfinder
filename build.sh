@@ -1,6 +1,6 @@
 #! /bin/bash
 
-BIN="castanet-annotation-editor"
+BIN="castanet-editor"
 OPT='ocamlopt.opt'
 CFLAGS='-w,s,-g'
 OPT="ocamlopt -nodynlink -O3 -principal -inline 200"
