@@ -35,11 +35,9 @@ module Thumbnail : sig
   val width : unit -> int
   (** Width of the drawing area, in pixels. *)
   val height : unit -> int
-  (** height of the drawing area, in pixels. *)
-  val refresh : GdkEvent.Expose.t -> bool
-  (** Call to this functions refreshes the display. *)
+  (** Height of the drawing area, in pixels. *)
   val synchronize : unit -> unit
-  (** Synchronize the backing [pixmap] with the foreground [area]. *)
+  (** Synchronizes the backing [pixmap] with the foreground [area]. *)
 end
 
 
