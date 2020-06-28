@@ -1,4 +1,4 @@
-(* CastANet - caN_draw.ml *)
+(* CastANet - cDraw.ml *)
 
 open CExt
 open Printf
@@ -39,7 +39,6 @@ let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) img =
   stroke t;
   surface
 
-
 module Layer = struct
   let master = CExt.memoize
     begin fun () ->
@@ -72,59 +71,6 @@ module Layer = struct
         CPalette.surface palette grp
    
 end
-
-let erase_confidence () =
-  CGUI.VToolbox.confidence#set_label "<tt><small><b> n/a </b></small></tt>";
-  CGUI.VToolbox.confidence_color#set_label "<tt><span background='white' \
-    foreground='white'>DDDDD</span></tt>"
-
-let update_confidence_text_area r c =
-  Gaux.may (fun img ->
-    begin match CImage.annotation ~r ~c img with
-      | Some t when CAnnot.annotation_type () = `GRADIENT -> 
-        if CAnnot.is_empty t then erase_confidence ()
-        else begin 
-          match CGUI.VToolbox.get_active () with
-          | `SPECIAL -> erase_confidence ()
-          | `CHR chr -> let palette = CSettings.palette () in
-            let i = CAnnot.get_group ~palette:palette t chr in
-            let prob = CAnnot.get t chr in
-            if prob > 0.0 then (
-              ksprintf CGUI.VToolbox.confidence#set_label 
-                "<tt><small><b>%-3.0f %%</b></small></tt>" 
-               (100. *. prob);
-              ksprintf CGUI.VToolbox.confidence_color#set_label
-                "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
-                (CPalette.color palette i) (CPalette.color palette i)
-            ) else erase_confidence ()
-          end
-      | _ -> ()
-    end
-  ) !curr
-
-let update_text_areas ~r ~c () =
-  ksprintf CGUI.VToolbox.row#set_label
-    "<tt><small><b>R:</b> %03d</small></tt>" r;
-  ksprintf CGUI.VToolbox.column#set_label
-    "<tt><small><b>C:</b> %03d</small></tt>" c;
-  update_confidence_text_area r c
-
-
-
-let curr_annotation () =
-  match !curr with
-  | None -> assert false
-  | Some img -> let r, c = CImage.cursor_pos img in
-    match CImage.annotation ~r ~c img with
-    | None -> assert false 
-    | Some x -> x 
-
-let set_curr_annotation active chr =
-  Gaux.may (fun img ->
-    CAnnot.(if active then add else rem) (curr_annotation ()) chr;
-    let r, c = CImage.cursor_pos img in
-    update_confidence_text_area r c
-  ) !curr
 
 let tile ?(sync = false) r c =
   Gaux.may (fun img ->
@@ -180,17 +126,6 @@ let cursor ?(sync = false) () =
   ) !curr
 
 
-let active_layer ?(sync = true) () =
-  Gaux.may (fun img ->
-    CImage.iter_annotations (fun r c _ ->
-      tile r c;
-      annot r c
-    ) img;
-    cursor ();
-    let r, c = CImage.cursor_pos img in update_text_areas ~r ~c ();
-    if sync then CGUI.Thumbnail.synchronize ()
-  ) !curr
-
 let missing_image = CExt.memoize 
   (fun () ->
     let pix = GdkPixbuf.create ~width:180 ~height:180 () in
@@ -199,6 +134,50 @@ let missing_image = CExt.memoize
 
 
 module GUI = struct
+  let erase_confidence () =
+    CGUI.VToolbox.confidence#set_label "<tt><small><b> n/a </b></small></tt>";
+    CGUI.VToolbox.confidence_color#set_label "<tt><span background='white' \
+      foreground='white'>DDDDD</span></tt>"
+
+  let update_confidence_text_area r c =
+    Gaux.may (fun img ->
+      begin match CImage.annotation ~r ~c img with
+        | Some t when CAnnot.annotation_type () = `GRADIENT -> 
+          if CAnnot.is_empty t then erase_confidence ()
+          else begin 
+            match CGUI.VToolbox.get_active () with
+            | `SPECIAL -> erase_confidence ()
+            | `CHR chr -> let palette = CSettings.palette () in
+              let i = CAnnot.get_group ~palette:palette t chr in
+              let prob = CAnnot.get t chr in
+              if prob > 0.0 then (
+                ksprintf CGUI.VToolbox.confidence#set_label 
+                  "<tt><small><b>%-3.0f %%</b></small></tt>" 
+                 (100. *. prob);
+                ksprintf CGUI.VToolbox.confidence_color#set_label
+                  "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
+                  (CPalette.color palette i) (CPalette.color palette i)
+              ) else erase_confidence ()
+            end
+        | _ -> ()
+      end
+    ) !curr
+
+  let update_text_areas ~r ~c () =
+    ksprintf CGUI.VToolbox.row#set_label
+      "<tt><small><b>R:</b> %03d</small></tt>" r;
+    ksprintf CGUI.VToolbox.column#set_label
+      "<tt><small><b>C:</b> %03d</small></tt>" c;
+    update_confidence_text_area r c
+
+  let curr_annotation () =
+    match !curr with
+    | None -> assert false
+    | Some img -> let r, c = CImage.cursor_pos img in
+      match CImage.annotation ~r ~c img with
+      | None -> assert false 
+      | Some x -> x 
+
   let magnified_view () =
     Gaux.may (fun img ->
       let cur_r, cur_c = CImage.cursor_pos img in
@@ -225,6 +204,25 @@ module GUI = struct
     ) t
 end
 
+let set_curr_annotation active chr =
+  Gaux.may (fun img ->
+    let r, c = CImage.cursor_pos img in
+    Gaux.may (fun ann ->
+      CAnnot.(if active then add else rem) ann chr;
+      GUI.update_confidence_text_area r c
+    ) (CImage.annotation ~r ~c img)
+  ) !curr
+
+let active_layer ?(sync = true) () =
+  Gaux.may (fun img ->
+    CImage.iter_annotations (fun r c _ ->
+      tile r c;
+      annot r c
+    ) img;
+    cursor ();
+    let r, c = CImage.cursor_pos img in GUI.update_text_areas ~r ~c ();
+    if sync then CGUI.Thumbnail.synchronize ()
+  ) !curr
 
 module Cursor = struct
   let move ~f_row ~f_col toggles =
