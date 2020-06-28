@@ -17,7 +17,9 @@ let border_width = spacing
 
 
 module Box = struct
+  (* To allow for a status label to be added at the bottom of the interface. *)
   let v = GPack.vbox ~spacing:2 ~border_width ~packing:window#add ()
+  (* To display the magnified view and whole image side by side. *)
   let h = GPack.hbox ~spacing   ~border_width ~packing:v#add ()
 end
 
@@ -35,10 +37,14 @@ end
 
 
 module HToolbox = struct
-  let bbox = GPack.table ~rows:1 ~columns:7 
-    ~col_spacings:10
-    ~homogeneous:true
-    ~packing:(Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE) () 
+  let bbox =
+    (* Setting up expand/fill allows to centre the button box. *)
+    let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE in
+    GPack.table
+      ~rows:1 ~columns:7 
+      ~col_spacings:10
+      ~homogeneous:true
+      ~packing ()
 
   let set_icon image button rgba grey () =
     image#set_pixbuf (if button#active then rgba else grey)
@@ -57,68 +63,74 @@ module HToolbox = struct
     |> List.combine CAnnot.code_list
     |> Array.of_list
  
-  let toggle_action f chr =
-    let _, (toggle, _) = toggles.(String.index CAnnot.codes chr) in
-    f toggle
- 
-  let get_toggle_status = toggle_action (fun t -> t#active)
-  let set_toggle_status status = toggle_action (fun t -> 
-    match status with
-    | `INVERT -> t#set_active (not t#active)
-    | `BOOL b -> t#set_active b)
-  
-  let lock = ref false
-  
-  let activate t = 
-    lock := true;
-    String.iter (set_toggle_status (`BOOL true)) t;
-    lock := false
-  
-  let deactivate t =
-    lock := true;
-    String.iter (set_toggle_status (`BOOL false)) t;
-    lock := false
-  
-  let check chr =
-    activate (CAnnot.requires chr);
-    deactivate (CAnnot.forbids chr);
-    if not (get_toggle_status chr) then deactivate (CAnnot.erases chr)
- 
-  let toggle_any chr = set_toggle_status `INVERT chr; check chr
+  module Action = struct
+    let apply any chr = String.index CAnnot.codes chr
+      |> Array.get toggles
+      |> snd
+      |> fst
+      |> any
    
-  let _ = 
-    Array.iter (fun (chr, (toggle, _)) ->
-      toggle#connect#toggled ~callback:(fun () ->
-        if not !lock then check chr); ()
-    ) toggles
+    let is_active = apply (fun t -> t#active)
+
+    let set_status status = 
+      apply (fun t -> 
+        let status = match status with
+          | `INVERT -> not t#active
+          | `BOOL b -> b
+        in t#set_active status)
+    
+    let lock = ref false
+    
+    let activate t = 
+      lock := true;
+      String.iter (set_status (`BOOL true)) t;
+      lock := false
+    
+    let deactivate t =
+      lock := true;
+      String.iter (set_status (`BOOL false)) t;
+      lock := false
+    
+    let check chr () =
+      if not !lock then begin
+        activate (CAnnot.requires chr);
+        deactivate (CAnnot.forbids chr);
+        if not (is_active chr) then deactivate (CAnnot.erases chr)
+      end
+
+    let _ = 
+      Array.iter (fun (chr, (toggle, _)) ->
+        ignore (toggle#connect#toggled ~callback:(check chr))
+      ) toggles
+  end
+    
+  let toggle_any chr =
+    Action.set_status `INVERT chr;
+    Action.check chr () 
 end
 
 
 module Magnify = struct
-  let table = 
-    let packing = Pane.left#attach ~top:1 ~left:0 ~expand:`NONE ~fill:`NONE in
-    GPack.table ~rows:3 ~columns:3 ~homogeneous:true ~packing ()
-
+  let rows = 3
+  let columns = 3
   let edge = 180
 
-  let event_box top left packing =
-    let event = GBin.event_box ~packing () in
+  let table = 
+    let packing = Pane.left#attach ~top:1 ~left:0 in
+    GPack.table ~rows ~columns ~packing ()
+
+  let tile_image top left =
+    let event = GBin.event_box
+      ~width:(edge + 2) ~height:(edge + 2) 
+      ~packing:(table#attach ~left ~top) () in
     let color = if top = 1 && left = 1 then "red" else "gray60" in
     event#misc#modify_bg [`NORMAL, `NAME color];
-    event#add
+    let pixmap = GDraw.pixmap ~width:edge ~height:edge () in
+    GMisc.pixmap pixmap ~packing:event#add ()
 
-  let tiles =
-    let width = edge and height = edge in
-    Array.init 3 (fun top -> 
-      Array.init 3 (fun left ->
-        let packing = table#attach ~left ~top ~expand:`NONE ~fill:`NONE in
-        let box = GPack.vbox ~width:(edge + 2) ~height:(edge + 2) ~packing () in
-        let packing = event_box top left box#add
-        and pixmap = GDraw.pixmap ~width ~height () in
-        let image = GMisc.pixmap ~xalign:0.5 ~yalign:0.5 pixmap ~packing () in
-        image
-    ))
+  let tiles = Array.(init rows (fun t -> init columns (tile_image t)))
 end
+
 
 module Thumbnail = struct
   let frame = GBin.frame ~width:600 
