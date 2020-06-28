@@ -115,14 +115,14 @@ module Magnify = struct
   let columns = 3
   let edge = 180
 
-  let table = 
-    let packing = Pane.left#attach ~top:1 ~left:0 in
-    GPack.table ~rows ~columns ~packing ()
+  let table = GPack.table
+    ~rows ~columns
+    ~packing:(Pane.left#attach ~top:1 ~left:0) ()
 
   let tile_image top left =
     let event = GBin.event_box
       ~width:(edge + 2) ~height:(edge + 2) 
-      ~packing:(table#attach ~left ~top) () in
+      ~packing:(table#attach ~top ~left) () in
     let color = if top = 1 && left = 1 then "red" else "gray60" in
     event#misc#modify_bg [`NORMAL, `NAME color];
     let pixmap = GDraw.pixmap ~width:edge ~height:edge () in
