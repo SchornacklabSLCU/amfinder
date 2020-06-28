@@ -16,12 +16,12 @@ val tagger_matrix_iteri : (int -> int -> 'a -> unit) -> 'a array array -> unit
 (** Matrix iterator. *)
 
 val tagger_split_lines : string -> string list
-(** Split lines using linefeed (['\n']) as delimiter.
-  * @example [tagger_split_lines "foo\nbar"] returns [\["foo"; "bar"\]]. *)
+(** Split lines using linefeed (['\n']) as delimiter. For instance,
+  * [tagger_split_lines "foo\nbar"] returns [\["foo"; "bar"\]]. *)
 
 val tagger_split_tabs : string -> string list
-(** Splits text using tabulation (['\t']) as delimiter.
-  * @example [tagger_split_tabs "foo\tbar"] returns [\["foo"; "bar"\]]. *)
+(** Splits text using tabulation (['\t']) as delimiter. For instance,
+  * [tagger_split_tabs "foo\tbar"] returns [\["foo"; "bar"\]]. *)
 
 val tagger_read_file : ?trim:bool -> string -> string
 (** Reads a file. *)
@@ -42,7 +42,7 @@ val tagger_html_to_int : string -> int * int * int
 (** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue values. *)
 
 val tagger_html_to_int16 : string -> int * int * int
-(** [Same as [html_to_int], but returns 16-bit values. *)
+(** Same as [html_to_int], but returns 16-bit values. *)
 
 val tagger_html_to_float : string -> float * float * float
 (** Same as [html_to_int], but returns values as floats. *)

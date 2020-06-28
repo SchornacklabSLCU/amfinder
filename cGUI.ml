@@ -153,7 +153,7 @@ module Thumbnail = struct
     area#misc#draw (Some (Gdk.Rectangle.create ~x:0 ~y:0 ~width ~height))
 
   let _ =
-    (* Repaint upon exposure. *)
+    (* Repaint masked area upon GtkDrawingArea exposure. *)
     let repaint ev =
       let open Gdk.Rectangle in
       let r = GdkEvent.Expose.area ev in
@@ -165,7 +165,7 @@ module Thumbnail = struct
       false in
     area#event#add [`EXPOSURE];
     area#event#connect#expose repaint;
-    (* Initializes the pixmap and the corresponding Cairo.context. *)
+    (* Creates a GtkPixmap and its Cairo.context upon widget size allocation. *)
     let initialize {Gtk.width; height} =  
       let pixmap = GDraw.pixmap ~width ~height () in
       let cairo = Cairo_gtk.create pixmap#pixmap in
@@ -179,8 +179,7 @@ module VToolbox = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:75
-    ~height:565
+    ~width:75 ~height:565 (* Minimal size to display widgets. *)
     ~packing:(Pane.right#attach ~left:1 ~top:0 ~expand:`Y ~fill:`NONE) ()
 
   let packing = toolbar#insert
@@ -197,12 +196,12 @@ module VToolbox = struct
       if vspace then morespace ();
       label
     let radio ?group typ =
-      let active, f = match typ with
+      let active, get_icon = match typ with
         | `CHR chr -> false, CIcon.get chr `GREY 
-        | `SPECIAL -> true, CIcon.get_special `RGBA (* is active *) in
+        | `SPECIAL -> true, CIcon.get_special `RGBA in
       let radio = GButton.radio_tool_button ?group ~active ~packing () in
       let image = GMisc.image ~width:24 ~packing:radio#set_icon_widget () in
-      image#set_pixbuf (f `SMALL);
+      image#set_pixbuf (get_icon `SMALL);
       radio, image
   end
   

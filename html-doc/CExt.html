@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="CPalette.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="CExt" rel="Chapter" href="CExt.html">
+<link title="CPalette" rel="Chapter" href="CPalette.html">
+<link title="CSettings" rel="Chapter" href="CSettings.html">
+<link title="CAnnot" rel="Chapter" href="CAnnot.html">
+<link title="CIcon" rel="Chapter" href="CIcon.html">
+<link title="CImage" rel="Chapter" href="CImage.html">
+<link title="CGUI" rel="Chapter" href="CGUI.html">
+<link title="CDraw" rel="Chapter" href="CDraw.html">
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CExt</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="CPalette.html" title="CPalette">Next</a>
+</div>
+<h1>Module <a href="type_CExt.html">CExt</a></h1>
+
+<pre><span id="MODULECExt"><span class="keyword">module</span> CExt</span>: <code class="code">sig</code> <a href="CExt.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Helper functions. The functions list below carry the prefix <code class="code">tagger_</code> to 
+ prevent namespace clash when opening the module.</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="VALtagger_string_fold_left"><span class="keyword">val</span> tagger_string_fold_left</span> : <code class="type">('a -> char -> 'a) -> 'a -> string -> 'a</code></pre><div class="info ">
+<div class="info-desc">
+<p>Extended strings.</p>
+</div>
+</div>
+
+<pre><span id="MODULECString"><span class="keyword">module</span> <a href="CExt.CString.html">CString</a></span>: <code class="code">sig</code> <a href="CExt.CString.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Operations on strings.</p>
+
+</div>
+
+<pre><span id="VALtagger_matrix_iteri"><span class="keyword">val</span> tagger_matrix_iteri</span> : <code class="type">(int -> int -> 'a -> unit) -> 'a array array -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Matrix iterator.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_split_lines"><span class="keyword">val</span> tagger_split_lines</span> : <code class="type">string -> string list</code></pre><div class="info ">
+<div class="info-desc">
+<p>Split lines using linefeed (<code class="code">'\n'</code>) as delimiter. For instance,
+ <code class="code">tagger_split_lines "foo\nbar"</code> returns <code class="code">["foo"; "bar"]</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_split_tabs"><span class="keyword">val</span> tagger_split_tabs</span> : <code class="type">string -> string list</code></pre><div class="info ">
+<div class="info-desc">
+<p>Splits text using tabulation (<code class="code">'\t'</code>) as delimiter. For instance,
+ <code class="code">tagger_split_tabs "foo\tbar"</code> returns <code class="code">["foo"; "bar"]</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_read_file"><span class="keyword">val</span> tagger_read_file</span> : <code class="type">?trim:bool -> string -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p>Reads a file.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_info"><span class="keyword">val</span> tagger_info</span> : <code class="type">('a, Stdlib.out_channel, unit, unit, unit, unit) Stdlib.format6 -> 'a</code></pre><div class="info ">
+<div class="info-desc">
+<p>Info message (prints to stdout).</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_warning"><span class="keyword">val</span> tagger_warning</span> : <code class="type">('a, Stdlib.out_channel, unit, unit, unit, unit) Stdlib.format6 -> 'a</code></pre><div class="info ">
+<div class="info-desc">
+<p>Warning (prints to stderr).</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_error"><span class="keyword">val</span> tagger_error</span> : <code class="type">?code:int -><br>       ('a, Stdlib.out_channel, unit, unit, unit, 'b) Stdlib.format6 -> 'a</code></pre><div class="info ">
+<div class="info-desc">
+<p>Error message (prints to stderr).</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_time"><span class="keyword">val</span> tagger_time</span> : <code class="type">('a -> 'b) -> 'a -> 'b</code></pre><div class="info ">
+<div class="info-desc">
+<p>Benchmark function.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_html_to_int"><span class="keyword">val</span> tagger_html_to_int</span> : <code class="type">string -> int * int * int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">html_to_int "#RRGGBB"</code> returns 8-bit red, green and blue values.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_html_to_int16"><span class="keyword">val</span> tagger_html_to_int16</span> : <code class="type">string -> int * int * int</code></pre><div class="info ">
+<div class="info-desc">
+<p>Same as <code class="code">html_to_int</code>, but returns 16-bit values.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_html_to_float"><span class="keyword">val</span> tagger_html_to_float</span> : <code class="type">string -> float * float * float</code></pre><div class="info ">
+<div class="info-desc">
+<p>Same as <code class="code">html_to_int</code>, but returns values as floats.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_float_to_int"><span class="keyword">val</span> tagger_float_to_int</span> : <code class="type">float -> float -> float -> int * int * int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">float_to_html r g b</code> returns 8-bit red, green and blue values.</p>
+</div>
+</div>
+
+<pre><span id="VALtagger_float_to_html"><span class="keyword">val</span> tagger_float_to_html</span> : <code class="type">float -> float -> float -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">float_to_html r g b</code> returns "#RRGGBB" (hexadecimal notation).</p>
+</div>
+</div>
+
+<pre><span id="VALmemoize"><span class="keyword">val</span> memoize</span> : <code class="type">(unit -> 'a) -> unit -> 'a</code></pre><div class="info ">
+<div class="info-desc">
+<p>Memoization function.</p>
+</div>
+</div>
+</body></html>

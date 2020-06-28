@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="CGUI.html">
+<link rel="next" href="CEvent.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="CExt" rel="Chapter" href="CExt.html">
+<link title="CPalette" rel="Chapter" href="CPalette.html">
+<link title="CSettings" rel="Chapter" href="CSettings.html">
+<link title="CAnnot" rel="Chapter" href="CAnnot.html">
+<link title="CIcon" rel="Chapter" href="CIcon.html">
+<link title="CImage" rel="Chapter" href="CImage.html">
+<link title="CGUI" rel="Chapter" href="CGUI.html">
+<link title="CDraw" rel="Chapter" href="CDraw.html">
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CDraw</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="CGUI.html" title="CGUI">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="CEvent.html" title="CEvent">Next</a>
+</div>
+<h1>Module <a href="type_CDraw.html">CDraw</a></h1>
+
+<pre><span id="MODULECDraw"><span class="keyword">module</span> CDraw</span>: <code class="code">sig</code> <a href="CDraw.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Thumbnail drawing.</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="VALload"><span class="keyword">val</span> load</span> : <code class="type">string -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Loads an image.</p>
+</div>
+</div>
+
+<pre><span id="VALcurr_image"><span class="keyword">val</span> curr_image</span> : <code class="type">unit -> <a href="CImage.html#TYPEt">CImage.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Returns the current image.</p>
+</div>
+</div>
+
+<pre><span id="VALset_curr_annotation"><span class="keyword">val</span> set_curr_annotation</span> : <code class="type">bool -> char -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Updates current annotation.</p>
+</div>
+</div>
+
+<pre><span id="VALcursor"><span class="keyword">val</span> cursor</span> : <code class="type">?sync:bool -> unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Display the cursor.</p>
+</div>
+</div>
+
+<pre><span id="VALactive_layer"><span class="keyword">val</span> active_layer</span> : <code class="type">?sync:bool -> unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Display the active annotation layer of the current image.</p>
+</div>
+</div>
+
+<pre><span id="MODULEGUI"><span class="keyword">module</span> <a href="CDraw.GUI.html">GUI</a></span>: <code class="code">sig</code> <a href="CDraw.GUI.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Interaction between drawing and the graphical user interface.</p>
+
+</div>
+
+<pre><span id="MODULECursor"><span class="keyword">module</span> <a href="CDraw.Cursor.html">Cursor</a></span>: <code class="code">sig</code> <a href="CDraw.Cursor.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Keyboard- and mouse-responsive cursor drawing functions.</p>
+
+</div>
+
+<pre><span id="MODULEMouseTracker"><span class="keyword">module</span> <a href="CDraw.MouseTracker.html">MouseTracker</a></span>: <code class="code">sig</code> <a href="CDraw.MouseTracker.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Drawing functions related to mouse pointer.</p>
+
+</div>
+</body></html>
