@@ -122,9 +122,9 @@ module Magnify = struct
   let tile_image top left =
     let event = GBin.event_box
       ~width:(edge + 2) ~height:(edge + 2) 
-      ~packing:(table#attach ~top ~left) () in
+      ~packing:(table#attach ~top ~left) ()
     (* The centre has a red frame to grab users attention. *)
-    let color = if top = 1 && left = 1 then "red" else "gray60" in
+    and color = if top = 1 && left = 1 then "red" else "gray60" in
     event#misc#modify_bg [`NORMAL, `NAME color];
     let pixmap = GDraw.pixmap ~width:edge ~height:edge () in
     GMisc.pixmap pixmap ~packing:event#add ()
@@ -134,51 +134,43 @@ end
 
 
 module Thumbnail = struct
-  let frame = GBin.frame
-    ~width:600 
-    ~packing:(Pane.right#attach ~left:0 ~top:0) ()
-
-  let area = GMisc.drawing_area ~packing:frame#add ()
+  let area = 
+    let packing = Pane.right#attach ~left:0 ~top:0 in
+    let packing = (GBin.frame ~width:600 ~packing ())#add in
+    GMisc.drawing_area ~packing ()
 
   type drawing_tools = { pixmap : GDraw.pixmap; cairo : Cairo.context }
-  let memo = ref { pixmap = Obj.magic (); cairo = Obj.magic () }
+  let dt = ref None
 
-  let cairo () = !memo.cairo
-  let pixmap () = !memo.pixmap
-  let width () = fst !memo.pixmap#size
-  let height () = snd !memo.pixmap#size
-
-  let refresh ev =
-    let open Gdk.Rectangle in
-    let r = GdkEvent.Expose.area ev in
-    let x = x r and y = y r and width = width r and height = height r in
-    let drawing = new GDraw.drawable area#misc#window in
-    drawing#put_pixmap ~x ~y ~xsrc:x ~ysrc:y ~width ~height (pixmap ())#pixmap;
-    false
+  let get f () = match !dt with None -> assert false | Some dt -> f dt
+  let cairo = get (fun dt -> dt.cairo)
+  let pixmap = get (fun dt -> dt.pixmap)
+  let width = get (fun dt -> fst dt.pixmap#size)
+  let height = get (fun dt -> snd dt.pixmap#size)
 
   let synchronize () =
     let width = width () and height = height () in
     area#misc#draw (Some (Gdk.Rectangle.create ~x:0 ~y:0 ~width ~height))
 
-  let initialize () =
-    let t = cairo () in
-    Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-    Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
-    Cairo.rectangle t 0.0 0.0 ~w:(float (width ())) ~h:(float (height ()));
-    Cairo.fill t;
-    Cairo.stroke t;
-    synchronize ()
-
-  let create_drawing_toolbox {Gtk.width; height} =   
-    let pixmap = GDraw.pixmap ~width ~height () in
-    let cairo = Cairo_gtk.create pixmap#pixmap in
-    memo := {pixmap; cairo};
-    initialize ()
-
   let _ =
+    (* Repaint upon exposure. *)
+    let repaint ev =
+      let open Gdk.Rectangle in
+      let r = GdkEvent.Expose.area ev in
+      let x = x r and y = y r and width = width r and height = height r in
+      let drawing = new GDraw.drawable area#misc#window in
+      drawing#put_pixmap
+        ~x ~y ~xsrc:x ~ysrc:y
+        ~width ~height (pixmap ())#pixmap;
+      false in
     area#event#add [`EXPOSURE];
-    ignore (area#event#connect#expose refresh);
-    ignore (area#misc#connect#size_allocate create_drawing_toolbox)  
+    area#event#connect#expose repaint;
+    (* Initializes the pixmap and the corresponding Cairo.context. *)
+    let initialize {Gtk.width; height} =  
+      let pixmap = GDraw.pixmap ~width ~height () in
+      let cairo = Cairo_gtk.create pixmap#pixmap in
+      dt := Some {pixmap; cairo}
+    in area#misc#connect#size_allocate initialize
 end
 
 

@@ -3,8 +3,8 @@
 let _ =
   Printexc.record_backtrace true;
   print_endline "castanet-editor version 1.0";
-  CGUI.window#show ();
   CSettings.initialize ();
+  CGUI.window#show ();
   CExt.tagger_time CDraw.load (CSettings.image ());
   CEvent.initialize ();
   CDraw.GUI.magnified_view ();

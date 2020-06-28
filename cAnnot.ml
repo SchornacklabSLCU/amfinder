@@ -16,7 +16,6 @@ let requires = function
 let forbids = function 'D' -> "AVIERH" | _ -> "D"
 let erases = function 'R' -> "AVIH" | _ -> ""
 
-
 type t = A of float array
 
 let empty_table = Array.make ncodes 0.0

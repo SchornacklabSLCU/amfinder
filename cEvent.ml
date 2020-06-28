@@ -49,7 +49,7 @@ let keyboard () =
   connect#key_press update_annotations;
   ()
 
-let mouse_pointer () =
+let drawing_area () =
   let open CGUI.Thumbnail in
   area#event#add [`POINTER_MOTION; `BUTTON_PRESS; `LEAVE_NOTIFY];
   area#event#connect#motion_notify CDraw.MouseTracker.update;
@@ -58,4 +58,4 @@ let mouse_pointer () =
   ()
 
 let initialize () =
-  List.iter (fun f -> f ()) [icons; layers; keyboard; mouse_pointer]
+  List.iter (fun f -> f ()) [icons; layers; keyboard; drawing_area]

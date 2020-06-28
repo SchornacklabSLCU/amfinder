@@ -5,6 +5,16 @@ open Printf
 
 let curr = ref None
 
+let white_background () =
+  let open CGUI.Thumbnail in
+  let cc = cairo () in
+  Cairo.set_source_rgba cc 1.0 1.0 1.0 1.0;
+  let w = float (width ()) and h = float (height ()) in
+  Cairo.rectangle cc 0.0 0.0 ~w ~h;
+  Cairo.fill cc;
+  Cairo.stroke cc;
+  synchronize ()
+
 let load path =
   let ui_width, ui_height, pixmap =
     let open CGUI.Thumbnail in
@@ -12,6 +22,7 @@ let load path =
   let t = CImage.create ~ui_width ~ui_height path in
   curr := Some t;
   let xini, yini, edge = CImage.(xini t, yini t, edge t `SMALL) in
+  white_background ();
   CImage.iter_tiles (fun r c tile -> 
     pixmap#put_pixbuf
       ~x:(xini + c * edge)
