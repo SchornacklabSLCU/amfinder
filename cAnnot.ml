@@ -9,6 +9,14 @@ let ncodes = String.length codes
 let code_list = CExt.CString.fold_right List.cons codes []
 let index_list = Array.(of_list code_list |> mapi (fun i c -> c, i) |> to_list)
 
+let requires = function
+  | 'A' | 'V' | 'I' | 'H' -> "R"
+  | 'E' | 'R' | 'D' |  _  -> ""
+
+let forbids = function 'D' -> "AVIERH" | _ -> "D"
+let erases = function 'R' -> "AVIH" | _ -> ""
+
+
 type t = A of float array
 
 let empty_table = Array.make ncodes 0.0

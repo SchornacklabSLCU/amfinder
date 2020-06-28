@@ -80,18 +80,9 @@ module HToolbox = struct
     lock := false
   
   let check chr =
-    let required, forbidden, erased = match chr with
-      | 'A' -> "R", "D", ""
-      | 'V' -> "R", "D", ""
-      | 'I' -> "R", "D", ""
-      | 'E' -> "", "D", ""
-      | 'R' -> "", "D", "AVIH"
-      | 'D' -> "", "AVIERH", ""
-      | 'H' -> "R", "D", ""
-      |  _  -> assert false in
-    activate required;
-    deactivate forbidden;
-    if not (get_toggle_status chr) then deactivate erased
+    activate (CAnnot.requires chr);
+    deactivate (CAnnot.forbids chr);
+    if not (get_toggle_status chr) then deactivate (CAnnot.erases chr)
  
   let toggle_any chr = set_toggle_status `INVERT chr; check chr
    

@@ -15,6 +15,15 @@ val codes : string
   * - ['R'] for root,
   * - ['D'] for low-quality tiles to be discarded. *)
 
+val requires : char -> string
+(** [requires c] returns the annotations that are required together with [c]. *)
+
+val forbids : char -> string
+(** [forbids c] returns the annotations that cannot occur together with [c]. *)
+
+val erases : char -> string
+(** [erases c] returns the annotations that get removed together with [c]. *)
+
 val code_list : char list
 (** Same as [code], but given as a list for convenience. *)
 
