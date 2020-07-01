@@ -17,6 +17,9 @@ val cursor : ?sync:bool -> unit -> unit
 val active_layer : ?sync:bool -> unit -> unit
 (** Display the active annotation layer of the current image. *)
 
+val display_set : unit -> unit
+(** Display all tiles that belong to the current layer. *)
+
 (** Interaction between drawing and the graphical user interface. *)
 module GUI : sig
   val magnified_view : unit -> unit

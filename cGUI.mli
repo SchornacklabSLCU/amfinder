@@ -73,3 +73,16 @@ end
 val status : GMisc.label
 (** Label used as a status bar. It displays general information related to the 
   * loaded image, such as height and width (in pixels). *)
+
+(** Auxiliary window to display all tiles sharing a given annotation. *)
+module TileSet : sig
+  val add : r:int -> c:int -> ico:GdkPixbuf.pixbuf -> GdkPixbuf.pixbuf -> unit
+  (** [add r c pix] adds the tile [pix] using coordinates [(r, c)] as legend. *)
+  val run : unit -> [`OK | `SAVE | `DELETE_EVENT]
+  (** Displays the dialog and returns the output flag. *)
+  val set_title : ('a, unit, string, unit) format4 -> 'a
+  (** Sets tile set title, using [printf]-like style. *)
+  val hide : unit -> unit
+  (** Hides the tile set and clears all tiles. *)
+end
+

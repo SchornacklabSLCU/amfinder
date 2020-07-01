@@ -235,6 +235,25 @@ let active_layer ?(sync = true) () =
     if sync then CGUI.Thumbnail.synchronize ()
   ) !curr
 
+
+let display_set () =
+  Gaux.may (fun img ->
+    let count = ref 0 in
+    let show, ico = match CGUI.VToolbox.get_active () with
+      | `SPECIAL -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get_special `RGBA `SMALL
+      | `CHR chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
+    CImage.iter_annotations (fun r c ann ->
+      if show ann then begin
+        incr count;
+        Gaux.may (CGUI.TileSet.add ~r ~c ~ico) (CImage.tile ~r ~c img `LARGE) 
+      end
+    ) img;
+    CGUI.TileSet.set_title "Tile set (%d images)" !count;
+    let _ = CGUI.TileSet.run () in
+    CGUI.TileSet.hide ()
+  ) !curr
+
+
 module Cursor = struct
   let move ~f_row ~f_col toggles =
     Gaux.may (fun img ->

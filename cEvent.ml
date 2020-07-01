@@ -57,5 +57,10 @@ let drawing_area () =
   area#event#connect#button_press (CDraw.Cursor.at_mouse_pointer ~toggles);
   ()
 
+let buttons () =
+  CGUI.VToolbox.export#connect#clicked ~callback:CDraw.display_set;
+  ()
+
+
 let initialize () =
-  List.iter (fun f -> f ()) [icons; layers; keyboard; drawing_area]
+  List.iter (fun f -> f ()) [icons; layers; keyboard; drawing_area; buttons]
