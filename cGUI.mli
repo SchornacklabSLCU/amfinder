@@ -43,12 +43,6 @@ end
 
 (** Vertical toolbox (right pane). *)
 module VToolbox : sig
-  val master : GButton.radio_tool_button * GMisc.image
-  (** Main radio button. When active, all annotated tile get overlaid with a 
-    * green square, no matter what the annotation is. *) 
-  val radios : (char * (GButton.radio_tool_button * GMisc.image)) list
-  (** Layer-specific radio buttons. When active, only tiles bearing the
-    * corresponding annotation are displayed. *)  
   val row : GMisc.label
   (** Indicates the current row index. *)
   val column : GMisc.label
@@ -68,6 +62,18 @@ module VToolbox : sig
   (** Saves the current display as a PNG file (currently not implemented). *)
   val preferences : GButton.tool_button
   (** Shows preferences dialog (currently not implemented). *)
+  type radio_type = [`SPECIAL | `CHR of char]
+  (** The type of radio buttons. *)
+  val is_active : radio_type -> bool
+  (** Indicates whether the given layer is active. *)
+  val set_label : radio_type -> int -> unit
+  (** Updates the counter of the given annotation. *)
+  val set_image : radio_type -> GdkPixbuf.pixbuf -> unit
+  (** Updates the icon of the given annotation. *)
+  val iter_radios : (radio_type -> unit) -> unit
+  (** Iterator over radio buttons. *)
+  val set_toggled : radio_type -> (unit -> unit) -> GtkSignal.id
+  (** Sets a callback function to call when a button is toggled. *)
 end
 
 val status : GMisc.label

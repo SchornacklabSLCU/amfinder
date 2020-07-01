@@ -179,10 +179,25 @@ module VToolbox = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:75 ~height:565 (* Minimal size to display widgets. *)
+    ~width:78 ~height:565 (* Minimal size to display widgets. *)
     ~packing:(Pane.right#attach ~left:1 ~top:0 ~expand:`Y ~fill:`NONE) ()
 
   let packing = toolbar#insert
+
+  module Radio = struct
+    type t = {
+      radio : GButton.radio_tool_button;
+      label : GMisc.label;
+      image : GMisc.image;
+    }
+    let create radio label image = {radio; label; image}
+    (* Getters, in case the implementation changes in the future. *)
+    let radio t = t.radio
+    let label t = t.label
+    let image t = t.image
+  end
+
+  type radio_type = [`SPECIAL | `CHR of char]
 
   module Create = struct
     let separator () = ignore (GButton.separator_tool_item ~packing ())
@@ -200,9 +215,13 @@ module VToolbox = struct
         | `CHR chr -> false, CIcon.get chr `GREY 
         | `SPECIAL -> true, CIcon.get_special `RGBA in
       let radio = GButton.radio_tool_button ?group ~active ~packing () in
-      let image = GMisc.image ~width:24 ~packing:radio#set_icon_widget () in
+      let hbox = GPack.hbox ~spacing:2 ~packing:radio#set_icon_widget () in
+      let packing = hbox#add in
+      let image = GMisc.image ~width:24 ~packing () in
+      let label = GMisc.label
+        ~markup:"<small><tt>0000</tt></small>" ~packing () in
       image#set_pixbuf (get_icon `SMALL);
-      radio, image
+      Radio.create radio label image
   end
   
   let _ = Create.separator ()
@@ -211,7 +230,7 @@ module VToolbox = struct
   let master = Create.radio `SPECIAL
 
   let radios =
-    let group = fst master in
+    let group = Radio.radio master in
     List.map (fun c -> c, Create.radio ~group (`CHR c)) CAnnot.code_list
  
   let _ = Create.separator ()
@@ -235,8 +254,44 @@ module VToolbox = struct
   let _ = Create.separator ()
 
   let get_active () =
-    if (fst master)#get_active then `SPECIAL
-    else `CHR (fst (List.find (fun (_, (x, _)) -> x#get_active) radios))
+    let radio = Radio.radio master in
+    if radio#get_active then `SPECIAL
+    else `CHR (fst (List.find (fun (_, t) -> (Radio.radio t)#get_active) radios))
+
+  let is_active typ =
+    let radio = Radio.radio (
+      match typ with
+      | `SPECIAL -> master
+      | `CHR chr -> List.assoc chr radios
+    ) in radio#get_active
+
+  let set_image typ =
+    let image = Radio.image (
+      match typ with
+      | `SPECIAL -> master
+      | `CHR chr -> List.assoc chr radios
+    ) in image#set_pixbuf
+
+  let set_label typ num =
+    let label = Radio.label (
+      match typ with
+      | `SPECIAL -> master
+      | `CHR chr -> List.assoc chr radios
+    ) in ksprintf label#set_label "<small><tt>%04d</tt></small>" num
+  
+  let set_toggled typ callback =
+    let radio = Radio.radio (
+      match typ with
+      | `SPECIAL -> master
+      | `CHR chr -> List.assoc chr radios
+    ) in radio#connect#toggled ~callback
+    
+  let iter_radios f =
+    List.iter (fun (chr, _) ->
+      match chr with
+      | '*' -> f `SPECIAL
+      |  _  -> f (`CHR chr)
+    ) (('*', master) :: radios) 
 end
 
 

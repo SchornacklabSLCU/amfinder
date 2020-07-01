@@ -23,6 +23,7 @@ let empty_table = Array.make ncodes 0.0
 let empty () = A (Array.copy empty_table)
 
 let is_empty (A t) = t = empty_table
+let exists (A t) = t <> empty_table
 
 let ann_type = ref `BINARY
 let annotation_type () = !ann_type

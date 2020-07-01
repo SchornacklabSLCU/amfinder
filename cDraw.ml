@@ -189,6 +189,15 @@ module GUI = struct
       | None -> assert false 
       | Some x -> x 
 
+  let statistics () =
+    Gaux.may (fun img ->
+      List.iter (fun (chr, num) ->
+        match chr with
+        | '*' -> CGUI.VToolbox.set_label `SPECIAL num
+        |  _  -> CGUI.VToolbox.set_label (`CHR chr) num
+      ) (CImage.statistics img)
+    ) !curr
+
   let magnified_view () =
     Gaux.may (fun img ->
       let cur_r, cur_c = CImage.cursor_pos img in
@@ -211,6 +220,7 @@ module GUI = struct
     Array.iter (fun (key, toggle, id) ->
       GtkSignal.handler_block toggle#as_widget id;
       toggle#set_active (String.contains ann key);
+      statistics ();
       GtkSignal.handler_unblock toggle#as_widget id
     ) t
 end
@@ -220,6 +230,7 @@ let set_curr_annotation active chr =
     let r, c = CImage.cursor_pos img in
     Gaux.may (fun ann ->
       CAnnot.(if active then add else rem) ann chr;
+      GUI.statistics ();
       GUI.update_confidence_text_area r c
     ) (CImage.annotation ~r ~c img)
   ) !curr
@@ -310,14 +321,14 @@ module Cursor = struct
     let jump = 
       if List.mem `CONTROL modi then 25 else
       if List.mem `SHIFT   modi then 10 else 1 in
-    begin match sym with
-      | 65361 -> move_left ~jump
-      | 65362 -> move_up ~jump
-      | 65363 -> move_right ~jump
-      | 65364 -> move_down ~jump
-      | _     -> ignore
-    end toggles;
-    false
+    let out, f = match sym with
+      | 65361 -> true, move_left ~jump
+      | 65362 -> true, move_up ~jump
+      | 65363 -> true, move_right ~jump
+      | 65364 -> true, move_down ~jump
+      | _     -> false, ignore
+    in f toggles;
+    out
 
   let at_mouse_pointer ?(toggles = [||]) ev =
     Gaux.may (fun img ->

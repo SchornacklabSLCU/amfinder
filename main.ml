@@ -8,5 +8,6 @@ let _ =
   CExt.tagger_time CDraw.load (CSettings.image ());
   CEvent.initialize ();
   CDraw.GUI.magnified_view ();
+  CDraw.GUI.statistics ();
   CGUI.status#set_label (CImage.digest (CDraw.curr_image ()));
   GMain.main ()

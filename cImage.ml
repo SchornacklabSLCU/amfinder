@@ -105,6 +105,17 @@ let tile ~r ~c img typ = try Some (tiles img typ).(r).(c) with _ -> None
 let annotations img = img.annotations
 let annotation ~r ~c img = try Some (annotations img).(r).(c) with _ -> None
 
+let statistics img =
+  let annot = annotations img in
+  List.map (fun chr ->
+    let res = ref 0 in
+    let f = match chr with 
+      | '*' -> CAnnot.exists 
+      |  _  -> (fun t -> CAnnot.mem t chr)
+    in Array.(iter (iter (fun t -> if f t then incr res))) annot;
+    (chr, !res)
+  ) ('*' :: CAnnot.code_list)
+
 let cursor_pos img = img.cursor
 let set_cursor_pos img pos = img.cursor <- pos
 

@@ -22,6 +22,8 @@ val display_set : unit -> unit
 
 (** Interaction between drawing and the graphical user interface. *)
 module GUI : sig
+  val statistics : unit -> unit
+  (** Image statistics. *)
   val magnified_view : unit -> unit
   (** Displays magnified view. *)
 end

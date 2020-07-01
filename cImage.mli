@@ -57,6 +57,9 @@ val annotations : t -> CAnnot.t array array
 val annotation : r:int -> c:int -> t -> CAnnot.t option
 (** Convenience function to retrieve a specific annotation. *)
 
+val statistics : t -> (char * int) list
+(** Returns the count for a given annotation. Use ['*'] for any annotation. *)
+
 val cursor_pos : t -> int * int
 (** [cursor_pos img] returns the current cursor position in image [img]. *)
 

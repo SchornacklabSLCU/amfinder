@@ -8,33 +8,24 @@ let update_annotations ev =
   false
 
 let icons () =
-  List.iter (fun (chr, (btn, img)) ->
-    let rgba = CIcon.get chr `RGBA `SMALL
-    and grey = CIcon.get chr `GREY `SMALL in
-    let callback () = img#set_pixbuf (if btn#get_active then rgba else grey) in
-    ignore (btn#connect#toggled ~callback)
-  ) CGUI.VToolbox.radios;
-  let btn, img = CGUI.VToolbox.master in
-  let rgba = CIcon.get_special `RGBA `SMALL
-  and grey = CIcon.get_special `GREY `SMALL in
-  let callback () = img#set_pixbuf (if btn#get_active then rgba else grey) in
-  ignore (btn#connect#toggled ~callback);
+  CGUI.VToolbox.iter_radios (fun typ ->
+    let f = match typ with
+      | `SPECIAL -> CIcon.get_special
+      | `CHR chr -> CIcon.get chr in
+    let callback () =
+      let clr = match CGUI.VToolbox.is_active typ with
+        | true  -> CDraw.active_layer (); `RGBA
+        | false -> `GREY
+      in CGUI.VToolbox.set_image typ (f clr `SMALL)
+    in ignore (CGUI.VToolbox.set_toggled typ callback)
+  );
+  CDraw.active_layer ();
   Array.iter (fun (chr, (btn, img)) ->
     let rgba = CIcon.get chr `RGBA `LARGE
     and grey = CIcon.get chr `GREY `LARGE in
     let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
     ignore (btn#connect#toggled ~callback);
   ) CGUI.HToolbox.toggles
-
-let layers () =
-  let activate radio () = if radio#get_active then CDraw.active_layer () in
-  List.iter (fun x ->
-    let radio = fst (snd x) in
-    ignore (radio#connect#toggled ~callback:(activate radio))
-  ) CGUI.VToolbox.radios;
-  let master = fst CGUI.VToolbox.master in
-  master#connect#toggled ~callback:(activate master);
-  activate master ()
 
 let toggles =
   Array.map (fun (key, (toggle, _)) ->
@@ -63,4 +54,4 @@ let buttons () =
 
 
 let initialize () =
-  List.iter (fun f -> f ()) [icons; layers; keyboard; drawing_area; buttons]
+  List.iter (fun f -> f ()) [icons; keyboard; drawing_area; buttons]

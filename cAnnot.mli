@@ -31,7 +31,10 @@ val empty : unit -> t
 (** Creates an empty annotation. *)
 
 val is_empty : t -> bool
-(** Returns [true] if the annotation contain no tag. *)
+(** Returns [true] if the annotation contains no tag. *)
+
+val exists : t -> bool
+(** Returns [true] if the annotation contains at least one tag. *)
 
 val annotation_type : unit -> [`BINARY | `GRADIENT]
 (** Returns the type of annotation used in this instance of thee application. *)
