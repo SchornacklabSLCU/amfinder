@@ -14,7 +14,7 @@
 <link title="CImage" rel="Chapter" href="CImage.html">
 <link title="CGUI" rel="Chapter" href="CGUI.html">
 <link title="CDraw" rel="Chapter" href="CDraw.html">
-<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CImage</title>
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CastANet Editor : CImage</title>
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
@@ -37,6 +37,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;r:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;c:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CImage</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CImage</span>.tile_size&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">GdkPixbuf</span>.pixbuf&nbsp;option<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;annotations&nbsp;:&nbsp;<span class="constructor">CImage</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CAnnot</span>.t&nbsp;array&nbsp;array<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;annotation&nbsp;:&nbsp;r:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;c:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CImage</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CAnnot</span>.t&nbsp;option<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;statistics&nbsp;:&nbsp;<span class="constructor">CImage</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(char&nbsp;*&nbsp;int)&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;cursor_pos&nbsp;:&nbsp;<span class="constructor">CImage</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;*&nbsp;int<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_cursor_pos&nbsp;:&nbsp;<span class="constructor">CImage</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;*&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;iter_tiles&nbsp;:<br>

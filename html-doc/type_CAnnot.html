@@ -14,7 +14,7 @@
 <link title="CImage" rel="Chapter" href="CImage.html">
 <link title="CGUI" rel="Chapter" href="CGUI.html">
 <link title="CDraw" rel="Chapter" href="CDraw.html">
-<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CAnnot</title>
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CastANet Editor : CAnnot</title>
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
@@ -26,6 +26,7 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;code_list&nbsp;:&nbsp;char&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;empty&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CAnnot</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;is_empty&nbsp;:&nbsp;<span class="constructor">CAnnot</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;exists&nbsp;:&nbsp;<span class="constructor">CAnnot</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;annotation_type&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;[&nbsp;<span class="keywordsign">`</span><span class="constructor">BINARY</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">GRADIENT</span>&nbsp;]<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;add&nbsp;:&nbsp;<span class="constructor">CAnnot</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;char&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;mem&nbsp;:&nbsp;<span class="constructor">CAnnot</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;char&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>

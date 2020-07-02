@@ -15,7 +15,7 @@
 <link title="CImage" rel="Chapter" href="CImage.html">
 <link title="CGUI" rel="Chapter" href="CGUI.html">
 <link title="CDraw" rel="Chapter" href="CDraw.html">
-<link title="CEvent" rel="Chapter" href="CEvent.html"><title>Index of values</title>
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CastANet Editor : Index of values</title>
 </head>
 <body>
 <div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
@@ -26,6 +26,12 @@
 <tr><td><a href="CDraw.html#VALactive_layer">active_layer</a> [<a href="CDraw.html">CDraw</a>]</td>
 <td><div class="info">
 <p>Display the active annotation layer of the current image.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CGUI.TileSet.html#VALadd">add</a> [<a href="CGUI.TileSet.html">CGUI.TileSet</a>]</td>
+<td><div class="info">
+<p><code class="code">add r c pix</code> adds the tile <code class="code">pix</code> using coordinates <code class="code">(r, c)</code> as legend.</p>
 
 </div>
 </td></tr>
@@ -152,6 +158,12 @@
 
 </div>
 </td></tr>
+<tr><td><a href="CDraw.html#VALdisplay_set">display_set</a> [<a href="CDraw.html">CDraw</a>]</td>
+<td><div class="info">
+<p>Display all tiles that belong to the current layer.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>E</div></td></tr>
 <tr><td><a href="CGUI.Magnify.html#VALedge">edge</a> [<a href="CGUI.Magnify.html">CGUI.Magnify</a>]</td>
 <td><div class="info">
@@ -174,6 +186,12 @@
 <tr><td><a href="CAnnot.html#VALerases">erases</a> [<a href="CAnnot.html">CAnnot</a>]</td>
 <td><div class="info">
 <p><code class="code">erases c</code> returns the annotations that get removed together with <code class="code">c</code>.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CAnnot.html#VALexists">exists</a> [<a href="CAnnot.html">CAnnot</a>]</td>
+<td><div class="info">
+<p>Returns <code class="code">true</code> if the annotation contains at least one tag.</p>
 
 </div>
 </td></tr>
@@ -255,6 +273,12 @@
 
 </div>
 </td></tr>
+<tr><td><a href="CGUI.TileSet.html#VALhide">hide</a> [<a href="CGUI.TileSet.html">CGUI.TileSet</a>]</td>
+<td><div class="info">
+<p>Hides the tile set and clears all tiles.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>I</div></td></tr>
 <tr><td><a href="CSettings.html#VALimage">image</a> [<a href="CSettings.html">CSettings</a>]</td>
 <td><div class="info">
@@ -280,9 +304,15 @@
 
 </div>
 </td></tr>
+<tr><td><a href="CGUI.VToolbox.html#VALis_active">is_active</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
+<td><div class="info">
+<p>Indicates whether the given layer is active.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="CAnnot.html#VALis_empty">is_empty</a> [<a href="CAnnot.html">CAnnot</a>]</td>
 <td><div class="info">
-<p>Returns <code class="code">true</code> if the annotation contain no tag.</p>
+<p>Returns <code class="code">true</code> if the annotation contains no tag.</p>
 
 </div>
 </td></tr>
@@ -295,6 +325,12 @@
 <tr><td><a href="CImage.html#VALiter_annotations">iter_annotations</a> [<a href="CImage.html">CImage</a>]</td>
 <td><div class="info">
 <p>Iter over annotations.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CGUI.VToolbox.html#VALiter_radios">iter_radios</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
+<td><div class="info">
+<p>Iterator over radio buttons.</p>
 
 </div>
 </td></tr>
@@ -315,12 +351,6 @@
 <tr><td><a href="CDraw.GUI.html#VALmagnified_view">magnified_view</a> [<a href="CDraw.GUI.html">CDraw.GUI</a>]</td>
 <td><div class="info">
 <p>Displays magnified view.</p>
-
-</div>
-</td></tr>
-<tr><td><a href="CGUI.VToolbox.html#VALmaster">master</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
-<td><div class="info">
-<p>Main radio button.</p>
 
 </div>
 </td></tr>
@@ -383,12 +413,6 @@
 </div>
 </td></tr>
 <tr><td align="left"><div>R</div></td></tr>
-<tr><td><a href="CGUI.VToolbox.html#VALradios">radios</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
-<td><div class="info">
-<p>Layer-specific radio buttons.</p>
-
-</div>
-</td></tr>
 <tr><td><a href="CAnnot.html#VALrem">rem</a> [<a href="CAnnot.html">CAnnot</a>]</td>
 <td><div class="info">
 <p><code class="code">rem t c</code> removes tag <code class="code">c</code> from the annotation <code class="code">t</code>.</p>
@@ -413,6 +437,12 @@
 
 </div>
 </td></tr>
+<tr><td><a href="CGUI.TileSet.html#VALrun">run</a> [<a href="CGUI.TileSet.html">CGUI.TileSet</a>]</td>
+<td><div class="info">
+<p>Displays the dialog and returns the output flag.</p>
+
+</div>
+</td></tr>
 <tr><td align="left"><div>S</div></td></tr>
 <tr><td><a href="CDraw.html#VALset_curr_annotation">set_curr_annotation</a> [<a href="CDraw.html">CDraw</a>]</td>
 <td><div class="info">
@@ -426,9 +456,45 @@
 
 </div>
 </td></tr>
+<tr><td><a href="CGUI.VToolbox.html#VALset_image">set_image</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
+<td><div class="info">
+<p>Updates the icon of the given annotation.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CGUI.VToolbox.html#VALset_label">set_label</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
+<td><div class="info">
+<p>Updates the counter of the given annotation.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="CPalette.html#VALset_tile_edge">set_tile_edge</a> [<a href="CPalette.html">CPalette</a>]</td>
 <td><div class="info">
 <p>Initialization function.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CGUI.TileSet.html#VALset_title">set_title</a> [<a href="CGUI.TileSet.html">CGUI.TileSet</a>]</td>
+<td><div class="info">
+<p>Sets tile set title, using <code class="code">printf</code>-like style.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CGUI.VToolbox.html#VALset_toggled">set_toggled</a> [<a href="CGUI.VToolbox.html">CGUI.VToolbox</a>]</td>
+<td><div class="info">
+<p>Sets a callback function to call when a button is toggled.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CDraw.GUI.html#VALstatistics">statistics</a> [<a href="CDraw.GUI.html">CDraw.GUI</a>]</td>
+<td><div class="info">
+<p>Image statistics.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="CImage.html#VALstatistics">statistics</a> [<a href="CImage.html">CImage</a>]</td>
+<td><div class="info">
+<p>Returns the count for a given annotation.</p>
 
 </div>
 </td></tr>

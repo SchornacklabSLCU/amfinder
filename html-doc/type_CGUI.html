@@ -14,7 +14,7 @@
 <link title="CImage" rel="Chapter" href="CImage.html">
 <link title="CGUI" rel="Chapter" href="CGUI.html">
 <link title="CDraw" rel="Chapter" href="CDraw.html">
-<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CGUI</title>
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CastANet Editor : CGUI</title>
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
@@ -36,8 +36,6 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">VToolbox</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;master&nbsp;:&nbsp;<span class="constructor">GButton</span>.radio_tool_button&nbsp;*&nbsp;<span class="constructor">GMisc</span>.image<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;radios&nbsp;:&nbsp;(char&nbsp;*&nbsp;(<span class="constructor">GButton</span>.radio_tool_button&nbsp;*&nbsp;<span class="constructor">GMisc</span>.image))&nbsp;list<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;row&nbsp;:&nbsp;<span class="constructor">GMisc</span>.label<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;column&nbsp;:&nbsp;<span class="constructor">GMisc</span>.label<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;confidence&nbsp;:&nbsp;<span class="constructor">GMisc</span>.label<br>
@@ -45,6 +43,21 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_active&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;[&nbsp;<span class="keywordsign">`</span><span class="constructor">CHR</span>&nbsp;<span class="keyword">of</span>&nbsp;char&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">SPECIAL</span>&nbsp;]<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;export&nbsp;:&nbsp;<span class="constructor">GButton</span>.tool_button<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;preferences&nbsp;:&nbsp;<span class="constructor">GButton</span>.tool_button<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;radio_type&nbsp;=&nbsp;[&nbsp;<span class="keywordsign">`</span><span class="constructor">CHR</span>&nbsp;<span class="keyword">of</span>&nbsp;char&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">SPECIAL</span>&nbsp;]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;is_active&nbsp;:&nbsp;<span class="constructor">CGUI</span>.<span class="constructor">VToolbox</span>.radio_type&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_label&nbsp;:&nbsp;<span class="constructor">CGUI</span>.<span class="constructor">VToolbox</span>.radio_type&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_image&nbsp;:&nbsp;<span class="constructor">CGUI</span>.<span class="constructor">VToolbox</span>.radio_type&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">GdkPixbuf</span>.pixbuf&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;iter_radios&nbsp;:&nbsp;(<span class="constructor">CGUI</span>.<span class="constructor">VToolbox</span>.radio_type&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_toggled&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CGUI</span>.<span class="constructor">VToolbox</span>.radio_type&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">GtkSignal</span>.id<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;status&nbsp;:&nbsp;<span class="constructor">GMisc</span>.label<br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">TileSet</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;add&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;r:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;c:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ico:<span class="constructor">GdkPixbuf</span>.pixbuf&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">GdkPixbuf</span>.pixbuf&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;run&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;[&nbsp;<span class="keywordsign">`</span><span class="constructor">DELETE_EVENT</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">OK</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">SAVE</span>&nbsp;]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_title&nbsp;:&nbsp;(<span class="keywordsign">'</span>a,&nbsp;unit,&nbsp;string,&nbsp;unit)&nbsp;<span class="constructor">Stdlib</span>.format4&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;hide&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 <span class="keyword">end</span></code></body></html>

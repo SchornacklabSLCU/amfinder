@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link rel="previous" href="CGUI.Thumbnail.html">
+<link rel="next" href="CGUI.TileSet.html">
 <link rel="Up" href="CGUI.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
@@ -18,12 +19,13 @@
 <link title="CImage" rel="Chapter" href="CImage.html">
 <link title="CGUI" rel="Chapter" href="CGUI.html">
 <link title="CDraw" rel="Chapter" href="CDraw.html">
-<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CGUI.VToolbox</title>
+<link title="CEvent" rel="Chapter" href="CEvent.html"><title>CastANet Editor : CGUI.VToolbox</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="CGUI.Thumbnail.html" title="CGUI.Thumbnail">Previous</a>
 &nbsp;<a class="up" href="CGUI.html" title="CGUI">Up</a>
-&nbsp;</div>
+&nbsp;<a class="post" href="CGUI.TileSet.html" title="CGUI.TileSet">Next</a>
+</div>
 <h1>Module <a href="type_CGUI.VToolbox.html">CGUI.VToolbox</a></h1>
 
 <pre><span id="MODULEVToolbox"><span class="keyword">module</span> VToolbox</span>: <code class="code">sig</code> <a href="CGUI.VToolbox.html">..</a> <code class="code">end</code></pre><div class="info module top">
@@ -32,20 +34,6 @@
 </div>
 </div>
 <hr width="100%">
-
-<pre><span id="VALmaster"><span class="keyword">val</span> master</span> : <code class="type">GButton.radio_tool_button * GMisc.image</code></pre><div class="info ">
-<div class="info-desc">
-<p>Main radio button. When active, all annotated tile get overlaid with a 
- green square, no matter what the annotation is.</p>
-</div>
-</div>
-
-<pre><span id="VALradios"><span class="keyword">val</span> radios</span> : <code class="type">(char * (GButton.radio_tool_button * GMisc.image)) list</code></pre><div class="info ">
-<div class="info-desc">
-<p>Layer-specific radio buttons. When active, only tiles bearing the
- corresponding annotation are displayed.</p>
-</div>
-</div>
 
 <pre><span id="VALrow"><span class="keyword">val</span> row</span> : <code class="type">GMisc.label</code></pre><div class="info ">
 <div class="info-desc">
@@ -91,6 +79,44 @@
 <pre><span id="VALpreferences"><span class="keyword">val</span> preferences</span> : <code class="type">GButton.tool_button</code></pre><div class="info ">
 <div class="info-desc">
 <p>Shows preferences dialog (currently not implemented).</p>
+</div>
+</div>
+
+<pre><span id="TYPEradio_type"><span class="keyword">type</span> <code class="type"></code>radio_type</span> = <code class="type">[ `CHR of char | `SPECIAL ]</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>The type of radio buttons.</p>
+</div>
+</div>
+
+
+<pre><span id="VALis_active"><span class="keyword">val</span> is_active</span> : <code class="type"><a href="CGUI.VToolbox.html#TYPEradio_type">radio_type</a> -> bool</code></pre><div class="info ">
+<div class="info-desc">
+<p>Indicates whether the given layer is active.</p>
+</div>
+</div>
+
+<pre><span id="VALset_label"><span class="keyword">val</span> set_label</span> : <code class="type"><a href="CGUI.VToolbox.html#TYPEradio_type">radio_type</a> -> int -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Updates the counter of the given annotation.</p>
+</div>
+</div>
+
+<pre><span id="VALset_image"><span class="keyword">val</span> set_image</span> : <code class="type"><a href="CGUI.VToolbox.html#TYPEradio_type">radio_type</a> -> GdkPixbuf.pixbuf -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Updates the icon of the given annotation.</p>
+</div>
+</div>
+
+<pre><span id="VALiter_radios"><span class="keyword">val</span> iter_radios</span> : <code class="type">(<a href="CGUI.VToolbox.html#TYPEradio_type">radio_type</a> -> unit) -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Iterator over radio buttons.</p>
+</div>
+</div>
+
+<pre><span id="VALset_toggled"><span class="keyword">val</span> set_toggled</span> : <code class="type"><a href="CGUI.VToolbox.html#TYPEradio_type">radio_type</a> -> (unit -> unit) -> GtkSignal.id</code></pre><div class="info ">
+<div class="info-desc">
+<p>Sets a callback function to call when a button is toggled.</p>
 </div>
 </div>
 </body></html>
