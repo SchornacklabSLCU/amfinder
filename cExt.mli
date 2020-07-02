@@ -15,15 +15,15 @@ end
 val tagger_matrix_iteri : (int -> int -> 'a -> unit) -> 'a array array -> unit
 (** Matrix iterator. *)
 
-val tagger_split_lines : string -> string list
+val split_lines : string -> string list
 (** Split lines using linefeed (['\n']) as delimiter. For instance,
-  * [tagger_split_lines "foo\nbar"] returns [\["foo"; "bar"\]]. *)
+  * [split_lines "foo\nbar"] returns [\["foo"; "bar"\]]. *)
 
-val tagger_split_tabs : string -> string list
+val split_tabs : string -> string list
 (** Splits text using tabulation (['\t']) as delimiter. For instance,
-  * [tagger_split_tabs "foo\tbar"] returns [\["foo"; "bar"\]]. *)
+  * [split_tabs "foo\tbar"] returns [\["foo"; "bar"\]]. *)
 
-val tagger_read_file : ?trim:bool -> string -> string
+val read_file : ?trim:bool -> string -> string
 (** Reads a file. *)
 
 val tagger_info : ('a, out_channel, unit, unit, unit, unit) format6 -> 'a

@@ -6,7 +6,7 @@
 open Scanf
 open Printf
 
-let tagger_read_file ?(trim = true) str = 
+let read_file ?(trim = true) str = 
   let ich = open_in_bin str in
   let len = in_channel_length ich in
   let buf = Buffer.create len in
@@ -35,9 +35,9 @@ end
 
 let tagger_matrix_iteri f = Array.(iteri (fun r -> iteri (f r)))
 
-let tagger_split_lines = String.split_on_char '\n'
+let split_lines = String.split_on_char '\n'
 
-let tagger_split_tabs = String.split_on_char '\t'
+let split_tabs = String.split_on_char '\t'
 
 let tagger_info fmt = printf ("(CastANet) INFO: " ^^ fmt ^^ ".\n%!")
 

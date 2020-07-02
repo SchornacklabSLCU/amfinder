@@ -55,24 +55,31 @@ let get_active (A t) =
   |> String.concat ""
 
 module Export = struct
+  let empty () =
+    let f, ext = match !ann_type with
+      | `BINARY -> (fun _ -> "0"), ["1"]
+      | `GRADIENT -> (fun _ -> "0.0"), ["1.0"]
+    in List.map f code_list @ ext |> String.concat "\t"
   let as_int x = sprintf "%d" (truncate x)
   let as_float = sprintf "%.2f"
   let save f t = Array.map f t
     |> Array.to_list
     |> String.concat "\t"
-  let to_string (A t) =
+  let to_string ((A t) as ann) =
+    assert (exists ann);
     match !ann_type with
-    | `BINARY -> save as_int t
-    | `GRADIENT -> save as_float t
+    | `BINARY -> save as_int t ^ "\t0"
+    | `GRADIENT -> save as_float t ^ "\t0.0"
 end
  
 let export ~path mat =
   let och = open_out_bin path in
-  List.map (String.make 1) code_list
+  List.map (String.make 1) code_list @ ["B"]
     |> String.concat "\t"
     |> fprintf och "row\tcol\t%s\n";
   tagger_matrix_iteri (fun r c a ->
-    fprintf och "%d\t%d\t%s\n" r c (Export.to_string a)
+    let str = Export.(if is_empty a then empty () else to_string a) in
+    fprintf och "%d\t%d\t%s\n" r c str
   ) mat;
   close_out och
 
@@ -92,7 +99,7 @@ module Import = struct
     try
       assert (String.length s = 1);
       let chr = s.[0] in 
-      assert (String.contains codes chr);
+      assert (chr = 'B' || String.contains codes chr);
       chr
     with Assert_failure _ ->
       tagger_error "Invalid column header '%s'" s
@@ -100,13 +107,13 @@ module Import = struct
   (* Dissociate header from contents. *)
   let split_header = function
     | [] -> tagger_error "Empty TSV table"
-    | header :: contents -> match tagger_split_tabs header with
+    | header :: contents -> match CExt.split_tabs header with
       | "row" :: "col" :: rem -> List.map validate_column_header rem, contents
       | _ -> tagger_error "Invalid TSV header"
   
   let parse_content_line str =
     sscanf str "%d\t%d\t%[^\n]"
-      (fun x y dat -> (x, y), tagger_split_tabs dat)
+      (fun x y dat -> (x, y), CExt.split_tabs dat)
 
   let parse_contents t = 
     let rec loop map = function
@@ -131,18 +138,18 @@ module Import = struct
     with Exit -> `GRADIENT
    
   let create_float_array_annot hdr dat =
-    let t = Array.copy empty_table in 
+    let t = Array.copy empty_table in
     List.iter2 (fun chr dat ->
-      sscanf dat "%f" (fun x -> t.(List.assoc chr index_list) <- x)
+      if chr <> 'B' then
+        sscanf dat "%f" (fun x -> t.(List.assoc chr index_list) <- x)
     ) hdr dat;
-    A t  
+    A t
 end
 
 
-
 let import ~path:tsv =
-  let header, contents = tagger_read_file tsv
-    |> tagger_split_lines
+  let header, contents = CExt.read_file tsv
+    |> CExt.split_lines
     |> Import.split_header in
   let xy_map = Import.parse_contents contents in
   let rs, cs = Import.minmax tsv xy_map in
