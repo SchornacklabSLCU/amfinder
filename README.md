@@ -57,10 +57,10 @@ eval `opam config env`
 
 You need to install the following dependencies:
 
-- The OCaml build system [`dune`](https://github.com/ocaml/dune),
-- The documentation generator [`odoc`](https://github.com/ocaml/odoc),
-- OCaml bindings to GTK2 library [`lablgtk2`](http://lablgtk.forge.ocamlcore.org/),
-- OCaml bindings to Cairo libary [`cairo2`](https://github.com/Chris00/ocaml-cairo)
+- The OCaml build system [`dune`](https://opam.ocaml.org/packages/dune/),
+- The documentation generator [`odoc`](https://opam.ocaml.org/packages/odoc/),
+- OCaml bindings to GTK2 library [`lablgtk`](https://opam.ocaml.org/packages/lablgtk/),
+- OCaml bindings to Cairo libary [`cairo2`](https://opam.ocaml.org/packages/cairo2/)
 
 This is done as follows:
 
