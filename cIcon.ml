@@ -49,15 +49,15 @@ let get ?grad chr typ fmt =
   |> get_size_set fmt
   |> List.assoc chr
   
-module Special = struct
-  let rgba = ('*', Filename.concat dir "Any_rgba.png")
+module Joker = struct
+  let rgba = ('*', Filename.concat dir "Joker_rgba.png")
   let large_rgba = snd (Src.get `LARGE rgba)
   let small_rgba = snd (Src.get `SMALL rgba)
-  let grey = ('*', Filename.concat dir "Any_grey.png")
+  let grey = ('*', Filename.concat dir "Joker_grey.png")
   let large_grey = snd (Src.get `LARGE grey)
   let small_grey = snd (Src.get `SMALL grey)
 end
 
-let get_special typ = function
-  | `SMALL -> Special.(if typ = `RGBA then small_rgba else small_grey)
-  | `LARGE -> Special.(if typ = `RGBA then large_rgba else large_grey)
+let get_joker typ = function
+  | `SMALL -> Joker.(if typ = `RGBA then small_rgba else small_grey)
+  | `LARGE -> Joker.(if typ = `RGBA then large_rgba else large_grey)

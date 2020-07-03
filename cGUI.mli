@@ -54,15 +54,15 @@ module VToolbox : sig
   (** To be primarily used with computer-generated annotations. This label
     * displays the Viridis colour corresponding to the percentage displayed by
     * the label [confidence] (see above). *)
-  val get_active : unit -> [`CHR of char | `SPECIAL]
-  (** Indicates which layer is currently active ([`SPECIAL] corresponds to
+  val get_active : unit -> [`CHR of char | `JOKER]
+  (** Indicates which layer is currently active ([`JOKER] corresponds to
     * [master], while [`CHR _] corresponds to elements of the list [radios]
     * (see above). *)
   val export : GButton.tool_button
   (** Saves the current display as a PNG file (currently not implemented). *)
   val preferences : GButton.tool_button
   (** Shows preferences dialog (currently not implemented). *)
-  type radio_type = [`SPECIAL | `CHR of char]
+  type radio_type = [`JOKER | `CHR of char]
   (** The type of radio buttons. *)
   val is_active : radio_type -> bool
   (** Indicates whether the given layer is active. *)

@@ -10,7 +10,7 @@ let update_annotations ev =
 let icons () =
   CGUI.VToolbox.iter_radios (fun typ ->
     let f = match typ with
-      | `SPECIAL -> CIcon.get_special
+      | `JOKER -> CIcon.get_joker
       | `CHR chr -> CIcon.get chr in
     let callback () =
       let clr = match CGUI.VToolbox.is_active typ with

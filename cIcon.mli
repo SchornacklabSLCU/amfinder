@@ -12,5 +12,5 @@ val get : ?grad:bool -> char -> icon_type -> icon_size -> GdkPixbuf.pixbuf
 (** Retrieve a particular icon, given its name, type and size. The optional
   * parameter tells whether the icon can be turned into a gradient. *)
 
-val get_special : icon_type -> icon_size -> GdkPixbuf.pixbuf
-(** Special icons (i.e. the icon ["Any"]). *)
+val get_joker : icon_type -> icon_size -> GdkPixbuf.pixbuf
+(** Joker icon (i.e. for any annotation). *)

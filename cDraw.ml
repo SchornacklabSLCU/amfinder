@@ -74,7 +74,7 @@ module Layer = struct
     end
 
   let get_surface ann = function
-    | `SPECIAL -> master ()
+    | `JOKER -> master ()
     | `CHR chr -> match CAnnot.annotation_type () with
       | `BINARY -> List.assoc chr (categories ())
       | `GRADIENT -> let palette = CSettings.palette () in
@@ -111,7 +111,7 @@ let annot ?(sync = false) r c =
     Gaux.may (fun ann ->
       let typ = CGUI.VToolbox.get_active () in
       let draw = match typ with
-        | `SPECIAL -> not (CAnnot.is_empty ann)
+        | `JOKER -> not (CAnnot.is_empty ann)
         | `CHR chr -> CAnnot.mem ann chr in
       if draw then begin
         surface r c (Layer.get_surface ann typ);
@@ -157,7 +157,7 @@ module GUI = struct
           if CAnnot.is_empty t then erase_confidence ()
           else begin 
             match CGUI.VToolbox.get_active () with
-            | `SPECIAL -> erase_confidence ()
+            | `JOKER -> erase_confidence ()
             | `CHR chr -> let palette = CSettings.palette () in
               let i = CAnnot.get_group ~palette:palette t chr in
               let prob = CAnnot.get t chr in
@@ -193,7 +193,7 @@ module GUI = struct
     Gaux.may (fun img ->
       List.iter (fun (chr, num) ->
         match chr with
-        | '*' -> CGUI.VToolbox.set_label `SPECIAL num
+        | '*' -> CGUI.VToolbox.set_label `JOKER num
         |  _  -> CGUI.VToolbox.set_label (`CHR chr) num
       ) (CImage.statistics img)
     ) !curr
@@ -251,7 +251,7 @@ let display_set () =
   Gaux.may (fun img ->
     let count = ref 0 in
     let show, ico = match CGUI.VToolbox.get_active () with
-      | `SPECIAL -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get_special `RGBA `SMALL
+      | `JOKER -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get_joker `RGBA `SMALL
       | `CHR chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
     CImage.iter_annotations (fun r c ann ->
       if show ann then begin

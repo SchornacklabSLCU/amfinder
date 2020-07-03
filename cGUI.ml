@@ -197,7 +197,7 @@ module VToolbox = struct
     let image t = t.image
   end
 
-  type radio_type = [`SPECIAL | `CHR of char]
+  type radio_type = [`JOKER | `CHR of char]
 
   module Create = struct
     let separator () = ignore (GButton.separator_tool_item ~packing ())
@@ -213,7 +213,7 @@ module VToolbox = struct
     let radio ?group typ =
       let active, get_icon = match typ with
         | `CHR chr -> false, CIcon.get chr `GREY 
-        | `SPECIAL -> true, CIcon.get_special `RGBA in
+        | `JOKER -> true, CIcon.get_joker `RGBA in
       let radio = GButton.radio_tool_button ?group ~active ~packing () in
       let hbox = GPack.hbox ~spacing:2 ~packing:radio#set_icon_widget () in
       let packing = hbox#add in
@@ -227,7 +227,7 @@ module VToolbox = struct
   let _ = Create.separator ()
 
   let _ = Create.label "Layer"
-  let master = Create.radio `SPECIAL
+  let master = Create.radio `JOKER
 
   let radios =
     let group = Radio.radio master in
@@ -255,41 +255,41 @@ module VToolbox = struct
 
   let get_active () =
     let radio = Radio.radio master in
-    if radio#get_active then `SPECIAL
+    if radio#get_active then `JOKER
     else `CHR (fst (List.find (fun (_, t) -> (Radio.radio t)#get_active) radios))
 
   let is_active typ =
     let radio = Radio.radio (
       match typ with
-      | `SPECIAL -> master
+      | `JOKER -> master
       | `CHR chr -> List.assoc chr radios
     ) in radio#get_active
 
   let set_image typ =
     let image = Radio.image (
       match typ with
-      | `SPECIAL -> master
+      | `JOKER -> master
       | `CHR chr -> List.assoc chr radios
     ) in image#set_pixbuf
 
   let set_label typ num =
     let label = Radio.label (
       match typ with
-      | `SPECIAL -> master
+      | `JOKER -> master
       | `CHR chr -> List.assoc chr radios
     ) in ksprintf label#set_label "<small><tt>%04d</tt></small>" num
   
   let set_toggled typ callback =
     let radio = Radio.radio (
       match typ with
-      | `SPECIAL -> master
+      | `JOKER -> master
       | `CHR chr -> List.assoc chr radios
     ) in radio#connect#toggled ~callback
     
   let iter_radios f =
     List.iter (fun (chr, _) ->
       match chr with
-      | '*' -> f `SPECIAL
+      | '*' -> f `JOKER
       |  _  -> f (`CHR chr)
     ) (('*', master) :: radios) 
 end
