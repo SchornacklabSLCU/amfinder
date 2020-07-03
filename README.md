@@ -25,10 +25,10 @@ apt install opam libgtk2.0-dev libcairo2-dev
 #### OSX
 
 Install OPAM with [`homebrew`](https://brew.sh/).
-
-- You need [`gpatch`](https://formulae.brew.sh/formula/gpatch) for `opam` is relying on GNU-specific options.
-- [`gtk+`](https://formulae.brew.sh/formula/gtk+) is the [brew] formula for GTK2.
-- [`cairo`](https://formulae.brew.sh/formula/cairo) is the [brew] formula for Cairo.
+You need [`gpatch`](https://formulae.brew.sh/formula/gpatch) for `opam` relies 
+on GNU-specific options.
+[`gtk+`](https://formulae.brew.sh/formula/gtk+) is the `brew` formula for GTK2.
+[`cairo`](https://formulae.brew.sh/formula/cairo) is the `brew` formula for Cairo.
 
 ```bash
 brew install gpatch opam gtk+ cairo
