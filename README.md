@@ -14,7 +14,9 @@ Graphical user interface to assist with the annotation of mycorrhiza images.
 
 For Debian and relatives, install OPAM with [`apt`](https://salsa.debian.org/apt-team/apt)
 (for other distributions, check your favourite package manager). You also need
-development files for GTK and Cairo. Run the following command as administrator:
+development files for the [GTK](https://www.gtk.org/) and
+[Cairo](https://www.cairographics.org/) libraries.
+Run the following command as administrator:
 
 ```bash
 apt install opam libgtk2.0-dev libcairo2-dev
@@ -54,7 +56,7 @@ Simply run:
 
 ```bash
 opam init
-eval `opam config env`
+eval $(opam env)
 ```
 
 ### CastANet Dependencies
