@@ -39,6 +39,9 @@ val exists : t -> bool
 val annotation_type : unit -> [`BINARY | `GRADIENT]
 (** Returns the type of annotation used in this instance of thee application. *)
 
+val is_gradient : unit -> bool
+(** Returns [true] if the file contains probabilities. *)
+
 val add : t -> char -> unit
 (** [add t c] adds tag [c] to the annotation [t]. *)
 

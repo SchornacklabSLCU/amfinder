@@ -27,6 +27,7 @@ let exists (A t) = t <> empty_table
 
 let ann_type = ref `BINARY
 let annotation_type () = !ann_type
+let is_gradient () = !ann_type = `GRADIENT
 
 let generator f d (A t) chr =
   match List.assoc_opt chr index_list with
