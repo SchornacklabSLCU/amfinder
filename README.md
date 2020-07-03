@@ -36,11 +36,12 @@ brew install gpatch opam gtk+ cairo
 
 #### MS Windows
 
-You should first install the [Cygwin](https://www.cygwin.com/) packages:
-git,wget,unzip,make,m4,gcc,gcc4-core,libmpfr4,autoconf,flexdll,libncurses-devel,
-curl,ocaml,ocaml-compiler-libs,patch
+**This guidance is in need of tests by Windows users**.
+You should install the [Cygwin](https://www.cygwin.com/) environment with the
+following packages: git, wget, unzip, make, m4, gcc, gcc4-core, libmpfr4, 
+autoconf, flexdll, libncurses-devel, curl, ocaml, ocaml-compiler-libs and patch.
 
-Then you can build opam from sources as follows:
+Then you can build OPAM from sources as follows:
 
 ```bash
 git clone https://github.com/ocaml/opam.git && cd opam
