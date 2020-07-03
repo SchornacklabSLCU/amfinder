@@ -1,6 +1,5 @@
-(* CastANet - caN_icon.ml *)
+(* CastANet - cIcon.ml *)
 
-open CExt
 open Printf
 
 type icon_type = [ `RGBA | `GREY ]
