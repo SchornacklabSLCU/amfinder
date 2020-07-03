@@ -1,3 +1,6 @@
 #! /bin/bash
 
-dune build castanet_editor.exe && mv _build/4.08.0/castanet_editor.exe . 
+OUT="castanet_editor.exe"
+
+rm -f "$OUT" 2> /dev/null && \
+dune build "$OUT" && mv "_build/4.08.0/$OUT" . 
