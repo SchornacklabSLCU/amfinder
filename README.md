@@ -12,19 +12,20 @@ Graphical user interface to assist with the annotation of mycorrhiza images.
 
 #### Linux
 
-For Debian and relatives, install OPAM with [`apt`](https://salsa.debian.org/apt-team/apt).
-For other distributions, check your favourite package manager.
+For Debian and relatives, install OPAM with [`apt`](https://salsa.debian.org/apt-team/apt)
+(for other distributions, check your favourite package manager). Run the following
+command as administrator:
 
-```
+```bash
 apt install opam libgtk2.0-dev libcairo2-dev
 ```
 
 #### OSX
 
-Install OPAM with [`homebrew`](https://brew.sh/). Note that `homebrew` 
-requires `gpatch`, as `opam` uses GNU-specific options.
+Install OPAM with [`homebrew`](https://brew.sh/). You will need `gpatch` for
+`opam` is relying on GNU-specific options.
 
-```
+```bash
 brew install gpatch opam gtk+ cairo
 ```
 
@@ -36,7 +37,7 @@ curl,ocaml,ocaml-compiler-libs,patch
 
 Then you can build opam from sources as follows:
 
-```
+```bash
 git clone https://github.com/ocaml/opam.git && cd opam
 ./configure && make && make install && cd ..
 ```
@@ -48,7 +49,7 @@ git clone https://github.com/ocaml/opam.git && cd opam
 
 Simply run:
 
-```
+```bash
 opam init
 eval `opam config env`
 ```
@@ -64,7 +65,6 @@ You need to install the following dependencies:
 
 This is done as follows:
 
-```
+```bash
 opam install dune odoc lablgtk cairo2 cairo2-gtk
 ```
-
