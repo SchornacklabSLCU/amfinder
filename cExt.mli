@@ -26,15 +26,6 @@ val split_tabs : string -> string list
 val read_file : ?trim:bool -> string -> string
 (** Reads a file. *)
 
-val tagger_info : ('a, out_channel, unit, unit, unit, unit) format6 -> 'a
-(** Info message (prints to stdout). *)
-
-val tagger_warning : ('a, out_channel, unit, unit, unit, unit) format6 -> 'a
-(** Warning (prints to stderr). *)
-
-val tagger_error : ?code:int -> ('a, out_channel, unit, unit, unit, 'b) format6 -> 'a
-(** Error message (prints to stderr). *)
-
 val tagger_time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
 

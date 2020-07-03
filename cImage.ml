@@ -24,7 +24,6 @@ let tagger_matrix_map f = Array.(map (map f))
 
 
 module Create = struct
-  let info = tagger_info
   let get_size path = let _, w, h = GdkPixbuf.get_file_info path in w, h
   let load_full_size_img = GdkPixbuf.from_file
 
@@ -57,11 +56,11 @@ end
 
 let create ~ui_width ~ui_height path =
   let w, h = Create.get_size path in
-  Create.info "source image width: %d pixels; height: %d pixels" w h;
+  CLog.info "source image width: %d pixels; height: %d pixels" w h;
   let image = Create.load_full_size_img path in
   let edge = 236 in
   let nr = h / edge and nc = w / edge in
-  Create.info "tile matrix rows: %d; columns: %d; edge: %d pixels" nr nc edge;
+  CLog.info "tile matrix rows: %d; columns: %d; edge: %d pixels" nr nc edge;
   let large_tiles = Create.get_large_tiles nr nc edge image in
   let small_edge = min (ui_width / nc) (ui_height / nr) in
   CPalette.set_tile_edge small_edge;

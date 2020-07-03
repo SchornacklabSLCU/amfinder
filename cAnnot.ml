@@ -31,7 +31,7 @@ let is_gradient () = !ann_type = `GRADIENT
 
 let generator f d (A t) chr =
   match List.assoc_opt chr index_list with
-  | None -> tagger_warning "Unknown annotation %C" chr; d
+  | None -> CLog.warning "Unknown annotation %C" chr; d
   | Some i -> f t i
 
 let add = generator (fun t i -> Array.set t i 1.0) ()
@@ -103,14 +103,14 @@ module Import = struct
       assert (chr = 'B' || String.contains codes chr);
       chr
     with Assert_failure _ ->
-      tagger_error "Invalid column header '%s'" s
+      CLog.error "Invalid column header '%s'" s
 
   (* Dissociate header from contents. *)
   let split_header = function
-    | [] -> tagger_error "Empty TSV table"
+    | [] -> CLog.error "Empty TSV table"
     | header :: contents -> match CExt.split_tabs header with
       | "row" :: "col" :: rem -> List.map validate_column_header rem, contents
-      | _ -> tagger_error "Invalid TSV header"
+      | _ -> CLog.error "Invalid TSV header"
   
   let parse_content_line str =
     sscanf str "%d\t%d\t%[^\n]"
@@ -125,7 +125,7 @@ module Import = struct
   let minmax tsv xy =
     match XYMap.(min_binding_opt xy, max_binding_opt xy) with
     | Some ((0, 0), _), Some ((r, c), _) -> r + 1, c + 1
-    | _ -> tagger_error "Corrupted TSV file \"%s\"" tsv
+    | _ -> CLog.error "Corrupted TSV file \"%s\"" tsv
     
   let annotation_type map =
     try
@@ -161,7 +161,7 @@ let import ~path:tsv =
       match Import.XYMap.find_opt (r, c) xy_map with
       | Some dat when List.(length header = length dat) -> 
         Import.create_float_array_annot header dat
-      | _ -> tagger_warning 
+      | _ -> CLog.warning 
         "Missing or corrupted (%d, %d) line in TSV file \"%s\"" r c tsv;
         empty ()
   ))

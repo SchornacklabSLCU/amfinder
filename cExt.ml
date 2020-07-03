@@ -39,20 +39,11 @@ let split_lines = String.split_on_char '\n'
 
 let split_tabs = String.split_on_char '\t'
 
-let tagger_info fmt = printf ("(CastANet) INFO: " ^^ fmt ^^ ".\n%!")
-
-let tagger_warning fmt =
-  eprintf ("(CastANet) WARNING: " ^^ fmt ^^ ".\n%!") 
-  
-let tagger_error ?(code = 2) fmt =
-  kfprintf (fun _ -> exit code) stderr 
-    ("(CastANet) ERROR: " ^^ fmt ^^ ".\n%!") 
-
 let tagger_time f x =
   let t_1 = Unix.gettimeofday () in
   let res = f x in
   let t_2 = Unix.gettimeofday () in
-  tagger_info "elapsed time: %.1f s" (t_2 -. t_1);
+  CLog.info "elapsed time: %.1f s" (t_2 -. t_1);
   res
 
 let tagger_html_to_int s =
