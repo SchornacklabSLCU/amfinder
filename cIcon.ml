@@ -14,7 +14,7 @@ let build_path_list suf =
 module Source = struct
   let pixbuf n (c, s) = (c, GdkPixbuf.from_file_at_size ~width:n ~height:n s)
   let pixbuf_list n = List.map (pixbuf n)
-  let import f = function `SMALL -> f 24 | `LARGE -> f 48
+  let import f s = f (if s = `SMALL then 24 else 48)
   let load = import pixbuf
   let load_multiple = import pixbuf_list
 end
