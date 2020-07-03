@@ -46,17 +46,16 @@ end
  
 module Joker = struct
   let make suf = "*", Filename.concat dir (sprintf "Joker_%s.png" suf) 
+  let make str =
+    let ico = make str in
+    Source.(snd (load `SMALL ico), snd (load `LARGE ico))
   let rgba = make "rgba"
   let grey = make "grey"
-  let large_rgba = snd (Source.load `LARGE rgba)
-  let small_rgba = snd (Source.load `SMALL rgba)
-  let large_grey = snd (Source.load `LARGE grey)
-  let small_grey = snd (Source.load `SMALL grey)
 end
 
-let get_joker typ = function
-  | `SMALL -> Joker.(if typ = `RGBA then small_rgba else small_grey)
-  | `LARGE -> Joker.(if typ = `RGBA then large_rgba else large_grey)
+let get_joker sty typ =
+  let choose = if typ = `SMALL then fst else snd in
+  choose Joker.(if sty = `RGBA then rgba else grey)
 
 let get ?grad chr typ fmt =
   if chr = '*' then get_joker typ fmt
