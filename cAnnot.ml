@@ -9,10 +9,7 @@ let ncodes = String.length codes
 let code_list = CExt.CString.fold_right List.cons codes []
 let index_list = Array.(of_list code_list |> mapi (fun i c -> c, i) |> to_list)
 
-let requires = function
-  | 'A' | 'V' | 'I' | 'H' -> "R"
-  | 'E' | 'R' | 'D' |  _  -> ""
-
+let requires chr = if String.contains "AVIH" chr then "R" else ""
 let forbids = function 'D' -> "AVIERH" | _ -> "D"
 let erases = function 'R' -> "AVIH" | _ -> ""
 
