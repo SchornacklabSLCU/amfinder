@@ -36,24 +36,24 @@ let m_rgba = generator "_rgba" (* Active toggle buttons.   *)
 let m_grad = generator "_grad" (* Active with confidence.  *)
 let m_grey = generator "_grey" (* Inactive toggle buttons. *)
 
-let get_by_size typ ico = 
+let get_size_set typ ico = 
   let open (val ico : IconSet) in
   match typ with `SMALL -> small | `LARGE -> large
 
-let get_by_type ?(grad = true) = function
+let get_icon_set ?(grad = true) = function
   | `GREY -> m_grey
   | `RGBA -> if grad && CAnnot.is_gradient () then m_grad else m_rgba
 
 let get ?grad chr typ fmt =
-  get_by_type ?grad typ
-  |> get_by_size fmt
+  get_icon_set ?grad typ
+  |> get_size_set fmt
   |> List.assoc chr
   
 module Special = struct
   let rgba = ('*', Filename.concat dir "Any_rgba.png")
-  let grey = ('*', Filename.concat dir "Any_grey.png")
   let large_rgba = snd (Src.get `LARGE rgba)
   let small_rgba = snd (Src.get `SMALL rgba)
+  let grey = ('*', Filename.concat dir "Any_grey.png")
   let large_grey = snd (Src.get `LARGE grey)
   let small_grey = snd (Src.get `SMALL grey)
 end
