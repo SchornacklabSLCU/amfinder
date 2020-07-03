@@ -6,25 +6,66 @@ Graphical user interface to assist with the annotation of mycorrhiza images.
 
 ## Installation instructions
 
-### Linux
+### Installing OPAM
 
-Install the OCaml package manager [OPAM](https://opam.ocaml.org/):
+[OPAM](https://opam.ocaml.org/) is the OCaml package manager.
 
-```
-# apt install opam
-```
+#### Linux
 
-and follow OPAM instructions for initialization and update.
-Then, install the Lablgtk2 and Cairo2 libraries:
+For Debian and relatives, install OPAM with [`apt`](https://salsa.debian.org/apt-team/apt).
+For other distributions, check your favourite package manager.
 
 ```
-$ opam install lablgtk2
-$ opam install cairo2
+apt install opam
 ```
 
-### MacOS
+#### OSX
+
+Install OPAM with [`homebrew`](https://brew.sh/). Note that `homebrew` 
+requires `gpatch`, as `opam` uses GNU-specific options.
+
+```
+brew install gpatch
+brew install opam
+```
+
+#### MS Windows
+
+You should first install the [Cygwin](https://www.cygwin.com/) packages:
+git,wget,unzip,make,m4,gcc,gcc4-core,libmpfr4,autoconf,flexdll,libncurses-devel,
+curl,ocaml,ocaml-compiler-libs,patch
+
+Then you can build opam from sources as follows:
+
+```
+git clone https://github.com/ocaml/opam.git && cd opam
+./configure && make && make install && cd ..
+```
 
 
-### MS Windows
+### Installing OCaml libraries
 
+#### OPAM initialization
+
+Simply run:
+
+```
+opam init
+eval `opam config env`
+```
+
+### CastANet Dependencies
+
+You need to install the following dependencies:
+
+- The OCaml build system [`dune`](https://github.com/ocaml/dune),
+- The documentation generator [`odoc`](https://github.com/ocaml/odoc),
+- OCaml bindings to GTK2 library [`lablgtk2`](http://lablgtk.forge.ocamlcore.org/),
+- OCaml bindings to Cairo libary [`cairo2`](https://github.com/Chris00/ocaml-cairo)
+
+This is done as follows:
+
+```
+$ opam install dune odoc lablgtk2 cairo2 cairo2-gtk
+```
 
