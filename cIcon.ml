@@ -9,7 +9,7 @@ type icon_size = [ `LARGE | `SMALL ]
 let dir = "data"
 
 let build_path_list suf =
-  let path chr = Filename.concat dir (sprintf "%c%s.png" chr suf) in
+  let path chr = Filename.concat dir (sprintf "%c_%s.png" chr suf) in
   List.map (fun chr -> chr, path chr) CAnnot.code_list
 
 module Src = struct
@@ -32,13 +32,13 @@ let generator suf =
     let small = Src.get_multiple `SMALL names
   end in (module M : IconSet)
 
-let m_rgba = generator "_rgba" (* Active toggle buttons.   *)
-let m_grad = generator "_grad" (* Active with confidence.  *)
-let m_grey = generator "_grey" (* Inactive toggle buttons. *)
+let m_rgba = generator "rgba" (* Active toggle buttons.   *)
+let m_grad = generator "grad" (* Active with confidence.  *)
+let m_grey = generator "grey" (* Inactive toggle buttons. *)
 
 let get_size_set typ ico = 
   let open (val ico : IconSet) in
-  match typ with `SMALL -> small | `LARGE -> large
+  if typ = `SMALL then small else large
 
 let get_icon_set ?(grad = true) = function
   | `GREY -> m_grey
