@@ -43,12 +43,7 @@ let get_size_set typ ico =
 let get_icon_set ?(grad = true) = function
   | `GREY -> m_grey
   | `RGBA -> if grad && CAnnot.is_gradient () then m_grad else m_rgba
-
-let get ?grad chr typ fmt =
-  get_icon_set ?grad typ
-  |> get_size_set fmt
-  |> List.assoc chr
-  
+ 
 module Joker = struct
   let rgba = ('*', Filename.concat dir "Joker_rgba.png")
   let large_rgba = snd (Src.get `LARGE rgba)
@@ -61,3 +56,7 @@ end
 let get_joker typ = function
   | `SMALL -> Joker.(if typ = `RGBA then small_rgba else small_grey)
   | `LARGE -> Joker.(if typ = `RGBA then large_rgba else large_grey)
+
+let get ?grad chr typ fmt =
+  if chr = '*' then get_joker typ fmt
+  else List.assoc chr (get_size_set fmt (get_icon_set ?grad typ)) 
