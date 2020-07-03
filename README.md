@@ -6,7 +6,7 @@ Graphical user interface to assist with the annotation of mycorrhiza images.
 
 ## Installation instructions
 
-### Installing OPAM
+### Installing OPAM, GTK and Cairo
 
 [OPAM](https://opam.ocaml.org/) is the OCaml package manager.
 
