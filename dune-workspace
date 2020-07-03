@@ -1,0 +1,9 @@
+(lang dune 2.6)
+(env
+  (release
+    (flags (:standard -w s))
+    (ocamlopt_flags (:standard -nodynlink -O3 -principal))
+  )
+)
+(profile release)
+(context (opam (switch 4.08.0)))

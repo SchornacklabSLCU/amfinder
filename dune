@@ -1,0 +1,4 @@
+(executable
+  (name castanet_editor)
+  (libraries lablgtk2 cairo2 cairo2-gtk)
+)
