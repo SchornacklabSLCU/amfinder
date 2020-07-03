@@ -9,7 +9,7 @@ type icon_size = [ `LARGE | `SMALL ]
 let dir = "data"
 
 let build_path_list suf =
-  let path chr = Filename.concat dir (sprintf "%c%s" chr suf) in
+  let path chr = Filename.concat dir (sprintf "%c%s.png" chr suf) in
   List.map (fun chr -> chr, path chr) CAnnot.code_list
 
 module Src = struct
