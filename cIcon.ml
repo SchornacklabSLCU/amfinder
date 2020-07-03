@@ -45,7 +45,6 @@ let get_by_type ?(grad = true) = function
   | `RGBA -> if grad && CAnnot.is_gradient () then m_grad else m_rgba
 
 let get ?grad chr typ fmt =
-  assert (String.contains CAnnot.codes chr);
   get_by_type ?grad typ
   |> get_by_size fmt
   |> List.assoc chr
