@@ -9,14 +9,12 @@ let update_annotations ev =
 
 let icons () =
   CGUI.VToolbox.iter_radios (fun typ ->
-    let f = match typ with
-      | `JOKER -> CIcon.get_joker
-      | `CHR chr -> CIcon.get chr in
+    let chr = match typ with `JOKER -> '*' | `CHR chr -> chr in
     let callback () =
       let clr = match CGUI.VToolbox.is_active typ with
         | true  -> CDraw.active_layer (); `RGBA
         | false -> `GREY
-      in CGUI.VToolbox.set_image typ (f clr `SMALL)
+      in CGUI.VToolbox.set_image typ (CIcon.get chr clr `SMALL)
     in ignore (CGUI.VToolbox.set_toggled typ callback)
   );
   CDraw.active_layer ();

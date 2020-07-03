@@ -213,7 +213,7 @@ module VToolbox = struct
     let radio ?group typ =
       let active, get_icon = match typ with
         | `CHR chr -> false, CIcon.get chr `GREY 
-        | `JOKER -> true, CIcon.get_joker `RGBA in
+        | `JOKER -> true, CIcon.get '*' `RGBA in
       let radio = GButton.radio_tool_button ?group ~active ~packing () in
       let hbox = GPack.hbox ~spacing:2 ~packing:radio#set_icon_widget () in
       let packing = hbox#add in

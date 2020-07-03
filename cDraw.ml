@@ -251,7 +251,7 @@ let display_set () =
   Gaux.may (fun img ->
     let count = ref 0 in
     let show, ico = match CGUI.VToolbox.get_active () with
-      | `JOKER -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get_joker `RGBA `SMALL
+      | `JOKER -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get '*' `RGBA `SMALL
       | `CHR chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
     CImage.iter_annotations (fun r c ann ->
       if show ann then begin
