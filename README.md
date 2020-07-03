@@ -25,8 +25,7 @@ Install OPAM with [`homebrew`](https://brew.sh/). Note that `homebrew`
 requires `gpatch`, as `opam` uses GNU-specific options.
 
 ```
-brew install gpatch
-brew install opam
+brew install gpatch opam gtk+ cairo
 ```
 
 #### MS Windows
@@ -66,6 +65,6 @@ You need to install the following dependencies:
 This is done as follows:
 
 ```
-$ opam install dune odoc lablgtk2 cairo2 cairo2-gtk
+$ opam install dune odoc lablgtk cairo2 cairo2-gtk
 ```
 
