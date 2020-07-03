@@ -21,15 +21,15 @@ module Src = struct
 end
 
 module type IconSet = sig
-  val large_set : (char * GdkPixbuf.pixbuf) list
-  val small_set : (char * GdkPixbuf.pixbuf) list
+  val large : (char * GdkPixbuf.pixbuf) list
+  val small : (char * GdkPixbuf.pixbuf) list
 end
 
 let generator suf =
   let module M = struct
     let names = build_path_list suf
-    let large_set = Src.get_multiple `LARGE names
-    let small_set = Src.get_multiple `SMALL names
+    let large = Src.get_multiple `LARGE names
+    let small = Src.get_multiple `SMALL names
   end in (module M : IconSet)
 
 let m_rgba = generator "_rgba" (* Active toggle buttons.   *)
@@ -38,9 +38,7 @@ let m_grey = generator "_grey" (* Inactive toggle buttons. *)
 
 let get_by_size typ ico = 
   let open (val ico : IconSet) in
-  match typ with
-  | `SMALL -> small_set
-  | `LARGE -> large_set
+  match typ with `SMALL -> small | `LARGE -> large
 
 let get_by_type ?(grad = true) = function
   | `GREY -> m_grey
