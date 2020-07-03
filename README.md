@@ -16,7 +16,7 @@ For Debian and relatives, install OPAM with [`apt`](https://salsa.debian.org/apt
 For other distributions, check your favourite package manager.
 
 ```
-apt install opam
+apt install opam libgtk2.0-dev libcairo2-dev
 ```
 
 #### OSX
@@ -65,6 +65,6 @@ You need to install the following dependencies:
 This is done as follows:
 
 ```
-$ opam install dune odoc lablgtk cairo2 cairo2-gtk
+opam install dune odoc lablgtk cairo2 cairo2-gtk
 ```
 
