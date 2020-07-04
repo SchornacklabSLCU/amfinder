@@ -11,11 +11,14 @@ val create : ui_width:int -> ui_height:int -> string -> t
 val path : t -> string
 (** Original image path. *)
 
-val original_width : t -> int
-(** Original width (in pixels) of the image. *)
+val basename : t -> string
+(** Image file name. *)
 
-val original_height : t -> int
-(** Original height (in pixels) of the image. *)
+val dirname : t -> string
+(** Image folder. *)
+
+val original_size : t -> int * int
+(** Returns the original size of the image ([(w, h)], in pixels). *)
 
 val xini : t -> int
 (** Returns the X axis origin, in pixels. *)
@@ -36,25 +39,25 @@ val edge : t -> CCore.size -> int
 (** Returns tile edge, in pixels. *)
 
 val x : c:int -> t -> CCore.size -> int
-(** Returns the X-axis pixel value corresponding to the given colum,. *)
+(** Returns the X-axis pixel value corresponding to the given column. *)
 
 val y : r:int -> t -> CCore.size -> int
 (** Returns the Y-axis pixel value corresponding to the given row. *)
 
-val tiles : t -> CCore.size -> GdkPixbuf.pixbuf array array
+val tiles : t -> CCore.size -> GdkPixbuf.pixbuf CExt.Matrix.t
 (** Returns small/large tile pixbufs. *)
 
 val tile : r:int -> c:int -> t -> CCore.size -> GdkPixbuf.pixbuf option
 (** Convenience function to retrieve a given tile. *) 
 
-val annotations : t -> CAnnot.t array array
+val annotations : t -> CAnnot.t CExt.Matrix.t
 (** Returns tile annotations. *)
 
 val annotation : r:int -> c:int -> t -> CAnnot.t option
 (** Convenience function to retrieve a specific annotation. *)
 
 val statistics : t -> (char * int) list
-(** Returns the count for a given annotation. Use ['*'] for any annotation. *)
+(** Returns the count of all annotations within the given image. *)
 
 val cursor_pos : t -> int * int
 (** [cursor_pos img] returns the current cursor position in image [img]. *)
