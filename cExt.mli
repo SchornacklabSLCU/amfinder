@@ -79,7 +79,7 @@ module Maybe : sig
   (** Returns [true] if a maybe-value contains an exception. *)
 
   val eval : ('a -> 'b) -> 'a -> 'b t
-  (** Creates a value from a function. *)
+  (** Creates a maybe-value from a function. *)
 
   val iter : ('a -> unit) -> 'a t -> unit
   (** Applies a function to the previously stored value, if any. *)
@@ -95,19 +95,19 @@ end
 (** Operations on colors. *)
 module Color : sig
   val html_to_int : string -> int * int * int
-  (** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue values. *)
+  (** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue integers. *)
 
   val html_to_int16 : string -> int * int * int
-  (** Same as [html_to_int], but returns 16-bit values. *)
+  (** Same as [html_to_int], but returns 16-bit integers. *)
 
   val html_to_float : string -> float * float * float
-  (** Same as [html_to_int], but returns values as floats. *)
+  (** Same as [html_to_int], but returns floating-point numbers. *)
 
   val float_to_int : float -> float -> float -> int * int * int
-  (** [float_to_html r g b] returns 8-bit red, green and blue values. *)
+  (** [float_to_int r g b] returns 8-bit red, green and blue integers. *)
 
   val float_to_html : float -> float -> float -> string
-  (** [float_to_html r g b] returns "#RRGGBB" (hexadecimal notation). *)
+  (** [float_to_html r g b] returns the HTML notation "#RRGGBB". *)
 end
 
 val time : ('a -> 'b) -> 'a -> 'b
