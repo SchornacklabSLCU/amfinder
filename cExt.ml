@@ -3,31 +3,15 @@
 open Scanf
 open Printf
 
-let read_file ?(trim = true) str = 
-  let ich = open_in_bin str in
-  let len = in_channel_length ich in
-  let buf = Buffer.create len in
-  Buffer.add_channel buf ich len;
-  close_in ich;
-  let str = Buffer.contents buf in
-  if trim then String.trim str else str
-
-let tagger_string_fold_left f ini s =
-  let len = String.length s in
-  let rec loop i res =
-    if i < len then
-      let elt = f res s.[i] in
-      loop (i + 1) elt
-    else res
-  in loop 0 ini
-
-module CString = struct
-  let fold_right f str ini =
-    let len = String.length str in
-    let rec loop i =
-      if i < len then f str.[i] (loop (i + 1))
-      else ini
-    in loop 0
+module File = struct
+  let read ?(binary = true) ?(trim = true) str = 
+    let ich = (if binary then open_in_bin else open_in) str in
+    let len = in_channel_length ich in
+    let buf = Buffer.create len in
+    Buffer.add_channel buf ich len;
+    close_in ich;
+    let str = Buffer.contents buf in
+    if trim then String.trim str else str
 end
 
 module Matrix = struct
@@ -48,6 +32,19 @@ module Split = struct
   let spaces = String.split_on_char ' '
 end
 
+module Maybe = struct
+  type 'a t = V of 'a | E of exn
+  let from_value x = V x
+  let from_exception e = E e
+  let from_option = function None -> E Not_found | Some x -> V x
+  let to_option = function V x -> Some x | _ -> None
+  let is_value = function V _ -> true | _ -> false
+  let is_exception = function E _ -> true | _ -> false
+  let eval f x = try V (f x) with e -> E e
+  let iter f = function V x -> f x | _ -> ()
+  let map f = function V x -> eval f x | E e -> E e
+  let fix g = function E e -> eval g e | value -> value
+end
 
 let tagger_time f x =
   let t_1 = Unix.gettimeofday () in

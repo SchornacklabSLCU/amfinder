@@ -1,16 +1,6 @@
 (* CastANet - cExtlib.mli *)
 
-(** Helper functions. The functions list below carry the prefix [tagger_] to 
-  * prevent namespace clash when opening the module. *)
-
-(** Extended strings. *)
-val tagger_string_fold_left : ('a -> char -> 'a) -> 'a -> string -> 'a
-
-(** Operations on strings. *)
-module CString : sig
-  val fold_right : (char -> 'a -> 'a) -> string -> 'a -> 'a
-  (** [fold_right]-style function for strings. *)
-end
+(** Lightweight extension of OCaml standard library. *)
 
 (** Matrix iterators. *)
 module Matrix : sig
@@ -35,7 +25,6 @@ module Matrix : sig
 end
 
 
-
 (** Text splitting functions. *)
 module Split : sig
   val lines : string -> string list
@@ -58,9 +47,50 @@ module Split : sig
 end
 
 
+(** Operations on files. *)
+module File : sig
+  val read : ?binary:bool -> ?trim:bool -> string -> string
+  (** Reads a file. *)
+end
 
-val read_file : ?trim:bool -> string -> string
-(** Reads a file. *)
+
+(** Maybe-values, aka value/error monad. This carries a little more information
+  * than ['a option], by retrieving any exception raised during evaluation. *)
+module Maybe : sig
+  type 'a t
+  (** The type for maybe-values. *)
+
+  val from_value : 'a -> 'a t
+  (** Creates a maybe-value from a value. *)
+
+  val from_exception : exn -> 'a t
+  (** Creates a maybe-value from an exception. *)
+
+  val from_option : 'a option -> 'a t
+  (** Creates a maybe-value from an option. *)
+  
+  val to_option : 'a t -> 'a option
+  (** Converts a maybe-value to option. *)
+
+  val is_value : 'a t -> bool
+  (** Returns [true@ if a maybe-value contains a value. *)
+
+  val is_exception : 'a t -> bool
+  (** Returns [true@ if a maybe-value contains an exception. *)
+
+  val eval : ('a -> 'b) -> 'a -> 'b t
+  (** Creates a value from a function. *)
+
+  val iter : ('a -> unit) -> 'a t -> unit
+  (** Applies a function to the previously stored value, if any. *)
+
+  val map : ('a -> 'b) -> 'a t -> 'b t
+  (** Modifies the previously stored value, if any. *)
+
+  val fix : (exn -> 'a) -> 'a t -> 'a t
+  (** Tries to fix a previously raised error. *)
+end
+
 
 val tagger_time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
