@@ -75,7 +75,7 @@ let export ~path mat =
   List.map (String.make 1) code_list @ ["B"]
     |> String.concat "\t"
     |> fprintf och "row\tcol\t%s\n";
-  tagger_matrix_iteri (fun r c a ->
+  CExt.Matrix.iteri (fun r c a ->
     let str = Export.(if is_empty a then empty () else to_string a) in
     fprintf och "%d\t%d\t%s\n" r c str
   ) mat;

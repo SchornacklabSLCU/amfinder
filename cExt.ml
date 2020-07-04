@@ -1,7 +1,4 @@
-(* CastANet - tTools.ml *)
-
-(* WARNING: All functions from this module should carry the prefix 'tagger_'
- * to avoid namespace clash when opening TTools in other modules. *)
+(* CastANet - cExtlib.ml *)
 
 open Scanf
 open Printf
@@ -33,7 +30,14 @@ module CString = struct
     in loop 0
 end
 
-let tagger_matrix_iteri f = Array.(iteri (fun r -> iteri (f r)))
+module Matrix = struct
+  type 'a matrix = 'a array array
+  let init nr nc f = Array.(init nr (fun r -> Array.init nc (f r)))
+  let map f = Array.(map (map f))
+  let mapi f = Array.(mapi (fun r -> mapi (f r)))
+  let iter f = Array.(iter (iter f))
+  let iteri f = Array.(iteri (fun r -> iteri (f r)))
+end
 
 let split_lines = String.split_on_char '\n'
 

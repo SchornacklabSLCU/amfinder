@@ -1,4 +1,4 @@
-(* CastANet - tTools.mli *)
+(* CastANet - cExtlib.mli *)
 
 (** Helper functions. The functions list below carry the prefix [tagger_] to 
   * prevent namespace clash when opening the module. *)
@@ -12,8 +12,27 @@ module CString : sig
   (** [fold_right]-style function for strings. *)
 end
 
-val tagger_matrix_iteri : (int -> int -> 'a -> unit) -> 'a array array -> unit
-(** Matrix iterator. *)
+(** Matrix iterators. *)
+module Matrix : sig
+  type 'a matrix = 'a array array
+  (** The type of matrices. *)
+
+  val init : int -> int -> (int -> int -> 'a) -> 'a matrix
+  (** [init r c f] builds a matrix of [r] rows and [c] columns and initializes
+    * values using the function [f]. *)
+
+  val map : ('a -> 'b) -> 'a matrix -> 'b matrix
+  (** [map f m] builds a new matrix by applying [f] to all members of [m]. *)
+
+  val mapi : (int -> int -> 'a -> 'b) -> 'a matrix -> 'b matrix
+  (** Same as [map], but [f] receives row and column indexes as parameters. *)
+  
+  val iter : ('a -> unit) -> 'a matrix -> unit
+  (** [iter f m] applies [f] to all members of the matrix [m]. *)
+  
+  val iteri : (int -> int -> 'a -> unit) -> 'a matrix -> unit
+  (** Same as [iter], but [f] receives row and column indexes as parameters. *)
+end
 
 val split_lines : string -> string list
 (** Split lines using linefeed (['\n']) as delimiter. For instance,

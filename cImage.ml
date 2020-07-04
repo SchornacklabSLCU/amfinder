@@ -1,7 +1,5 @@
 (* CastANet - cImage.mli *)
 
-open CExt
-
 type mosaic = {
   edge : int;
   matrix : GdkPixbuf.pixbuf array array;
@@ -18,7 +16,20 @@ type t = {
   mutable cursor : int * int;
 }
 
-let tagger_matrix_map f = Array.(map (map f))
+let path img = img.path
+
+let original_width img = fst img.original_size
+let original_height img = snd img.original_size
+
+let xini img = fst img.pixels
+let yini img = snd img.pixels
+
+let rows img = fst img.rc
+let columns img = snd img.rc
+
+let tiles img = function
+  | `LARGE -> img.large_tiles.matrix
+  | `SMALL -> img.small_tiles.matrix
 
 
 module Create = struct
@@ -49,7 +60,7 @@ module Create = struct
   let annotations path tiles =
     let tsv = Filename.remove_extension path ^ ".tsv" in
     if Sys.file_exists tsv then CAnnot.import tsv
-    else tagger_matrix_map (fun _ -> CAnnot.empty ()) tiles
+    else CExt.Matrix.map (fun _ -> CAnnot.empty ()) tiles
 end
 
 let create ~ui_width ~ui_height path =
@@ -62,7 +73,7 @@ let create ~ui_width ~ui_height path =
   let large_tiles = Create.get_large_tiles nr nc edge image in
   let small_edge = min (ui_width / nc) (ui_height / nr) in
   CPalette.set_tile_edge small_edge;
-  let small_tiles = tagger_matrix_map (Create.scale ~edge:small_edge) large_tiles in
+  let small_tiles = CExt.Matrix.map (Create.scale ~edge:small_edge) large_tiles in
   let annotations = Create.annotations path small_tiles in
   let xini = (ui_width - small_edge * nc) / 2
   and yini = (ui_height - small_edge * nr) / 2 in
@@ -71,17 +82,6 @@ let create ~ui_width ~ui_height path =
     large_tiles = { edge = CCore.edge; matrix = large_tiles };
     small_tiles = { edge = small_edge; matrix = small_tiles };
     annotations }
-
-let path img = img.path
-
-let original_width img = fst img.original_size
-let original_height img = snd img.original_size
-
-let xini img = fst img.pixels
-let yini img = snd img.pixels
-
-let rows img = fst img.rc
-let columns img = snd img.rc
 
 let is_valid ~r ~c img =
   try ignore (img.annotations.(r).(c)); true with _ -> false
@@ -92,10 +92,6 @@ let edge img = function
 
 let x ~c img typ = (xini img) + c * (edge img typ)
 let y ~r img typ = (yini img) + r * (edge img typ)
-
-let tiles img = function
-  | `LARGE -> img.large_tiles.matrix
-  | `SMALL -> img.small_tiles.matrix
 
 let tile ~r ~c img typ = try Some (tiles img typ).(r).(c) with _ -> None
 
