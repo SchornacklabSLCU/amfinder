@@ -66,7 +66,7 @@ val iter_tiles :
   (int -> int -> GdkPixbuf.pixbuf -> unit) -> t -> CCore.size -> unit
 (** Iter over tiles. *)
 
-val iter_annotations : (int -> int -> CAnnot.t -> unit) -> t -> unit
+val iter_annot : (int -> int -> CAnnot.t -> unit) -> t -> unit
 (** Iter over annotations. *)
 
 val digest : t -> string

@@ -112,12 +112,9 @@ let statistics img =
 let cursor_pos img = img.cursor
 let set_cursor_pos img pos = img.cursor <- pos
 
-let iter_tiles f img typ =
-  Array.(iteri (fun r -> iteri (f r))) (tiles img typ)
-
-let iter_annotations f img =
-  Array.(iteri (fun r -> iteri (f r))) (annotations img)
-  
+let iter_tiles f img typ = CExt.Matrix.iteri f (tiles img typ)
+let iter_annot f img = CExt.Matrix.iteri f (annotations img)
+   
 let digest img =
   Printf.sprintf "<small><tt> \
     <b>Image:</b> %s, \

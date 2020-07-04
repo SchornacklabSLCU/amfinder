@@ -237,7 +237,7 @@ let set_curr_annotation active chr =
 
 let active_layer ?(sync = true) () =
   Gaux.may (fun img ->
-    CImage.iter_annotations (fun r c _ ->
+    CImage.iter_annot (fun r c _ ->
       tile r c;
       annot r c
     ) img;
@@ -253,7 +253,7 @@ let display_set () =
     let show, ico = match CGUI.VToolbox.get_active () with
       | `JOKER -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get '*' `RGBA `SMALL
       | `CHR chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
-    CImage.iter_annotations (fun r c ann ->
+    CImage.iter_annot (fun r c ann ->
       if show ann then begin
         incr count;
         Gaux.may (CGUI.TileSet.add ~r ~c ~ico) (CImage.tile ~r ~c img `LARGE) 
