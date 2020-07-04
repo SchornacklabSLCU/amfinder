@@ -39,31 +39,19 @@ let annotation ~r ~c img = CExt.Matrix.get_opt (annotations img) r c
 let iter_tiles f img typ = CExt.Matrix.iteri f (tiles img typ)
 let iter_annot f img = CExt.Matrix.iteri f (annotations img)
 
+let x ~c img typ = (xini img) + c * (edge img typ)
+let y ~r img typ = (yini img) + r * (edge img typ)
 
 module Create = struct
   let get_size path = let _, w, h = GdkPixbuf.get_file_info path in w, h
   let load_full_size_img = GdkPixbuf.from_file
 
-  let scale ?(interp = `NEAREST) ~edge pix =
-    let w, h = GdkPixbuf.(get_width pix, get_height pix) in
-    let scale_x = float edge /. (float w)
-    and scale_y = float edge /. (float h) in
-    let dest = GdkPixbuf.create ~width:edge ~height:edge () in
-    GdkPixbuf.scale
-      ~dest ~dest_x:0 ~dest_y:0 ~width:edge ~height:edge
-      ~scale_x ~scale_y ~ofs_x:0.0 ~ofs_y:0.0 
-      ~interp pix;
-    dest
-
-  let get_large nr nc edge source =
-    Array.init nr (fun r ->
-      Array.init nc (fun c ->
-        let tile = GdkPixbuf.create ~width:edge ~height:edge () in
-        GdkPixbuf.copy_area ~dest:tile
-          ~src_x:(c * edge) ~src_y:(r * edge)
-          ~width:edge ~height:edge source;
-        scale ~edge:CCore.edge tile
-    ))
+  let get_large nr nc e source =
+    CExt.Matrix.init nr nc (fun r c ->
+      let open CExt.Image in
+      crop_square ~src_x:(c * e) ~src_y:(r * e) ~edge:e source
+      |> resize ~edge:CCore.edge
+    )
     
   let annotations path tiles =
     let tsv = Filename.remove_extension path ^ ".tsv" in
@@ -81,7 +69,7 @@ let create ~ui_width ~ui_height path =
   let large = Create.get_large nr nc edge image in
   let small_edge = min (ui_width / nc) (ui_height / nr) in
   CPalette.set_tile_edge small_edge;
-  let small = CExt.Matrix.map (Create.scale ~edge:small_edge) large in
+  let small = CExt.Matrix.map (CExt.Image.resize ~edge:small_edge) large in
   let annot = Create.annotations path small in
   let xini = (ui_width - small_edge * nc) / 2
   and yini = (ui_height - small_edge * nr) / 2 in
@@ -92,9 +80,6 @@ let create ~ui_width ~ui_height path =
     annot }
 
 let is_valid ~r ~c t = CExt.Matrix.get_opt (annotations t) r c <> None
-
-let x ~c img typ = (xini img) + c * (edge img typ)
-let y ~r img typ = (yini img) + r * (edge img typ)
 
 let statistics img =
   let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in

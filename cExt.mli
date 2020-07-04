@@ -116,6 +116,20 @@ module Color : sig
   (** [float_to_html r g b] returns the HTML notation "#RRGGBB". *)
 end
 
+
+(** Image (Gdkpixbuf) manipulation. *)
+module Image : sig
+  open GdkPixbuf
+
+  val crop_square : src_x:int -> src_y:int -> edge:int -> pixbuf -> pixbuf
+  (** Crop a square from the given pixbuf. *)
+  
+  val resize : ?interp:interpolation -> edge:int -> pixbuf -> pixbuf
+  (** Resize an image. By default, uses nearest-neighbor interpolation. *)
+end
+
+
+
 val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
 
