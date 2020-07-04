@@ -17,20 +17,11 @@ val basename : t -> string
 val dirname : t -> string
 (** Image folder. *)
 
-val original_size : t -> int * int
-(** Returns the original size of the image ([(w, h)], in pixels). *)
+val origin : t -> [ `X | `Y ] -> int
+(** Returns the X or Y axis origin, in pixels. *)
 
-val xini : t -> int
-(** Returns the X axis origin, in pixels. *)
-
-val yini : t -> int
-(** Returns the Y axis origin, in pixels. *)
-
-val rows : t -> int
-(** Returns the row count. *)
-
-val columns : t -> int
-(** Returns the column count. *)
+val dim : t -> [ `C | `R ] -> int
+(** Returns the number of rows ([`R]) or columns ([`C]) in the given image. *)
 
 val is_valid : r:int -> c:int -> t -> bool
 (** Tells whether the given coordinates are valid. *)

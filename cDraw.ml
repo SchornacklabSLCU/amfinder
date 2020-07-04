@@ -21,7 +21,7 @@ let load path =
     width (), height (), pixmap () in
   let t = CImage.create ~ui_width ~ui_height path in
   curr := Some t;
-  let xini, yini, edge = CImage.(xini t, yini t, edge t `SMALL) in
+  let xini, yini, edge = CImage.(origin t `X, origin t `Y, edge t `SMALL) in
   white_background ();
   CImage.iter_tiles (fun r c tile -> 
     pixmap#put_pixbuf
@@ -284,7 +284,7 @@ module Cursor = struct
     ~f_row:(fun r -> r)
     ~f_col:(fun c -> 
       let f img =
-        let nc = CImage.columns img and c' = c - jump in
+        let nc = CImage.dim img `C and c' = c - jump in
         if c' < 0 then (c' + nc) mod nc else
         if c' >= nc then c' mod nc else c'
       in eval f)
@@ -293,7 +293,7 @@ module Cursor = struct
     ~f_row:(fun r -> r)
     ~f_col:(fun c ->
       let f img =
-        let nc = CImage.columns img and c' = c + jump in
+        let nc = CImage.dim img `C and c' = c + jump in
         if c' < 0 then (c' + nc) mod nc else
         if c' >= nc then c' mod nc else c'
       in eval f)
@@ -301,7 +301,7 @@ module Cursor = struct
   let move_up ?(jump = 1) = move
     ~f_row:(fun r -> 
       let f img =
-        let nr = CImage.rows img and r' = r - jump in
+        let nr = CImage.dim img `R and r' = r - jump in
         if r' < 0 then (r' + nr) mod nr else
         if r' >= nr then r' mod nr else r'
       in eval f)
@@ -310,7 +310,7 @@ module Cursor = struct
   let move_down ?(jump = 1) = move
     ~f_row:(fun r ->
       let f img =
-        let nr = CImage.rows img and r' = r + jump in
+        let nr = CImage.dim img `R and r' = r + jump in
         if r' < 0 then (r' + nr) mod nr else
         if r' >= nr then r' mod nr else r'
       in eval f)
@@ -333,8 +333,8 @@ module Cursor = struct
   let at_mouse_pointer ?(toggles = [||]) ev =
     Gaux.may (fun img ->
       let open GdkEvent.Button in
-      let x = truncate (x ev) - CImage.xini img
-      and y = truncate (y ev) - CImage.yini img
+      let x = truncate (x ev) - CImage.origin img `X
+      and y = truncate (y ev) - CImage.origin img `Y
       and e = CImage.edge img `SMALL in
       let r = y / e and c = x / e in
       if CImage.is_valid ~r ~c img then
@@ -375,8 +375,8 @@ module MouseTracker = struct
   let update ev =
     Gaux.may (fun img ->
       let open GdkEvent.Motion in
-      let x = truncate (x ev) - CImage.xini img
-      and y = truncate (y ev) - CImage.yini img
+      let x = truncate (x ev) - CImage.origin img `X
+      and y = truncate (y ev) - CImage.origin img `Y
       and e = CImage.edge img `SMALL in
       show ~r:(y / e) ~c:(x / e) img
     ) !curr;

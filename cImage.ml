@@ -1,39 +1,51 @@
 (* CastANet - cImage.mli *)
 
-type mosaic = { edge : int; matrix : GdkPixbuf.pixbuf CExt.Matrix.t }
+type annot = CAnnot.t CExt.Matrix.t
+type tiles = GdkPixbuf.pixbuf CExt.Matrix.t
 
-type t = {
-  path : string;
-  original_size : int * int;
-  rows : int;
-  columns : int;
+type mosaic = { edge : int; matrix : tiles } 
+type sizes = { small : mosaic; large : mosaic }
+type param = { path : string; rows : int; cols : int }
+
+type graph = {
   xini : int;
   yini : int;
-  large : mosaic; (* zoomed in version. *)
-  small : mosaic; (* image overview.    *)
-  annot : CAnnot.t CExt.Matrix.t;
+  imgw : int;
+  imgh : int;
   mutable cursor : int * int;
 }
 
-let path t = t.path
+type t = { param : param; sizes : sizes; annot : annot; graph : graph }
+
+(* Getters *)
+let path t = t.param.path
 let basename t = Filename.basename (path t)
 let dirname t = Filename.dirname (path t)
 
-let original_size t = t.original_size
+let source t = function
+  | `W -> t.graph.imgw 
+  | `H -> t.graph.imgh
 
-let xini t = t.xini
-let yini t = t.yini
+let origin t = function
+  | `X -> t.graph.xini
+  | `Y -> t.graph.yini
 
-let rows t = t.rows
-let columns t = t.columns
+let dim t = function
+  | `R -> t.param.rows
+  | `C -> t.param.cols
 
 let annotations t = t.annot
 
-let edge t x = (if x = `SMALL then t.small else t.large).edge
-let tiles t x = (if x = `SMALL then t.small else t.large).matrix
+let edge t = function
+  | `SMALL -> t.sizes.small.edge 
+  | `LARGE -> t.sizes.large.edge
 
-let cursor_pos t = t.cursor
-let set_cursor_pos t pos = t.cursor <- pos
+let tiles t = function
+  | `SMALL -> t.sizes.small.matrix
+  | `LARGE -> t.sizes.large.matrix
+
+let cursor_pos t = t.graph.cursor
+let set_cursor_pos t pos = t.graph.cursor <- pos
 
 let tile ~r ~c t typ = CExt.Matrix.get_opt (tiles t typ) r c
 let annotation ~r ~c t = CExt.Matrix.get_opt (annotations t) r c
@@ -41,14 +53,14 @@ let annotation ~r ~c t = CExt.Matrix.get_opt (annotations t) r c
 let iter_tiles f t typ = CExt.Matrix.iteri f (tiles t typ)
 let iter_annot f t = CExt.Matrix.iteri f (annotations t)
 
-let x ~c t typ = (xini t) + c * (edge t typ)
-let y ~r t typ = (yini t) + r * (edge t typ)
+let x ~c t typ = (origin t `X) + c * (edge t typ)
+let y ~r t typ = (origin t `Y) + r * (edge t typ)
 
 let is_valid ~r ~c t = CExt.Matrix.get_opt (annotations t) r c <> None
 
 
 module Binary = struct
-  let binfile path = Filename.chop_extension path ^ ".bin"
+  let binfile path = Filename.remove_extension path ^ ".bin"
   (* Save image as binary at exit. *)
   let save_at_exit img =
     let f () =
@@ -84,31 +96,33 @@ module Create = struct
     else Matrix.map (fun _ -> CAnnot.empty ()) tiles
 end
 
-
 let create ~ui_width:uiw ~ui_height:uih path =
   match Binary.restore path with
   | Some img -> img
   | None ->
-  let pix = GdkPixbuf.from_file path in
-  let w, h = GdkPixbuf.(get_width pix, get_height pix) in
-  let edge = 236 in
-  let nr = h / edge and nc = w / edge in
-  CLog.info "source image: '%s'" path;
-  CLog.info "source image size: %d x %d pixels" w h;
-  CLog.info "tile matrix: %d x %d; edge: %d pixels" nr nc edge;
-  let large = Create.large_tile_matrix nr nc edge pix in
-  let small_edge = min (uiw / nc) (uih / nr) in
-  let small = Create.small_tile_matrix small_edge large in
-  let annot = Create.annotations path small in
-  CPalette.set_tile_edge small_edge;
-  let xini = (uiw - small_edge * nc) / 2
-  and yini = (uih - small_edge * nr) / 2 in
-  let img = { path; original_size = (w, h); rows = nr; columns = nc;
-    xini; yini; cursor = (0, 0); annot;
-    large = { edge = CCore.edge; matrix = large };
-    small = { edge = small_edge; matrix = small } } in
-  Binary.save_at_exit img;
-  img
+    let pix = GdkPixbuf.from_file path in
+    let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
+    let edge = 236 in
+    let rows = imgh / edge and cols = imgw / edge in
+    let large = Create.large_tile_matrix rows cols edge pix in
+    let sub = min (uiw / cols) (uih / rows) in
+    let small = Create.small_tile_matrix sub large in
+    let annot = Create.annotations path small in
+    let graph = {
+      imgw; imgh; cursor = (0, 0);
+      xini = (uiw - sub * cols) / 2;
+      yini = (uih - sub * rows) / 2;
+    } and sizes = {
+      small = {edge = sub; matrix = small};
+      large = {edge = 180; matrix = large};
+    } and param = {path; rows; cols} in
+    let img = { param; sizes; graph; annot } in
+    Binary.save_at_exit img;
+    CPalette.set_tile_edge sub;
+    CLog.info "source image: '%s'" path;
+    CLog.info "source image size: %d x %d pixels" imgw imgh;
+    CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
+    img
 
 let statistics img =
   let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in
@@ -118,10 +132,9 @@ let statistics img =
   ) img;
   List.map (fun (c, r) -> c, !r) res
    
-let digest img =
-  let wpix, hpix = original_size img in
+let digest t =
   Printf.sprintf "<small><tt> \
     <b>Image:</b> %s ▪ \
     <b>Size:</b> %d × %d pixels ▪ \
     <b>Tiles:</b> %d × %d</tt></small>" 
-  (basename img) wpix hpix (rows img) (columns img)
+  (basename t) (source t `W) (source t `H) (dim t `R) (dim t `C)
