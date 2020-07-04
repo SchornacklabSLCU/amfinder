@@ -2,9 +2,6 @@
 
 open Printf
 
-type icon_type = [ `RGBA | `GREY ]
-type icon_size = [ `LARGE | `SMALL ]
-
 let dir = "data"
 
 let build_path_list suf =

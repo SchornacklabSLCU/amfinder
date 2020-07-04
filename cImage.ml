@@ -18,8 +18,6 @@ type t = {
   mutable cursor : int * int;
 }
 
-type tile_size = [ `LARGE | `SMALL ]
-
 let tagger_matrix_map f = Array.(map (map f))
 
 
@@ -45,7 +43,7 @@ module Create = struct
         GdkPixbuf.copy_area ~dest:tile
           ~src_x:(c * edge) ~src_y:(r * edge)
           ~width:edge ~height:edge source;
-        scale ~edge:180 tile
+        scale ~edge:CCore.edge tile
     ))
     
   let annotations path tiles =
@@ -70,7 +68,7 @@ let create ~ui_width ~ui_height path =
   and yini = (ui_height - small_edge * nr) / 2 in
   { path; original_size = (w, h);
     rc = (nr, nc); pixels = (xini, yini); cursor = (0, 0);
-    large_tiles = { edge = 180; matrix = large_tiles };
+    large_tiles = { edge = CCore.edge; matrix = large_tiles };
     small_tiles = { edge = small_edge; matrix = small_tiles };
     annotations }
 

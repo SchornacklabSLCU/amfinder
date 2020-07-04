@@ -113,7 +113,7 @@ end
 module Magnify = struct
   let rows = 3
   let columns = 3
-  let edge = 180
+  let edge = CCore.edge
 
   let table = GPack.table
     ~rows ~columns
@@ -344,7 +344,7 @@ module TileSet = struct
   module Cell = struct
     let xc = `XALIGN 0.5
     let yc = `YALIGN 0.5
-    let sz = Magnify.edge 
+    let sz = CCore.edge 
     let bg = `CELL_BACKGROUND_GDK (GDraw.color (`NAME "dimgray"))
     open GTree
     let mycflg = cell_renderer_pixbuf [bg; `XPAD 2; `WIDTH 34; xc; yc]
