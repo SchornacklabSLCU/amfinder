@@ -5,7 +5,7 @@ let _ =
   print_endline "castanet-editor version 1.0";
   CSettings.initialize ();
   CGUI.window#show ();
-  CExt.tagger_time CDraw.load (CSettings.image ());
+  CExt.time CDraw.load (CSettings.image ());
   CEvent.initialize ();
   CDraw.GUI.magnified_view ();
   CDraw.GUI.statistics ();

@@ -54,7 +54,7 @@ module Layer = struct
   let master = CExt.memoize
     begin fun () ->
       let f img =    
-        let r, g, b = tagger_html_to_float "#aaffaa" in
+        let r, g, b = CExt.Color.html_to_float "#aaffaa" in
         make_cairo_surface ~r ~g ~b ~a:0.7 img
       in eval f
     end
@@ -66,7 +66,7 @@ module Layer = struct
     begin fun () ->
       let f img =
         List.map2 (fun chr clr ->
-          let r, g, b = tagger_html_to_float clr in
+          let r, g, b = CExt.Color.html_to_float clr in
           let s = make_cairo_surface ~r ~g ~b ~a:0.8 img in
           (chr, s)
         ) CAnnot.code_list colors

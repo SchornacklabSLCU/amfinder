@@ -6,9 +6,8 @@ open Printf
 
 let codes = "AVIEHRD"
 let ncodes = String.length codes
-let code_list = CExt.CString.fold_right List.cons codes []
+let code_list = List.init ncodes (String.get codes)
 let index_list = Array.(of_list code_list |> mapi (fun i c -> c, i) |> to_list)
-
 let requires chr = if String.contains "AVIH" chr then "R" else ""
 let forbids = function 'D' -> "AVIERH" | _ -> "D"
 let erases = function 'R' -> "AVIH" | _ -> ""
@@ -146,7 +145,7 @@ end
 
 
 let import ~path:tsv =
-  let header, contents = CExt.read_file tsv
+  let header, contents = CExt.File.read tsv
     |> CExt.Split.lines
     |> Import.split_header in
   let xy_map = Import.parse_contents contents in

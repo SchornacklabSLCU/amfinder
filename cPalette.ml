@@ -28,7 +28,7 @@ let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) () =
 
 let make_surface_table colors =
   Array.map  (fun clr ->
-    let r, g, b = CExt.tagger_html_to_float clr in
+    let r, g, b = CExt.Color.html_to_float clr in
     make_cairo_surface ~r ~g ~b ~a:0.8 ()
   ) colors
 
