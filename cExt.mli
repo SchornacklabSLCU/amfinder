@@ -73,10 +73,10 @@ module Maybe : sig
   (** Converts a maybe-value to option. *)
 
   val is_value : 'a t -> bool
-  (** Returns [true@ if a maybe-value contains a value. *)
+  (** Returns [true] if a maybe-value contains a value. *)
 
   val is_exception : 'a t -> bool
-  (** Returns [true@ if a maybe-value contains an exception. *)
+  (** Returns [true] if a maybe-value contains an exception. *)
 
   val eval : ('a -> 'b) -> 'a -> 'b t
   (** Creates a value from a function. *)
