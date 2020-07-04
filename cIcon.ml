@@ -1,5 +1,6 @@
 (* CastANet - cIcon.ml *)
 
+(* Icon sources. Load icons as pixbufs of 24 (small) or 48 (large) pixels. *)
 module Source = struct
   let pixbuf n (c, s) = (c, GdkPixbuf.from_file_at_size ~width:n ~height:n s)
   let pixbuf_list n = List.map (pixbuf n)
@@ -13,6 +14,7 @@ module type IconSet = sig
   val small : (char * GdkPixbuf.pixbuf) list
 end
 
+(* Icon set builder. Retrieve paths to icon files and load all icon flavours. *)
 module Build = struct
   let path_list suf =
     let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
@@ -28,10 +30,11 @@ module Build = struct
     end in (module M : IconSet)
 end
 
-let m_rgba = Build.icon_set "rgba" (* Active toggle buttons.   *)
-let m_grad = Build.icon_set "grad" (* Active with confidence.  *)
-let m_grey = Build.icon_set "grey" (* Inactive toggle buttons. *)
+let m_rgba = Build.icon_set "rgba" (* Active toggle buttons with binary data. *)
+let m_grad = Build.icon_set "grad" (* Same, but with confidence values.       *)
+let m_grey = Build.icon_set "grey" (* Inactive toggle buttons.                *)
 
+(* Joker icon for display any annotation (irrespective of their type). *)
 module Joker = struct
   let make suf =
     let ico = Printf.sprintf "Joker_%s.png" suf
@@ -42,6 +45,7 @@ module Joker = struct
   let grey = make "grey"
 end
 
+(* Icon selection, based on size (small/large) and style (grey/rgba). *)
 module Select = struct
   let size typ ico = 
     let open (val ico : IconSet) in
