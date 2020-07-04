@@ -64,7 +64,10 @@ module Binary = struct
   (* Save image as binary at exit. *)
   let save_at_exit img =
     let f () =
-      let och = path img |> binfile |> open_out_bin in
+      let bin = binfile (path img) in
+      (* Faster than erasing file contents. *)
+      if Sys.file_exists bin then Sys.remove bin;
+      let och = open_out_bin bin in
       output_value och img;
       close_out och
     in at_exit f
@@ -97,32 +100,31 @@ module Create = struct
 end
 
 let create ~ui_width:uiw ~ui_height:uih path =
-  match Binary.restore path with
-  | Some img -> img
-  | None ->
-    let pix = GdkPixbuf.from_file path in
-    let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
-    let edge = 236 in
-    let rows = imgh / edge and cols = imgw / edge in
-    let large = Create.large_tile_matrix rows cols edge pix in
-    let sub = min (uiw / cols) (uih / rows) in
-    let small = Create.small_tile_matrix sub large in
-    let annot = Create.annotations path small in
-    let graph = {
-      imgw; imgh; cursor = (0, 0);
-      xini = (uiw - sub * cols) / 2;
-      yini = (uih - sub * rows) / 2;
-    } and sizes = {
-      small = {edge = sub; matrix = small};
-      large = {edge = 180; matrix = large};
-    } and param = {path; rows; cols} in
-    let img = { param; sizes; graph; annot } in
-    Binary.save_at_exit img;
-    CPalette.set_tile_edge sub;
-    CLog.info "source image: '%s'" path;
-    CLog.info "source image size: %d x %d pixels" imgw imgh;
-    CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
-    img
+  let img = match Binary.restore path with
+    | Some img -> img
+    | None -> let pix = GdkPixbuf.from_file path in
+      let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
+      let edge = 236 in
+      let rows = imgh / edge and cols = imgw / edge in
+      let large = Create.large_tile_matrix rows cols edge pix in
+      let sub = min (uiw / cols) (uih / rows) in
+      let small = Create.small_tile_matrix sub large in
+      let annot = Create.annotations path small in
+      let graph = {
+        imgw; imgh; cursor = (0, 0);
+        xini = (uiw - sub * cols) / 2;
+        yini = (uih - sub * rows) / 2;
+      } and sizes = {
+        small = {edge = sub; matrix = small};
+        large = {edge = 180; matrix = large};
+      } and param = {path; rows; cols} in
+      let img = { param; sizes; graph; annot } in
+      CPalette.set_tile_edge sub;
+      CLog.info "source image: '%s'" path;
+      CLog.info "source image size: %d x %d pixels" imgw imgh;
+      CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
+      img
+  in Binary.save_at_exit img; img
 
 let statistics img =
   let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in
