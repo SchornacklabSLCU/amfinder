@@ -5,7 +5,8 @@ type mosaic = { edge : int; matrix : GdkPixbuf.pixbuf CExt.Matrix.t }
 type t = {
   path : string;
   original_size : int * int;
-  rc : int * int;
+  rows : int;
+  columns : int;
   pixels : int * int;
   large : mosaic; (* zoomed in version. *)
   small : mosaic; (* image overview.    *)
@@ -13,40 +14,39 @@ type t = {
   mutable cursor : int * int;
 }
 
-let path img = img.path
-let basename img = Filename.basename img.path
-let dirname img = Filename.dirname img.path
+let path t = t.path
+let basename t = Filename.basename (path t)
+let dirname t = Filename.dirname (path t)
 
-let original_size img = img.original_size
+let original_size t = t.original_size
 
-let xini img = fst img.pixels
-let yini img = snd img.pixels
+let xini t = fst t.pixels
+let yini t = snd t.pixels
 
-let rows img = fst img.rc
-let columns img = snd img.rc
+let rows t = t.rows
+let columns t = t.columns
 
-let annotations img = img.annot
+let annotations t = t.annot
 
 let edge t x = (if x = `SMALL then t.small else t.large).edge
 let tiles t x = (if x = `SMALL then t.small else t.large).matrix
 
-let cursor_pos img = img.cursor
-let set_cursor_pos img pos = img.cursor <- pos
+let cursor_pos t = t.cursor
+let set_cursor_pos t pos = t.cursor <- pos
 
-let tile ~r ~c img typ = CExt.Matrix.get_opt (tiles img typ) r c
-let annotation ~r ~c img = CExt.Matrix.get_opt (annotations img) r c
+let tile ~r ~c t typ = CExt.Matrix.get_opt (tiles t typ) r c
+let annotation ~r ~c t = CExt.Matrix.get_opt (annotations t) r c
 
-let iter_tiles f img typ = CExt.Matrix.iteri f (tiles img typ)
-let iter_annot f img = CExt.Matrix.iteri f (annotations img)
+let iter_tiles f t typ = CExt.Matrix.iteri f (tiles t typ)
+let iter_annot f t = CExt.Matrix.iteri f (annotations t)
 
-let x ~c img typ = (xini img) + c * (edge img typ)
-let y ~r img typ = (yini img) + r * (edge img typ)
+let x ~c t typ = (xini t) + c * (edge t typ)
+let y ~r t typ = (yini t) + r * (edge t typ)
+
+let is_valid ~r ~c t = CExt.Matrix.get_opt (annotations t) r c <> None
 
 module Create = struct
-  let get_size path = let _, w, h = GdkPixbuf.get_file_info path in w, h
-  let load_full_size_img = GdkPixbuf.from_file
-
-  let get_large nr nc e source =
+  let tile_matrix nr nc e source =
     CExt.Matrix.init nr nc (fun r c ->
       let open CExt.Image in
       crop_square ~src_x:(c * e) ~src_y:(r * e) ~edge:e source
@@ -60,26 +60,24 @@ module Create = struct
 end
 
 let create ~ui_width ~ui_height path =
-  let w, h = Create.get_size path in
-  CLog.info "source image width: %d pixels; height: %d pixels" w h;
-  let image = Create.load_full_size_img path in
+  CLog.info "source image: '%s'" path;
+  let _, w, h = GdkPixbuf.get_file_info path in
+  CLog.info "source image size: %d x %d pixels" w h;
+  let image = GdkPixbuf.from_file path in
   let edge = 236 in
   let nr = h / edge and nc = w / edge in
-  CLog.info "tile matrix rows: %d; columns: %d; edge: %d pixels" nr nc edge;
-  let large = Create.get_large nr nc edge image in
+  CLog.info "tile matrix: %d x %d; edge: %d pixels" nr nc edge;
+  let large = Create.tile_matrix nr nc edge image in
   let small_edge = min (ui_width / nc) (ui_height / nr) in
   CPalette.set_tile_edge small_edge;
   let small = CExt.Matrix.map (CExt.Image.resize ~edge:small_edge) large in
   let annot = Create.annotations path small in
   let xini = (ui_width - small_edge * nc) / 2
   and yini = (ui_height - small_edge * nr) / 2 in
-  { path; original_size = (w, h);
-    rc = (nr, nc); pixels = (xini, yini); cursor = (0, 0);
+  { path; original_size = (w, h); rows = nr; columns = nc;
+    pixels = (xini, yini); cursor = (0, 0); annot;
     large = { edge = CCore.edge; matrix = large };
-    small = { edge = small_edge; matrix = small };
-    annot }
-
-let is_valid ~r ~c t = CExt.Matrix.get_opt (annotations t) r c <> None
+    small = { edge = small_edge; matrix = small } }
 
 let statistics img =
   let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in
@@ -92,9 +90,7 @@ let statistics img =
 let digest img =
   let wpix, hpix = original_size img in
   Printf.sprintf "<small><tt> \
-    <b>Image:</b> %s, \
-    <b>width:</b> %d pixels, \
-    <b>height:</b> %d pixels, \
-    <b>rows:</b> %d, \
-    <b>columns:</b> %d</tt></small>" 
+    <b>Image:</b> %s ▪ \
+    <b>Size:</b> %d × %d pixels ▪ \
+    <b>Tiles:</b> %d × %d</tt></small>" 
   (basename img) wpix hpix (rows img) (columns img)
