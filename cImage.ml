@@ -7,7 +7,8 @@ type t = {
   original_size : int * int;
   rows : int;
   columns : int;
-  pixels : int * int;
+  xini : int;
+  yini : int;
   large : mosaic; (* zoomed in version. *)
   small : mosaic; (* image overview.    *)
   annot : CAnnot.t CExt.Matrix.t;
@@ -20,8 +21,8 @@ let dirname t = Filename.dirname (path t)
 
 let original_size t = t.original_size
 
-let xini t = fst t.pixels
-let yini t = snd t.pixels
+let xini t = t.xini
+let yini t = t.yini
 
 let rows t = t.rows
 let columns t = t.columns
@@ -45,39 +46,69 @@ let y ~r t typ = (yini t) + r * (edge t typ)
 
 let is_valid ~r ~c t = CExt.Matrix.get_opt (annotations t) r c <> None
 
+
+module Binary = struct
+  let binfile path = Filename.chop_extension path ^ ".bin"
+  (* Save image as binary at exit. *)
+  let save_at_exit img =
+    let f () =
+      let och = path img |> binfile |> open_out_bin in
+      output_value och img;
+      close_out och
+    in at_exit f
+  (* Restore image at startup from binary data. *)
+  let restore path =
+    let bin = binfile path in
+    if Sys.file_exists bin then (
+      let ich = open_in_bin bin in
+      let img = input_value ich in
+      close_in ich;
+      Some img
+    ) else None
+end
+
+
 module Create = struct
-  let tile_matrix nr nc e source =
-    CExt.Matrix.init nr nc (fun r c ->
-      let open CExt.Image in
-      crop_square ~src_x:(c * e) ~src_y:(r * e) ~edge:e source
-      |> resize ~edge:CCore.edge
+  open CExt
+  let large_tile_matrix nr nc edge src =
+    Matrix.init nr nc (fun r c ->
+      let src_x = c * edge and src_y = r * edge in
+      Image.(crop_square ~src_x ~src_y ~edge src |> resize ~edge:180)
     )
+    
+  let small_tile_matrix edge = Matrix.map (Image.resize ~edge)
     
   let annotations path tiles =
     let tsv = Filename.remove_extension path ^ ".tsv" in
     if Sys.file_exists tsv then CAnnot.import tsv
-    else CExt.Matrix.map (fun _ -> CAnnot.empty ()) tiles
+    else Matrix.map (fun _ -> CAnnot.empty ()) tiles
 end
 
-let create ~ui_width ~ui_height path =
-  CLog.info "source image: '%s'" path;
-  let _, w, h = GdkPixbuf.get_file_info path in
-  CLog.info "source image size: %d x %d pixels" w h;
-  let image = GdkPixbuf.from_file path in
+
+let create ~ui_width:uiw ~ui_height:uih path =
+  match Binary.restore path with
+  | Some img -> img
+  | None ->
+  let pix = GdkPixbuf.from_file path in
+  let w, h = GdkPixbuf.(get_width pix, get_height pix) in
   let edge = 236 in
   let nr = h / edge and nc = w / edge in
+  CLog.info "source image: '%s'" path;
+  CLog.info "source image size: %d x %d pixels" w h;
   CLog.info "tile matrix: %d x %d; edge: %d pixels" nr nc edge;
-  let large = Create.tile_matrix nr nc edge image in
-  let small_edge = min (ui_width / nc) (ui_height / nr) in
-  CPalette.set_tile_edge small_edge;
-  let small = CExt.Matrix.map (CExt.Image.resize ~edge:small_edge) large in
+  let large = Create.large_tile_matrix nr nc edge pix in
+  let small_edge = min (uiw / nc) (uih / nr) in
+  let small = Create.small_tile_matrix small_edge large in
   let annot = Create.annotations path small in
-  let xini = (ui_width - small_edge * nc) / 2
-  and yini = (ui_height - small_edge * nr) / 2 in
-  { path; original_size = (w, h); rows = nr; columns = nc;
-    pixels = (xini, yini); cursor = (0, 0); annot;
+  CPalette.set_tile_edge small_edge;
+  let xini = (uiw - small_edge * nc) / 2
+  and yini = (uih - small_edge * nr) / 2 in
+  let img = { path; original_size = (w, h); rows = nr; columns = nc;
+    xini; yini; cursor = (0, 0); annot;
     large = { edge = CCore.edge; matrix = large };
-    small = { edge = small_edge; matrix = small } }
+    small = { edge = small_edge; matrix = small } } in
+  Binary.save_at_exit img;
+  img
 
 let statistics img =
   let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in
