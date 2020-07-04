@@ -23,8 +23,8 @@ module Build = struct
     in List.map make_pair CAnnot.code_list
 
   let icon_set suf =
+    let names = path_list suf in
     let module M = struct
-      let names = path_list suf
       let large = Source.load_multiple `LARGE names
       let small = Source.load_multiple `SMALL names
     end in (module M : IconSet)
