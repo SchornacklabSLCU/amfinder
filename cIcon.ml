@@ -1,12 +1,10 @@
 (* CastANet - cIcon.ml *)
 
-open Printf
-
-let dir = "data"
-
 let build_path_list suf =
-  let path chr = Filename.concat dir (sprintf "%c_%s.png" chr suf) in
-  List.map (fun chr -> chr, path chr) CAnnot.code_list
+  let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
+    |> Filename.concat CCore.data_dir
+    |> (fun path -> chr, path)
+  in List.map make_pair CAnnot.code_list
 
 module Source = struct
   let pixbuf n (c, s) = (c, GdkPixbuf.from_file_at_size ~width:n ~height:n s)
@@ -42,10 +40,11 @@ module Select = struct
 end
  
 module Joker = struct
-  let make suf = "*", Filename.concat dir (sprintf "Joker_%s.png" suf) 
-  let make str =
-    let ico = make str in
-    Source.(snd (load `SMALL ico), snd (load `LARGE ico))
+  let make suf =
+    let ico = Printf.sprintf "Joker_%s.png" suf
+      |> Filename.concat CCore.data_dir
+      |> (fun path -> '*', path)
+    in Source.(snd (load `SMALL ico), snd (load `LARGE ico))
   let rgba = make "rgba"
   let grey = make "grey"
 end
