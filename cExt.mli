@@ -92,23 +92,26 @@ module Maybe : sig
 end
 
 
-val tagger_time : ('a -> 'b) -> 'a -> 'b
+(** Operations on colors. *)
+module Color : sig
+  val html_to_int : string -> int * int * int
+  (** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue values. *)
+
+  val html_to_int16 : string -> int * int * int
+  (** Same as [html_to_int], but returns 16-bit values. *)
+
+  val html_to_float : string -> float * float * float
+  (** Same as [html_to_int], but returns values as floats. *)
+
+  val float_to_int : float -> float -> float -> int * int * int
+  (** [float_to_html r g b] returns 8-bit red, green and blue values. *)
+
+  val float_to_html : float -> float -> float -> string
+  (** [float_to_html r g b] returns "#RRGGBB" (hexadecimal notation). *)
+end
+
+val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
-
-val tagger_html_to_int : string -> int * int * int
-(** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue values. *)
-
-val tagger_html_to_int16 : string -> int * int * int
-(** Same as [html_to_int], but returns 16-bit values. *)
-
-val tagger_html_to_float : string -> float * float * float
-(** Same as [html_to_int], but returns values as floats. *)
-
-val tagger_float_to_int : float -> float -> float -> int * int * int
-(** [float_to_html r g b] returns 8-bit red, green and blue values. *)
-
-val tagger_float_to_html : float -> float -> float -> string
-(** [float_to_html r g b] returns "#RRGGBB" (hexadecimal notation). *)
 
 val memoize : (unit -> 'a) -> unit -> 'a
 (** Memoization function. *)

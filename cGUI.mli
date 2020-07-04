@@ -20,9 +20,6 @@ end
 
 (** Magnified view of the cursor area. *)
 module Magnify : sig
-  val edge : int
-  (** Size (in pixels) of an individual tile.  *)
-
   val tiles : GMisc.image array array
   (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
     * annotations shown in [HToolbox] correspond to the central tile. *)
