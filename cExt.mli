@@ -34,13 +34,30 @@ module Matrix : sig
   (** Same as [iter], but [f] receives row and column indexes as parameters. *)
 end
 
-val split_lines : string -> string list
-(** Split lines using linefeed (['\n']) as delimiter. For instance,
-  * [split_lines "foo\nbar"] returns [\["foo"; "bar"\]]. *)
 
-val split_tabs : string -> string list
-(** Splits text using tabulation (['\t']) as delimiter. For instance,
-  * [split_tabs "foo\tbar"] returns [\["foo"; "bar"\]]. *)
+
+(** Text splitting functions. *)
+module Split : sig
+  val lines : string -> string list
+  (** Split the input string at any linefeed (['\n']). *)
+
+  val tabs : string -> string list
+  (** Split the input string at any tabulation (['\t']). *)
+
+  val colons : string -> string list
+  (** Split the input string at any colon ([':']). *)
+
+  val semicolons : string -> string list
+  (** Split the input string at any semicolon ([';']). *)
+
+  val commas : string -> string list
+  (** Split the input string at any comma ([',']). *)
+
+  val spaces : string -> string list
+  (** Split the input string at any space ([' ']). *)
+end
+
+
 
 val read_file : ?trim:bool -> string -> string
 (** Reads a file. *)

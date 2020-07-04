@@ -105,13 +105,13 @@ module Import = struct
   (* Dissociate header from contents. *)
   let split_header = function
     | [] -> CLog.error "Empty TSV table"
-    | header :: contents -> match CExt.split_tabs header with
+    | header :: contents -> match CExt.Split.tabs header with
       | "row" :: "col" :: rem -> List.map validate_column_header rem, contents
       | _ -> CLog.error "Invalid TSV header"
   
   let parse_content_line str =
     sscanf str "%d\t%d\t%[^\n]"
-      (fun x y dat -> (x, y), CExt.split_tabs dat)
+      (fun x y dat -> (x, y), CExt.Split.tabs dat)
 
   let parse_contents t = 
     let rec loop map = function
@@ -147,7 +147,7 @@ end
 
 let import ~path:tsv =
   let header, contents = CExt.read_file tsv
-    |> CExt.split_lines
+    |> CExt.Split.lines
     |> Import.split_header in
   let xy_map = Import.parse_contents contents in
   let rs, cs = Import.minmax tsv xy_map in

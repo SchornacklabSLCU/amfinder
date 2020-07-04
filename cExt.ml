@@ -39,9 +39,15 @@ module Matrix = struct
   let iteri f = Array.(iteri (fun r -> iteri (f r)))
 end
 
-let split_lines = String.split_on_char '\n'
+module Split = struct
+  let lines = String.split_on_char '\n'
+  let tabs = String.split_on_char '\t'
+  let colons = String.split_on_char ':'
+  let semicolons = String.split_on_char ';'
+  let commas = String.split_on_char ','
+  let spaces = String.split_on_char ' '
+end
 
-let split_tabs = String.split_on_char '\t'
 
 let tagger_time f x =
   let t_1 = Unix.gettimeofday () in
