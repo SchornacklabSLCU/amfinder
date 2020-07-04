@@ -4,29 +4,29 @@
 
 (** Matrix iterators. *)
 module Matrix : sig
-  type 'a matrix = 'a array array
+  type 'a t = 'a array array
   (** The type of matrices. *)
 
-  val get : 'a matrix -> int -> int -> 'a
+  val get : 'a t -> int -> int -> 'a
   (** [get t r c] returns [t.(r).(c)] or raises an error. *)
   
-  val get_opt : 'a matrix -> int -> int -> 'a option
+  val get_opt : 'a t -> int -> int -> 'a option
   (** Same as [get], but returns [None] if the indices are invalid. *)
 
-  val init : int -> int -> (int -> int -> 'a) -> 'a matrix
+  val init : int -> int -> (int -> int -> 'a) -> 'a t
   (** [init r c f] builds a matrix of [r] rows and [c] columns and initializes
     * values using the function [f]. *)
 
-  val map : ('a -> 'b) -> 'a matrix -> 'b matrix
+  val map : ('a -> 'b) -> 'a t -> 'b t
   (** [map f m] builds a new matrix by applying [f] to all members of [m]. *)
 
-  val mapi : (int -> int -> 'a -> 'b) -> 'a matrix -> 'b matrix
+  val mapi : (int -> int -> 'a -> 'b) -> 'a t -> 'b t
   (** Same as [map], but [f] receives row and column indexes as parameters. *)
   
-  val iter : ('a -> unit) -> 'a matrix -> unit
+  val iter : ('a -> unit) -> 'a t -> unit
   (** [iter f m] applies [f] to all members of the matrix [m]. *)
   
-  val iteri : (int -> int -> 'a -> unit) -> 'a matrix -> unit
+  val iteri : (int -> int -> 'a -> unit) -> 'a t -> unit
   (** Same as [iter], but [f] receives row and column indexes as parameters. *)
 end
 

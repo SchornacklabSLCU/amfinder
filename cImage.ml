@@ -1,9 +1,6 @@
 (* CastANet - cImage.mli *)
 
-type mosaic = {
-  edge : int;
-  matrix : GdkPixbuf.pixbuf array array;
-}
+type mosaic = { edge : int; matrix : GdkPixbuf.pixbuf CExt.Matrix.t }
 
 type t = {
   path : string;
@@ -12,7 +9,7 @@ type t = {
   pixels : int * int;
   large_tiles : mosaic; (* zoomed in version. *)
   small_tiles : mosaic; (* image overview.    *)
-  annotations : CAnnot.t array array;
+  annotations : CAnnot.t CExt.Matrix.t;
   mutable cursor : int * int;
 }
 
@@ -113,10 +110,6 @@ let statistics img =
     in Array.(iter (iter (fun t -> if f t then incr res))) annot;
     (chr, !res)
   ) ('*' :: CAnnot.code_list)
-
-
-
-
    
 let digest img =
   Printf.sprintf "<small><tt> \

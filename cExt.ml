@@ -16,7 +16,7 @@ end
 
 
 module Matrix = struct
-  type 'a matrix = 'a array array
+  type 'a t = 'a array array
   let get t r c = t.(r).(c)
   let get_opt t r c = try Some t.(r).(c) with _ -> None
   let init nr nc f = Array.(init nr (fun r -> Array.init nc (f r)))
