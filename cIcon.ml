@@ -1,11 +1,5 @@
 (* CastANet - cIcon.ml *)
 
-let build_path_list suf =
-  let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
-    |> Filename.concat CCore.data_dir
-    |> (fun path -> chr, path)
-  in List.map make_pair CAnnot.code_list
-
 module Source = struct
   let pixbuf n (c, s) = (c, GdkPixbuf.from_file_at_size ~width:n ~height:n s)
   let pixbuf_list n = List.map (pixbuf n)
@@ -19,26 +13,25 @@ module type IconSet = sig
   val small : (char * GdkPixbuf.pixbuf) list
 end
 
-let icon_set suf =
-  let module M = struct
-    let names = build_path_list suf
-    let large = Source.load_multiple `LARGE names
-    let small = Source.load_multiple `SMALL names
-  end in (module M : IconSet)
+module Build = struct
+  let path_list suf =
+    let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
+      |> Filename.concat CCore.data_dir
+      |> (fun path -> chr, path)
+    in List.map make_pair CAnnot.code_list
 
-let m_rgba = icon_set "rgba" (* Active toggle buttons.   *)
-let m_grad = icon_set "grad" (* Active with confidence.  *)
-let m_grey = icon_set "grey" (* Inactive toggle buttons. *)
-
-module Select = struct
-  let size typ ico = 
-    let open (val ico : IconSet) in
-    if typ = `SMALL then small else large
-  let style ?(grad = true) = function
-    | `GREY -> m_grey
-    | `RGBA -> if grad && CAnnot.is_gradient () then m_grad else m_rgba
+  let icon_set suf =
+    let module M = struct
+      let names = path_list suf
+      let large = Source.load_multiple `LARGE names
+      let small = Source.load_multiple `SMALL names
+    end in (module M : IconSet)
 end
- 
+
+let m_rgba = Build.icon_set "rgba" (* Active toggle buttons.   *)
+let m_grad = Build.icon_set "grad" (* Active with confidence.  *)
+let m_grey = Build.icon_set "grey" (* Inactive toggle buttons. *)
+
 module Joker = struct
   let make suf =
     let ico = Printf.sprintf "Joker_%s.png" suf
@@ -49,10 +42,23 @@ module Joker = struct
   let grey = make "grey"
 end
 
-let get_joker sty typ =
-  let choose = if typ = `SMALL then fst else snd in
-  choose Joker.(if sty = `RGBA then rgba else grey)
+module Select = struct
+  let size typ ico = 
+    let open (val ico : IconSet) in
+    if typ = `SMALL then small else large
 
-let get ?grad chr typ fmt =
-  if chr = '*' then get_joker typ fmt
-  else List.assoc chr (Select.size fmt (Select.style ?grad typ)) 
+  let style ?(grad = true) = function
+    | `GREY -> m_grey
+    | `RGBA -> if grad && CAnnot.is_gradient () then m_grad else m_rgba
+end
+
+module Get = struct
+  let joker sty typ = Joker.(if sty = `RGBA then rgba else grey)
+    |> if typ = `SMALL then fst else snd
+
+  let standard ?grad chr sty typ = Select.style ?grad sty
+    |> Select.size typ
+    |> List.assoc chr 
+end
+
+let get ?grad = function '*' -> Get.joker | chr -> Get.standard ?grad chr
