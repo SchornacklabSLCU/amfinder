@@ -1,7 +1,4 @@
-(* CastANet - cExtlib.ml *)
-
-open Scanf
-open Printf
+(* CastANet - cExt.ml *)
 
 module File = struct
   let read ?(binary = true) ?(trim = true) str = 
@@ -54,7 +51,7 @@ end
 
 module Color = struct
   let html_to_int s =
-    sscanf s "#%02x%02x%02x" (fun r g b -> r, g, b)
+    Scanf.sscanf s "#%02x%02x%02x" (fun r g b -> r, g, b)
 
   let html_to_int16 s = 
     let r, g, b = html_to_int s in 
@@ -70,7 +67,7 @@ module Color = struct
 
   let float_to_html r g b =
     let r, g, b = float_to_int r g b in
-    sprintf "#%02x%02x%02x" r g b
+    Printf.sprintf "#%02x%02x%02x" r g b
 end
 
 

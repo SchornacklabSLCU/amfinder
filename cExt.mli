@@ -1,4 +1,4 @@
-(* CastANet - cExtlib.mli *)
+(* CastANet - cExt.mli *)
 
 (** Lightweight extension of OCaml standard library. *)
 
