@@ -1,9 +1,9 @@
-(* CastANet - cCore.ml *)
+(* CastANet - cCore.mli *)
 
 type size = [ `SMALL | `LARGE ]
 
 type style = [ `GREY | `RGBA ]
 
-let edge = 180
+val edge : int
 
-let data_dir = "data"
+val data_dir : string
