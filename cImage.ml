@@ -27,10 +27,11 @@ let yini img = snd img.pixels
 let rows img = fst img.rc
 let columns img = snd img.rc
 
+let annotations img = img.annotations
+
 let tiles img = function
   | `LARGE -> img.large_tiles.matrix
   | `SMALL -> img.small_tiles.matrix
-
 
 module Create = struct
   let get_size path = let _, w, h = GdkPixbuf.get_file_info path in w, h
@@ -93,10 +94,14 @@ let edge img = function
 let x ~c img typ = (xini img) + c * (edge img typ)
 let y ~r img typ = (yini img) + r * (edge img typ)
 
-let tile ~r ~c img typ = try Some (tiles img typ).(r).(c) with _ -> None
+let cursor_pos img = img.cursor
+let set_cursor_pos img pos = img.cursor <- pos
 
-let annotations img = img.annotations
-let annotation ~r ~c img = try Some (annotations img).(r).(c) with _ -> None
+let tile ~r ~c img typ = CExt.Matrix.get_opt (tiles img typ) r c
+let annotation ~r ~c img = CExt.Matrix.get_opt (annotations img) r c
+
+let iter_tiles f img typ = CExt.Matrix.iteri f (tiles img typ)
+let iter_annot f img = CExt.Matrix.iteri f (annotations img)
 
 let statistics img =
   let annot = annotations img in
@@ -109,11 +114,9 @@ let statistics img =
     (chr, !res)
   ) ('*' :: CAnnot.code_list)
 
-let cursor_pos img = img.cursor
-let set_cursor_pos img pos = img.cursor <- pos
 
-let iter_tiles f img typ = CExt.Matrix.iteri f (tiles img typ)
-let iter_annot f img = CExt.Matrix.iteri f (annotations img)
+
+
    
 let digest img =
   Printf.sprintf "<small><tt> \

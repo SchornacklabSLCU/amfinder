@@ -7,6 +7,12 @@ module Matrix : sig
   type 'a matrix = 'a array array
   (** The type of matrices. *)
 
+  val get : 'a matrix -> int -> int -> 'a
+  (** [get t r c] returns [t.(r).(c)] or raises an error. *)
+  
+  val get_opt : 'a matrix -> int -> int -> 'a option
+  (** Same as [get], but returns [None] if the indices are invalid. *)
+
   val init : int -> int -> (int -> int -> 'a) -> 'a matrix
   (** [init r c f] builds a matrix of [r] rows and [c] columns and initializes
     * values using the function [f]. *)
