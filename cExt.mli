@@ -132,17 +132,19 @@ end
 (** Drawing functions. *)
 module Draw : sig
   val square : ?clr:string -> ?a:float -> int -> Cairo.Surface.t
-  (** [square ?clr ?a e] draws a square of edge [e] filled with color 
-    * ["#RRGGBB"] and transparency [a]. *)
+  (** [square ?clr ?a e] draws a square with an edge of [e] pixels (minimum 
+    * value: [2] pixels) filled with color ["#RRGGBB"] and alpha channel [a]
+    * (default value : [1.0], i.e. opaque). *)
 end
 
 
 val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
 
-(** Memoized values with possible reinitialization. This is useful to ensure
-  * values are computed only once within the same session, but can be 
-  * recomputed when a new session starts. *)
+(** Memoized values with possible reinitialization. Such values are computed 
+  * only once within a given session. However, they can recomputed when a new 
+  * session starts, for instance to take into account the modification of 
+  * general settings that affect the computation of memoized values. *)
 module Memoize : sig
   val create : ?lbl:string -> ?one:bool -> (unit -> 'a) -> unit -> 'a
   (** Memoization function. The optional parameter [lbl] is used to report when

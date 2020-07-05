@@ -90,6 +90,8 @@ end
 module Draw = struct
   let square ?(clr = "#cc0000") ?(a = 1.0) edge =
     let open Cairo in
+    let edge = if edge <= 2 then 2 else edge
+    and a = if a >= 0.0 && a <= 1.0 then a else 1.0 in
     let surface = Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = create surface in
     set_antialias t ANTIALIAS_SUBPIXEL;
