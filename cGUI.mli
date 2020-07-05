@@ -121,13 +121,17 @@ module TileSet : sig
 end
 
 
-(** Image selector. *)
+(** File chooser dialog to allow for selection of the JPEG/TIFF image to open
+  * within the CastAnet editor. This dialog shows at startup (unless an image is
+  * provided on the command line) as well as when the main window is closed.
+  * Users can therefore load successive images without closing the application,
+  * but only one image is active at a time. *)
 module ImageList : sig
   val jpeg : GFile.filter
-  (** JPEG file filter. *)
+  (** File filter for JPEG images. *)
   
   val tiff : GFile.filter
-  (** TIFF file filter. *)
+  (** File filter for TIFF images. *)
 
   val run : unit -> string
   (** Displays a dialog window to select the image to open (if not provided
