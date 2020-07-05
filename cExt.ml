@@ -87,6 +87,20 @@ module Image = struct
 end
 
 
+module Draw = struct
+  let square ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) edge =
+    let open Cairo in
+    let surface = Image.(create ARGB32 ~w:edge ~h:edge) in
+    let t = create surface in
+    set_antialias t ANTIALIAS_SUBPIXEL;
+    set_source_rgba t r g b a;
+    let edge = float edge in
+    rectangle t 0.0 0.0 ~w:edge ~h:edge;
+    fill t;
+    stroke t;
+    surface
+end
+
 let time f x =
   let t_1 = Unix.gettimeofday () in
   let res = f x in

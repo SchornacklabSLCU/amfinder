@@ -37,18 +37,9 @@ let eval f = match !curr with None -> assert false | Some img -> f img
 
 let curr_image () = eval (fun x -> x)
 
-let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) img =
-  let open Cairo in
-  let e = CImage.edge img `SMALL in
-  let surface = Image.create Image.ARGB32 ~w:e ~h:e in
-  let t = create surface in
-  set_antialias t ANTIALIAS_SUBPIXEL;
-  set_source_rgba t r g b a;
-  let e = float e in
-  rectangle t 0.0 0.0 ~w:e ~h:e;
-  fill t;
-  stroke t;
-  surface
+let make_cairo_surface ?r ?g ?b ?a img =
+  let edge = CImage.edge img `SMALL in
+  CExt.Draw.square ?r ?g ?b ?a edge
 
 module Layer = struct
   let master = CExt.memoize

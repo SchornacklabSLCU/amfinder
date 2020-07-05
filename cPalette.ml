@@ -14,22 +14,10 @@ type id = [
 
 let edge = ref 0
 
-let make_cairo_surface ?(r = 0.0) ?(g = 0.0) ?(b = 0.0) ?(a = 1.0) () =
-  let open Cairo in
-  let surface = Image.(create ARGB32 ~w:!edge ~h:!edge) in
-  let t = create surface in
-  set_antialias t ANTIALIAS_SUBPIXEL;
-  set_source_rgba t r g b a;
-  let edge = float !edge in
-  rectangle t 0.0 0.0 ~w:edge ~h:edge;
-  fill t;
-  stroke t;
-  surface
-
 let make_surface_table colors =
   Array.map  (fun clr ->
     let r, g, b = CExt.Color.html_to_float clr in
-    make_cairo_surface ~r ~g ~b ~a:0.8 ()
+    CExt.Draw.square ~r ~g ~b ~a:0.8 !edge
   ) colors
 
 let make colors () = {

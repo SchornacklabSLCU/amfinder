@@ -129,6 +129,17 @@ module Image : sig
 end
 
 
+(** Drawing functions. *)
+module Draw : sig
+  val square :
+    ?r:float -> 
+    ?g:float -> 
+    ?b:float -> 
+    ?a:float -> int -> Cairo.Surface.t
+  (** [square ?r ?g ?b ?a e] draws a square of edge [e] filled with color 
+    * [(r, g, b)] and transparency [a]. *)
+end
+
 
 val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
