@@ -402,6 +402,8 @@ module ImageList = struct
 
   let dialog = 
     let wnd = GWindow.file_chooser_dialog
+      ~parent:window
+      ~destroy_with_parent:true
       ~action:`OPEN
       ~title:"CastANet"
       ~modal:true
