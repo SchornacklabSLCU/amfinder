@@ -123,6 +123,12 @@ end
 
 (** Image selector. *)
 module ImageList : sig
+  val jpeg : GFile.filter
+  (** JPEG file filter. *)
+  
+  val tiff : GFile.filter
+  (** TIFF file filter. *)
+
   val run : unit -> string
   (** Displays a dialog window to select the image to open (if not provided
     * on the command line). The program terminates if no image is selected. *)
