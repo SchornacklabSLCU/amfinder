@@ -30,7 +30,8 @@ let specs = Arg.align [
 
 let initialize () =
   Arg.parse specs Set.image usage;
-  if !Ref.image = None then CLog.error "%s" usage
+  (* If no image is provided in the command line, a window is displayed. *)
+  if !Ref.image = None then Ref.image := Some (CGUI.ImageList.run ())
 
 let image () = match !Ref.image with Some x -> x | _ -> assert false
 let palette () = !Ref.palette

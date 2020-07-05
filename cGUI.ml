@@ -394,3 +394,40 @@ module TileSet = struct
     icons#misc#set_can_focus false;
     icons
 end
+
+
+module ImageList = struct
+  let jpeg = GFile.filter ~name:"JPEG image" ~mime_types:["image/jpeg"] ()
+  let tiff = GFile.filter ~name:"TIFF image" ~mime_types:["image/tiff"] ()
+
+  let dialog = 
+    let wnd = GWindow.file_chooser_dialog
+      ~action:`OPEN
+      ~title:"CastANet"
+      ~modal:true
+      ~position:`CENTER
+      ~resizable:false
+      ~border_width
+      ~show:false () in
+    wnd#add_button_stock `CANCEL `CANCEL;
+    wnd#add_select_button_stock `OPEN `OPEN;
+    (List.hd wnd#action_area#children)#misc#set_sensitive false;
+    wnd#connect#selection_changed (fun () ->
+      match wnd#filename with
+      | None -> ()
+      | Some p -> let status = Sys.(file_exists p && not (is_directory p)) in
+        (List.hd wnd#action_area#children)#misc#set_sensitive status
+        );
+    wnd#vbox#misc#set_size_request ~width:640 ~height:480 ();
+    List.iter wnd#add_filter [jpeg; tiff];
+    wnd#set_filter jpeg;
+    wnd
+
+  let run () =
+    if dialog#run () = `OPEN then (
+      dialog#misc#hide ();
+      match dialog#filename with
+      | None -> CLog.error "%s" "castanet-editor [OPTIONS] <IMAGE>"
+      | Some path -> path
+    ) else CLog.error "%s" "castanet-editor [OPTIONS] <IMAGE>"
+end
