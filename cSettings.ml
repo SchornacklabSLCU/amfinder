@@ -7,6 +7,7 @@ module Ref = struct
 end
 
 module Set = struct
+  let edge n = if n > 0 then Ref.edge := n
   let image x = 
     if Sys.file_exists x then Ref.image := Some x
     else CLog.warning "File '%s' not found" x
@@ -21,6 +22,8 @@ end
 let usage = "castanet-editor [OPTIONS] <IMAGE>"
 
 let specs = Arg.align [
+  "--edge", Arg.Int Set.edge,
+    " Set tile square edge (default: 236).";
   "--palette", Arg.String Set.palette,
     " Color palette for annotation confidence (default: CIVIDIS).";
 ]
