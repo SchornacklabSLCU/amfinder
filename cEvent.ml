@@ -23,7 +23,8 @@ let icons () =
     and grey = CIcon.get chr `GREY `LARGE in
     let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
     ignore (btn#connect#toggled ~callback);
-  ) CGUI.HToolbox.toggles
+  ) CGUI.HToolbox.toggles;
+  CGUI.VToolbox.export#connect#clicked ~callback:CDraw.display_set
 
 let toggles =
   Array.map (fun (key, (toggle, _)) ->
@@ -35,42 +36,20 @@ let toggles =
 let keyboard () =
   let connect = CGUI.window#event#connect in
   connect#key_press (CDraw.Cursor.arrow_key_press ~toggles);
-  connect#key_press update_annotations;
-  ()
+  connect#key_press update_annotations
 
 let drawing_area () =
   let open CGUI.Thumbnail in
   area#event#add [`POINTER_MOTION; `BUTTON_PRESS; `LEAVE_NOTIFY];
   area#event#connect#motion_notify CDraw.MouseTracker.update;
   area#event#connect#leave_notify CDraw.MouseTracker.hide;
-  area#event#connect#button_press (CDraw.Cursor.at_mouse_pointer ~toggles);
-  ()
-
-let buttons () =
-  CGUI.VToolbox.export#connect#clicked ~callback:CDraw.display_set;
-  ()
+  area#event#connect#button_press (CDraw.Cursor.at_mouse_pointer ~toggles)
 
 let window () =
-  CGUI.window#event#connect#delete (fun _ ->
-    let img = CDraw.curr_image () in
-    CImage.Binary.save_at_exit img;
-    let tsv = CImage.path img
-      |> Filename.remove_extension
-      |> Printf.sprintf "%s.tsv" in
-    CAnnot.export tsv (CImage.annotations img);
-    CGUI.window#misc#hide ();
-    CSettings.erase_image ();
-    CDraw.unset_current ();
-    CExt.Memoize.forget ();
-    CSettings.initialize ~cmdline:false ();
-    CGUI.window#show ();
-    CExt.time CDraw.load (CSettings.image ());
-    CDraw.GUI.magnified_view ();
-    CDraw.active_layer (); 
-    CDraw.GUI.statistics ();
-    CGUI.status#set_label (CImage.digest (CDraw.curr_image ()));
-    true
-  ); ()
+  let callback _ = CAction.load_image toggles; true in
+  CGUI.window#event#connect#delete ~callback
 
 let initialize () =
-  List.iter (fun f -> f ()) [icons; keyboard; drawing_area; buttons; window]
+  List.iter (fun f -> ignore (f ()))
+    [icons; keyboard; drawing_area; window];
+  toggles

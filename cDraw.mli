@@ -2,10 +2,10 @@
 
 (** Thumbnail drawing. *)
 
-val load : string -> unit
-(** Loads an image. *)
+val load_image : unit -> CImage.t
+(** Loads an image, as defined in CSettings. *)
 
-val curr_image : unit -> CImage.t
+val curr_image : unit -> CImage.t option
 (** Returns the current image. *)
 
 val unset_current : unit -> unit
@@ -27,8 +27,12 @@ val display_set : unit -> unit
 module GUI : sig
   val statistics : unit -> unit
   (** Image statistics. *)
+
   val magnified_view : unit -> unit
   (** Displays magnified view. *)
+
+  val update_active_toggles : (char * GButton.toggle_button * GtkSignal.id) array -> unit
+  (** Activates toggles. *)
 end
 
 (** Keyboard- and mouse-responsive cursor drawing functions. *)

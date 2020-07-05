@@ -3,11 +3,8 @@
 let _ =
   Printexc.record_backtrace true;
   print_endline "castanet-editor version 1.0";
-  CSettings.initialize ();
-  CGUI.window#show ();
-  CExt.time CDraw.load (CSettings.image ());
-  CEvent.initialize ();
-  CDraw.GUI.magnified_view ();
-  CDraw.GUI.statistics ();
-  CGUI.status#set_label (CImage.digest (CDraw.curr_image ()));
-  GMain.main ()
+  try
+    let toggles = CEvent.initialize () in
+    CAction.load_image toggles;
+    GMain.main ()
+  with _ -> Printexc.print_backtrace stderr

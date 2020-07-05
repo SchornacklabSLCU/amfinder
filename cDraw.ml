@@ -7,7 +7,7 @@ let curr = ref None
 
 let eval f = match !curr with None -> assert false | Some img -> f img
 
-let curr_image () = eval (fun x -> x)
+let curr_image () = !curr
 
 let white_background () =
   let open CGUI.Thumbnail in
@@ -24,20 +24,24 @@ let unset_current () = curr := None
 let make_cairo_surface ?clr ?(a = 0.8) img =
   CExt.Draw.square ?clr ~a (CImage.edge img `SMALL)
 
-let load path =
-  let ui_width, ui_height, pixmap =
-    let open CGUI.Thumbnail in
-    width (), height (), pixmap () in
-  let t = CImage.create ~ui_width ~ui_height path in
-  curr := Some t;
-  let xini, yini, edge = CImage.(origin t `X, origin t `Y, edge t `SMALL) in
-  white_background ();
-  CImage.iter_tiles (fun r c tile -> 
-    pixmap#put_pixbuf
-      ~x:(xini + c * edge)
-      ~y:(yini + r * edge)
-      ~width:edge ~height:edge tile
-  ) t `SMALL
+let load_image =
+  let load () =
+    let path = CSettings.image () in
+    let ui_width, ui_height, pixmap =
+      let open CGUI.Thumbnail in
+      width (), height (), pixmap () in
+    let t = CImage.create ~ui_width ~ui_height path in
+    curr := Some t;
+    let xini, yini, edge = CImage.(origin t `X, origin t `Y, edge t `SMALL) in
+    white_background ();
+    CImage.iter_tiles (fun r c tile -> 
+      pixmap#put_pixbuf
+        ~x:(xini + c * edge)
+        ~y:(yini + r * edge)
+        ~width:edge ~height:edge tile
+    ) t `SMALL;
+    t
+  in CExt.time load
 
 
 module Layer = struct
