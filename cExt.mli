@@ -140,5 +140,13 @@ end
 val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
 
-val memoize : (unit -> 'a) -> unit -> 'a
-(** Memoization function. *)
+(** Memoization. *)
+module Memoize : sig
+  val create : string -> (unit -> 'a) -> unit -> 'a
+  (** Memoization function. The first argument is a label used to report when
+    * data are being recomputed due to a previous call to [forget] (see 
+    * below). *)
+
+  val forget : unit -> unit
+  (** Forget previously memoized data. *)
+end

@@ -411,7 +411,7 @@ module ImageList = struct
       ~resizable:false
       ~border_width
       ~show:false () in
-    wnd#add_button_stock `CANCEL `CANCEL;
+    wnd#add_button_stock `QUIT `QUIT;
     wnd#add_select_button_stock `OPEN `OPEN;
     (List.hd wnd#action_area#children)#misc#set_sensitive false;
     wnd#connect#selection_changed (fun () ->
@@ -429,7 +429,7 @@ module ImageList = struct
     if dialog#run () = `OPEN then (
       dialog#misc#hide ();
       match dialog#filename with
-      | None -> CLog.usage ()
+      | None -> assert false (* should never happen *)
       | Some path -> path
-    ) else CLog.usage ()
+    ) else exit 0
 end

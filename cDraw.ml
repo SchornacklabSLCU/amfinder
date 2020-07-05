@@ -19,6 +19,8 @@ let white_background () =
   Cairo.stroke cc;
   synchronize ()
 
+let unset_current () = curr := None
+
 let make_cairo_surface ?clr ?(a = 0.8) img =
   CExt.Draw.square ?clr ~a (CImage.edge img `SMALL)
 
@@ -35,20 +37,17 @@ let load path =
       ~x:(xini + c * edge)
       ~y:(yini + r * edge)
       ~width:edge ~height:edge tile
-  ) t `SMALL;
-  at_exit (fun () -> 
-    let tsv = Filename.remove_extension path ^ ".tsv" in
-    CAnnot.export tsv (CImage.annotations t))
+  ) t `SMALL
 
 
 module Layer = struct
-  let master = CExt.memoize 
+  let master = CExt.Memoize.create "master"
     (fun () -> eval (make_cairo_surface ~clr:"#aaffaa" ~a:0.7))
 
   let colors = [ "#cdde87"; "#ffe680"; "#aaeeff"; "#afc6e9"; 
                  "#ffb380"; "#eeaaff"; "#ff8080" ]
 
-  let categories = CExt.memoize
+  let categories = CExt.Memoize.create "categories"
     begin fun () ->
       let f img =
         List.map2 (fun chr clr ->
@@ -110,7 +109,7 @@ module CaN_Surfaces = struct
     let f () = match !curr with
       | None -> assert false
       | Some img -> make_cairo_surface img
-    in CExt.memoize f
+    in CExt.Memoize.create "cursor" f
 end
 
 let cursor ?(sync = false) () =
@@ -122,7 +121,7 @@ let cursor ?(sync = false) () =
   ) !curr
 
 
-let missing_image = CExt.memoize 
+let missing_image = CExt.Memoize.create "missing_image"
   (fun () ->
     let pix = GdkPixbuf.create ~width:180 ~height:180 () in
     GdkPixbuf.fill pix 0l;
@@ -337,7 +336,7 @@ module MouseTracker = struct
       match !curr with
       | None -> assert false
       | Some img -> make_cairo_surface ~a:0.4 img
-    in CExt.memoize f
+    in CExt.Memoize.create "cairo_surface" f
 
   let erase ?(sync = false) img =
     Gaux.may (fun ((r, c) as pos) ->

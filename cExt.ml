@@ -109,8 +109,29 @@ let time f x =
   CLog.info "elapsed time: %.1f s" (t_2 -. t_1);
   res
 
-let memoize f =
-  let mem = ref (`F f) in
-  (fun () -> match !mem with
-    | `F f -> let x = f () in mem := `R x; x
-    | `R x -> x)
+
+module Memoize = struct
+  let flag = ref 0
+
+  type 'a t = {
+    mutable flag : int;
+    mutable data : [`F of (unit -> 'a) | `R of 'a];
+  }
+
+  let exec f mem = let x = f () in mem.data <- `R x; x
+
+  let create lbl f =
+    let mem = { flag = 0; data = `F f } in
+    (fun () -> match mem.data with
+      | `F f -> exec f mem
+      | `R x -> 
+        if !flag > mem.flag then (
+          CLog.info "Discarding memoized data for '%s'" lbl;
+          let x = exec f mem in 
+          mem.flag <- mem.flag + 1;
+          x
+        ) else x
+    )
+
+  let forget () = incr flag
+end

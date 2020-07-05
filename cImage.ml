@@ -63,14 +63,12 @@ module Binary = struct
   let binfile path = Filename.remove_extension path ^ ".bin"
   (* Save image as binary at exit. *)
   let save_at_exit img =
-    let f () =
-      let bin = binfile (path img) in
-      (* Faster than erasing file contents. *)
-      if Sys.file_exists bin then Sys.remove bin;
-      let och = open_out_bin bin in
-      output_value och img;
-      close_out och
-    in at_exit f
+    let bin = binfile (path img) in
+    (* Faster than erasing file contents. *)
+    if Sys.file_exists bin then Sys.remove bin;
+    let och = open_out_bin bin in
+    output_value och img;
+    close_out och
   (* Restore image at startup from binary data. *)
   let restore path =
     let bin = binfile path in
@@ -124,7 +122,7 @@ let create ~ui_width:uiw ~ui_height:uih path =
       CLog.info "source image size: %d x %d pixels" imgw imgh;
       CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
       img
-  in Binary.save_at_exit img; img
+  in img
 
 let statistics img =
   let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in

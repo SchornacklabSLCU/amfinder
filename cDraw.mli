@@ -8,6 +8,9 @@ val load : string -> unit
 val curr_image : unit -> CImage.t
 (** Returns the current image. *)
 
+val unset_current : unit -> unit
+(** Unset the current image. *)
+
 val set_curr_annotation : bool -> char -> unit
 (** Updates current annotation. *)
 

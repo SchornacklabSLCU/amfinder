@@ -28,11 +28,12 @@ let specs = Arg.align [
     " Color palette for annotation confidence (default: CIVIDIS).";
 ]
 
-let initialize () =
-  Arg.parse specs Set.image usage;
+let initialize ?(cmdline = true) () =
+  if cmdline then Arg.parse specs Set.image usage;
   (* If no image is provided in the command line, a window is displayed. *)
   if !Ref.image = None then Ref.image := Some (CGUI.ImageList.run ())
 
 let image () = match !Ref.image with Some x -> x | _ -> assert false
+let erase_image () = Ref.image := None
 let palette () = !Ref.palette
 let edge () = !Ref.edge

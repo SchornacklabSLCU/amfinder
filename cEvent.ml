@@ -50,6 +50,27 @@ let buttons () =
   CGUI.VToolbox.export#connect#clicked ~callback:CDraw.display_set;
   ()
 
+let window () =
+  CGUI.window#event#connect#delete (fun _ ->
+    let img = CDraw.curr_image () in
+    CImage.Binary.save_at_exit img;
+    let tsv = CImage.path img
+      |> Filename.remove_extension
+      |> Printf.sprintf "%s.tsv" in
+    CAnnot.export tsv (CImage.annotations img);
+    CGUI.window#misc#hide ();
+    CSettings.erase_image ();
+    CDraw.unset_current ();
+    CExt.Memoize.forget ();
+    CSettings.initialize ~cmdline:false ();
+    CGUI.window#show ();
+    CExt.time CDraw.load (CSettings.image ());
+    CDraw.GUI.magnified_view ();
+    CDraw.active_layer (); 
+    CDraw.GUI.statistics ();
+    CGUI.status#set_label (CImage.digest (CDraw.curr_image ()));
+    true
+  ); ()
 
 let initialize () =
-  List.iter (fun f -> f ()) [icons; keyboard; drawing_area; buttons]
+  List.iter (fun f -> f ()) [icons; keyboard; drawing_area; buttons; window]

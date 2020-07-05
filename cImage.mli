@@ -5,6 +5,12 @@
 type t
 (** The type for images. *)
 
+(** Read binary data. *)
+module Binary : sig
+  val save_at_exit : t -> unit
+  (** Save an image as binary data. *)
+end
+
 val create : ui_width:int -> ui_height:int -> string -> t
 (** Create a new image from the given path. *)
 
