@@ -5,6 +5,10 @@ open Printf
 
 let curr = ref None
 
+let eval f = match !curr with None -> assert false | Some img -> f img
+
+let curr_image () = eval (fun x -> x)
+
 let white_background () =
   let open CGUI.Thumbnail in
   let cc = cairo () in
@@ -14,6 +18,9 @@ let white_background () =
   Cairo.fill cc;
   Cairo.stroke cc;
   synchronize ()
+
+let make_cairo_surface ?clr ?(a = 0.8) img =
+  CExt.Draw.square ?clr ~a (CImage.edge img `SMALL)
 
 let load path =
   let ui_width, ui_height, pixmap =
@@ -33,12 +40,6 @@ let load path =
     let tsv = Filename.remove_extension path ^ ".tsv" in
     CAnnot.export tsv (CImage.annotations t))
 
-let eval f = match !curr with None -> assert false | Some img -> f img
-
-let curr_image () = eval (fun x -> x)
-
-let make_cairo_surface ?clr ?(a = 0.8) img =
-  CExt.Draw.square ?clr ~a (CImage.edge img `SMALL)
 
 module Layer = struct
   let master = CExt.memoize 
@@ -63,9 +64,9 @@ module Layer = struct
       | `BINARY -> List.assoc chr (categories ())
       | `GRADIENT -> let palette = CSettings.palette () in
         let grp = CAnnot.get_group ~palette ann chr in
-        CPalette.surface palette grp
-   
+        CPalette.surface palette grp  
 end
+
 
 let tile ?(sync = false) r c =
   Gaux.may (fun img ->

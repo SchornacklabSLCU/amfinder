@@ -1,6 +1,7 @@
 (* CastANet - cSettings.ml *)
 
 module Ref = struct
+  let edge = ref 236
   let image = ref None
   let palette = ref `CIVIDIS
 end
@@ -30,3 +31,4 @@ let initialize () =
 
 let image () = match !Ref.image with Some x -> x | _ -> assert false
 let palette () = !Ref.palette
+let edge () = !Ref.edge

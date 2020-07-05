@@ -104,7 +104,7 @@ let create ~ui_width:uiw ~ui_height:uih path =
     | Some img -> img
     | None -> let pix = GdkPixbuf.from_file path in
       let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
-      let edge = 236 in
+      let edge = CSettings.edge () in
       let rows = imgh / edge and cols = imgw / edge in
       let large = Create.large_tile_matrix rows cols edge pix in
       let sub = min (uiw / cols) (uih / rows) in
