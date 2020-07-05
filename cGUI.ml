@@ -429,7 +429,7 @@ module ImageList = struct
     if dialog#run () = `OPEN then (
       dialog#misc#hide ();
       match dialog#filename with
-      | None -> CLog.error "%s" "castanet-editor [OPTIONS] <IMAGE>"
+      | None -> CLog.usage ()
       | Some path -> path
-    ) else CLog.error "%s" "castanet-editor [OPTIONS] <IMAGE>"
+    ) else CLog.usage ()
 end

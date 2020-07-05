@@ -10,3 +10,6 @@ val warning : ('a, out_channel, unit, unit, unit, unit) format6 -> 'a
 
 val error : ?code:int -> ('a, out_channel, unit, unit, unit, 'b) format6 -> 'a
 (** Prints an error message to [stderr] and terminates with the given code. *)
+
+val usage : unit -> 'a
+(** Specialized [error] function with application message. *)
