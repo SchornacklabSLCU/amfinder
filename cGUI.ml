@@ -400,12 +400,15 @@ module ImageList = struct
   let jpeg = GFile.filter ~name:"JPEG image" ~mime_types:["image/jpeg"] ()
   let tiff = GFile.filter ~name:"TIFF image" ~mime_types:["image/tiff"] ()
 
+  (* The first element of wnd#action_area is the `OPEN button (see below). *)
+  let set_sensitive wnd = (List.hd wnd#action_area#children)#misc#set_sensitive 
+
   let dialog = 
     let wnd = GWindow.file_chooser_dialog
       ~parent:window
       ~destroy_with_parent:true
       ~action:`OPEN
-      ~title:"CastANet"
+      ~title:"CastANet Image Chooser"
       ~modal:true
       ~position:`CENTER
       ~resizable:false
@@ -413,13 +416,13 @@ module ImageList = struct
       ~show:false () in
     wnd#add_button_stock `QUIT `QUIT;
     wnd#add_select_button_stock `OPEN `OPEN;
-    (List.hd wnd#action_area#children)#misc#set_sensitive false;
+    set_sensitive wnd false;
     wnd#connect#selection_changed (fun () ->
-      match wnd#filename with
-      | None -> ()
-      | Some p -> let status = Sys.(file_exists p && not (is_directory p)) in
-        (List.hd wnd#action_area#children)#misc#set_sensitive status
-        );
+      Gaux.may (fun p ->
+        set_sensitive wnd Sys.(file_exists p && not (is_directory p))
+      ) wnd#filename
+    );
+    (* Other commands do not seem to affect window size. *)
     wnd#vbox#misc#set_size_request ~width:640 ~height:480 ();
     List.iter wnd#add_filter [jpeg; tiff];
     wnd#set_filter jpeg;
@@ -429,7 +432,7 @@ module ImageList = struct
     if dialog#run () = `OPEN then (
       dialog#misc#hide ();
       match dialog#filename with
-      | None -> assert false (* should never happen *)
       | Some path -> path
+      | _ -> assert false (* `The OPEN button is not active in this case. *)
     ) else exit 0
 end
