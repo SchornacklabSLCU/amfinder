@@ -41,13 +41,13 @@ let load path =
 
 
 module Layer = struct
-  let master = CExt.Memoize.create "master"
+  let master = CExt.Memoize.create ~lbl:"master"
     (fun () -> eval (make_cairo_surface ~clr:"#aaffaa" ~a:0.7))
 
   let colors = [ "#cdde87"; "#ffe680"; "#aaeeff"; "#afc6e9"; 
                  "#ffb380"; "#eeaaff"; "#ff8080" ]
 
-  let categories = CExt.Memoize.create "categories"
+  let categories = CExt.Memoize.create ~lbl:"categories"
     begin fun () ->
       let f img =
         List.map2 (fun chr clr ->
@@ -109,7 +109,7 @@ module CaN_Surfaces = struct
     let f () = match !curr with
       | None -> assert false
       | Some img -> make_cairo_surface img
-    in CExt.Memoize.create "cursor" f
+    in CExt.Memoize.create ~lbl:"cursor" f
 end
 
 let cursor ?(sync = false) () =
@@ -121,7 +121,7 @@ let cursor ?(sync = false) () =
   ) !curr
 
 
-let missing_image = CExt.Memoize.create "missing_image"
+let missing_image = CExt.Memoize.create ~lbl:"missing_image" ~one:true
   (fun () ->
     let pix = GdkPixbuf.create ~width:180 ~height:180 () in
     GdkPixbuf.fill pix 0l;
@@ -336,7 +336,7 @@ module MouseTracker = struct
       match !curr with
       | None -> assert false
       | Some img -> make_cairo_surface ~a:0.4 img
-    in CExt.Memoize.create "cairo_surface" f
+    in CExt.Memoize.create ~lbl:"cairo_surface" f
 
   let erase ?(sync = false) img =
     Gaux.may (fun ((r, c) as pos) ->

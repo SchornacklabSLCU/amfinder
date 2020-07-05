@@ -140,13 +140,16 @@ end
 val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
 
-(** Memoization. *)
+(** Memoized values with possible reinitialization. This is useful to ensure
+  * values are computed only once within the same session, but can be 
+  * recomputed when a new session starts. *)
 module Memoize : sig
-  val create : string -> (unit -> 'a) -> unit -> 'a
-  (** Memoization function. The first argument is a label used to report when
-    * data are being recomputed due to a previous call to [forget] (see 
-    * below). *)
+  val create : ?lbl:string -> ?one:bool -> (unit -> 'a) -> unit -> 'a
+  (** Memoization function. The optional parameter [lbl] is used to report when
+    * data are being recomputed due to a previous call to [forget] (see below).
+    * The optional parameter [one] defines memoized values that are never
+    * recomputed, i.e. insensitive to [forget] invokation. *)
 
   val forget : unit -> unit
-  (** Forget previously memoized data. *)
+  (** Triggers all memoized data to be recomputed when accessed. *)
 end

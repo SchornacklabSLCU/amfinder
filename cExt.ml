@@ -106,31 +106,33 @@ let time f x =
   let t_1 = Unix.gettimeofday () in
   let res = f x in
   let t_2 = Unix.gettimeofday () in
-  CLog.info "elapsed time: %.1f s" (t_2 -. t_1);
+  CLog.info "Elapsed time: %.1f s" (t_2 -. t_1);
   res
 
 
+(* Memoized values with possible reinitialization. *)
 module Memoize = struct
-  let flag = ref 0
+  let flag = ref 0 (* Main flag. *)
 
   type 'a t = {
-    mutable flag : int;
-    mutable data : [`F of (unit -> 'a) | `R of 'a];
+    mutable flag : int; (* Local flag. *)
+    mutable data : [`F of (unit -> 'a) | `R of 'a]; (* Memoized data. *)
   }
 
   let exec f mem = let x = f () in mem.data <- `R x; x
 
-  let create lbl f =
-    let mem = { flag = 0; data = `F f } in
+  let create ?lbl ?(one = false) f =
+    let mem = { flag = if one then -1 else 0; data = `F f } in
     (fun () -> match mem.data with
-      | `F f -> exec f mem
+      | `F f -> exec f mem (* Runs the function, store and return result. *)
       | `R x -> 
-        if !flag > mem.flag then (
-          CLog.info "Discarding memoized data for '%s'" lbl;
+        if mem.flag >= 0 && !flag > mem.flag then (
+          (* The main flag has changed: recompute, store and return result. *)
+          Gaux.may (CLog.info "Recomputing data for '%s'") lbl;
           let x = exec f mem in 
           mem.flag <- mem.flag + 1;
           x
-        ) else x
+        ) else x (* Return the previously computed result. *)
     )
 
   let forget () = incr flag

@@ -73,6 +73,7 @@ module Binary = struct
   let restore path =
     let bin = binfile path in
     if Sys.file_exists bin then (
+      CLog.info "Loading binary file '%s'" (Filename.basename bin);
       let ich = open_in_bin bin in
       let img = input_value ich in
       close_in ich;
