@@ -37,18 +37,12 @@ let eval f = match !curr with None -> assert false | Some img -> f img
 
 let curr_image () = eval (fun x -> x)
 
-let make_cairo_surface ?r ?g ?b ?a img =
-  let edge = CImage.edge img `SMALL in
-  CExt.Draw.square ?r ?g ?b ?a edge
+let make_cairo_surface ?clr ?(a = 0.8) img =
+  CExt.Draw.square ?clr ~a (CImage.edge img `SMALL)
 
 module Layer = struct
-  let master = CExt.memoize
-    begin fun () ->
-      let f img =    
-        let r, g, b = CExt.Color.html_to_float "#aaffaa" in
-        make_cairo_surface ~r ~g ~b ~a:0.7 img
-      in eval f
-    end
+  let master = CExt.memoize 
+    (fun () -> eval (make_cairo_surface ~clr:"#aaffaa" ~a:0.7))
 
   let colors = [ "#cdde87"; "#ffe680"; "#aaeeff"; "#afc6e9"; 
                  "#ffb380"; "#eeaaff"; "#ff8080" ]
@@ -57,8 +51,7 @@ module Layer = struct
     begin fun () ->
       let f img =
         List.map2 (fun chr clr ->
-          let r, g, b = CExt.Color.html_to_float clr in
-          let s = make_cairo_surface ~r ~g ~b ~a:0.8 img in
+          let s = make_cairo_surface ~clr ~a:0.8 img in
           (chr, s)
         ) CAnnot.code_list colors
       in eval f
@@ -115,7 +108,7 @@ module CaN_Surfaces = struct
   let cursor = 
     let f () = match !curr with
       | None -> assert false
-      | Some img -> make_cairo_surface ~r:0.8 ~a:0.8 img
+      | Some img -> make_cairo_surface img
     in CExt.memoize f
 end
 
@@ -342,7 +335,7 @@ module MouseTracker = struct
     let f () = 
       match !curr with
       | None -> assert false
-      | Some img -> make_cairo_surface ~r:0.8 ~a:0.4 img
+      | Some img -> make_cairo_surface ~a:0.4 img
     in CExt.memoize f
 
   let erase ?(sync = false) img =

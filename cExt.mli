@@ -131,13 +131,9 @@ end
 
 (** Drawing functions. *)
 module Draw : sig
-  val square :
-    ?r:float -> 
-    ?g:float -> 
-    ?b:float -> 
-    ?a:float -> int -> Cairo.Surface.t
-  (** [square ?r ?g ?b ?a e] draws a square of edge [e] filled with color 
-    * [(r, g, b)] and transparency [a]. *)
+  val square : ?clr:string -> ?a:float -> int -> Cairo.Surface.t
+  (** [square ?clr ?a e] draws a square of edge [e] filled with color 
+    * ["#RRGGBB"] and transparency [a]. *)
 end
 
 

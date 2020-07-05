@@ -15,9 +15,8 @@ type id = [
 let edge = ref 0
 
 let make_surface_table colors =
-  Array.map  (fun clr ->
-    let r, g, b = CExt.Color.html_to_float clr in
-    CExt.Draw.square ~r ~g ~b ~a:0.8 !edge
+  Array.map (fun clr ->
+    CExt.Draw.square ~clr ~a:0.8 !edge
   ) colors
 
 let make colors () = {
