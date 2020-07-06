@@ -51,6 +51,15 @@ git clone https://github.com/ocaml/opam.git && cd opam
 
 ### Installing OCaml libraries
 
+#### OCaml version
+
+Check OCaml version with `ocaml --version`. If your version is older than 
+*4.08*, then install OCaml 4.08.0 as follows:
+
+```bash
+opam switch create 4.08.0
+```
+
 #### OPAM initialization
 
 Simply run:
