@@ -415,6 +415,7 @@ module ImageList = struct
       ~border_width
       ~show:false () in
     wnd#add_button_stock `QUIT `QUIT;
+    (List.hd wnd#action_area#children)#misc#modify_text [`NORMAL, `NAME "red"];
     wnd#add_select_button_stock `OPEN `OPEN;
     set_sensitive wnd false;
     wnd#connect#selection_changed (fun () ->
