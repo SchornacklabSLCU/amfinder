@@ -4,7 +4,7 @@ open CExt
 open Scanf
 open Printf
 
-let codes = "AVIEHRD"
+let codes = "AVIEHRB"
 let ncodes = String.length codes
 let code_list = List.init ncodes (String.get codes)
 
