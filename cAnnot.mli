@@ -25,6 +25,9 @@ val erases : char -> string
 (** [erases c] returns the annotations that get removed together with [c]. *)
 
 val code_list : char list
+(** DEPRECATED. *)
+
+val get_code_list : CCore.annotation_type -> char list
 (** Same as [code], but given as a list for convenience. *)
 
 val empty : unit -> t
