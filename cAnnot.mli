@@ -5,6 +5,15 @@
 type t
 (** The type for annotations. *)
 
+(** Generalized functions to be used as a new interface. *)
+module Get : sig
+  val codes : CCore.annotation_type -> string
+  (** Returns a string containing all valid annotations. *)
+
+  val code_list : CCore.annotation_type -> char list
+  (** Same as [codes], but returns a character list. *)
+end
+
 val codes : string
 (** String containing all valid annotations. Current values include:
   * - ['A'] for arbuscules,
@@ -26,9 +35,6 @@ val erases : char -> string
 
 val code_list : char list
 (** DEPRECATED. *)
-
-val get_code_list : CCore.annotation_type -> char list
-(** Same as [code], but given as a list for convenience. *)
 
 val empty : unit -> t
 (** Creates an empty annotation. *)

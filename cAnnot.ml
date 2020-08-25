@@ -4,6 +4,17 @@ open CExt
 open Scanf
 open Printf
 
+module Get = struct
+  let codes = function
+    | `COLONIZATION -> "YNB"
+    | `ARB_VESICLES -> "AVNB"
+    | `ALL_FEATURES -> "AVIEHRB"
+  let ncodes typ = String.length (codes typ)
+  let code_list typ =
+    let t = codes typ in
+    String.(List.init (length t) (get t))
+end
+
 let codes = "AVIEHRB"
 let ncodes = String.length codes
 let code_list = List.init ncodes (String.get codes)
@@ -162,8 +173,3 @@ let import ~path:tsv =
         "Missing or corrupted (%d, %d) line in TSV file \"%s\"" r c tsv;
         empty ()
   ))
-
-let get_code_list = function
-  | `COLONIZATION -> ['Y'; 'N'; 'B']
-  | `ARB_VESICLES -> ['A'; 'V'; 'N'; 'B']
-  | `ALL_FEATURES -> ['A'; 'V'; 'I'; 'E'; 'H'; 'R'; 'B']
