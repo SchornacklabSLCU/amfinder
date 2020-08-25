@@ -19,8 +19,26 @@ let border_width = spacing
 module Box = struct
   (* To allow for a status label to be added at the bottom of the interface. *)
   let v = GPack.vbox ~spacing:2 ~border_width ~packing:window#add ()
+  (* To display the different annotation modes. *)
+  let b = GPack.button_box `HORIZONTAL
+    ~layout:`SPREAD
+    ~packing:(v#pack ~expand:false) ()
   (* To display the magnified view and whole image side by side. *)
   let h = GPack.hbox ~spacing   ~border_width ~packing:v#add ()
+end
+
+module Annotation_type = struct
+  type t = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
+  let curr = ref `COLONIZATION
+  let current () = !curr
+  let make_radio ?active ?group label typ =
+    let r = GButton.radio_button ?group ?active ~label ~packing:Box.b#add () in
+    r#connect#toggled (fun () -> if r#active then curr := typ);
+    r
+  let colonization = make_radio ~active:true "Colonization" `COLONIZATION
+  let group = colonization#group
+  let arb_vesicles = make_radio ~group "Arbuscules/Vesicles" `ARB_VESICLES
+  let all_features = make_radio ~group "All features" `ALL_FEATURES
 end
 
 

@@ -6,6 +6,15 @@ val window : GWindow.window
 (** Application main window. *)
 
 
+(** Annotation types. *)
+module Annotation_type : sig
+  type t = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
+  (** The type of annotations. *)
+  
+  val current : unit -> t
+  (** Returns the current type of annotation. *)
+end
+
 
 (** Horizontal toolbox (left pane). *)
 module HToolbox : sig
