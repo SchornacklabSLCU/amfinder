@@ -1,8 +1,8 @@
 (* CastANet - cCore.ml *)
 
-type size = [ `SMALL | `LARGE ]
+type icon_size = [ `SMALL | `LARGE ]
 
-type style = [ `GREY | `RGBA ]
+type icon_style = [ `GREY | `RGBA ]
 
 type annotation_type = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
 

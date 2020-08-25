@@ -2,10 +2,10 @@
 
 (** CastANet types and constants. *)
 
-type size = [ `SMALL | `LARGE ]
+type icon_size = [ `SMALL | `LARGE ]
 (** The tyoe if icon size. *)
 
-type style = [ `GREY | `RGBA ]
+type icon_style = [ `GREY | `RGBA ]
 (** The type of icon style. *)
 
 type annotation_type = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
