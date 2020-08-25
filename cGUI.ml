@@ -128,7 +128,10 @@ let current_toggles () =
   let module T = (val (List.assoc !Annotation_type.curr toolboxes) : TOOLBOX) in
   T.toggles
 
-let _ = 
+(* Initializes the annotation toolbar using the lightweight annotation style
+ * `COLONIZATION, and initiates the callback function that updates the UI
+ * according to the active radio button. *)
+let _ =
   attach `COLONIZATION;
   List.iter (fun (typ, radio) ->
     radio#connect#toggled ~callback:(fun () ->
@@ -138,54 +141,51 @@ let _ =
   
 
 module HToolbox = struct
+  let apply any chr = String.index CAnnot.codes chr
+    |> Array.get (current_toggles ())
+    |> snd
+    |> fst
+    |> any
+ 
+  let is_active = apply (fun t -> t#active)
 
-  module Action = struct
-    let apply any chr = String.index CAnnot.codes chr
-      |> Array.get (current_toggles ())
-      |> snd
-      |> fst
-      |> any
-   
-    let is_active = apply (fun t -> t#active)
+  let set_status status = 
+    apply (fun t -> 
+      let status = match status with
+        | `INVERT -> not t#active
+        | `BOOL b -> b
+      in t#set_active status)
+  
+  let lock = ref false
+  
+  let activate t = 
+    lock := true;
+    String.iter (set_status (`BOOL true)) t;
+    lock := false
+  
+  let deactivate t =
+    lock := true;
+    String.iter (set_status (`BOOL false)) t;
+    lock := false
+  
+  let check chr () =
+    if not !lock then begin
+      activate (CAnnot.requires chr);
+      deactivate (CAnnot.forbids chr);
+      if not (is_active chr) then deactivate (CAnnot.erases chr)
+    end
 
-    let set_status status = 
-      apply (fun t -> 
-        let status = match status with
-          | `INVERT -> not t#active
-          | `BOOL b -> b
-        in t#set_active status)
-    
-    let lock = ref false
-    
-    let activate t = 
-      lock := true;
-      String.iter (set_status (`BOOL true)) t;
-      lock := false
-    
-    let deactivate t =
-      lock := true;
-      String.iter (set_status (`BOOL false)) t;
-      lock := false
-    
-    let check chr () =
-      if not !lock then begin
-        activate (CAnnot.requires chr);
-        deactivate (CAnnot.forbids chr);
-        if not (is_active chr) then deactivate (CAnnot.erases chr)
-      end
-
-    let _ =
-      List.iter (fun (_, mdl) ->
-        let module T = (val mdl : TOOLBOX) in
-        Array.iter (fun (chr, (toggle, _)) ->
-          ignore (toggle#connect#toggled ~callback:(check chr))
-        ) T.toggles
-      ) toolboxes
-  end
+  (* Initializes the callback function that activate or deactivate toggle
+   * buttons based on key pressed and CAnnot-defined constraints. *)
+  let _ =
+    iter_toggles (fun _ ->
+      Array.iter (fun (chr, (toggle, _)) ->
+        ignore (toggle#connect#toggled ~callback:(check chr))
+    ))
     
   let toggle_any chr =
-    Action.set_status `INVERT chr;
-    Action.check chr () 
+    set_status `INVERT chr;
+    check chr () 
 end
 
 
