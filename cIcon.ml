@@ -18,7 +18,7 @@ end
 module Build = struct
   let path_list suf =
     let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
-      |> Filename.concat CCore.data_dir
+      |> Filename.concat CCore.icon_dir
       |> (fun path -> chr, path)
     in List.map make_pair CAnnot.code_list
 
@@ -38,7 +38,7 @@ let m_grey = Build.icon_set "grey" (* Inactive toggle buttons.                *)
 module Joker = struct
   let make suf =
     let ico = Printf.sprintf "Joker_%s.png" suf
-      |> Filename.concat CCore.data_dir
+      |> Filename.concat CCore.icon_dir
       |> (fun path -> '*', path)
     in Source.(snd (load `SMALL ico), snd (load `LARGE ico))
   let rgba = make "rgba"
