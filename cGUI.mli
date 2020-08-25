@@ -7,11 +7,8 @@ val window : GWindow.window
 
 
 (** Annotation types. *)
-module Annotation_type : sig
-  type t = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
-  (** The type of annotations. *)
-  
-  val current : unit -> t
+module Annotation_type : sig 
+  val current : unit -> CCore.annotation_type
   (** Returns the current type of annotation. *)
 end
 

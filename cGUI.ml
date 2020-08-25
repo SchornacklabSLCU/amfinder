@@ -28,7 +28,6 @@ module Box = struct
 end
 
 module Annotation_type = struct
-  type t = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
   let curr = ref `COLONIZATION
   let current () = !curr
   let make_radio ?active ?group label typ =

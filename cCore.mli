@@ -8,6 +8,9 @@ type size = [ `SMALL | `LARGE ]
 type style = [ `GREY | `RGBA ]
 (** The type of icon style. *)
 
+type annotation_type = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
+(** The type of annotation styles. *)
+
 val edge : int
 
 val data_dir : string
