@@ -21,7 +21,7 @@ let code_list = List.init ncodes (String.get codes)
 
 let index_list = Array.(of_list code_list |> mapi (fun i c -> c, i) |> to_list)
 let requires chr = if String.contains "AVIH" chr then "R" else ""
-let forbids = function 'D' -> "AVIERH" | _ -> "D"
+let forbids = function 'B' -> "AVIEHR" | _ -> ""
 let erases = function 'R' -> "AVIH" | _ -> ""
 
 type t = A of float array

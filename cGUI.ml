@@ -30,16 +30,19 @@ end
 module Annotation_type = struct
   let curr = ref `COLONIZATION
   let current () = !curr
-  let make_radio ?active ?group label typ =
-    let r = GButton.radio_button ?group ?active ~label ~packing:Box.b#add () in
+  let make_radio group active label typ =
+    let r = GButton.radio_button ?group ~active ~label ~packing:Box.b#add () in
     r#connect#toggled (fun () -> if r#active then curr := typ);
     r
-  let colonization = make_radio ~active:true "Colonization" `COLONIZATION
-  let group = colonization#group
-  let arb_vesicles = make_radio ~group "Arbuscules/Vesicles" `ARB_VESICLES
-  let all_features = make_radio ~group "All features" `ALL_FEATURES
+  let labels = ["Colonization"; "Arbuscules/Vesicles"; "All features"]
+  let radios = 
+    let active = ref true and group = ref None in
+    List.map2 (fun typ lbl ->
+      let radio = make_radio !group !active lbl typ in
+      if !active then (active := false; group := Some radio#group);
+      typ, radio
+    ) CCore.available_annotation_types labels
 end
-
 
 module Pane = struct
   let make label rows columns =
@@ -57,18 +60,19 @@ module type TOOLBOX = sig
   val toggles : (char * (GButton.toggle_button * GMisc.image)) array
 end
 
+let get_col_spacing = function
+  | `COLONIZATION -> 60 
+  | `ARB_VESICLES -> 30
+  | `ALL_FEATURES -> 10
+
 let make_toolbox typ =
   let codes = CAnnot.Get.codes typ
   and code_list = CAnnot.Get.code_list typ in
-  let columns = String.length codes in
   let module T = struct
-    (* Setting up expand/fill allows to centre the button box. *)
-    let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
     let table = GPack.table
-      ~rows:1 ~columns
-      ~col_spacings:10
-      ~homogeneous:true
-      ~packing ()
+      ~rows:1 ~columns:(String.length codes)
+      ~col_spacings:(get_col_spacing typ)
+      ~homogeneous:true ()
     let set_icon image button rgba grey () =
       image#set_pixbuf (if button#active then rgba else grey)  
     let add_item i chr =
@@ -85,14 +89,59 @@ let make_toolbox typ =
       |> Array.of_list
   end in (module T : TOOLBOX)
 
+(* Setting up expand/fill allows to centre the button box. *)
+let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
+
+let toolboxes =
+  List.map (fun typ ->
+    typ, make_toolbox typ
+  ) CCore.available_annotation_types
+
+let iter_toggles f =
+  List.iter (fun (typ, mdl) ->
+    let module T = (val mdl : TOOLBOX) in
+    f typ T.toggles
+  ) toolboxes
+
+let map_toggles f =
+  List.map (fun (typ, mdl) ->
+    let module T = (val mdl : TOOLBOX) in
+    f typ T.toggles
+  ) toolboxes
+
+let current_widget = ref None
+
+let detach () =
+  match !current_widget with
+  | None -> ()
+  | Some widget -> Pane.left#remove widget
+
+let attach typ =
+  detach ();
+  let module T = (val (List.assoc typ toolboxes) : TOOLBOX) in
+  let widget = T.table#coerce in
+  packing widget;
+  Annotation_type.curr := typ;
+  current_widget := Some widget
+
+let current_toggles () =
+  let module T = (val (List.assoc !Annotation_type.curr toolboxes) : TOOLBOX) in
+  T.toggles
+
+let _ = 
+  attach `COLONIZATION;
+  List.iter (fun (typ, radio) ->
+    radio#connect#toggled ~callback:(fun () ->
+      if radio#active then attach typ
+    ); ()
+  ) Annotation_type.radios
+  
 
 module HToolbox = struct
 
-  include (val (make_toolbox `ALL_FEATURES) : TOOLBOX)
- 
   module Action = struct
     let apply any chr = String.index CAnnot.codes chr
-      |> Array.get toggles
+      |> Array.get (current_toggles ())
       |> snd
       |> fst
       |> any
@@ -125,10 +174,13 @@ module HToolbox = struct
         if not (is_active chr) then deactivate (CAnnot.erases chr)
       end
 
-    let _ = 
-      Array.iter (fun (chr, (toggle, _)) ->
-        ignore (toggle#connect#toggled ~callback:(check chr))
-      ) toggles
+    let _ =
+      List.iter (fun (_, mdl) ->
+        let module T = (val mdl : TOOLBOX) in
+        Array.iter (fun (chr, (toggle, _)) ->
+          ignore (toggle#connect#toggled ~callback:(check chr))
+        ) T.toggles
+      ) toolboxes
   end
     
   let toggle_any chr =

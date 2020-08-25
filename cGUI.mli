@@ -10,14 +10,21 @@ val window : GWindow.window
 module Annotation_type : sig 
   val current : unit -> CCore.annotation_type
   (** Returns the current type of annotation. *)
+
+  val radios : (CCore.annotation_type * GButton.radio_button) list
+  (** Radio buttons corresponding to the different annotation types. *)
 end
 
+val iter_toggles : 
+  (CCore.annotation_type -> 
+   (char * (GButton.toggle_button * GMisc.image)) array -> unit) -> unit
+
+val map_toggles : 
+  (CCore.annotation_type -> 
+   (char * (GButton.toggle_button * GMisc.image)) array -> 'a) -> 'a list
 
 (** Horizontal toolbox (left pane). *)
 module HToolbox : sig
-  val toggles : (char * (GButton.toggle_button * GMisc.image)) array
-  (** Table of toggle buttons corresponding to the different annotations. *)
-
   val toggle_any : char -> unit
   (** Inverts the status of the given toggle button. *)
 end

@@ -18,21 +18,23 @@ let icons () =
     in ignore (CGUI.VToolbox.set_toggled typ callback)
   );
   CDraw.active_layer ();
-  Array.iter (fun (chr, (btn, img)) ->
-    let rgba = CIcon.get chr `RGBA `LARGE
-    and grey = CIcon.get chr `GREY `LARGE in
-    let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
-    ignore (btn#connect#toggled ~callback);
-  ) CGUI.HToolbox.toggles;
+  CGUI.iter_toggles (fun _ toggles ->
+    Array.iter (fun (chr, (btn, img)) ->
+      let rgba = CIcon.get chr `RGBA `LARGE
+      and grey = CIcon.get chr `GREY `LARGE in
+      let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
+      ignore (btn#connect#toggled ~callback);
+    ) toggles);
   CGUI.VToolbox.export#connect#clicked ~callback:CDraw.display_set
 
 let toggles =
-  Array.map (fun (key, (toggle, _)) ->
-    let id = toggle#connect#toggled 
-      ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
-    in key, toggle, id
-  ) CGUI.HToolbox.toggles 
-   
+  CGUI.map_toggles (fun _ toggles ->
+    Array.map (fun (key, (toggle, _)) ->
+      let id = toggle#connect#toggled 
+        ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
+      in key, toggle, id
+    ) toggles) |> List.hd (* FIXME *)
+     
 let keyboard () =
   let connect = CGUI.window#event#connect in
   connect#key_press (CDraw.Cursor.arrow_key_press ~toggles);
