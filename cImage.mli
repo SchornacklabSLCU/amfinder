@@ -32,19 +32,19 @@ val dim : t -> [ `C | `R ] -> int
 val is_valid : r:int -> c:int -> t -> bool
 (** Tells whether the given coordinates are valid. *)
 
-val edge : t -> CCore.size -> int
+val edge : t -> CCore.icon_size -> int
 (** Returns tile edge, in pixels. *)
 
-val x : c:int -> t -> CCore.size -> int
+val x : c:int -> t -> CCore.icon_size -> int
 (** Returns the X-axis pixel value corresponding to the given column. *)
 
-val y : r:int -> t -> CCore.size -> int
+val y : r:int -> t -> CCore.icon_size -> int
 (** Returns the Y-axis pixel value corresponding to the given row. *)
 
-val tiles : t -> CCore.size -> GdkPixbuf.pixbuf CExt.Matrix.t
+val tiles : t -> CCore.icon_size -> GdkPixbuf.pixbuf CExt.Matrix.t
 (** Returns small/large tile pixbufs. *)
 
-val tile : r:int -> c:int -> t -> CCore.size -> GdkPixbuf.pixbuf option
+val tile : r:int -> c:int -> t -> CCore.icon_size -> GdkPixbuf.pixbuf option
 (** Convenience function to retrieve a given tile. *) 
 
 val annotations : t -> CAnnot.t CExt.Matrix.t
@@ -63,7 +63,7 @@ val set_cursor_pos : t -> int * int -> unit
 (** Modifies cursor position. *)
 
 val iter_tiles :
-  (int -> int -> GdkPixbuf.pixbuf -> unit) -> t -> CCore.size -> unit
+  (int -> int -> GdkPixbuf.pixbuf -> unit) -> t -> CCore.icon_size -> unit
 (** Iter over tiles. *)
 
 val iter_annot : (int -> int -> CAnnot.t -> unit) -> t -> unit
