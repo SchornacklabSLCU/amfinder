@@ -6,6 +6,8 @@ type icon_style = [ `GREY | `RGBA ]
 
 type annotation_type = [ `COLONIZATION | `ARB_VESICLES | `ALL_FEATURES ]
 
+let available_annotation_types = [ `COLONIZATION; `ARB_VESICLES; `ALL_FEATURES ]
+
 let edge = 180
 
 let data_dir = "data"
