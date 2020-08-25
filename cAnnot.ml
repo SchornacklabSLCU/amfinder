@@ -7,6 +7,7 @@ open Printf
 let codes = "AVIEHRD"
 let ncodes = String.length codes
 let code_list = List.init ncodes (String.get codes)
+
 let index_list = Array.(of_list code_list |> mapi (fun i c -> c, i) |> to_list)
 let requires chr = if String.contains "AVIH" chr then "R" else ""
 let forbids = function 'D' -> "AVIERH" | _ -> "D"
@@ -161,3 +162,8 @@ let import ~path:tsv =
         "Missing or corrupted (%d, %d) line in TSV file \"%s\"" r c tsv;
         empty ()
   ))
+
+let get_code_list = function
+  | `COLONIZATION -> ['Y'; 'N'; 'B']
+  | `ARB_VESICLES -> ['A'; 'V'; 'N'; 'B']
+  | `ALL_FEATURES -> ['A'; 'V'; 'I'; 'E'; 'H'; 'R'; 'B']

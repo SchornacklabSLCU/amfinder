@@ -21,7 +21,6 @@ module Build = struct
       |> Filename.concat CCore.icon_dir
       |> (fun path -> chr, path)
     in List.map make_pair CAnnot.code_list
-
   let icon_set suf =
     let names = path_list suf in
     let module M = struct
