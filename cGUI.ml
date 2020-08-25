@@ -52,33 +52,43 @@ module Pane = struct
   let right = make "Whole image" 1 2
 end
 
+module type TOOLBOX = sig
+  val table : GPack.table
+  val toggles : (char * (GButton.toggle_button * GMisc.image)) array
+end
 
-module HToolbox = struct
-  let bbox =
+let make_toolbox typ =
+  let codes = CAnnot.Get.codes typ
+  and code_list = CAnnot.Get.code_list typ in
+  let columns = String.length codes in
+  let module T = struct
     (* Setting up expand/fill allows to centre the button box. *)
-    let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE in
-    GPack.table
-      ~rows:1 ~columns:7 
+    let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
+    let table = GPack.table
+      ~rows:1 ~columns
       ~col_spacings:10
       ~homogeneous:true
       ~packing ()
+    let set_icon image button rgba grey () =
+      image#set_pixbuf (if button#active then rgba else grey)  
+    let add_item i chr =
+      let toggle = GButton.toggle_button 
+        ~relief:`NONE
+        ~packing:(table#attach ~left:i ~top:0) () in
+      let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
+      icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
+      toggle, icon
+    let toggles = Array.of_list code_list
+      |> Array.mapi add_item
+      |> Array.to_list
+      |> List.combine code_list
+      |> Array.of_list
+  end in (module T : TOOLBOX)
 
-  let set_icon image button rgba grey () =
-    image#set_pixbuf (if button#active then rgba else grey)
 
-  let add_item i chr =
-    let toggle = GButton.toggle_button 
-      ~relief:`NONE
-      ~packing:(bbox#attach ~left:i ~top:0) () in
-    let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
-    icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
-    toggle, icon
-  
-  let toggles = Array.of_list CAnnot.code_list
-    |> Array.mapi add_item
-    |> Array.to_list
-    |> List.combine CAnnot.code_list
-    |> Array.of_list
+module HToolbox = struct
+
+  include (val (make_toolbox `ALL_FEATURES) : TOOLBOX)
  
   module Action = struct
     let apply any chr = String.index CAnnot.codes chr
