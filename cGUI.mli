@@ -18,10 +18,14 @@ end
 val iter_toggles : 
   (CCore.annotation_type -> 
    (char * (GButton.toggle_button * GMisc.image)) array -> unit) -> unit
+(** [iter_function f] applies function [f] in turn to each group of toggle 
+  * buttons. The function [f] uses side effects and returns the unit type. *)
 
 val map_toggles : 
   (CCore.annotation_type -> 
    (char * (GButton.toggle_button * GMisc.image)) array -> 'a) -> 'a list
+(** Same as [iter_toggles], but returns a fresh list with the result of the
+  * evaluation of function [f]. *)
 
 (** Horizontal toolbox (left pane). *)
 module HToolbox : sig
