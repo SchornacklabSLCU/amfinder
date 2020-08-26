@@ -62,33 +62,32 @@ module HToolbox = struct
     val toggles : (char * (GButton.toggle_button * GMisc.image)) array
   end
 
+  (* Values here ensures that new buttons appear between existing ones when
+   * the user moves from simple to thorough annotation mode. *)
   let get_col_spacing = function
-    | `COLONIZATION -> 60 
-    | `ARB_VESICLES -> 30
+    | `COLONIZATION -> 158
+    | `ARB_VESICLES -> 84
     | `ALL_FEATURES -> 10
 
+  let set_icon image button rgba grey () =
+    image#set_pixbuf (if button#active then rgba else grey)  
+
+  let add_item (table : GPack.table) i chr =
+    let toggle = GButton.toggle_button 
+      ~relief:`NONE
+      ~packing:(table#attach ~left:i ~top:0) () in
+    let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
+    icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
+    chr, (toggle, icon)
+
   let make_toolbox typ =
-    let codes = CAnnot.Get.codes typ
-    and code_list = CAnnot.Get.code_list typ in
+    let code_list = CAnnot.Get.code_list typ in
     let module T = struct
       let table = GPack.table
-        ~rows:1 ~columns:(String.length codes)
+        ~rows:1 ~columns:(List.length code_list)
         ~col_spacings:(get_col_spacing typ)
         ~homogeneous:true ()
-      let set_icon image button rgba grey () =
-        image#set_pixbuf (if button#active then rgba else grey)  
-      let add_item i chr =
-        let toggle = GButton.toggle_button 
-          ~relief:`NONE
-          ~packing:(table#attach ~left:i ~top:0) () in
-        let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
-        icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
-        toggle, icon
-      let toggles = Array.of_list code_list
-        |> Array.mapi add_item
-        |> Array.to_list
-        |> List.combine code_list
-        |> Array.of_list
+      let toggles = Array.of_list (List.mapi (add_item table) code_list)
     end in (module T : TOOLBOX)
 
   (* Setting up expand/fill allows to centre the button box. *)
@@ -129,7 +128,8 @@ module HToolbox = struct
     current_widget := Some widget
 
   let current_toggles () =
-    let module T = (val (List.assoc !Annotation_type.curr toolboxes) : TOOLBOX) in
+    let current_toolbox = List.assoc !Annotation_type.curr toolboxes in
+    let module T = (val current_toolbox : TOOLBOX) in
     T.toggles
 
   let apply any chr = String.index CAnnot.codes chr
