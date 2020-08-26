@@ -62,8 +62,8 @@ module HToolbox = struct
     val toggles : (char * (GButton.toggle_button * GMisc.image)) array
   end
 
-  (* Values here ensures that new buttons appear between existing ones when
-   * the user moves from simple to thorough annotation mode. *)
+  (* Values here ensure that new buttons appear between existing ones when
+   * the user switches between the different annotation types. *)
   let get_col_spacing = function
     | `COLONIZATION -> 158
     | `ARB_VESICLES -> 84
