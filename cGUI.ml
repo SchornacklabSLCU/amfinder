@@ -21,6 +21,7 @@ module Box = struct
   let v = GPack.vbox ~spacing:2 ~border_width ~packing:window#add ()
   (* To display the different annotation modes. *)
   let b = GPack.button_box `HORIZONTAL
+    ~border_width:(2 * spacing)
     ~layout:`SPREAD
     ~packing:(v#pack ~expand:false) ()
   (* To display the magnified view and whole image side by side. *)
@@ -30,8 +31,16 @@ end
 module Annotation_type = struct
   let curr = ref `COLONIZATION
   let current () = !curr
-  let make_radio group active label typ =
-    let r = GButton.radio_button ?group ~active ~label ~packing:Box.b#add () in
+  let make_radio group active str typ =
+    (* Container for the GtkRadioButton and its corresponding GtkLabel. *)
+    let packing = (GPack.hbox ~packing:Box.b#add ())#pack ~expand:false in
+    (* Radio button without a label (will use a GtkLabel for that). *)
+    let r = GButton.radio_button ?group ~active ~packing () in
+    (* Removes the unpleasant focus square around the round button. *)
+    r#misc#set_can_focus false;
+    let markup = sprintf "<big><b>%s</b></big>" str in
+    ignore (GMisc.label ~markup ~packing ());
+    (* Updates the annotation type upon activation. *)
     r#connect#toggled (fun () -> if r#active then curr := typ);
     r
   let labels = ["Colonization"; "Arbuscules/Vesicles"; "All features"]
