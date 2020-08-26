@@ -16,18 +16,21 @@ module Annotation_type : sig
 end
 
 
-(** Horizontal toolbox (left pane). *)
+(** The horizontal toolbox (left pane) contains the toggle buttons used to
+  * set mycorrhizal annotations. Users can switch between three sets of toggle 
+  * buttons which correspond to basic ([`COLONIZATION]), intermediate 
+  * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
+  * Only one set is active at a given time. *)
 module HToolbox : sig
   type toggle_set = (char * (GButton.toggle_button * GMisc.image)) array
-  (** The type for toggle sets. *)
+  (** Shortcut type for toggle sets. *)
 
   val iter : (CCore.annotation_type -> toggle_set -> unit) -> unit
-  (** [iter_function f] applies function [f] in turn to each group of toggle 
-    * buttons. The function [f] uses side effects and returns the unit type. *)
+  (** [iter f] applies the function [f] to every set of toggle buttons. *)
 
   val map : (CCore.annotation_type -> toggle_set -> 'a) -> 'a list
-  (** Same as [iter_toggles], but returns a fresh list with the result of the
-    * evaluation of function [f]. *)
+  (** Same as [iter], but builds a new list from the result of the application 
+    * of function [f] to the toggle button sets. *)
 
   val toggle_any : char -> unit
   (** Inverts the status of the given toggle button. *)
