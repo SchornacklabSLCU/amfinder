@@ -105,7 +105,7 @@
        y2="15.499792"
        gradientUnits="userSpaceOnUse" />
     <linearGradient
-       gradientTransform="translate(71.70477,16.770148)"
+       gradientTransform="translate(82.288104,24.707648)"
        inkscape:collect="always"
        xlink:href="#cividis"
        id="linearGradient1049-5-3"
@@ -262,9 +262,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="372.19072"
-     inkscape:cy="381.96808"
+     inkscape:zoom="2.8"
+     inkscape:cx="487.99851"
+     inkscape:cy="963.2659"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -911,23 +911,23 @@
        cx="114.78893"
        cy="40.207443"
        r="3.96875"
-       inkscape:export-filename="B_rgba.png"
+       inkscape:export-filename="X_rgba.png"
        inkscape:export-xdpi="194.97"
        inkscape:export-ydpi="194.97" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#aa0000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="112.8149"
-       y="42.101383"
+       x="112.21803"
+       y="43.32095"
        id="text898-3-1-64"
-       inkscape:export-filename="B_rgba.png"
+       inkscape:export-filename="X_rgba.png"
        inkscape:export-xdpi="194.97"
        inkscape:export-ydpi="194.97"><tspan
          sodipodi:role="line"
          id="tspan896-5-7-0"
-         x="112.8149"
-         y="42.101383"
-         style="font-weight:bold;font-size:5.29166651px;fill:#aa0000;fill-opacity:1;stroke-width:0.26458332">B</tspan></text>
+         x="112.21803"
+         y="43.32095"
+         style="font-weight:bold;font-size:8.81944466px;fill:#aa0000;fill-opacity:1;stroke-width:0.26458332">×</tspan></text>
     <g
        id="g1081"
        transform="translate(0,7.9375004)">
@@ -982,33 +982,29 @@
            id="tspan896-5-0-5"
            sodipodi:role="line">N</tspan></text>
     </g>
-    <g
-       id="g1111"
-       transform="translate(0,7.9375004)">
-      <circle
-         inkscape:export-ydpi="194.97"
-         inkscape:export-xdpi="194.97"
-         inkscape:export-filename="B_grey.png"
-         r="3.96875"
-         cy="32.269943"
-         cx="128.75381"
-         id="path819-9-33-4"
-         style="opacity:1;fill:#ececec;fill-opacity:1;stroke:#666666;stroke-width:0.40000001;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-      <text
-         inkscape:export-ydpi="194.97"
-         inkscape:export-xdpi="194.97"
-         inkscape:export-filename="B_grey.png"
-         id="text898-3-1-68-6"
-         y="34.163883"
-         x="126.77978"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#666666;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-         xml:space="preserve"><tspan
-           style="font-weight:bold;font-size:5.29166651px;fill:#666666;fill-opacity:1;stroke-width:0.26458332"
-           y="34.163883"
-           x="126.77978"
-           id="tspan896-5-7-7-9"
-           sodipodi:role="line">B</tspan></text>
-    </g>
+    <circle
+       style="opacity:1;fill:#ececec;fill-opacity:1;stroke:#666666;stroke-width:0.40000001;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path819-9-33-4"
+       cx="128.75381"
+       cy="40.207443"
+       r="3.96875"
+       inkscape:export-filename="X_grey.png"
+       inkscape:export-xdpi="194.97"
+       inkscape:export-ydpi="194.97" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#666666;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="126.18291"
+       y="43.32095"
+       id="text898-3-1-68-6"
+       inkscape:export-filename="X_grey.png"
+       inkscape:export-xdpi="194.97"
+       inkscape:export-ydpi="194.97"><tspan
+         sodipodi:role="line"
+         id="tspan896-5-7-7-9"
+         x="126.18291"
+         y="43.32095"
+         style="font-weight:bold;font-size:8.81944466px;fill:#666666;fill-opacity:1;stroke-width:0.26458332">×</tspan></text>
     <g
        id="g1071"
        transform="translate(10.583334,7.9375004)">
@@ -1063,33 +1059,29 @@
            id="tspan896-2-2-4"
            sodipodi:role="line">N</tspan></text>
     </g>
-    <g
-       id="g1101"
-       transform="translate(10.583334,7.9375004)">
-      <circle
-         inkscape:export-ydpi="194.97"
-         inkscape:export-xdpi="194.97"
-         inkscape:export-filename="B_grad.png"
-         r="3.96875"
-         cy="32.269943"
-         cx="90.240685"
-         id="path819-9-02-9-43-1"
-         style="opacity:1;fill:url(#linearGradient1049-5-3);fill-opacity:1;stroke:#ffffff;stroke-width:0.40000001;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
-      <text
-         inkscape:export-ydpi="194.97"
-         inkscape:export-xdpi="194.97"
-         inkscape:export-filename="B_grad.png"
-         id="text898-2-0-0"
-         y="34.163883"
-         x="88.266647"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-         xml:space="preserve"><tspan
-           style="font-weight:bold;font-size:5.29166651px;fill:#ffffff;fill-opacity:1;stroke-width:0.26458332"
-           y="34.163883"
-           x="88.266647"
-           id="tspan896-2-7-4"
-           sodipodi:role="line">B</tspan></text>
-    </g>
+    <circle
+       style="opacity:1;fill:url(#linearGradient1049-5-3);fill-opacity:1;stroke:#ffffff;stroke-width:0.40000001;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path819-9-02-9-43-1"
+       cx="100.82402"
+       cy="40.207443"
+       r="3.96875"
+       inkscape:export-filename="X_grad.png"
+       inkscape:export-xdpi="194.97"
+       inkscape:export-ydpi="194.97" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="98.25312"
+       y="43.32095"
+       id="text898-2-0-0"
+       inkscape:export-filename="X_grad.png"
+       inkscape:export-xdpi="194.97"
+       inkscape:export-ydpi="194.97"><tspan
+         sodipodi:role="line"
+         id="tspan896-2-7-4"
+         x="98.25312"
+         y="43.32095"
+         style="font-weight:bold;font-size:8.81944466px;fill:#ffffff;fill-opacity:1;stroke-width:0.26458332">×</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
