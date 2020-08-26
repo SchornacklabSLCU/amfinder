@@ -21,8 +21,11 @@ end
   * buttons which correspond to basic ([`COLONIZATION]), intermediate 
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
-module HToolbox : sig
-  type toggle_set = (char * (GButton.toggle_button * GMisc.image)) array
+module Toggles : sig
+  type toggle = GButton.toggle_button * GMisc.image
+  (** Shortcut type for toggle buttons with a custom icon. *)
+
+  type toggle_set = (char * toggle) array
   (** Shortcut type for toggle sets. *)
 
   val iter : (CCore.annotation_type -> toggle_set -> unit) -> unit
@@ -69,34 +72,12 @@ module Thumbnail : sig
 end
 
 
-
-(** Vertical toolbox (right pane). *)
-module VToolbox : sig
-  val row : GMisc.label
-  (** Indicates the current row index. *)
-
-  val column : GMisc.label
-  (** Indicate the current column index. *)
-
-  val confidence : GMisc.label
-  (** To be primarily used with computer-generated annotations. Indicates how
-    * confident the annotation is (using percentage). *)
-
-  val confidence_color : GMisc.label
-  (** To be primarily used with computer-generated annotations. This label
-    * displays the Viridis colour corresponding to the percentage displayed by
-    * the label [confidence] (see above). *)
-
+(** TODO: documentation *)
+module Layers : sig
   val get_active : unit -> [`CHR of char | `JOKER]
   (** Indicates which layer is currently active ([`JOKER] corresponds to
     * [master], while [`CHR _] corresponds to elements of the list [radios]
     * (see above). *)
-
-  val export : GButton.tool_button
-  (** Saves the current display as a PNG file (currently not implemented). *)
-
-  val preferences : GButton.tool_button
-  (** Shows preferences dialog (currently not implemented). *)
 
   type radio_type = [`JOKER | `CHR of char]
   (** The type of radio buttons. *)
@@ -117,6 +98,34 @@ module VToolbox : sig
   (** Sets a callback function to call when a button is toggled. *)
 end
 
+
+(** TODO: documentation *)
+module Coords : sig
+  val toolbar : GButton.toolbar
+  (** Main container. *)
+
+  val row : GMisc.label
+  (** Indicates the current row index. *)
+
+  val column : GMisc.label
+  (** Indicate the current column index. *)
+end
+
+
+(** TODO: documentation *)
+module Stats : sig
+  val toolbar : GButton.toolbar
+  (** Main container. *)
+
+  val confidence : GMisc.label
+  (** To be primarily used with computer-generated annotations. Indicates how
+    * confident the annotation is (using percentage). *)
+
+  val confidence_color : GMisc.label
+  (** To be primarily used with computer-generated annotations. This label
+    * displays the Viridis colour corresponding to the percentage displayed by
+    * the label [confidence] (see above). *)
+end
 
 
 val status : GMisc.label

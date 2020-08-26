@@ -97,7 +97,7 @@ let surface ?(sync = false) r c s =
 let annot ?(sync = false) r c =
   Gaux.may (fun img ->
     Gaux.may (fun ann ->
-      let typ = CGUI.VToolbox.get_active () in
+      let typ = CGUI.Layers.get_active () in
       let draw = match typ with
         | `JOKER -> not (CAnnot.is_empty ann)
         | `CHR chr -> CAnnot.mem ann chr in
@@ -134,8 +134,8 @@ let missing_image = CExt.Memoize.create ~lbl:"missing_image" ~one:true
 
 module GUI = struct
   let erase_confidence () =
-    CGUI.VToolbox.confidence#set_label "<tt><small><b> n/a </b></small></tt>";
-    CGUI.VToolbox.confidence_color#set_label "<tt><span background='white' \
+    CGUI.Stats.confidence#set_label "<tt><small><b> n/a </b></small></tt>";
+    CGUI.Stats.confidence_color#set_label "<tt><span background='white' \
       foreground='white'>DDDDD</span></tt>"
 
   let update_confidence_text_area r c =
@@ -144,16 +144,16 @@ module GUI = struct
         | Some t when CAnnot.annotation_type () = `GRADIENT -> 
           if CAnnot.is_empty t then erase_confidence ()
           else begin 
-            match CGUI.VToolbox.get_active () with
+            match CGUI.Layers.get_active () with
             | `JOKER -> erase_confidence ()
             | `CHR chr -> let palette = CSettings.palette () in
               let i = CAnnot.get_group ~palette:palette t chr in
               let prob = CAnnot.get t chr in
               if prob > 0.0 then (
-                ksprintf CGUI.VToolbox.confidence#set_label 
+                ksprintf CGUI.Stats.confidence#set_label 
                   "<tt><small><b>%-3.0f %%</b></small></tt>" 
                  (100. *. prob);
-                ksprintf CGUI.VToolbox.confidence_color#set_label
+                ksprintf CGUI.Stats.confidence_color#set_label
                   "<tt><span background='%s' foreground='%s'>DDDDD</span></tt>"
                   (CPalette.color palette i) (CPalette.color palette i)
               ) else erase_confidence ()
@@ -163,9 +163,9 @@ module GUI = struct
     ) !curr
 
   let update_text_areas ~r ~c () =
-    ksprintf CGUI.VToolbox.row#set_label
+    ksprintf CGUI.Coords.row#set_label
       "<tt><small><b>R:</b> %03d</small></tt>" r;
-    ksprintf CGUI.VToolbox.column#set_label
+    ksprintf CGUI.Coords.column#set_label
       "<tt><small><b>C:</b> %03d</small></tt>" c;
     update_confidence_text_area r c
 
@@ -181,8 +181,8 @@ module GUI = struct
     Gaux.may (fun img ->
       List.iter (fun (chr, num) ->
         match chr with
-        | '*' -> CGUI.VToolbox.set_label `JOKER num
-        |  _  -> CGUI.VToolbox.set_label (`CHR chr) num
+        | '*' -> CGUI.Layers.set_label `JOKER num
+        |  _  -> CGUI.Layers.set_label (`CHR chr) num
       ) (CImage.statistics img)
     ) !curr
 
@@ -238,7 +238,7 @@ let active_layer ?(sync = true) () =
 let display_set () =
   Gaux.may (fun img ->
     let count = ref 0 in
-    let show, ico = match CGUI.VToolbox.get_active () with
+    let show, ico = match CGUI.Layers.get_active () with
       | `JOKER -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get '*' `RGBA `SMALL
       | `CHR chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
     CImage.iter_annot (fun r c ann ->
