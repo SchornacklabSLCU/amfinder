@@ -54,93 +54,84 @@ module Pane = struct
   let left = make "Magnified view" 2 1
   let right = make "Whole image" 1 2
 end
-
-module type TOOLBOX = sig
-  val table : GPack.table
-  val toggles : (char * (GButton.toggle_button * GMisc.image)) array
-end
-
-let get_col_spacing = function
-  | `COLONIZATION -> 60 
-  | `ARB_VESICLES -> 30
-  | `ALL_FEATURES -> 10
-
-let make_toolbox typ =
-  let codes = CAnnot.Get.codes typ
-  and code_list = CAnnot.Get.code_list typ in
-  let module T = struct
-    let table = GPack.table
-      ~rows:1 ~columns:(String.length codes)
-      ~col_spacings:(get_col_spacing typ)
-      ~homogeneous:true ()
-    let set_icon image button rgba grey () =
-      image#set_pixbuf (if button#active then rgba else grey)  
-    let add_item i chr =
-      let toggle = GButton.toggle_button 
-        ~relief:`NONE
-        ~packing:(table#attach ~left:i ~top:0) () in
-      let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
-      icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
-      toggle, icon
-    let toggles = Array.of_list code_list
-      |> Array.mapi add_item
-      |> Array.to_list
-      |> List.combine code_list
-      |> Array.of_list
-  end in (module T : TOOLBOX)
-
-(* Setting up expand/fill allows to centre the button box. *)
-let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
-
-let toolboxes =
-  List.map (fun typ ->
-    typ, make_toolbox typ
-  ) CCore.available_annotation_types
-
-let iter_toggles f =
-  List.iter (fun (typ, mdl) ->
-    let module T = (val mdl : TOOLBOX) in
-    f typ T.toggles
-  ) toolboxes
-
-let map_toggles f =
-  List.map (fun (typ, mdl) ->
-    let module T = (val mdl : TOOLBOX) in
-    f typ T.toggles
-  ) toolboxes
-
-let current_widget = ref None
-
-let detach () =
-  match !current_widget with
-  | None -> ()
-  | Some widget -> Pane.left#remove widget
-
-let attach typ =
-  detach ();
-  let module T = (val (List.assoc typ toolboxes) : TOOLBOX) in
-  let widget = T.table#coerce in
-  packing widget;
-  Annotation_type.curr := typ;
-  current_widget := Some widget
-
-let current_toggles () =
-  let module T = (val (List.assoc !Annotation_type.curr toolboxes) : TOOLBOX) in
-  T.toggles
-
-(* Initializes the annotation toolbar using the lightweight annotation style
- * `COLONIZATION, and initiates the callback function that updates the UI
- * according to the active radio button. *)
-let _ =
-  attach `COLONIZATION;
-  List.iter (fun (typ, radio) ->
-    radio#connect#toggled ~callback:(fun () ->
-      if radio#active then attach typ
-    ); ()
-  ) Annotation_type.radios
-  
+ 
 
 module HToolbox = struct
+  module type TOOLBOX = sig
+    val table : GPack.table
+    val toggles : (char * (GButton.toggle_button * GMisc.image)) array
+  end
+
+  let get_col_spacing = function
+    | `COLONIZATION -> 60 
+    | `ARB_VESICLES -> 30
+    | `ALL_FEATURES -> 10
+
+  let make_toolbox typ =
+    let codes = CAnnot.Get.codes typ
+    and code_list = CAnnot.Get.code_list typ in
+    let module T = struct
+      let table = GPack.table
+        ~rows:1 ~columns:(String.length codes)
+        ~col_spacings:(get_col_spacing typ)
+        ~homogeneous:true ()
+      let set_icon image button rgba grey () =
+        image#set_pixbuf (if button#active then rgba else grey)  
+      let add_item i chr =
+        let toggle = GButton.toggle_button 
+          ~relief:`NONE
+          ~packing:(table#attach ~left:i ~top:0) () in
+        let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
+        icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
+        toggle, icon
+      let toggles = Array.of_list code_list
+        |> Array.mapi add_item
+        |> Array.to_list
+        |> List.combine code_list
+        |> Array.of_list
+    end in (module T : TOOLBOX)
+
+  (* Setting up expand/fill allows to centre the button box. *)
+  let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
+
+  type toggle_set = (char * (GButton.toggle_button * GMisc.image)) array
+
+  let toolboxes =
+    List.map (fun typ ->
+      typ, make_toolbox typ
+    ) CCore.available_annotation_types
+
+  let iter f =
+    List.iter (fun (typ, mdl) ->
+      let module T = (val mdl : TOOLBOX) in
+      f typ T.toggles
+    ) toolboxes
+
+  let map f =
+    List.map (fun (typ, mdl) ->
+      let module T = (val mdl : TOOLBOX) in
+      f typ T.toggles
+    ) toolboxes
+
+  let current_widget = ref None
+
+  let detach () =
+    match !current_widget with
+    | None -> ()
+    | Some widget -> Pane.left#remove widget
+
+  let attach typ =
+    detach ();
+    let module T = (val (List.assoc typ toolboxes) : TOOLBOX) in
+    let widget = T.table#coerce in
+    packing widget;
+    Annotation_type.curr := typ;
+    current_widget := Some widget
+
+  let current_toggles () =
+    let module T = (val (List.assoc !Annotation_type.curr toolboxes) : TOOLBOX) in
+    T.toggles
+
   let apply any chr = String.index CAnnot.codes chr
     |> Array.get (current_toggles ())
     |> snd
@@ -170,22 +161,31 @@ module HToolbox = struct
   
   let check chr () =
     if not !lock then begin
-      activate (CAnnot.requires chr);
-      deactivate (CAnnot.forbids chr);
-      if not (is_active chr) then deactivate (CAnnot.erases chr)
+      activate (CAnnot.requires chr); (* FIXME *)
+      deactivate (CAnnot.forbids chr); (* FIXME *)
+      if not (is_active chr) then deactivate (CAnnot.erases chr) (* FIXME *)
     end
 
-  (* Initializes the callback function that activate or deactivate toggle
-   * buttons based on key pressed and CAnnot-defined constraints. *)
+  let toggle_any chr =
+    set_status `INVERT chr;
+    check chr ()
+
   let _ =
-    iter_toggles (fun _ ->
+    (* Initializes the annotation toolbar using the lightweight annotation style
+     * `COLONIZATION, and initiates the callback function that updates the UI
+     * according to the active radio button. *)
+    attach `COLONIZATION;
+    List.iter (fun (typ, radio) ->
+      radio#connect#toggled ~callback:(fun () ->
+        if radio#active then attach typ
+      ); ()
+    ) Annotation_type.radios;
+    (* Initializes the callback function that activate or deactivate toggle
+     * buttons based on key pressed and CAnnot-defined constraints. *)
+    iter (fun _ ->
       Array.iter (fun (chr, (toggle, _)) ->
         ignore (toggle#connect#toggled ~callback:(check chr))
     ))
-    
-  let toggle_any chr =
-    set_status `INVERT chr;
-    check chr () 
 end
 
 

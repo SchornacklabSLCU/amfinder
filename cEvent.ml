@@ -18,7 +18,7 @@ let icons () =
     in ignore (CGUI.VToolbox.set_toggled typ callback)
   );
   CDraw.active_layer ();
-  CGUI.iter_toggles (fun _ toggles ->
+  CGUI.HToolbox.iter (fun _ toggles ->
     Array.iter (fun (chr, (btn, img)) ->
       let rgba = CIcon.get chr `RGBA `LARGE
       and grey = CIcon.get chr `GREY `LARGE in
@@ -28,7 +28,7 @@ let icons () =
   CGUI.VToolbox.export#connect#clicked ~callback:CDraw.display_set
 
 let toggles =
-  CGUI.map_toggles (fun _ toggles ->
+  CGUI.HToolbox.map (fun _ toggles ->
     Array.map (fun (key, (toggle, _)) ->
       let id = toggle#connect#toggled 
         ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
