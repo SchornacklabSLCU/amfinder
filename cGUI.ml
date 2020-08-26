@@ -2,6 +2,48 @@
 
 open Printf
 
+type toggle_ext = {
+  toggle : GButton.toggle_button;
+  image : GMisc.image;
+}
+
+type radio_ext = {
+  radio : GButton.radio_tool_button;
+  label : GMisc.label;
+  image : GMisc.image;
+}
+
+module Toolbox = struct
+  module type TOGGLE = sig
+    val table : GPack.table
+    val toggles : (char * toggle_ext) array
+  end 
+  module type RADIO = sig
+    val table : GButton.toolbar
+    val radios : (char * radio_ext) array
+  end 
+  module type LABEL = sig
+    val toolbar : GButton.toolbar
+    val label_1 : GMisc.label
+    val label_2 : GMisc.label
+  end
+end
+
+(* Auxiliary module to create toolbar elements. *)
+module ToolItem = struct
+  let separator packing = ignore (GButton.separator_tool_item ~packing ())
+  let morespace packing =
+    let item = GButton.tool_item ~expand:false ~packing () in
+    ignore (GPack.vbox ~height:5 ~packing:item#add ())
+  let label ?(vspace = true) packing markup =
+    let item = GButton.tool_item ~packing () in
+    let markup = sprintf "<small>%s</small>" markup in
+    let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
+    if vspace then morespace packing;
+    label
+end
+
+
 let window =
   ignore (GMain.init ());
   let wnd = GWindow.window
@@ -11,21 +53,18 @@ let window =
   wnd#connect#destroy GMain.quit;
   wnd
 
-
 let spacing = 5
 let border_width = spacing
 
 
 module Box = struct
   (* To allow for a status label to be added at the bottom of the interface. *)
-  let v = GPack.vbox ~spacing:0 ~border_width ~packing:window#add ()
-
+  let v = GPack.vbox ~border_width ~packing:window#add ()
   (* To display the annotation modes (as radio buttons). *)
   let b = GPack.button_box `HORIZONTAL
     ~border_width:(2 * spacing) (* more space to make it clearly visible. *)
     ~layout:`SPREAD
     ~packing:(v#pack ~expand:false) ()
-
   (* To display the magnified view and whole image side by side. *)
   let h = GPack.hbox ~spacing ~border_width ~packing:v#add ()
 end
@@ -70,17 +109,7 @@ module Pane = struct
 end
 
 
-module type TOOLBOX = sig
-  type elt
-  val table : GPack.table
-  val toggles : (char * elt) array
-end 
-
-
 module Toggles = struct
-  type toggle = GButton.toggle_button * GMisc.image
-  type toggle_set = (char * toggle) array
-
   (* Values here ensure that new buttons appear between existing ones when
    * the user switches between the different annotation types. *)
   let get_col_spacing = function
@@ -94,20 +123,19 @@ module Toggles = struct
   let add_item (table : GPack.table) i chr =
     let packing = table#attach ~left:i ~top:0 in
     let toggle = GButton.toggle_button ~relief:`NONE ~packing () in
-    let icon = GMisc.image ~width:48 ~packing:toggle#set_image () in
-    icon#set_pixbuf (CIcon.get chr `GREY `LARGE);
-    chr, (toggle, icon)
+    let image = GMisc.image ~width:48 ~packing:toggle#set_image () in
+    image#set_pixbuf (CIcon.get chr `GREY `LARGE);
+    chr, {toggle; image}
 
   let make_toolbox typ =
     let code_list = CAnnot.Get.code_list typ in
     let module T = struct
-      type elt = toggle
       let table = GPack.table
         ~rows:1 ~columns:(List.length code_list)
         ~col_spacings:(get_col_spacing typ)
         ~homogeneous:true ()
       let toggles = Array.of_list (List.mapi (add_item table) code_list)
-    end in (module T : TOOLBOX with type elt = toggle)
+    end in (module T : Toolbox.TOGGLE)
 
   (* Setting up expand/fill allows to centre the button box. *)
   let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
@@ -119,14 +147,18 @@ module Toggles = struct
 
   let iter f =
     List.iter (fun (typ, mdl) ->
-      let module T = (val mdl : TOOLBOX with type elt = toggle) in
-      f typ T.toggles
+      let module T = (val mdl : Toolbox.TOGGLE) in
+      Array.iter (fun (chr, {toggle; image}) -> 
+        f typ chr toggle image
+      ) T.toggles
     ) toolboxes
 
   let map f =
     List.map (fun (typ, mdl) ->
-      let module T = (val mdl : TOOLBOX with type elt = toggle) in
-      f typ T.toggles
+      let module T = (val mdl : Toolbox.TOGGLE) in
+      Array.map (fun (chr, {toggle; image}) ->
+        f typ chr toggle image
+      ) T.toggles
     ) toolboxes
 
   let current_widget = ref None
@@ -139,7 +171,7 @@ module Toggles = struct
   let attach typ =
     detach ();
     let mdl = List.assoc typ toolboxes in
-    let module T = (val mdl : TOOLBOX with type elt = toggle) in
+    let module T = (val mdl : Toolbox.TOGGLE) in
     let widget = T.table#coerce in
     packing widget;
     Annotation_type.curr := typ;
@@ -147,14 +179,13 @@ module Toggles = struct
 
   let current_toggles () =
     let current_toolbox = List.assoc !Annotation_type.curr toolboxes in
-    let module T = (val current_toolbox : TOOLBOX with type elt = toggle) in
+    let module T = (val current_toolbox : Toolbox.TOGGLE) in
     T.toggles
 
   let apply any chr = String.index CAnnot.codes chr
     |> Array.get (current_toggles ())
     |> snd
-    |> fst
-    |> any
+    |> (fun {toggle; _} -> any toggle)
  
   let is_active = apply (fun t -> t#active)
 
@@ -200,10 +231,9 @@ module Toggles = struct
     ) Annotation_type.radios;
     (* Initializes the callback function that activate or deactivate toggle
      * buttons based on key pressed and CAnnot-defined constraints. *)
-    iter (fun _ ->
-      Array.iter (fun (chr, (toggle, _)) ->
-        ignore (toggle#connect#toggled ~callback:(check chr))
-    ))
+    iter (fun _ chr toggle _ ->
+      ignore (toggle#connect#toggled ~callback:(check chr))
+    )
 end
 
 
@@ -270,55 +300,13 @@ module Thumbnail = struct
     in area#misc#connect#size_allocate initialize
 end
 
-(*
-  module type TOOLBOX_SETTINGS = sig
-    type elt
-    val make_toolbox : CCore.annotation_type -> (module TOOLBOX with type elt)
-    val packing : GObj.widget -> unit
-  end
-
-  type set = (char * elt) array
-  
-*)
-
-module Radio = struct
-  type t = {
-    radio : GButton.radio_tool_button;
-    label : GMisc.label;
-    image : GMisc.image;
-  }
-  let create radio label image = {radio; label; image}
-  let radio t = t.radio
-  let label t = t.label
-  let image t = t.image
-end
-
-module ToolItem = struct
-  let separator packing = ignore (GButton.separator_tool_item ~packing ())
-  let morespace packing =
-    let item = GButton.tool_item ~expand:false ~packing () in
-    ignore (GPack.vbox ~height:5 ~packing:item#add ())
-  let label ?(vspace = true) packing markup =
-    let item = GButton.tool_item ~packing () in
-    let markup = sprintf "<small>%s</small>" markup in
-    let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
-    if vspace then morespace packing;
-    label
-end
 
 let container = GPack.table 
   ~rows:3 ~columns:1
   ~row_spacings:spacing
   ~packing:(Pane.right#attach ~left:1 ~top:0) ()
 
-
-module type TWO_LABELS = sig
-  val toolbar : GButton.toolbar
-  val label_1 : GMisc.label
-  val label_2 : GMisc.label
-end
-
-let generator ~top ~title ~vsp1 ~vsp2 ~lbl1 ~lbl2 =
+let make_toolbar_and_labels ~top ~title ~vsp1 ~vsp2 ~lbl1 ~lbl2 =
   let module M = struct
     let toolbar = GButton.toolbar
       ~orientation:`VERTICAL
@@ -329,40 +317,32 @@ let generator ~top ~title ~vsp1 ~vsp2 ~lbl1 ~lbl2 =
     let _ = ToolItem.separator packing; ToolItem.label packing title
     let label_1 = ToolItem.label ~vspace:vsp1 packing lbl1
     let label_2 = ToolItem.label ~vspace:vsp2 packing lbl2
-  end in (module M : TWO_LABELS)
+  end in (module M : Toolbox.LABEL)
 
 module Coords = struct
-  let lbl = generator
+  let lbl = make_toolbar_and_labels
     ~top:0 ~title:"Coordinates" 
     ~vsp1:false ~vsp2:false
     ~lbl1:"<tt><b>R:</b> 000</tt>"
     ~lbl2:"<tt><b>C:</b> 000</tt>" 
-  include (val lbl : TWO_LABELS)
+  include (val lbl : Toolbox.LABEL)
   let row = label_1
   let column = label_2
 end
 
 module Stats = struct
-  let lbl = generator
+  let lbl = make_toolbar_and_labels
     ~top:1 ~title:"Confidence"
     ~vsp1:true ~vsp2:false
     ~lbl1:"<tt><b> n/a </b></tt>"
     ~lbl2:"<tt><span background='white' foreground='white'>DDDDD</span></tt>"
-  include (val lbl : TWO_LABELS)
+  include (val lbl : Toolbox.LABEL)
   let confidence = label_1
   let confidence_color = label_2
 end
 
 
-module type TOOLBOX2 = sig
-  type elt
-  val table : GButton.toolbar
-  val toggles : (char * elt) array
-end 
-
 module Layers = struct
-  type radio_set = (char * Radio.t) array
-
   let add_item packing a_ref g_ref i chr =
     let active = !a_ref and group = !g_ref in
     let radio = GButton.radio_tool_button ~active ?group ~packing () in
@@ -373,12 +353,11 @@ module Layers = struct
     let label = GMisc.label
       ~markup:"<small><tt>0000</tt></small>" ~packing () in
     image#set_pixbuf (CIcon.get chr (if chr = '*' then `RGBA else `GREY) `SMALL);
-    chr, Radio.create radio label image
+    chr, {radio; label; image}
 
   let make_toolbox typ =
     let code_list = '*' :: CAnnot.Get.code_list typ in
     let module T = struct
-      type elt = Radio.t
       let table = GButton.toolbar
         ~orientation:`VERTICAL
         ~style:`ICONS
@@ -386,11 +365,11 @@ module Layers = struct
       let active = ref true
       let group = ref None
       let packing = table#insert
-      let toggles = 
+      let radios = 
         ToolItem.separator packing;
         ToolItem.label packing "Layer";
         Array.of_list (List.mapi (add_item packing active group) code_list)
-    end in (module T : TOOLBOX2 with type elt = Radio.t)
+    end in (module T : Toolbox.RADIO)
     
   let toolboxes =
     List.map (fun typ ->
@@ -409,7 +388,7 @@ module Layers = struct
   let attach typ =
     detach ();
     let mdl = List.assoc typ toolboxes in
-    let module T = (val mdl : TOOLBOX2 with type elt = Radio.t) in
+    let module T = (val mdl : Toolbox.RADIO) in
     let widget = T.table#coerce in
     packing widget;
     current_widget := Some widget

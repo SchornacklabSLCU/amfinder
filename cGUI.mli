@@ -22,16 +22,14 @@ end
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
 module Toggles : sig
-  type toggle = GButton.toggle_button * GMisc.image
-  (** Shortcut type for toggle buttons with a custom icon. *)
-
-  type toggle_set = (char * toggle) array
-  (** Shortcut type for toggle sets. *)
-
-  val iter : (CCore.annotation_type -> toggle_set -> unit) -> unit
+  val iter : (
+    CCore.annotation_type -> 
+    char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
   (** [iter f] applies the function [f] to every set of toggle buttons. *)
 
-  val map : (CCore.annotation_type -> toggle_set -> 'a) -> 'a list
+  val map : (
+    CCore.annotation_type -> 
+    char -> GButton.toggle_button -> GMisc.image -> 'a) -> 'a array list
   (** Same as [iter], but builds a new list from the result of the application 
     * of function [f] to the toggle button sets. *)
 
@@ -99,7 +97,8 @@ module Layers : sig
 end
 
 
-(** TODO: documentation *)
+(** Vertical toolbar which displays the coordinates (row and column) of the 
+  * cursor. *)
 module Coords : sig
   val toolbar : GButton.toolbar
   (** Main container. *)
@@ -112,7 +111,8 @@ module Coords : sig
 end
 
 
-(** TODO: documentation *)
+(** Vertical toolbar which displays the confidence of the neural network 
+  * predictions. *)
 module Stats : sig
   val toolbar : GButton.toolbar
   (** Main container. *)

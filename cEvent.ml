@@ -18,22 +18,20 @@ let icons () =
     in ignore (CGUI.Layers.set_toggled typ callback)
   );
   CDraw.active_layer ();
-  CGUI.Toggles.iter (fun _ toggles ->
-    Array.iter (fun (chr, (btn, img)) ->
-      let rgba = CIcon.get chr `RGBA `LARGE
-      and grey = CIcon.get chr `GREY `LARGE in
-      let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
-      ignore (btn#connect#toggled ~callback);
-    ) toggles)
+  CGUI.Toggles.iter (fun _ chr btn img ->
+    let rgba = CIcon.get chr `RGBA `LARGE
+    and grey = CIcon.get chr `GREY `LARGE in
+    let callback () = img#set_pixbuf (if btn#active then rgba else grey) in
+    ignore (btn#connect#toggled ~callback)
+  )
   (* CGUI.Layers.export#connect#clicked ~callback:CDraw.display_set *)
 
 let toggles =
-  CGUI.Toggles.map (fun _ toggles ->
-    Array.map (fun (key, (toggle, _)) ->
-      let id = toggle#connect#toggled 
-        ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
-      in key, toggle, id
-    ) toggles) |> List.hd (* FIXME *)
+  CGUI.Toggles.map (fun _ key toggle _ ->
+    let id = toggle#connect#toggled 
+      ~callback:(fun () -> CDraw.set_curr_annotation toggle#active key)
+    in key, toggle, id
+  ) |> List.hd (* FIXME *)
      
 let keyboard () =
   let connect = CGUI.window#event#connect in
