@@ -62,8 +62,8 @@ module Layer = struct
     end
 
   let get_surface ann = function
-    | `JOKER -> master ()
-    | `CHR chr -> match CAnnot.annotation_type () with
+    | '*' -> master ()
+    | chr -> match CAnnot.annotation_type () with
       | `BINARY -> List.assoc chr (categories ())
       | `GRADIENT -> let palette = CSettings.palette () in
         let grp = CAnnot.get_group ~palette ann chr in
@@ -99,8 +99,8 @@ let annot ?(sync = false) r c =
     Gaux.may (fun ann ->
       let typ = CGUI.Layers.get_active () in
       let draw = match typ with
-        | `JOKER -> not (CAnnot.is_empty ann)
-        | `CHR chr -> CAnnot.mem ann chr in
+        | '*' -> not (CAnnot.is_empty ann)
+        | chr -> CAnnot.mem ann chr in
       if draw then begin
         surface r c (Layer.get_surface ann typ);
         if sync then CGUI.Thumbnail.synchronize ()
@@ -145,8 +145,8 @@ module GUI = struct
           if CAnnot.is_empty t then erase_confidence ()
           else begin 
             match CGUI.Layers.get_active () with
-            | `JOKER -> erase_confidence ()
-            | `CHR chr -> let palette = CSettings.palette () in
+            | '*' -> erase_confidence ()
+            | chr -> let palette = CSettings.palette () in
               let i = CAnnot.get_group ~palette:palette t chr in
               let prob = CAnnot.get t chr in
               if prob > 0.0 then (
@@ -180,9 +180,7 @@ module GUI = struct
   let statistics () =
     Gaux.may (fun img ->
       List.iter (fun (chr, num) ->
-        match chr with
-        | '*' -> CGUI.Layers.set_label `JOKER num
-        |  _  -> CGUI.Layers.set_label (`CHR chr) num
+        CGUI.Layers.set_label chr num
       ) (CImage.statistics img)
     ) !curr
 
@@ -239,8 +237,8 @@ let display_set () =
   Gaux.may (fun img ->
     let count = ref 0 in
     let show, ico = match CGUI.Layers.get_active () with
-      | `JOKER -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get '*' `RGBA `SMALL
-      | `CHR chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
+      | '*' -> (fun ann -> not (CAnnot.is_empty ann)), CIcon.get '*' `RGBA `SMALL
+      | chr -> (fun ann -> CAnnot.mem ann chr), CIcon.get chr `RGBA `SMALL in
     CImage.iter_annot (fun r c ann ->
       if show ann then begin
         incr count;

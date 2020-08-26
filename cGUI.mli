@@ -72,27 +72,22 @@ end
 
 (** TODO: documentation *)
 module Layers : sig
-  val get_active : unit -> [`CHR of char | `JOKER]
-  (** Indicates which layer is currently active ([`JOKER] corresponds to
-    * [master], while [`CHR _] corresponds to elements of the list [radios]
-    * (see above). *)
+  val get_active : unit -> char
+  (** Indicates which layer is currently active. *)
 
-  type radio_type = [`JOKER | `CHR of char]
-  (** The type of radio buttons. *)
-
-  val is_active : radio_type -> bool
+  val is_active : char -> bool
   (** Indicates whether the given layer is active. *)
 
-  val set_label : radio_type -> int -> unit
+  val set_label : char -> int -> unit
   (** Updates the counter of the given annotation. *)
 
-  val set_image : radio_type -> GdkPixbuf.pixbuf -> unit
+  val set_image : char -> GdkPixbuf.pixbuf -> unit
   (** Updates the icon of the given annotation. *)
 
-  val iter_radios : (radio_type -> unit) -> unit
+  val iter_radios : (char -> unit) -> unit
   (** Iterator over radio buttons. *)
 
-  val set_toggled : radio_type -> (unit -> unit) -> GtkSignal.id
+  val set_toggled : char -> (unit -> unit) -> GtkSignal.id
   (** Sets a callback function to call when a button is toggled. *)
 end
 

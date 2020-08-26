@@ -8,14 +8,13 @@ let update_annotations ev =
   false
 
 let icons () =
-  CGUI.Layers.iter_radios (fun typ ->
-    let chr = match typ with `JOKER -> '*' | `CHR chr -> chr in
+  CGUI.Layers.iter_radios (fun chr ->
     let callback () =
-      let clr = match CGUI.Layers.is_active typ with
+      let clr = match CGUI.Layers.is_active chr with
         | true  -> CDraw.active_layer (); `RGBA
         | false -> `GREY
-      in CGUI.Layers.set_image typ (CIcon.get chr clr `SMALL)
-    in ignore (CGUI.Layers.set_toggled typ callback)
+      in CGUI.Layers.set_image chr (CIcon.get chr clr `SMALL)
+    in ignore (CGUI.Layers.set_toggled chr callback)
   );
   CDraw.active_layer ();
   CGUI.Toggles.iter (fun _ chr btn img ->

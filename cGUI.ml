@@ -20,7 +20,7 @@ module Toolbox = struct
   end 
   module type RADIO = sig
     val table : GButton.toolbar
-    val radios : (char * radio_ext) array
+    val radios : (char * radio_ext) list
   end 
   module type LABEL = sig
     val toolbar : GButton.toolbar
@@ -368,7 +368,7 @@ module Layers = struct
       let radios = 
         ToolItem.separator packing;
         ToolItem.label packing "Layer";
-        Array.of_list (List.mapi (add_item packing active group) code_list)
+        List.mapi (add_item packing active group) code_list
     end in (module T : Toolbox.RADIO)
     
   let toolboxes =
@@ -392,48 +392,41 @@ module Layers = struct
     let widget = T.table#coerce in
     packing widget;
     current_widget := Some widget
+ 
+  let current_radios () =
+    let toolbox = List.assoc !Annotation_type.curr toolboxes in
+    let open (val toolbox : Toolbox.RADIO) in radios
 
-  type radio_type = [`JOKER | `CHR of char]
-  let get_active () = `JOKER (*
-    let radio = Radio.radio master in
-    if radio#get_active then `JOKER
-    else `CHR (fst (List.find (fun (_, t) -> (Radio.radio t)#get_active) radios)) *)
-
-  let is_active typ = false (*
-    let radio = Radio.radio (
-      match typ with
-      | `JOKER -> master
-      | `CHR chr -> List.assoc chr radios
-    ) in radio#get_active*)
-
-  let set_image typ _ = () (*
-    let image = Radio.image (
-      match typ with
-      | `JOKER -> master
-      | `CHR chr -> List.assoc chr radios
-    ) in image#set_pixbuf *)
-
-  let set_label typ num = () (*
-    let label = Radio.label (
-      match typ with
-      | `JOKER -> master
-      | `CHR chr -> List.assoc chr radios
-    ) in ksprintf label#set_label "<small><tt>%04d</tt></small>" num *)
+  let get_joker () = current_radios ()
+    |> List.hd
+    |> snd
   
-  let set_toggled typ callback = Obj.magic() (*
-    let radio = Radio.radio (
-      match typ with
-      | `JOKER -> master
-      | `CHR chr -> List.assoc chr radios
-    ) in radio#connect#toggled ~callback *)
-    
-  let iter_radios f = () (*
-    List.iter (fun (chr, _) ->
-      match chr with
-      | '*' -> f `JOKER
-      |  _  -> f (`CHR chr)
-    ) (('*', master) :: radios)  *)
+  let get_layer c1 = current_radios ()
+    |> List.find (fun (c2, _) -> c1 = c2)
+    |> snd
 
+  let get_active () = current_radios ()
+    |> List.find (fun (_, t) -> t.radio#get_active)
+    |> fst
+  
+  let is_active chr =
+    let ext = if chr = '*' then get_joker () else get_layer chr in
+    ext.radio#get_active
+
+  let set_image chr =
+    let ext = if chr = '*' then get_joker () else get_layer chr in
+    ext.image#set_pixbuf
+
+  (* Commented out due to an exception raised. *)
+  let set_label chr num = () (*
+    let ext = if chr = '*' then get_joker () else get_layer chr in
+    ksprintf ext.label#set_label "<small><tt>%04d</tt></small>" num*)
+  
+  let set_toggled chr callback =
+    let ext = if chr = '*' then get_joker () else get_layer chr in
+    ext.radio#connect#toggled ~callback
+    
+  let iter_radios f = List.iter (fun (chr, _) -> f chr) (current_radios ()) 
 end
 
 
