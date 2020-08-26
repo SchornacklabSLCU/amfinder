@@ -65,9 +65,9 @@ module HToolbox = struct
   (* Values here ensure that new buttons appear between existing ones when
    * the user switches between the different annotation types. *)
   let get_col_spacing = function
-    | `COLONIZATION -> 158
-    | `ARB_VESICLES -> 84
-    | `ALL_FEATURES -> 10
+    | `COLONIZATION -> 134
+    | `ARB_VESICLES -> 68
+    | `ALL_FEATURES -> 2
 
   let set_icon image button rgba grey () =
     image#set_pixbuf (if button#active then rgba else grey)  

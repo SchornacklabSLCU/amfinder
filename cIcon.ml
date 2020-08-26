@@ -20,7 +20,7 @@ module Build = struct
     let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
       |> Filename.concat CCore.icon_dir
       |> (fun path -> chr, path)
-    in List.map make_pair ['Y'; 'N'; 'B'; 'A'; 'V'; 'I'; 'E'; 'H'; 'R']
+    in List.map make_pair CAnnot.Get.all
   let icon_set suf =
     let names = path_list suf in
     let module M = struct

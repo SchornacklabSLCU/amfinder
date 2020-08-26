@@ -7,6 +7,10 @@ type t
 
 (** Generalized functions to be used as a new interface. *)
 module Get : sig
+  val all : char list
+  (** Returns a string containing all valid characters irrespective of the 
+    * active annotation type. *)
+
   val codes : CCore.annotation_type -> string
   (** Returns a string containing all valid annotations. *)
 

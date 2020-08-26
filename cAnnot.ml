@@ -5,17 +5,18 @@ open Scanf
 open Printf
 
 module Get = struct
+  let all = ['Y'; 'N'; 'X'; 'A'; 'V'; 'I'; 'E'; 'H'; 'R']
   let codes = function
-    | `COLONIZATION -> "YNB"
-    | `ARB_VESICLES -> "AVNB"
-    | `ALL_FEATURES -> "AVIEHRB"
+    | `COLONIZATION -> "YNX"
+    | `ARB_VESICLES -> "AVNX"
+    | `ALL_FEATURES -> "AVIEHRX"
   let ncodes typ = String.length (codes typ)
   let code_list typ =
     let t = codes typ in
     String.(List.init (length t) (get t))
 end
 
-let codes = "AVIEHRB"
+let codes = "AVIEHRX"
 let ncodes = String.length codes
 let code_list = List.init ncodes (String.get codes)
 
