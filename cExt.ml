@@ -1,7 +1,7 @@
 (* CastANet - cExt.ml *)
 
 module File = struct
-  let read ?(binary = true) ?(trim = true) str = 
+  let read ?(binary = false) ?(trim = true) str = 
     let ich = (if binary then open_in_bin else open_in) str in
     let len = in_channel_length ich in
     let buf = Buffer.create len in
@@ -21,6 +21,10 @@ module Matrix = struct
   let mapi f = Array.(mapi (fun r -> mapi (f r)))
   let iter f = Array.(iter (iter f))
   let iteri f = Array.(iteri (fun r -> iteri (f r)))
+  let fold f ini t = 
+    let res = ref ini in
+    Array.(iteri (fun r -> iteri (fun c x -> res := f r c !res x))) t;
+    !res   
 end
 
 

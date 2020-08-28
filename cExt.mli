@@ -28,6 +28,9 @@ module Matrix : sig
   
   val iteri : (int -> int -> 'a -> unit) -> 'a t -> unit
   (** Same as [iter], but [f] receives row and column indexes as parameters. *)
+  
+  val fold : (int -> int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
+  (** Fold function. *à
 end
 
 
@@ -56,7 +59,9 @@ end
 (** Operations on files. *)
 module File : sig
   val read : ?binary:bool -> ?trim:bool -> string -> string
-  (** Reads a file. *)
+  (** Reads a file. Setting up option [binary] results in file being opened in
+    * binary mode (default: [false]). Option [trim] triggers trimming of 
+    * leading and trailing spaces (default: [true]). *)
 end
 
 
