@@ -30,7 +30,7 @@ module Matrix : sig
   (** Same as [iter], but [f] receives row and column indexes as parameters. *)
   
   val fold : (int -> int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
-  (** Fold function. *à
+  (** Fold function. *)
 end
 
 
