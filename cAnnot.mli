@@ -1,64 +1,74 @@
 (* CastANet - cAnnot.mli *)
 
-(** Mycorrhiza annotations. *)
+(** Multi-level annotation manager. *)
 
-type t
-(** The type for annotations. *)
+val auto_background : bool ref
+(** If set to [true], tiles lacking annotations are automatically considered
+  * background (default value: [true]). While convenient, this may be disabled
+  * to allow for training using partially annotated pictures. *)
 
-(** Generalized functions to be used as a new interface. *)
-module Get : sig
-  val all : char list
-  (** Returns a string containing all valid characters irrespective of the 
-    * active annotation type. *)
+type note
+(** The type for annotations. Currently, this browser can handle four types of
+  * situations: no annotation, user-defined annotations, computer-generated
+  * annotations (probabilities), and constraints arising from annotations at a
+  * different level. *)
 
-  val codes : CCore.annotation_type -> string
-  (** Returns a string containing all valid annotations. *)
+type level = [`COLONIZATION | `ARB_VESICLES | `ALL_FEATURES]
+(** Annotation levels. *)
 
-  val code_list : CCore.annotation_type -> char list
-  (** Same as [codes], but returns a character list. *)
-end
+type table
+(** The type for annotation table. Annotation table consists of three matrices
+  * corresponding to the different annotation levels (basic, intermediate and
+  * complete). *)
 
-val codes : string
-(** String containing all valid annotations. Current values include:
-  * - ['A'] for arbuscules,
-  * - ['V'] for vesicles,
-  * - ['I'] for intraradicular hyphae (IRH),
-  * - ['E'] for extraradicular hyphae (ERH),
-  * - ['H'] for hyphopodia,
-  * - ['R'] for root,
-  * - ['D'] for low-quality tiles to be discarded. *)
+val code_list : level -> string list  
+(** Returns a character list containing all valid annotations for a given
+  * annotation type. *)
 
-val requires : char -> string
-(** [requires c] returns the annotations that are required together with [c]. *)
+type changelog = {
+  user : (level * string) list;   (** User-defined annotations. *)
+  lock : (level * string) list;   (** Switched off annotations. *)
+  hold : (level * string) list;   (** Switched on annotations.  *)
+}
+(** Changelog indicating the modifications made to the annotations. *)
 
-val forbids : char -> string
-(** [forbids c] returns the annotations that cannot occur together with [c]. *)
+val get : table -> level -> r:int -> c:int -> changelog
+(** [get t x ~r ~c] returns the current status of the tile at row [t] and
+  * column [c] in the level [x]-matrix of table [t]. *)
 
-val erases : char -> string
-(** [erases c] returns the annotations that get removed together with [c]. *)
+val add : table -> level -> r:int -> c:int -> char -> changelog option
+(** [add t x ~r ~c chr] adds annotation [chr] at row [r] and column [c] in
+  * level [x]-matrix of table [t], and returns a changelog of altered 
+  * annotations in all other layers. These changes are to be reflected in the
+  * user interface. The function returns [None] if no change was made. *)
 
-val code_list : char list
-(** DEPRECATED. *)
+val rem : table -> level -> r:int -> c:int -> char -> changelog option
+(** Same arguments as [add], but this function tries and remove a given 
+  * annotation from a given tile. Again the changelog indicates the triggered 
+  * modifications. *)
 
-val empty : unit -> t
-(** Creates an empty annotation. *)
 
-val is_empty : t -> bool
-(** Returns [true] if the annotation contains no tag. *)
 
-val exists : t -> bool
-(** Returns [true] if the annotation contains at least one tag. *)
 
-val annotation_type : unit -> [`BINARY | `GRADIENT]
-(** Returns the type of annotation used in this instance of thee application. *)
+val import : string -> table option
+(** Imports tables from a ZIP archive. Returns [None] in case of error. *)
 
-val is_gradient : unit -> bool
-(** Returns [true] if the file contains probabilities. *)
+val export : table -> string -> unit
+(** [export t s] exports table [t] as ZIP archive [s]. *)
 
-val add : t -> char -> unit
-(** [add t c] adds tag [c] to the annotation [t]. *)
 
-val mem : t -> char -> bool
+
+
+val set : table -> level -> r:int -> c:int -> char -> unit
+(** [set t l ~r ~c a] sets annotation [a] to tile at row [r] and column [c] in
+  * table [t] at annotation level [l]. This function updates the annotation and
+  * propagates the constraints at other levels. *)
+
+val add : table -> level -> r:int -> c:int -> char -> bool
+(** Same as [set] above, but the function behaves as a query and returns a
+  * boolean which indicates whether any change has been made. *)
+
+val mem : table -> int -> int -> level -> char -> bool
 (** [mem t c] checks whether tag [c] is part of the annotation [t]. *)
 
 val get : t -> char -> float
@@ -73,9 +83,3 @@ val get_group : ?palette:CPalette.id -> t -> char -> int
 
 val get_active : t -> string
 (** Return all active annotations. *)
-
-val export : path:string -> t array array -> unit
-(** Export annotations as tabulation (['\t'])-separated values (TSV). *)
-
-val import : path:string -> t array array
-(** Import annotations from a TSV file created with [export] (see above). *)
