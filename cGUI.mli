@@ -8,10 +8,10 @@ val window : GWindow.window
 
 (** Annotation types. *)
 module Annotation_type : sig 
-  val current : unit -> CCore.annotation_type
+  val current : unit -> CAnnot.level
   (** Returns the current type of annotation. *)
 
-  val radios : (CCore.annotation_type * GButton.radio_button) list
+  val radios : (CAnnot.level * GButton.radio_button) list
   (** Radio buttons corresponding to the different annotation types. *)
 end
 
@@ -23,12 +23,12 @@ end
   * Only one set is active at a given time. *)
 module Toggles : sig
   val iter : (
-    CCore.annotation_type -> 
+    CAnnot.level -> 
     char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
   (** [iter f] applies the function [f] to every set of toggle buttons. *)
 
   val map : (
-    CCore.annotation_type -> 
+    CAnnot.level -> 
     char -> GButton.toggle_button -> GMisc.image -> 'a) -> 'a array list
   (** Same as [iter], but builds a new list from the result of the application 
     * of function [f] to the toggle button sets. *)

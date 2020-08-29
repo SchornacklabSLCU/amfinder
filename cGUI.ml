@@ -92,7 +92,7 @@ module Annotation_type = struct
       let radio = make_radio !group !active lbl typ in
       if !active then (active := false; group := Some radio#group);
       typ, radio
-    ) CCore.available_annotation_types labels
+    ) CAnnot.levels labels
 end
 
 
@@ -143,7 +143,7 @@ module Toggles = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CCore.available_annotation_types
+    ) CAnnot.levels
 
   let iter f =
     List.iter (fun (typ, mdl) ->
@@ -374,7 +374,7 @@ module Layers = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CCore.available_annotation_types
+    ) CAnnot.levels
 
   let current_widget = ref None
 
