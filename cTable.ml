@@ -1,49 +1,14 @@
 (* CastANet - cAnnot.ml *)
 
-(* open CExt *)
+open CExt
 open Scanf
 open Printf
 
 let auto_background = ref true
 
-(* Operations on string sets. *)
-module StringSet = struct
-  let sort s = String.to_seq s
-    |> List.of_seq
-    |> List.sort Char.compare
-    |> List.to_seq
-    |> String.of_seq
-  (* union "AVI" "IEHA" returns "AEHIV" *)
-  let union s1 s2 =
-    let res = ref s2 in
-    String.iter (fun chr -> 
-      if not (String.contains s2 chr) then
-        res := sprintf "%s%c" !res chr
-    ) s1;
-    sort !res
-  (* inter "AVI" "IEHA" returns "AI". *)   
-  let inter s1 s2 =
-    let res = ref "" in
-    String.iter (fun chr ->
-      if String.contains s2 chr then 
-        res := sprintf "%s%c" !res chr
-    ) s1;
-    sort !res
-  (* diff "AVI" "IEHA" returns "V". *)
-  let diff s1 s2 =
-    let res = ref "" in 
-    String.iter (fun chr ->
-      if not (String.contains s2 chr) then
-        res := sprintf "%s%c" !res chr
-    ) s1;
-    sort !res
-end
-
-
 module Rule = struct
   module Colonization = struct
-    let all = ["Y"; "N"; "X"]
-    let other s = List.filter ((<>) s) all |> String.concat ""
+    let other = E_StringSet.diff "YNX"
     let arb_vesicles = function
       | "Y" -> "", "NX"
       | "N" -> "N", "AVX"
@@ -62,8 +27,7 @@ module Rule = struct
       | `ALL_FEATURES -> all_features
   end
   module Arb_vesicles = struct
-    let all = ["A"; "V"; "N"; "X"]
-    let other s = List.filter ((<>) s) all |> String.concat ""
+    let other = E_StringSet.diff "AVNX"
     let colonization = function
       | "A" | "V" -> "Y", "NX"
       | "N" -> "N", "YX"
@@ -83,8 +47,7 @@ module Rule = struct
       | `ALL_FEATURES -> all_features
   end
   module All_features = struct
-    let all = ["A"; "V"; "I"; "E"; "H"; "R"; "X"]
-    let other s = List.filter ((<>) s) all |> String.concat ""
+    let other = E_StringSet.diff "AVIEHRX"
     let colonization = function
       | "A" | "V" | "I" | "E" | "H" -> "Y", "NX"
       | "R" -> "", "X"
@@ -112,24 +75,13 @@ let get_rule = function
   | `ARB_VESICLES -> Rule.Arb_vesicles.get
   | `ALL_FEATURES -> Rule.All_features.get
 
-let code_list = function
-  | `COLONIZATION -> Rule.Colonization.all
-  | `ARB_VESICLES -> Rule.Arb_vesicles.all
-  | `ALL_FEATURES -> Rule.All_features.all  
-
 type level = [
   | `COLONIZATION (* colonized vs non-colonized vs background                 *)
   | `ARB_VESICLES (* [arbuscules, vesicles] vs non-colonized vs background    *)
   | `ALL_FEATURES (* [ERH, [root, [arb, ves, IRH, hyphopodia]]] vs background *)
 ]
 
-module Level = struct
-  let all = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
-  let other = function
-    | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
-    | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
-    | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
-end
+let levels = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
 
 type note = {
   mutable user : string;
@@ -137,6 +89,8 @@ type note = {
   mutable hold : string;
 (*mutable pred : string; Annotations given by the prediction. *)
 }
+
+type note_type = [`USER | `HOLD | `LOCK]
 
 type table = {
   colonization : note array array;
@@ -158,7 +112,7 @@ module Note = struct
   let of_string s = sscanf s "%[A-Z] %[A-Z] %[A-Z]" 
     (fun x y z -> {user = x; lock = y; hold = z})
 
-  let layer t = function
+  let get t = function
     | `USER -> t.user
     | `LOCK -> t.lock
     | `HOLD -> t.hold
@@ -174,14 +128,14 @@ module Note = struct
     let log_user, log_lock, log_hold = 
       if usermode then begin
         let old = note.user in
-        note.user <- StringSet.union old extra;
-        [lvl1, StringSet.diff extra old], [], []
+        note.user <- E_StringSet.union old extra;
+        [lvl1, E_StringSet.diff extra old], [], []
       end else begin
         let old_lock = note.lock and old_hold = note.hold in
         let hold, lock = get_rule lvl1 lvl2 extra in
-        note.lock <- StringSet.union old_lock lock;
-        note.hold <- StringSet.union old_hold hold;
-        StringSet.([], [lvl1, diff lock old_lock], [lvl1, diff hold old_hold])
+        note.lock <- E_StringSet.union old_lock lock;
+        note.hold <- E_StringSet.union old_hold hold;
+        E_StringSet.([], [lvl1, diff lock old_lock], [lvl1, diff hold old_hold])
       end
     in {log_user; log_lock; log_hold}
     
@@ -190,18 +144,57 @@ module Note = struct
     let log_user, log_lock, log_hold =
       if usermode then begin
         let old = note.user in
-        note.user <- StringSet.diff old del;
+        note.user <- E_StringSet.diff old del;
         [lvl1, del], [], []
       end else begin
         let old_lock = note.lock and old_hold = note.hold in
         let hold, lock = get_rule lvl1 lvl2 del in
-        note.lock <- StringSet.diff old_lock lock;
-        note.hold <- StringSet.diff old_hold hold;
+        note.lock <- E_StringSet.diff old_lock lock;
+        note.hold <- E_StringSet.diff old_hold hold;
         [], [lvl2, lock], [lvl2, hold]
       end 
     in {log_user; log_lock; log_hold}
 end
 
+
+module Level = struct
+  let all = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
+  let other = function
+    | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
+    | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
+    | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
+
+  module Symbols = struct
+    let colonization = ['Y'; 'N'; 'X']
+    let arb_vesicvle = ['A'; 'V'; 'N'; 'X']
+    let all_features = ['A'; 'V'; 'I'; 'E'; 'H'; 'R'; 'X']
+  end
+  
+  module Colors = struct
+    let colonization = ["#80b3ff"; "#bec8b7"; "#ffaaaa"]
+    let arb_vesicles = ["#80b3ff"; "#afe9c6"; "#bec8b7"; "#ffaaaa"]
+    let all_features = ["#80b3ff"; "#afe9c6"; "#ffeeaa"; "#eeaaff";
+                        "#ffb380"; "#bec8b7"; "#ffaaaa" ]
+  end
+
+  let statistics matrix =
+    let stats = List.map (fun chr -> chr, ref 0) in
+    EMatrix.iter (fun note ->
+      EStringSet.union note.user note.hold
+      |> String.iter (fun chr -> incr (List.assoc chr stats))
+    ) matrix;
+    List.map (fun (chr, r) -> chr, !r) stats
+end
+
+let code_list = function
+  | `COLONIZATION -> Level.Symbols.colonization
+  | `ARB_VESICLES -> Level.Symbols.arb_vesicles
+  | `ALL_FEATURES -> Level.Symbols.all_features  
+
+let colors = function
+  | `COLONIZATION -> Level.Colors.colonization
+  | `ARB_VESICLES -> Level.Colors.arb_vesicles
+  | `ALL_FEATURES -> Level.Colors.all_features  
 
 module Table = struct
   let level t = function
@@ -235,6 +228,12 @@ module Table = struct
 end
 
 
+let statistics t = function
+  | `COLONIZATION -> string_of_matrix t.colonization
+  | `ARB_VESICLES -> string_of_matrix t.arb_vesicles
+  | `ALL_FEATURES -> string_of_matrix t.all_features
+
+
 module Changelog = struct
   let add ch1 ch2 = {
     log_user = ch1.log_user @ ch2.log_user;
@@ -243,6 +242,9 @@ module Changelog = struct
   }
 end
 
+let get table lvl ~r ~c typ =
+  let note = (Table.level table lvl).(r).(c) in
+  Note.get note typ
 
 (* An annotation can be added if it:
     - has not already been defined (user).
@@ -298,7 +300,15 @@ let load src =
   with Assert_failure _ | Zip.Error _ | Sys_error _ -> None
 
 let create = function
-  | `DIM (r, c) -> Matrix.init r c (fun _ _ -> Note.create ())
-  | `MAT matrix -> Matrix.map (fun _ -> Note.create ()) matrix
+  | `DIM (r, c) -> EMatrix.init r c (fun _ _ -> Note.create ())
+  | `MAT matrix -> EMatrix.map (fun _ -> Note.create ()) matrix
 
- Matrix.map (fun _ -> Note.create ())
+let statistics table = function
+  | `COLONIZATION -> Level.statistics table.colonization
+  | `ARB_VESICLES -> Level.statistics table.arb_vesicles
+  | `ALL_FEATURES -> Level.statistics table.all_features
+  
+let iter table table f = function
+  | `COLONIZATION -> EMatrix.iter f table.colonization
+  | `ARB_VESICLES -> EMatrix.iter f table.arb_vesicles
+  | `ALL_FEATURES -> EMatrix.iter f table.all_features
