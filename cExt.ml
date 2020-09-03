@@ -1,5 +1,35 @@
 (* CastANet - cExt.ml *)
 
+(* Operations on string sets. *)
+module E_StringSet = struct
+  let sort s = String.to_seq s
+    |> List.of_seq
+    |> List.sort Char.compare
+    |> List.to_seq
+    |> String.of_seq
+  let union s1 s2 =
+    let res = ref s2 in
+    String.iter (fun chr -> 
+      if not (String.contains s2 chr) then
+        res := sprintf "%s%c" !res chr
+    ) s1;
+    sort !res
+  let inter s1 s2 =
+    let res = ref "" in
+    String.iter (fun chr ->
+      if String.contains s2 chr then 
+        res := sprintf "%s%c" !res chr
+    ) s1;
+    sort !res
+  let diff s1 s2 =
+    let res = ref "" in 
+    String.iter (fun chr ->
+      if not (String.contains s2 chr) then
+        res := sprintf "%s%c" !res chr
+    ) s1;
+    sort !res
+end
+
 module File = struct
   let read ?(binary = false) ?(trim = true) str = 
     let ich = (if binary then open_in_bin else open_in) str in

@@ -2,6 +2,21 @@
 
 (** Lightweight extension of OCaml standard library. *)
 
+(** String sets. *)
+module E_StringSet : sig
+  val union : string -> string -> string
+  (** [union s1 s2] returns a string containing one instance of all characters
+    * occurring in either [s1] or [s2], sorted in alphabetical order.  *)
+
+  val inter : string -> string -> string
+  (** [union s1 s2] returns a string containing one instance of all characters
+    * occurring in both [s1] or [s2], sorted in alphabetical order.  *)
+  
+  val diff : string -> string -> string
+  (** [union s1 s2] returns a string containing one instance of all characters
+    * occurring in [s1] but not in [s2], sorted in alphabetical order.  *)
+end
+
 (** Matrix iterators. *)
 module Matrix : sig
   type 'a t = 'a array array
