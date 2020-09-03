@@ -1,5 +1,8 @@
 (* CastANet - cIcon.ml *)
 
+type style = [`RGBA | `RGBA_LOCKED | `GREY | `GREY_LOCKED]
+type size = [`SMALL | `LARGE]
+
 (* Icon sources. Load icons as pixbufs of 24 (small) or 48 (large) pixels. *)
 module Source = struct
   let pixbuf n (c, s) = (c, GdkPixbuf.from_file_at_size ~width:n ~height:n s)
@@ -28,13 +31,6 @@ module Build = struct
       let small = Source.load_multiple `SMALL names
     end in (module M : IconSet)
 end
-
-type style = [
-  | `RGBA
-  | `RGBA_LOCKED
-  | `GREY
-  | `GREY_LOCKED
-]
 
 let m_rgba = Build.icon_set "rgba"
 let m_rgba_lock = Build.icon_set "lock"
