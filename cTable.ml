@@ -75,48 +75,20 @@ let get_rule = function
   | `ARB_VESICLES -> Rule.Arb_vesicles.get
   | `ALL_FEATURES -> Rule.All_features.get
 
-type level = [
-  | `COLONIZATION (* colonized vs non-colonized vs background                 *)
-  | `ARB_VESICLES (* [arbuscules, vesicles] vs non-colonized vs background    *)
-  | `ALL_FEATURES (* [ERH, [root, [arb, ves, IRH, hyphopodia]]] vs background *)
-]
-
-let levels = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
-
-type note = {
-  mutable user : string;
-  mutable lock : string;
-  mutable hold : string;
-(*mutable pred : string; Annotations given by the prediction. *)
-}
-
-type note_type = [`USER | `HOLD | `LOCK]
-
 type table = {
-  colonization : note array array;
-  arb_vesicles : note array array;
-  all_features : note array array;
+  colonization : note EMatrix.t;
+  arb_vesicles : note EMatrix.t;
+  all_features : note EMatrix.t;
 (*network_pred : float array array array;*)
 }
 
 type changelog = {
-  log_user : (level * string) list;
-  log_lock : (level * string) list;
-  log_hold : (level * string) list;
+  log_user : (CLevel.t * string) list;
+  log_lock : (CLevel.t * string) list;
+  log_hold : (CLevel.t * string) list;
 }
 
 module Note = struct
-  let create () = {user = ""; lock = ""; hold = ""}
-
-  let to_string {user; lock; hold} = sprintf "%s %s %s" user lock hold
-  let of_string s = sscanf s "%[A-Z] %[A-Z] %[A-Z]" 
-    (fun x y z -> {user = x; lock = y; hold = z})
-
-  let get t = function
-    | `USER -> t.user
-    | `LOCK -> t.lock
-    | `HOLD -> t.hold
-
   let rec mem chr t = function
     | `USER -> String.contains t.user chr
     | `LOCK -> String.contains t.lock chr
@@ -156,83 +128,40 @@ module Note = struct
     in {log_user; log_lock; log_hold}
 end
 
+(* Not hardcoded, just in case this changes over time. *)
+let all_codes =
+  let x = EText.implode (CLevel.chars `COLONIZATION)
+  and y = EText.implode (CLevel.chars `ARB_VESICLES)
+  and z = EText.implode (CLevel.chars `ALL_FEATURES) in
+  EText.explode EStringSet.(union (union x y) z)
 
-module Level = struct
-  let all = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
-  let other = function
-    | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
-    | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
-    | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
-
-  module Symbols = struct
-    let colonization = ['Y'; 'N'; 'X']
-    let arb_vesicvle = ['A'; 'V'; 'N'; 'X']
-    let all_features = ['A'; 'V'; 'I'; 'E'; 'H'; 'R'; 'X']
-  end
+let level t = function
+  | `COLONIZATION -> t.colonization
+  | `ARB_VESICLES -> t.arb_vesicles
+  | `ALL_FEATURES -> t.all_features
+   
+let to_string t tbl = 
+  let mat = match tbl with
+    | `COLONIZATION -> tbl.colonization
+    | `ARB_VESICLES -> tbl.arb_vesicles
+    | `ALL_FEATURES -> tbl.all_features
+  in EMatrix.to_string ~cast:Note.to_string mat
   
-  module Colors = struct
-    let colonization = ["#80b3ff"; "#bec8b7"; "#ffaaaa"]
-    let arb_vesicles = ["#80b3ff"; "#afe9c6"; "#bec8b7"; "#ffaaaa"]
-    let all_features = ["#80b3ff"; "#afe9c6"; "#ffeeaa"; "#eeaaff";
-                        "#ffb380"; "#bec8b7"; "#ffaaaa" ]
-  end
+let of_string ~col:x ~arb:y ~all:z = 
+  let f = EMatrix.of_string ~cast:Note.of_string in
+  { colonization = f x; arb_vesicles = f y; all_features = f z }
 
-  let statistics matrix =
-    let stats = List.map (fun chr -> chr, ref 0) in
-    EMatrix.iter (fun note ->
-      EStringSet.union note.user note.hold
-      |> String.iter (fun chr -> incr (List.assoc chr stats))
-    ) matrix;
-    List.map (fun (chr, r) -> chr, !r) stats
-end
-
-let code_list = function
-  | `COLONIZATION -> Level.Symbols.colonization
-  | `ARB_VESICLES -> Level.Symbols.arb_vesicles
-  | `ALL_FEATURES -> Level.Symbols.all_features  
-
-let colors = function
-  | `COLONIZATION -> Level.Colors.colonization
-  | `ARB_VESICLES -> Level.Colors.arb_vesicles
-  | `ALL_FEATURES -> Level.Colors.all_features  
-
-module Table = struct
-  let level t = function
-    | `COLONIZATION -> t.colonization
-    | `ARB_VESICLES -> t.arb_vesicles
-    | `ALL_FEATURES -> t.all_features
-    
-  let string_of_matrix t =
-    Array.map (Array.map Note.to_string) t
-    |> Array.map Array.to_list
-    |> Array.map (String.concat "\t")
-    |> Array.to_list
-    |> String.concat "\n"
-
-  let matrix_of_string s =
-    String.split_on_char '\n' s
-    |> Array.of_list
-    |> Array.map (String.split_on_char '\t')
-    |> Array.map Array.of_list
-    |> Array.map (Array.map Note.of_string)
-    
-  let to_string t = function
-    | `COLONIZATION -> string_of_matrix t.colonization
-    | `ARB_VESICLES -> string_of_matrix t.arb_vesicles
-    | `ALL_FEATURES -> string_of_matrix t.all_features
-    
-  let of_string ~col:x ~arb:y ~all:z = {
-    colonization = matrix_of_string x;
-    arb_vesicles = matrix_of_string y;
-    all_features = matrix_of_string z }
-end
-
-
-let statistics t = function
-  | `COLONIZATION -> string_of_matrix t.colonization
-  | `ARB_VESICLES -> string_of_matrix t.arb_vesicles
-  | `ALL_FEATURES -> string_of_matrix t.all_features
-
+let statistics tbl lvl =
+  let mat = match lvl with
+    | `COLONIZATION -> tbl.colonization
+    | `ARB_VESICLES -> tbl.arb_vesicles
+    | `ALL_FEATURES -> tbl.all_features in
+  let stats = List.map (fun chr -> chr, ref 0) in
+  EMatrix.iter (fun note ->
+    EStringSet.union note.user note.hold
+    |> String.iter (fun chr -> incr (List.assoc chr stats))
+  ) mat;
+  List.map (fun (chr, r) -> chr, !r) stats
 
 module Changelog = struct
   let add ch1 ch2 = {
@@ -307,7 +236,7 @@ let statistics table = function
   | `COLONIZATION -> Level.statistics table.colonization
   | `ARB_VESICLES -> Level.statistics table.arb_vesicles
   | `ALL_FEATURES -> Level.statistics table.all_features
-  
+
 let iter table table f = function
   | `COLONIZATION -> EMatrix.iter f table.colonization
   | `ARB_VESICLES -> EMatrix.iter f table.arb_vesicles
