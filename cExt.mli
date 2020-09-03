@@ -1,6 +1,6 @@
 (* CastANet - cExt.mli *)
 
-(** Lightweight extension of OCaml standard library. *)
+(** Lightweight extension of the OCaml standard library. *)
 
 (** String sets. *)
 module E_StringSet : sig
@@ -17,8 +17,9 @@ module E_StringSet : sig
     * occurring in [s1] but not in [s2], sorted in alphabetical order.  *)
 end
 
+
 (** Matrix iterators. *)
-module Matrix : sig
+module E_Matrix : sig
   type 'a t = 'a array array
   (** The type of matrices. *)
 
