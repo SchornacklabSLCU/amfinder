@@ -296,3 +296,9 @@ let load src =
     Zip.close_in ich;
     Some (Table.of_string ~col:xd ~arb:yd ~all:zd)
   with Assert_failure _ | Zip.Error _ | Sys_error _ -> None
+
+let create = function
+  | `DIM (r, c) -> Matrix.init r c (fun _ _ -> Note.create ())
+  | `MAT matrix -> Matrix.map (fun _ -> Note.create ()) matrix
+
+ Matrix.map (fun _ -> Note.create ())

@@ -46,5 +46,9 @@ val rem : table -> level -> r:int -> c:int -> char -> changelog option
 val load : string -> table option
 (** Imports tables from a ZIP archive. Returns [None] in case of error. *)
 
+val create : [ `DIM of (int * int) | `MAT of 'a CExt.Matrix.t ] -> table
+(** Creates an empty matrix with either the given dimensions, or by mapping an
+  * existing matrix. *)
+
 val save : table -> string -> unit
 (** [export t s] exports table [t] as ZIP archive [s]. *)
