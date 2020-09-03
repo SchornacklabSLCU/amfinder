@@ -20,7 +20,7 @@ module Build = struct
     let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
       |> Filename.concat CCore.icon_dir
       |> (fun path -> chr, path)
-    in List.map make_pair CAnnot.Get.all
+    in List.map make_pair CLevel.all_chars_list
   let icon_set suf =
     let names = path_list suf in
     let module M = struct
@@ -52,7 +52,7 @@ module Select = struct
 
   let style ?(grad = true) = function
     | `GREY -> m_grey
-    | `RGBA -> if grad && CAnnot.is_gradient () then m_grad else m_rgba
+    | `RGBA -> if grad && false (* CAnnot.is_gradient ()*) then m_grad else m_rgba
 end
 
 module Get = struct
