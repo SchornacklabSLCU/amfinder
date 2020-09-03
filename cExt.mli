@@ -47,8 +47,24 @@ module EMatrix : sig
   
   val fold : (r:int -> c:int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
   (** Fold function. *)
+
+  val to_string : ~cast:('a -> string) -> 'a t -> string
+  (** Exports a matrix as string. *)
+
+  val of_string : ~cast:(string -> 'a) -> string -> 'a t
+  (** Imports a matrix from a string. *)
 end
 
+
+(** Text operations. *)
+module EText: sig
+  val explode : string -> char list
+  (** Converts a string into a list of characters. *)
+
+  val implode : char list- > string
+  (** Converts a list of characters into a string. *)
+
+end
 
 (** Text splitting functions. *)
 module ESplit : sig

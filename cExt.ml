@@ -2,6 +2,7 @@
 
 (* Operations on string sets. *)
 module EStringSet = struct
+  open Printf
   let sort s = String.to_seq s
     |> List.of_seq
     |> List.sort Char.compare
@@ -30,7 +31,7 @@ module EStringSet = struct
     sort !res
 end
 
-module File = struct
+module EFile = struct
   let read ?(binary = false) ?(trim = true) str = 
     let ich = (if binary then open_in_bin else open_in) str in
     let len = in_channel_length ich in
@@ -55,8 +56,25 @@ module EMatrix = struct
     let res = ref ini in
     Array.(iteri (fun r -> iteri (fun c x -> res := f ~r ~c !res x))) t;
     !res   
+  let to_string ~cast t =
+    Array.map (Array.map cast) t
+    |> Array.map Array.to_list
+    |> Array.map (String.concat "\t")
+    |> Array.to_list
+    |> String.concat "\n"
+  let of_string ~cast s =
+    String.split_on_char '\n' s
+    |> Array.of_list
+    |> Array.map (String.split_on_char '\t')
+    |> Array.map Array.of_list
+    |> Array.map (Array.map cast)
 end
 
+
+module EText = struct
+  let explode s = String.(List.init (length s) (get s))
+  let implode t = String.concat "" (List.map (String.make 1) t)
+end
 
 module ESplit = struct
   let lines = String.split_on_char '\n'
