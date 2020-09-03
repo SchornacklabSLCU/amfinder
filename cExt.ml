@@ -147,7 +147,7 @@ module EDraw = struct
     let surface = Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = create surface in
     set_antialias t ANTIALIAS_SUBPIXEL;
-    let r, g, b = Color.html_to_float clr in
+    let r, g, b = EColor.html_to_float clr in
     set_source_rgba t r g b a;
     let edge = float edge in
     rectangle t 0.0 0.0 ~w:edge ~h:edge;
