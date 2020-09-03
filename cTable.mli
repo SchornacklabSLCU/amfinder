@@ -9,28 +9,14 @@ val auto_background : bool ref
   * background (default value: [true]). While convenient, this may be disabled
   * to allow for training using partially annotated pictures. *)
 
-type note
-(** The type for annotations. Currently, this browser can handle four types of
-  * situations: no annotation, user-defined annotations, computer-generated
-  * annotations (probabilities), and constraints arising from annotations at a
-  * different level. *)
-
 type table
 (** The type for annotation table. Annotation table consists of three matrices
   * corresponding to the different annotation levels (basic, intermediate and
   * complete). *)
-
-val code_list : CLevel.t -> char list  
-(** Returns a character list containing all valid annotations for a given
-  * annotation type. *)
-  
+ 
 val all_codes : char list
 (** List of all available codes (irrespective of their level). *)
   
-val colors : CLevel.t -> string list
-(** Returns a string list containing the colors of the different annotation
-  * types available at a given level. *)
-
 type changelog = {
   user : (CLevel.t * string) list;   (** User-defined annotations. *)
   lock : (CLevel.t * string) list;   (** Switched off annotations. *)

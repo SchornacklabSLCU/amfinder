@@ -76,9 +76,9 @@ let get_rule = function
   | `ALL_FEATURES -> Rule.All_features.get
 
 type table = {
-  colonization : note EMatrix.t;
-  arb_vesicles : note EMatrix.t;
-  all_features : note EMatrix.t;
+  colonization : CNote.t EMatrix.t;
+  arb_vesicles : CNote.t EMatrix.t;
+  all_features : CNote.t EMatrix.t;
 (*network_pred : float array array array;*)
 }
 
