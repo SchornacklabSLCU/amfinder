@@ -66,9 +66,6 @@ val iter_tiles :
   (int -> int -> GdkPixbuf.pixbuf -> unit) -> t -> CCore.icon_size -> unit
 (** Iter over tiles. *)
 
-val iter_annot : (int -> int -> CAnnot.t -> unit) -> t -> unit
-(** Iter over annotations. *)
-
 val digest : t -> string
 (** Human-readable digest with the main parameters of the given image.
   * Uses Pango markup formatting. *)

@@ -1,6 +1,5 @@
 (* CastANet - cImage.mli *)
 
-type annot = CAnnot.t CExt.Matrix.t
 type tiles = GdkPixbuf.pixbuf CExt.Matrix.t
 
 type mosaic = { edge : int; matrix : tiles } 
@@ -15,7 +14,12 @@ type graph = {
   mutable cursor : int * int;
 }
 
-type t = { param : param; sizes : sizes; annot : annot; graph : graph }
+type t = {
+  param : param;
+  sizes : sizes;
+  table : CTable.table;
+  graph : graph;
+}
 
 (* Getters *)
 let path t = t.param.path
@@ -34,7 +38,7 @@ let dim t = function
   | `R -> t.param.rows
   | `C -> t.param.cols
 
-let annotations t = t.annot
+let annotations {table; _} = table
 
 let edge t = function
   | `SMALL -> t.sizes.small.edge 
@@ -51,7 +55,6 @@ let tile ~r ~c t typ = CExt.Matrix.get_opt (tiles t typ) r c
 let annotation ~r ~c t = CExt.Matrix.get_opt (annotations t) r c
 
 let iter_tiles f t typ = CExt.Matrix.iteri f (tiles t typ)
-let iter_annot f t = CExt.Matrix.iteri f (annotations t)
 
 let x ~c t typ = (origin t `X) + c * (edge t typ)
 let y ~r t typ = (origin t `Y) + r * (edge t typ)
@@ -93,9 +96,9 @@ module Create = struct
   let small_tile_matrix edge = Matrix.map (Image.resize ~edge)
     
   let annotations path tiles =
-    let tsv = Filename.remove_extension path ^ ".tsv" in
-    if Sys.file_exists tsv then CAnnot.import tsv
-    else Matrix.map (fun _ -> CAnnot.empty ()) tiles
+    let zip = Filename.remove_extension path ^ ".zip" in
+    if Sys.file_exists zip then CTable.load zip
+    else CTable.create (`MAT tiles)
 end
 
 let create ~ui_width:uiw ~ui_height:uih path =
@@ -108,7 +111,7 @@ let create ~ui_width:uiw ~ui_height:uih path =
       let large = Create.large_tile_matrix rows cols edge pix in
       let sub = min (uiw / cols) (uih / rows) in
       let small = Create.small_tile_matrix sub large in
-      let annot = Create.annotations path small in
+      let table = Create.annotations path small in
       let graph = {
         imgw; imgh; cursor = (0, 0);
         xini = (uiw - sub * cols) / 2;
@@ -117,7 +120,7 @@ let create ~ui_width:uiw ~ui_height:uih path =
         small = {edge = sub; matrix = small};
         large = {edge = 180; matrix = large};
       } and param = {path; rows; cols} in
-      let img = { param; sizes; graph; annot } in
+      let img = { param; sizes; graph; table } in
       CPalette.set_tile_edge sub;
       CLog.info "source image: '%s'" path;
       CLog.info "source image size: %d x %d pixels" imgw imgh;
@@ -125,13 +128,7 @@ let create ~ui_width:uiw ~ui_height:uih path =
       img
   in img
 
-let statistics img =
-  let res = List.map (fun c -> c, ref 0) ('*' :: CAnnot.code_list) in
-  iter_annot (fun r c t ->
-    if CAnnot.exists t then incr (List.assoc '*' res);
-    String.iter (fun chr -> incr (List.assoc chr res)) (CAnnot.get_active t)
-  ) img;
-  List.map (fun (c, r) -> c, !r) res
+let statistics img = CTable.statistics (annotations img)
    
 let digest t =
   Printf.sprintf "<small><tt> \
