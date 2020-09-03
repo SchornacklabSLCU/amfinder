@@ -25,7 +25,7 @@ let get t = function
   | `LOCK -> t.lock
   | `HOLD -> t.hold
 
-let set t x = function
-  | `USER -> t.user <- x
-  | `LOCK -> t.lock <- x
-  | `HOLD -> t.hold <- x
+let set t = function
+  | `USER -> (fun x -> t.user <- x)
+  | `LOCK -> (fun x -> t.lock <- x)
+  | `HOLD -> (fun x -> t.hold <- x)
