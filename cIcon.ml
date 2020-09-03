@@ -29,9 +29,18 @@ module Build = struct
     end in (module M : IconSet)
 end
 
-let m_rgba = Build.icon_set "rgba" (* Active toggle buttons with binary data. *)
-let m_grad = Build.icon_set "grad" (* Same, but with confidence values.       *)
-let m_grey = Build.icon_set "grey" (* Inactive toggle buttons.                *)
+type style = [
+  | `RGBA
+  | `RGBA_LOCKED
+  | `GREY
+  | `GREY_LOCKED
+]
+
+let m_rgba = Build.icon_set "rgba"
+let m_rgba_lock = Build.icon_set "lock"
+let m_grey = Build.icon_set "grey"
+let m_grey_lock = Build.icon_set "hold"
+
 
 (* Joker icon for display any annotation (irrespective of their type). *)
 module Joker = struct
@@ -40,28 +49,40 @@ module Joker = struct
       |> Filename.concat CCore.icon_dir
       |> (fun path -> '*', path)
     in Source.(snd (load `SMALL ico), snd (load `LARGE ico))
+  (* There are no constraints on the joker icon (no _lock variants). *)
   let rgba = make "rgba"
   let grey = make "grey"
 end
 
-(* Icon selection, based on size (small/large) and style (grey/rgba). *)
 module Select = struct
   let size typ ico = 
     let open (val ico : IconSet) in
     if typ = `SMALL then small else large
 
-  let style ?(grad = true) = function
+  let style = function
+
+end
+
+let get_joker sty sz =
+  let select = match sz with 
+    |`SMALL -> fst 
+    | `LARGE -> snd in
+  match sty with
+  | `RGBA -> select Joker.rgba
+  | `GREY -> select Joker.grey
+  |   _   -> invalid_arg "CIcon.get_joker" 
+
+let get_standard chr sty sz =
+  let set = match sty with
+    | `RGBA -> m_rgba
+    | `RGBA_LOCKED -> m_rgba_lock
     | `GREY -> m_grey
-    | `RGBA -> if grad && false (* CAnnot.is_gradient ()*) then m_grad else m_rgba
-end
+    | `GREY_LOCKED -> m_grey_lock in
+  let open (val set : IconSet) in
+  List.assoc chr (match sz with
+    | `SMALL -> small 
+    | `LARGE -> large)
 
-module Get = struct
-  let joker sty typ = Joker.(if sty = `RGBA then rgba else grey)
-    |> if typ = `SMALL then fst else snd
-
-  let standard ?grad chr sty typ = Select.style ?grad sty
-    |> Select.size typ
-    |> List.assoc chr 
-end
-
-let get ?grad = function '*' -> Get.joker | chr -> Get.standard ?grad chr
+let get = function
+  | '*' -> get_joker
+  | chr -> get_standard chr

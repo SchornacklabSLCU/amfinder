@@ -1,8 +1,22 @@
 (* CastANet - cIcon.mli *)
 
-(** CastANet custom icons. *)
+(** CastANet icons. *)
 
-val get : ?grad:bool -> char -> CCore.icon_style -> CCore.icon_size -> GdkPixbuf.pixbuf
-(** Retrieve a particular icon, given its name, type and size. The optional
-  * parameter tells whether the icon can be turned into a gradient. To retrieve
-  * the joker icon, use ['*'] as input character. *)
+type size = [
+  | `SMALL          (** Small icons, 24x24 pixels. *)
+  | `LARGE          (** Large icons, 48x48 pixels. *)
+]
+(** Available icon sizes.  *)
+
+type style = [
+  | `RGBA           (** Active, coloured icons. *)
+  | `RGBA_LOCKED    (** Same, but locked.       *)
+  | `GREY           (** Inactive, grey icons.   *)
+  | `GREY_LOCKED    (** Same, but locked.       *)
+]
+(** Available icon styles. *)
+
+val get : char -> style -> size -> GdkPixbuf.pixbuf
+(** [get chr sty sz] returns a GdkPixbuf corresponding to icon [chr], of 
+  * style [sty] and size [sz].
+  $ @raise Invalid_argument if [chr] is not a valid character. *)
