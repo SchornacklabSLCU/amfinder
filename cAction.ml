@@ -7,7 +7,7 @@ let may_unload_old_image () =
     let tsv = CImage.path old
       |> Filename.remove_extension
       |> Printf.sprintf "%s.tsv" in
-    CAnnot.export tsv (CImage.annotations old);
+    CAnnot.save (CImage.annotations old) tsv;
     CGUI.window#misc#hide ();
     CSettings.erase_image ();
     CDraw.unset_current ();
