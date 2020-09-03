@@ -42,10 +42,10 @@ module E_Matrix : sig
   val iter : ('a -> unit) -> 'a t -> unit
   (** [iter f m] applies [f] to all members of the matrix [m]. *)
   
-  val iteri : (int -> int -> 'a -> unit) -> 'a t -> unit
+  val iteri : (r:int -> c:int -> 'a -> unit) -> 'a t -> unit
   (** Same as [iter], but [f] receives row and column indexes as parameters. *)
   
-  val fold : (int -> int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
+  val fold : (r:int -> c:int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
   (** Fold function. *)
 end
 

@@ -50,10 +50,10 @@ module E_Matrix = struct
   let map f = Array.(map (map f))
   let mapi f = Array.(mapi (fun r -> mapi (f r)))
   let iter f = Array.(iter (iter f))
-  let iteri f = Array.(iteri (fun r -> iteri (f r)))
+  let iteri f = Array.(iteri (fun r -> iteri (fun c -> f ~r ~c)))
   let fold f ini t = 
     let res = ref ini in
-    Array.(iteri (fun r -> iteri (fun c x -> res := f r c !res x))) t;
+    Array.(iteri (fun r -> iteri (fun c x -> res := f ~r ~c !res x))) t;
     !res   
 end
 
