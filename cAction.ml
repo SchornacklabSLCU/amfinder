@@ -4,10 +4,10 @@ let may_unload_old_image () =
   let init = ref true in
   Gaux.may (fun old ->
     CImage.Binary.save_at_exit old;
-    let tsv = CImage.path old
+    let zip = CImage.path old
       |> Filename.remove_extension
-      |> Printf.sprintf "%s.tsv" in
-    CAnnot.save (CImage.annotations old) tsv;
+      |> Printf.sprintf "%s.zip" in
+    CTable.save (CImage.annotations old) zip;
     CGUI.window#misc#hide ();
     CSettings.erase_image ();
     CDraw.unset_current ();
