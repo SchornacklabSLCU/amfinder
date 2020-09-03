@@ -54,15 +54,6 @@ module Joker = struct
   let grey = make "grey"
 end
 
-module Select = struct
-  let size typ ico = 
-    let open (val ico : IconSet) in
-    if typ = `SMALL then small else large
-
-  let style = function
-
-end
-
 let get_joker sty sz =
   let select = match sz with 
     |`SMALL -> fst 
