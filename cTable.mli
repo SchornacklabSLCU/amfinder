@@ -13,14 +13,11 @@ type table
 (** The type for annotation table. Annotation table consists of three matrices
   * corresponding to the different annotation levels (basic, intermediate and
   * complete). *)
- 
-val all_codes : char list
-(** List of all available codes (irrespective of their level). *)
   
 type changelog = {
-  user : (CLevel.t * string) list;   (** User-defined annotations. *)
-  lock : (CLevel.t * string) list;   (** Switched off annotations. *)
-  hold : (CLevel.t * string) list;   (** Switched on annotations.  *)
+  log_user : (CLevel.t * string) list;   (** User-defined annotations. *)
+  log_lock : (CLevel.t * string) list;   (** Switched off annotations. *)
+  log_hold : (CLevel.t * string) list;   (** Switched on annotations.  *)
 }
 (** Changelog indicating the modifications made to the annotations. *)
 
@@ -30,18 +27,12 @@ val add : table -> CLevel.t -> r:int -> c:int -> char -> changelog option
   * annotations in all other layers. These changes are to be reflected in the
   * user interface. The function returns [None] if no change was made. *)
 
-val rem : table -> CLevel.t -> r:int -> c:int -> char -> changelog option
+val remove : table -> CLevel.t -> r:int -> c:int -> char -> changelog option
 (** Same arguments as [add], but this function tries and remove a given 
   * annotation from a given tile. Again the changelog indicates the triggered 
   * modifications. *)
 
-type note_type = [ 
-  | `USER     (** Annotations defined by the user. *) 
-  | `HOLD     (** Annotations constrained by other annotations. *)
-  | `LOCK     (** Annotations made impossible by other annotations. *)
-]
-
-val get : table -> CLevel.t -> r:int -> c:int -> note_type -> string
+val get : table -> CLevel.t -> r:int -> c:int -> CNote.layer -> string
 (** [get t lvl ~r ~c nt] returns the annotations of type [nt] at row [r] and
   * column [c] in layer [lvl] of table [t]. *)
 
@@ -59,7 +50,7 @@ val statistics : table -> CLevel.t -> (char * int) list
 (** [statistics t lvl] returns the counts for each structure at level [lvl]
   * in table [t]. *)
 
-val iter : (r:int -> c:int -> table -> unit) -> table -> CLevel.t -> unit
+val iter : (r:int -> c:int -> CNote.t -> unit) -> table -> CLevel.t -> unit
 (** Table iterator. *)
 
 
