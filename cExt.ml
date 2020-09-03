@@ -58,7 +58,7 @@ module E_Matrix = struct
 end
 
 
-module Split = struct
+module E_Split = struct
   let lines = String.split_on_char '\n'
   let tabs = String.split_on_char '\t'
   let colons = String.split_on_char ':'
@@ -68,7 +68,7 @@ module Split = struct
 end
 
 
-module Maybe = struct
+module E_Maybe = struct
   type 'a t = V of 'a | E of exn
   let from_value x = V x
   let from_exception e = E e
@@ -83,7 +83,7 @@ module Maybe = struct
 end
 
 
-module Color = struct
+module E_Color = struct
   let html_to_int s =
     Scanf.sscanf s "#%02x%02x%02x" (fun r g b -> r, g, b)
 
@@ -105,7 +105,7 @@ module Color = struct
 end
 
 
-module Image = struct
+module E_Image = struct
   let crop_square ~src_x ~src_y ~edge:e pix =
     let dest = GdkPixbuf.create ~width:e ~height:e () in
     GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
@@ -121,7 +121,7 @@ module Image = struct
 end
 
 
-module Draw = struct
+module E_Draw = struct
   let square ?(clr = "#cc0000") ?(a = 1.0) edge =
     let open Cairo in
     let edge = if edge <= 2 then 2 else edge
@@ -147,7 +147,7 @@ let time f x =
 
 
 (* Memoized values with possible reinitialization. *)
-module Memoize = struct
+module E_Memoize = struct
   let flag = ref 0 (* Main flag. *)
 
   type 'a t = {
