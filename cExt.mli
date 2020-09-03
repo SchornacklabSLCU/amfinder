@@ -53,6 +53,9 @@ module EMatrix : sig
 
   val of_string : cast:(string -> 'a) -> string -> 'a t
   (** Imports a matrix from a string. *)
+  
+  val copy : ?dat:('a -> 'a) -> 'a t -> 'a t
+  (** Returns a copy of a given matrix. *)
 end
 
 

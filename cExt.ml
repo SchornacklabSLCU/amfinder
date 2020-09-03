@@ -42,6 +42,7 @@ module EFile = struct
     if trim then String.trim str else str
 end
 
+external id : 'a -> 'a = "%identity"
 
 module EMatrix = struct
   type 'a t = 'a array array
@@ -55,7 +56,8 @@ module EMatrix = struct
   let fold f ini t = 
     let res = ref ini in
     Array.(iteri (fun r -> iteri (fun c x -> res := f ~r ~c !res x))) t;
-    !res   
+    !res
+  let copy ?(dat = id) mat = Array.(map (map dat)) mat
   let to_string ~cast t =
     Array.map (Array.map cast) t
     |> Array.map Array.to_list
