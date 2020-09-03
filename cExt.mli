@@ -3,7 +3,7 @@
 (** Lightweight extension of the OCaml standard library. *)
 
 (** String sets. *)
-module E_StringSet : sig
+module EStringSet : sig
   val union : string -> string -> string
   (** [union s1 s2] returns a string containing one instance of all characters
     * occurring in either [s1] or [s2], sorted in alphabetical order.  *)
@@ -19,7 +19,7 @@ end
 
 
 (** Matrix iterators. *)
-module E_Matrix : sig
+module EMatrix : sig
   type 'a t = 'a array array
   (** The type of matrices. *)
 
@@ -51,7 +51,7 @@ end
 
 
 (** Text splitting functions. *)
-module E_Split : sig
+module ESplit : sig
   val lines : string -> string list
   (** Split the input string at any linefeed (['\n']). *)
 
@@ -73,7 +73,7 @@ end
 
 
 (** Operations on files. *)
-module E_File : sig
+module EFile : sig
   val read : ?binary:bool -> ?trim:bool -> string -> string
   (** Reads a file. Setting up option [binary] results in file being opened in
     * binary mode (default: [false]). Option [trim] triggers trimming of 
@@ -83,7 +83,7 @@ end
 
 (** Maybe-values, aka value/error monad. This carries a little more information
   * than ['a option], by retrieving any exception raised during evaluation. *)
-module E_Maybe : sig
+module EMaybe : sig
   type 'a t
   (** The type for maybe-values. *)
 
@@ -120,7 +120,7 @@ end
 
 
 (** Operations on colors. *)
-module E_Color : sig
+module EColor : sig
   val html_to_int : string -> int * int * int
   (** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue integers. *)
 
@@ -139,7 +139,7 @@ end
 
 
 (** Image (Gdkpixbuf) manipulation. *)
-module E_Image : sig
+module EImage : sig
   open GdkPixbuf
 
   val crop_square : src_x:int -> src_y:int -> edge:int -> pixbuf -> pixbuf
@@ -151,7 +151,7 @@ end
 
 
 (** Drawing functions. *)
-module E_Draw : sig
+module EDraw : sig
   val square : ?clr:string -> ?a:float -> int -> Cairo.Surface.t
   (** [square ?clr ?a e] draws a square with an edge of [e] pixels (minimum 
     * value: [2] pixels) filled with color ["#RRGGBB"] and alpha channel [a]
@@ -166,7 +166,7 @@ val time : ('a -> 'b) -> 'a -> 'b
   * only once within a given session. However, they can recomputed when a new 
   * session starts, for instance to take into account the modification of 
   * general settings that affect the computation of memoized values. *)
-module E_Memoize : sig
+module EMemoize : sig
   val create : ?lbl:string -> ?one:bool -> (unit -> 'a) -> unit -> 'a
   (** Memoization function. The optional parameter [lbl] is used to report when
     * data are being recomputed due to a previous call to [forget] (see below).

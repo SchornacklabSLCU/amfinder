@@ -1,7 +1,7 @@
 (* CastANet - cExt.ml *)
 
 (* Operations on string sets. *)
-module E_StringSet = struct
+module EStringSet = struct
   let sort s = String.to_seq s
     |> List.of_seq
     |> List.sort Char.compare
@@ -42,7 +42,7 @@ module File = struct
 end
 
 
-module E_Matrix = struct
+module EMatrix = struct
   type 'a t = 'a array array
   let get t r c = t.(r).(c)
   let get_opt t r c = try Some t.(r).(c) with _ -> None
@@ -58,7 +58,7 @@ module E_Matrix = struct
 end
 
 
-module E_Split = struct
+module ESplit = struct
   let lines = String.split_on_char '\n'
   let tabs = String.split_on_char '\t'
   let colons = String.split_on_char ':'
@@ -68,7 +68,7 @@ module E_Split = struct
 end
 
 
-module E_Maybe = struct
+module EMaybe = struct
   type 'a t = V of 'a | E of exn
   let from_value x = V x
   let from_exception e = E e
@@ -83,7 +83,7 @@ module E_Maybe = struct
 end
 
 
-module E_Color = struct
+module EColor = struct
   let html_to_int s =
     Scanf.sscanf s "#%02x%02x%02x" (fun r g b -> r, g, b)
 
@@ -105,7 +105,7 @@ module E_Color = struct
 end
 
 
-module E_Image = struct
+module EImage = struct
   let crop_square ~src_x ~src_y ~edge:e pix =
     let dest = GdkPixbuf.create ~width:e ~height:e () in
     GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
@@ -121,7 +121,7 @@ module E_Image = struct
 end
 
 
-module E_Draw = struct
+module EDraw = struct
   let square ?(clr = "#cc0000") ?(a = 1.0) edge =
     let open Cairo in
     let edge = if edge <= 2 then 2 else edge
@@ -147,7 +147,7 @@ let time f x =
 
 
 (* Memoized values with possible reinitialization. *)
-module E_Memoize = struct
+module EMemoize = struct
   let flag = ref 0 (* Main flag. *)
 
   type 'a t = {
