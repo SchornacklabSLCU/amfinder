@@ -91,12 +91,10 @@ let all_chars_list = String.(List.init (length all_chars) (get all_chars))
 let rule lvl = let open (val (get lvl) : S) in get
 
 let others elt lvl =
-  let str = String.uppercase_ascii (
-    match elt with
+  let str = match elt with
     | `CHR chr -> String.make 1 chr
-    | `STR str -> str
-  ) in 
-  let open (val (get lvl) : S) in diff str
+    | `STR str -> str in 
+  let open (val (get lvl) : S) in diff (String.uppercase_ascii str)
 
 let rec mem elt lvl = 
   match elt with
