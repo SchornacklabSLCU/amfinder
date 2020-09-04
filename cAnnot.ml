@@ -6,13 +6,13 @@ type lock = string
 type hold = string
 
 module type S = sig
-  val other : string -> string
+  val diff : string -> string
   val get : CLevel.t -> string -> hold * lock
 end
 
 let generator str col arb all =
   let module M = struct
-    let other = EStringSet.diff str
+    let diff s = if s = "" then str else EStringSet.diff str s
     let get = function
       | `COLONIZATION -> col
       | `ARB_VESICLES -> arb
@@ -73,7 +73,7 @@ let get = function
   | `ARB_VESICLES -> m_arb_vesicles
   | `ALL_FEATURES -> m_all_features
 
-let chars lvl = let open (val (get lvl) : S) in other ""
+let chars lvl = let open (val (get lvl) : S) in diff ""
 
 let char_list lvl = List.init (String.get) (chars lvl)
 
@@ -95,3 +95,9 @@ let others elt lvl =
     | `STR str -> str
   ) in 
   let open (val (get lvl) : S) in other str
+
+let rec mem elt lvl = 
+  match elt with
+  | `CHR chr -> String.contains (chars lvl) (Char.uppercase_ascii chr)
+  | `STR str -> List.for_all (fun c -> mem (`CHR c) lvl) (EText.explode str)
+

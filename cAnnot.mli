@@ -23,3 +23,7 @@ val rule : CLevel.t -> CLevel.t -> char -> hold * lock
   
 val others : [ `CHR of char | `STR of string ] -> CLevel.t -> string
 (** Returns the string containing all characters *)
+
+val mem : [ `CHR of char | `STR of string ] -> CLevel.t -> bool
+(** Indicates whether the given character (or all characters from the given 
+  * string) are available at the given level. *)
