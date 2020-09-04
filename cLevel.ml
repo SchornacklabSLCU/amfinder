@@ -8,7 +8,8 @@ type t = [
   | `ALL_FEATURES (* [ERH, [root, [arb, ves, IRH, hyphopodia]]] vs background *)
 ]
 
-let available_levels = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
+let flags = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
+let strings = ["Colonization"; "Arbuscules/Vesicles"; "All features"]
 
 let lowest = `COLONIZATION
 let highest = `ALL_FEATURES

@@ -9,8 +9,12 @@ type t = [
 ]
 (** Annotation levels. *)
 
-val available_levels : t list
-(** List of available annotation levels. *)
+val flags : t list
+(** List of available annotation levels, sorted from lowest to highest. *)
+
+val strings : string list
+(** String representation of the available annotations levels, sorted from
+  * lowest to highest. *)
 
 val lowest : t
 (** Least detailed level of mycorrhiza annotation. *)
