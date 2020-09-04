@@ -12,6 +12,12 @@ type t = [
 val available_levels : t list
 (** List of available annotation levels. *)
 
+val lowest : t
+(** Least detailed level of mycorrhiza annotation. *)
+
+val highest : t
+(** Most detailed level of mycorrhiza annotation. *)
+
 val others : t -> t * t
 (** [other lvl] returns the two other levels than [lvl]. *)
 
