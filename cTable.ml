@@ -6,80 +6,10 @@ open Printf
 
 let auto_background = ref true
 
-module Rule = struct
-  module Colonization = struct
-    let other = EStringSet.diff "YNX"
-    let arb_vesicles = function
-      | "Y" -> "", "NX"
-      | "N" -> "N", "AVX"
-      |  _  -> "X", "AVN"
-    let all_features = function
-      | "Y" -> "", "X"
-      | "N" -> "R", "AVIEHX"
-      |  _  -> "X", "AVIEHR"
-    let colonization = function
-      | "Y" -> "", "NX"
-      | "N" -> "", "YX"
-      |  _  -> "", "YN"
-    let get = function
-      | `COLONIZATION -> colonization
-      | `ARB_VESICLES -> arb_vesicles
-      | `ALL_FEATURES -> all_features
-  end
-  module Arb_vesicles = struct
-    let other = EStringSet.diff "AVNX"
-    let colonization = function
-      | "A" | "V" -> "Y", "NX"
-      | "N" -> "N", "YX"
-      |  _  -> "X", "YN"
-    let all_features = function
-      | "A" -> "AR", "X"
-      | "V" -> "VR", "X"
-      | "N" -> "R", "AVIEHX"
-      |  _  -> "X", "AVIEHR"
-    let arb_vesicles = function
-      | "A" | "V" -> "", "NX"
-      | "N" -> "", "AVX"
-      |  _  -> "", "AVN"
-    let get = function
-      | `COLONIZATION -> colonization
-      | `ARB_VESICLES -> arb_vesicles
-      | `ALL_FEATURES -> all_features
-  end
-  module All_features = struct
-    let other = EStringSet.diff "AVIEHRX"
-    let colonization = function
-      | "A" | "V" | "I" | "E" | "H" -> "Y", "NX"
-      | "R" -> "", "X"
-      |  _  -> "X", "YN"
-    let arb_vesicles = function
-      | "A" -> "A", "NX"
-      | "V" -> "V", "NX"
-      | "I" | "E" | "H" -> "", "NX"
-      | "R" -> "", "X"
-      |  _  -> "X", "AVN"
-    let all_features = function
-      | "A" | "V" | "I" | "H" -> "R", "X"
-      | "E" -> "", "X"
-      | "R" -> "", "X"
-      |  _  -> "", "AVIEHR"
-    let get = function
-      | `COLONIZATION -> colonization
-      | `ARB_VESICLES -> arb_vesicles
-      | `ALL_FEATURES -> all_features
-  end
-end
-
 let other = function
   | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
   | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
   | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
-
-
-let get_rule = function
-  | `COLONIZATION -> Rule.Colonization.get
-  | `ARB_VESICLES -> Rule.Arb_vesicles.get
-  | `ALL_FEATURES -> Rule.All_features.get
 
 type table = {
   colonization : CNote.t EMatrix.t;
@@ -119,13 +49,13 @@ module Note = struct
       end else begin
         let old_lock = CNote.get note `LOCK 
         and old_hold = CNote.get note `HOLD in
-        let hold, lock = get_rule lvl1 lvl2 extra in
+        let hold, lock = CRule.get lvl1 lvl2 extra in
         CNote.set note `LOCK (EStringSet.union old_lock lock);
         CNote.set note `HOLD (EStringSet.union old_hold hold);
-        let dl = diff lock old_lock
-        and dh = diff hold old_hold in
-        EStringSet.([], (if dl = "" then [] else [lvl1, dl]), 
-                        (if dh = "" then [] else [lvl1, dh]))
+        let dl = EStringSet.diff lock old_lock
+        and dh = EStringSet.diff hold old_hold in
+        ([], (if dl = "" then [] else [lvl1, dl]), 
+             (if dh = "" then [] else [lvl1, dh]))
       end
     in {log_user; log_lock; log_hold}
     
@@ -139,7 +69,7 @@ module Note = struct
       end else begin
         let old_lock = CNote.get note `LOCK 
         and old_hold = CNote.get note `HOLD in
-        let hold, lock = get_rule lvl1 lvl2 del in
+        let hold, lock = CRule.get lvl1 lvl2 del in
         CNote.set note `LOCK (EStringSet.diff old_lock lock);
         CNote.set note `HOLD (EStringSet.diff old_hold hold);
         [], [lvl2, lock], [lvl2, hold]
@@ -249,7 +179,8 @@ let create src =
     all_features = EMatrix.copy mat }
 
 
-let iter f table = function
-  | `COLONIZATION -> EMatrix.iteri f table.colonization
-  | `ARB_VESICLES -> EMatrix.iteri f table.arb_vesicles
-  | `ALL_FEATURES -> EMatrix.iteri f table.all_features
+let iter f table lvl = 
+  let mat = match lvl with
+    | `COLONIZATION -> EMatrix.iteri f table.colonization
+    | `ARB_VESICLES -> EMatrix.iteri f table.arb_vesicles
+    | `ALL_FEATURES -> EMatrix.iteri f table.all_features
