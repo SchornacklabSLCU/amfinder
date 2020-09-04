@@ -7,11 +7,11 @@ val window : GWindow.window
 
 
 (** Annotation types. *)
-module Annotation_type : sig 
-  val current : unit -> CAnnot.level
-  (** Returns the current type of annotation. *)
+module GLevel : sig 
+  val current : unit -> CLevel.t
+  (** Returns the active annotation level. *)
 
-  val radios : (CAnnot.level * GButton.radio_button) list
+  val radios : (CLevel.t * GButton.radio_button) list
   (** Radio buttons corresponding to the different annotation types. *)
 end
 
@@ -21,14 +21,14 @@ end
   * buttons which correspond to basic ([`COLONIZATION]), intermediate 
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
-module Toggles : sig
+module GToggles : sig
   val iter : (
-    CAnnot.level -> 
+    CLevel.t -> 
     char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
   (** [iter f] applies the function [f] to every set of toggle buttons. *)
 
   val map : (
-    CAnnot.level -> 
+    CLevel.t -> 
     char -> GButton.toggle_button -> GMisc.image -> 'a) -> 'a array list
   (** Same as [iter], but builds a new list from the result of the application 
     * of function [f] to the toggle button sets. *)

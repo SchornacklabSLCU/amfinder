@@ -70,29 +70,29 @@ module Box = struct
 end
 
 
-module Annotation_type = struct
-  let curr = ref `COLONIZATION
+module GLevel = struct
+  let curr = ref CLevel.lowest
   let current () = !curr
-  let make_radio group active str typ =
+  let make_radio group str lvl =
     (* Container for the GtkRadioButton and its corresponding GtkLabel. *)
     let packing = (GPack.hbox ~packing:Box.b#add ())#pack ~expand:false in
     (* Radio button without a label (will use a GtkLabel for that). *)
+    let active = group = None in
     let r = GButton.radio_button ?group ~active ~packing () in
     (* Removes the unpleasant focus square around the round button. *)
     r#misc#set_can_focus false;
     let markup = sprintf "<big><b>%s</b></big>" str in
     ignore (GMisc.label ~markup ~packing ());
-    (* Updates the annotation type upon activation. *)
-    r#connect#toggled (fun () -> if r#active then curr := typ);
+    (* Updates the annotation level upon activation. *)
+    r#connect#toggled (fun () -> if r#active then curr := lvl);
     r
-  let labels = ["Colonization"; "Arbuscules/Vesicles"; "All features"]
   let radios = 
-    let active = ref true and group = ref None in
-    List.map2 (fun typ lbl ->
-      let radio = make_radio !group !active lbl typ in
-      if !active then (active := false; group := Some radio#group);
-      typ, radio
-    ) CAnnot.levels labels
+    let group = ref None in
+    List.map2 (fun lvl lbl ->
+      let radio = make_radio !group lbl lvl in
+      if !group = None then group := Some radio#group;
+      lvl, radio
+    ) CLevel.flags CLevel.strings
 end
 
 
@@ -109,9 +109,9 @@ module Pane = struct
 end
 
 
-module Toggles = struct
+module GToggles = struct
   (* Values here ensure that new buttons appear between existing ones when
-   * the user switches between the different annotation types. *)
+   * the user switches between the different annotation levels. *)
   let get_col_spacing = function
     | `COLONIZATION -> 134
     | `ARB_VESICLES -> 68
@@ -128,7 +128,7 @@ module Toggles = struct
     chr, {toggle; image}
 
   let make_toolbox typ =
-    let code_list = CAnnot.Get.code_list typ in
+    let code_list = CLevel.chars typ in
     let module T = struct
       let table = GPack.table
         ~rows:1 ~columns:(List.length code_list)
@@ -143,7 +143,7 @@ module Toggles = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CAnnot.levels
+    ) CLevel.available_levels
 
   let iter f =
     List.iter (fun (typ, mdl) ->
@@ -174,15 +174,15 @@ module Toggles = struct
     let module T = (val mdl : Toolbox.TOGGLE) in
     let widget = T.table#coerce in
     packing widget;
-    Annotation_type.curr := typ;
+    GLevel.curr := typ;
     current_widget := Some widget
 
   let current_toggles () =
-    let current_toolbox = List.assoc !Annotation_type.curr toolboxes in
+    let current_toolbox = List.assoc !GLevel.curr toolboxes in
     let module T = (val current_toolbox : Toolbox.TOGGLE) in
     T.toggles
 
-  let apply any chr = String.index CAnnot.codes chr
+  let apply any chr = String.index CLevel.all_chars chr
     |> Array.get (current_toggles ())
     |> snd
     |> (fun {toggle; _} -> any toggle)
@@ -208,12 +208,12 @@ module Toggles = struct
     String.iter (set_status (`BOOL false)) t;
     lock := false
   
-  let check chr () =
+  let check chr () = () (*
     if not !lock then begin
       activate (CAnnot.requires chr); (* FIXME *)
       deactivate (CAnnot.forbids chr); (* FIXME *)
       if not (is_active chr) then deactivate (CAnnot.erases chr) (* FIXME *)
-    end
+    end*)
 
   let toggle_any chr =
     set_status `INVERT chr;
@@ -228,7 +228,7 @@ module Toggles = struct
       radio#connect#toggled ~callback:(fun () ->
         if radio#active then attach typ
       ); ()
-    ) Annotation_type.radios;
+    ) GLevel.radios;
     (* Initializes the callback function that activate or deactivate toggle
      * buttons based on key pressed and CAnnot-defined constraints. *)
     iter (fun _ chr toggle _ ->
@@ -356,7 +356,7 @@ module Layers = struct
     chr, {radio; label; image}
 
   let make_toolbox typ =
-    let code_list = '*' :: CAnnot.Get.code_list typ in
+    let code_list = '*' :: CLevel.chars typ in
     let module T = struct
       let table = GButton.toolbar
         ~orientation:`VERTICAL
@@ -374,7 +374,7 @@ module Layers = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CAnnot.levels
+    ) CLevel.available_levels
 
   let current_widget = ref None
 
@@ -394,7 +394,7 @@ module Layers = struct
     current_widget := Some widget
  
   let current_radios () =
-    let toolbox = List.assoc !Annotation_type.curr toolboxes in
+    let toolbox = List.assoc !GLevel.curr toolboxes in
     let open (val toolbox : Toolbox.RADIO) in radios
 
   let get_joker () = current_radios ()
@@ -439,7 +439,7 @@ let _ =
     radio#connect#toggled ~callback:(fun () ->
       if radio#active then Layers.attach typ
     ); ()
-  ) Annotation_type.radios
+  ) GLevel.radios
 
 
 let status = 
