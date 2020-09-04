@@ -10,7 +10,7 @@ type t = [
 
 let available_levels = [`COLONIZATION; `ARB_VESICLES; `ALL_FEATURES]
 
-let other = function
+let others = function
   | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
   | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
   | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES

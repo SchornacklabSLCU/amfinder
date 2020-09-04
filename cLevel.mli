@@ -12,6 +12,9 @@ type t = [
 val available_levels : t list
 (** List of available annotation levels. *)
 
+val others : t -> t * t
+(** [other lvl] returns the two other levels than [lvl]. *)
+
 val chars : t -> char list
 (** Returns the list of valid characters at the given level. *)
 
