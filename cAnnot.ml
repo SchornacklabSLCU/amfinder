@@ -7,7 +7,7 @@ type hold = string
 
 module type S = sig
   val diff : string -> string
-  val get : CLevel.t -> string -> hold * lock
+  val get : CLevel.t -> char -> hold * lock
 end
 
 let generator ~col ~arb ~all str =
@@ -21,50 +21,50 @@ let generator ~col ~arb ~all str =
 
 let m_colonization = 
   let col = function
-    | "Y" -> "", "NX"
-    | "N" -> "", "YX"
+    | 'Y' -> "", "NX"
+    | 'N' -> "", "YX"
     |  _  -> "", "YN"
   and arb = function
-    | "Y" -> "", "NX"
-    | "N" -> "N", "AVX"
+    | 'Y' -> "", "NX"
+    | 'N' -> "N", "AVX"
     |  _  -> "X", "AVN"
   and all = function
-    | "Y" -> "", "X"
-    | "N" -> "R", "AVIEHX"
+    | 'Y' -> "", "X"
+    | 'N' -> "R", "AVIEHX"
     |  _  -> "X", "AVIEHR"
   in generator ~col ~arb ~all "YNX"
 
 let m_arb_vesicles =
   let col = function
-    | "A" | "V" -> "Y", "NX"
-    | "N" -> "N", "YX"
+    | 'A' | 'V' -> "Y", "NX"
+    | 'N' -> "N", "YX"
     |  _  -> "X", "YN"
   and arb = function
-    | "A" | "V" -> "", "NX"
-    | "N" -> "", "AVX"
+    | 'A' | 'V' -> "", "NX"
+    | 'N' -> "", "AVX"
     |  _  -> "", "AVN"
   and all = function
-    | "A" -> "AR", "X"
-    | "V" -> "VR", "X"
-    | "N" -> "R", "AVIEHX"
+    | 'A' -> "AR", "X"
+    | 'V' -> "VR", "X"
+    | 'N' -> "R", "AVIEHX"
     |  _  -> "X", "AVIEHR"
   in generator ~col ~arb ~all "AVNX"
 
 let m_all_features =
   let col = function
-    | "A" | "V" | "I" | "E" | "H" -> "Y", "NX"
-    | "R" -> "", "X"
+    | 'A' | 'V' | 'I' | 'E' | 'H' -> "Y", "NX"
+    | 'R' -> "", "X"
     |  _  -> "X", "YN"
   and arb = function
-    | "A" -> "A", "NX"
-    | "V" -> "V", "NX"
-    | "I" | "E" | "H" -> "", "NX"
-    | "R" -> "", "X"
+    | 'A' -> "A", "NX"
+    | 'V' -> "V", "NX"
+    | 'I' | 'E' | 'H' -> "", "NX"
+    | 'R' -> "", "X"
     |  _  -> "X", "AVN"
   and all = function
-    | "A" | "V" | "I" | "H" -> "R", "X"
-    | "E" -> "", "X"
-    | "R" -> "", "X"
+    | 'A' | 'V' | 'I' | 'H' -> "R", "X"
+    | 'E' -> "", "X"
+    | 'R' -> "", "X"
     |  _  -> "", "AVIEHR"
   in generator ~col ~arb ~all "AVIEHRX"
 
@@ -96,7 +96,7 @@ let others elt lvl =
     | `CHR chr -> String.make 1 chr
     | `STR str -> str
   ) in 
-  let open (val (get lvl) : S) in other str
+  let open (val (get lvl) : S) in diff str
 
 let rec mem elt lvl = 
   match elt with
