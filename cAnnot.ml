@@ -1,4 +1,4 @@
-(* CastANet - cRule.ml *)
+(* CastANet - cAnnot.ml *)
 
 open CExt
 
@@ -80,12 +80,12 @@ let m_all_features =
       | `ALL_FEATURES -> all_features
   end in (module M : S)
 
-let get_module = function
+let get = function
   | `COLONIZATION -> m_colonization
   | `ARB_VESICLES -> m_arb_vesicles
   | `ALL_FEATURES -> m_all_features
 
-let get lvl = let open (val (get_module lvl) : S) in get
+let get_rule lvl = let open (val (get lvl) : S) in get
 
 let others elt lvl =
   let str = String.uppercase_ascii (
@@ -93,4 +93,4 @@ let others elt lvl =
     | `CHR chr -> String.make 1 chr
     | `STR str -> str
   ) in 
-  let open (val (get_module lvl) : S) in other str
+  let open (val (get lvl) : S) in other str
