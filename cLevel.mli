@@ -15,8 +15,8 @@ val available_levels : t list
 val chars : t -> char list
 (** Returns the list of valid characters at the given level. *)
 
-val mem : t -> char -> bool
-(** [mem lvl chr] indicates whether level [lvl] contains character [chr]. *)
+val mem : char -> t -> bool
+(** [mem c x] indicates whether character [c] is allowed at level [x]. *)
 
 val all_chars : string
 (** All valid characters, irrespective of their level. *)
