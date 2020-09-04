@@ -10,7 +10,7 @@ module type S = sig
   val get : CLevel.t -> string -> hold * lock
 end
 
-let generator str col arb all =
+let generator ~col ~arb ~all str =
   let module M = struct
     let diff s = if s = "" then str else EStringSet.diff str s
     let get = function
@@ -32,7 +32,7 @@ let m_colonization =
     | "Y" -> "", "X"
     | "N" -> "R", "AVIEHX"
     |  _  -> "X", "AVIEHR"
-  in generator "YNX" ~col ~arb ~all
+  in generator ~col ~arb ~all "YNX"
 
 let m_arb_vesicles =
   let col = function
@@ -48,7 +48,7 @@ let m_arb_vesicles =
     | "V" -> "VR", "X"
     | "N" -> "R", "AVIEHX"
     |  _  -> "X", "AVIEHR"
-  in generator "AVNX" ~col ~arb ~all
+  in generator ~col ~arb ~all "AVNX"
 
 let m_all_features =
   let col = function
@@ -66,7 +66,7 @@ let m_all_features =
     | "E" -> "", "X"
     | "R" -> "", "X"
     |  _  -> "", "AVIEHR"
-  in generator "AVIEHRX" ~col ~arb ~all
+  in generator ~col ~arb ~all "AVIEHRX"
 
 let get = function
   | `COLONIZATION -> m_colonization
@@ -75,7 +75,9 @@ let get = function
 
 let chars lvl = let open (val (get lvl) : S) in diff ""
 
-let char_list lvl = List.init (String.get) (chars lvl)
+let char_list lvl = 
+  let str = chars lvl in
+  String.(List.init (length str) (get str))
 
 (* Not hardcoded, should the list change in the future. *)
 let all_chars =
@@ -84,7 +86,7 @@ let all_chars =
   and all = chars `ALL_FEATURES in
   EStringSet.(union (union col arb) all)
 
-let all_chars_list = List.init (String.get) all_chars
+let all_chars_list = String.(List.init (length all_chars) (get all_chars))
 
 let rule lvl = let open (val (get lvl) : S) in get
 
