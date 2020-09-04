@@ -75,9 +75,7 @@ let get = function
 
 let chars lvl = let open (val (get lvl) : S) in diff ""
 
-let char_list lvl = 
-  let str = chars lvl in
-  String.(List.init (length str) (get str))
+let char_list lvl = EText.explode (chars lvl)
 
 (* Not hardcoded, should the list change in the future. *)
 let all_chars =
@@ -86,7 +84,7 @@ let all_chars =
   and all = chars `ALL_FEATURES in
   EStringSet.(union (union col arb) all)
 
-let all_chars_list = String.(List.init (length all_chars) (get all_chars))
+let all_chars_list = EText.explode all_chars
 
 let rule lvl = let open (val (get lvl) : S) in get
 
