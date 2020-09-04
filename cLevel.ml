@@ -15,32 +15,6 @@ let others = function
   | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
   | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
 
-module Chars = struct
-  let colonization = ['Y'; 'N'; 'X']
-  let arb_vesicles = ['A'; 'V'; 'N'; 'X']
-  let all_features = ['A'; 'V'; 'I'; 'E'; 'H'; 'R'; 'X']
-end
-
-let chars = function
-  | `COLONIZATION -> Chars.colonization
-  | `ARB_VESICLES -> Chars.arb_vesicles
-  | `ALL_FEATURES -> Chars.all_features  
-
-let mem chr =
-  let chr = Char.uppercase_ascii chr in
-  function
-    | `COLONIZATION -> List.mem chr Chars.colonization
-    | `ARB_VESICLES -> List.mem chr Chars.arb_vesicles
-    | `ALL_FEATURES -> List.mem chr Chars.all_features  
-
-let all_chars =
-  let x = EText.implode (chars `COLONIZATION)
-  and y = EText.implode (chars `ARB_VESICLES)
-  and z = EText.implode (chars `ALL_FEATURES) in
-  EStringSet.(union (union x y) z)
-
-let all_chars_list = EText.explode all_chars
-
 module Colors = struct
   let colonization = ["#80b3ff"; "#bec8b7"; "#ffaaaa"]
   let arb_vesicles = ["#80b3ff"; "#afe9c6"; "#bec8b7"; "#ffaaaa"]
