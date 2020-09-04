@@ -26,6 +26,11 @@ let chars = function
   | `ARB_VESICLES -> Chars.arb_vesicles
   | `ALL_FEATURES -> Chars.all_features  
 
+let mem chr = function
+  | `COLONIZATION -> List.mem chr Chars.colonization
+  | `ARB_VESICLES -> List.mem chr Chars.arb_vesicles
+  | `ALL_FEATURES -> List.mem chr Chars.all_features  
+
 let all_chars =
   let x = EText.implode (chars `COLONIZATION)
   and y = EText.implode (chars `ARB_VESICLES)
