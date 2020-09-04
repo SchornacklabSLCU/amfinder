@@ -94,6 +94,13 @@ type changelog = {
   log_hold : (CLevel.t * string) list;
 }
 
+let ensure_not_empty chg =
+  if chg.log_user = []
+  && chg.log_lock = []
+  && chg.log_hold = [] then None
+  else Some chg
+
+
 module Note = struct
   let rec mem chr t = function
     | `USER -> String.contains (CNote.get t `USER) chr
@@ -107,14 +114,18 @@ module Note = struct
       if usermode then begin
         let old = CNote.get note `USER in
         CNote.set note `USER (EStringSet.union old extra);
-        [lvl1, EStringSet.diff extra old], [], []
+        let d = EStringSet.diff extra old in
+        if d = "" then [], [], [] else [lvl1, d], [], []
       end else begin
         let old_lock = CNote.get note `LOCK 
         and old_hold = CNote.get note `HOLD in
         let hold, lock = get_rule lvl1 lvl2 extra in
         CNote.set note `LOCK (EStringSet.union old_lock lock);
         CNote.set note `HOLD (EStringSet.union old_hold hold);
-        EStringSet.([], [lvl1, diff lock old_lock], [lvl1, diff hold old_hold])
+        let dl = diff lock old_lock
+        and dh = diff hold old_hold in
+        EStringSet.([], (if dl = "" then [] else [lvl1, dl]), 
+                        (if dh = "" then [] else [lvl1, dh]))
       end
     in {log_user; log_lock; log_hold}
     
@@ -187,7 +198,7 @@ let add t lvl1 ~r ~c chr =
     let lvl2, lvl3 = other lvl1 in
     let log2 = Note.add lvl1 lvl2 chr (level t lvl2).(r).(c)
     and log3 = Note.add lvl1 lvl3 chr (level t lvl3).(r).(c) in
-    Some Changelog.(add (add log1 log2) log3)
+    ensure_not_empty Changelog.(add (add log1 log2) log3)
   )
 
 (* An annotation can be removed only if it is part of the <user> field.  *)
@@ -198,7 +209,7 @@ let remove t lvl1 ~r ~c chr =
     let lvl2, lvl3 = other lvl1 in
     let log2 = Note.rem lvl1 lvl2 chr (level t lvl2).(r).(c)
     and log3 = Note.rem lvl1 lvl3 chr (level t lvl3).(r).(c) in
-    Some Changelog.(add (add log1 log2) log3)
+    ensure_not_empty Changelog.(add (add log1 log2) log3)
   ) else None
 
 (* TODO: exports simplified tables for Python work. *)
