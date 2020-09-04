@@ -2,10 +2,13 @@
 
 let update_annotations ev =
   begin try
-    let key = Char.uppercase_ascii (GdkEvent.Key.string ev).[0] in
-    if String.contains CAnnot.codes key then CGUI.Toggles.toggle_any key
+    let key = (GdkEvent.Key.string ev).[0] in
+    if CLevel.mem key (CGUI.Annotation_type.current ()) then
+      CGUI.Toggles.toggle_any key
   with _ -> () end;
   false
+
+(*
 
 let icons () =
   CGUI.Layers.iter_radios (fun chr ->
@@ -49,8 +52,9 @@ let window () =
   let callback _ = CAction.load_image toggles; true in
   CGUI.window#event#connect#delete ~callback;
   ()
+*)
 
-let initialize () =
+let initialize () = [||] (*
   List.iter (fun f -> ignore (f ()))
     [icons; keyboard; drawing_area; window];
-  toggles
+  toggles *)
