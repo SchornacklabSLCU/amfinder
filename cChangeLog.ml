@@ -22,7 +22,7 @@ let set chg = function
   | `LOCK -> (fun x -> {chg with lock = x})
   | `HOLD -> (fun x -> {chg with hold = x})
 
-let add chg lay ((lvl, str) as dat) =
+let add lay ((lvl, str) as dat) chg =
   let elt = get chg lay in
   match List.assoc_opt lvl elt with
   | None -> set chg lay (dat :: elt)
@@ -30,7 +30,7 @@ let add chg lay ((lvl, str) as dat) =
     if uni = log (* nothing has changed *) then chg 
     else set chg lay ((lvl, uni) :: List.remove_assoc lvl elt)
 
-let remove chg lay ((lvl, str) as dat) =
+let remove lay ((lvl, str) as dat) chg =
   let elt = get chg lay in
   match List.assoc_opt lvl elt with
   | None -> (* already not there. *) chg
