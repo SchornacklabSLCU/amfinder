@@ -6,9 +6,9 @@ open Printf
 
 type table = {
   main : CLevel.t;
-  colonization : CNote.t EMatrix.t;
-  arb_vesicles : CNote.t EMatrix.t;
-  all_features : CNote.t EMatrix.t;
+  colonization : CTile.t EMatrix.t;
+  arb_vesicles : CTile.t EMatrix.t;
+  all_features : CTile.t EMatrix.t;
   network_pred : (string * float array EMatrix.t) list;
 }
 
@@ -23,8 +23,8 @@ let iter f tbl lvl = EMatrix.iteri f (get_matrix_at_level tbl lvl)
 
 let create ?(main = `COLONIZATION) src =
   let mat = match src with
-    | `DIM (r, c) -> EMatrix.init r c (fun _ _ -> CNote.create ())
-    | `MAT matrix -> EMatrix.map (fun _ -> CNote.create ()) matrix in
+    | `DIM (r, c) -> EMatrix.init r c (fun _ _ -> CTile.create ())
+    | `MAT matrix -> EMatrix.map (fun _ -> CTile.create ()) matrix in
   { main; colonization = mat;
     arb_vesicles = EMatrix.copy mat;
     all_features = EMatrix.copy mat;
@@ -32,10 +32,10 @@ let create ?(main = `COLONIZATION) src =
 
 let to_string tbl lvl =
   let elt = get_matrix_at_level tbl lvl in
-  EMatrix.to_string ~cast:CNote.to_string elt
+  EMatrix.to_string ~cast:CTile.to_string elt
 
 let of_string ~main ~col_table ~arb_table ~all_table = 
-  let f = EMatrix.of_string ~cast:CNote.of_string in
+  let f = EMatrix.of_string ~cast:CTile.of_string in
   { main; colonization = f col_table;
     arb_vesicles = f arb_table;
     all_features = f all_table;
@@ -65,7 +65,7 @@ let load zip =
 let statistics tbl lvl =
   let stats = List.map (fun chr -> chr, ref 0) (CAnnot.char_list lvl) in
   EMatrix.iter (fun t ->
-    let annot = EStringSet.union (CNote.get t `USER) (CNote.get t `HOLD) in
+    let annot = EStringSet.union (CTile.get t `USER) (CTile.get t `HOLD) in
     String.iter (fun c -> incr (List.assoc c stats)) annot
   ) (get_matrix_at_level tbl lvl);
   List.map (fun (chr, r) -> chr, !r) stats
@@ -101,5 +101,9 @@ let save
   Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ?extra:e3;
   (* TODO: insert export here. *)
   Zip.close_out och
+
+
+
+
 
 

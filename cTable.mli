@@ -71,5 +71,5 @@ val statistics : table -> CLevel.t -> (char * int) list
 (** [statistics t lvl] returns the counts for each structure at level [lvl]
   * in table [t]. *)
 
-val iter : (r:int -> c:int -> CNote.t -> unit) -> table -> CLevel.t -> unit
+val iter : (r:int -> c:int -> CTile.t -> unit) -> table -> CLevel.t -> unit
 (** Table iterator. *)
