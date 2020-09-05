@@ -137,8 +137,48 @@ let add tbl lvl ~r ~c chr =
   (* In this case, just adds the annotations. No constraints propagation. *)
   ) else (CTile.add mat.(r).(c) `USER (`CHR chr); None)
 
-let remove tbl lvl ~r ~c chr = None
-
+let remove tbl lvl ~r ~c chr =
+  let mat = get_matrix_at_level tbl lvl in
+  if lvl = main_level tbl then (
+    let tile = mat.(r).(c) in
+    let old_user = CTile.get tile `USER
+    and old_lock = CTile.get tile `LOCK
+    and old_hold = CTile.get tile `HOLD in
+    CTile.remove tile `USER (`CHR chr);
+    let user = CTile.get tile `USER in
+    (* Hold and lock from all remaining annotations.
+     * One cannot simply remove the annotations associated with chr.
+     * Indeed, these constraints may be maintained by other characters. *)
+    let seq = String.to_seq user in
+    let hold, lock = Seq.fold_left 
+      (fun (hold, lock) chr ->
+        let elt_hold, elt_lock = CAnnot.rule lvl lvl chr in
+        EStringSet.(union hold elt_hold , union lock elt_lock)
+      ) ("", "") seq in
+    CTile.set tile `LOCK (`STR lock);
+    CTile.set tile `HOLD (`STR hold);
+    CChangeLog.create ()
+    |> CChangeLog.add `USER (lvl, EStringSet.diff user old_user)
+    |> CChangeLog.add `LOCK (lvl, EStringSet.diff lock old_lock)
+    |> CChangeLog.add `HOLD (lvl, EStringSet.diff hold old_hold)
+    |> List.fold_right
+      (fun alt log -> (* propagates constraints. *)
+        (* TODO annotations added by the user on other layers. *)
+        let alt_tile = (get_matrix_at_level tbl alt).(r).(c) in
+        let old_lock = CTile.get alt_tile `LOCK
+        and old_hold = CTile.get alt_tile `HOLD in
+        let hold, lock = Seq.fold_left
+          (fun (hold, lock) chr ->
+            let elt_hold, elt_lock = CAnnot.rule lvl alt chr in
+            EStringSet.(union hold elt_hold, union lock elt_lock)
+          ) ("", "") seq in      
+        CTile.set tile `LOCK (`STR lock);
+        CTile.set tile `HOLD (`STR hold);
+        CChangeLog.add `LOCK (alt, EStringSet.diff lock old_lock) log
+        |> CChangeLog.add `HOLD (alt, EStringSet.diff hold old_hold)
+      ) (CLevel.others lvl)
+    |> Option.some
+  ) else (CTile.remove mat.(r).(c) `USER (`CHR chr); None)
 
 
 
