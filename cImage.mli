@@ -3,4 +3,7 @@
 (** CastANet image manager. *)
 
 val load : unit -> unit
-(** Loads an image. *)
+(** Loads the image given on the command line, or displays a file chooser
+  * dialogue window where the user can select the image file to open.
+  * The application terminates if no file is selected (see module [CGUI]). *)
+
