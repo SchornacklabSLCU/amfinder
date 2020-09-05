@@ -22,8 +22,9 @@ val lowest : t
 val highest : t
 (** Most detailed level of mycorrhiza annotation. *)
 
-val others : t -> t * t
-(** [other lvl] returns the two other levels than [lvl]. *)
+val others : t -> t list
+(** [other lvl] returns the two other levels than [lvl], sorted from lowest to
+  * highest. *)
 
 val colors : t -> string list
 (** Returns the list of colors at the given level. *)

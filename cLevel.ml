@@ -15,9 +15,9 @@ let lowest = `COLONIZATION
 let highest = `ALL_FEATURES
 
 let others = function
-  | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
-  | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
-  | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
+  | `COLONIZATION -> [`ARB_VESICLES; `ALL_FEATURES]
+  | `ARB_VESICLES -> [`COLONIZATION; `ALL_FEATURES]
+  | `ALL_FEATURES -> [`COLONIZATION; `ARB_VESICLES]
 
 module Colors = struct
   let colonization = ["#80b3ff"; "#bec8b7"; "#ffaaaa"]
