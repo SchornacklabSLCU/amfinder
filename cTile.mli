@@ -28,8 +28,8 @@ val get : t -> layer -> string
 val set : t -> layer -> string -> unit
 (** Updates the annotation at a given layer. *)
 
-val add : t -> layer -> char -> unit
+val add : t -> layer -> [`CHR of char | `STR of string] -> unit
 (** Adds an annotation at the given layer. *)
 
-val remove : t -> layer -> char -> unit
+val remove : t -> layer -> [`CHR of char | `STR of string] -> unit
 (** Removes an annotation from the given layer. *)

@@ -31,6 +31,10 @@ let apply f t = function
   | `LOCK -> (fun x -> t.lock <- f t.lock x)
   | `HOLD -> (fun x -> t.hold <- f t.hold x)
 
+let as_string = function
+  | `CHR chr -> String.make 1 (Char.uppercase_ascii chr)
+  | `STR str -> String.uppercase_ascii str
+
 let set = apply (fun _ x -> x)
-let add = apply (fun x y -> EStringSet.union x (String.make 1 y))
-let remove = apply (fun x y -> EStringSet.diff x (String.make 1 y))
+let add = apply (fun x y -> EStringSet.union x (as_string y))
+let remove = apply (fun x y -> EStringSet.diff x (as_string y))
