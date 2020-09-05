@@ -1,5 +1,6 @@
 (* CastANet - cTile.ml *)
 
+open CExt
 open Scanf
 open Printf
 
@@ -25,7 +26,11 @@ let get t = function
   | `LOCK -> t.lock
   | `HOLD -> t.hold
 
-let set t = function
-  | `USER -> (fun x -> t.user <- x)
-  | `LOCK -> (fun x -> t.lock <- x)
-  | `HOLD -> (fun x -> t.hold <- x)
+let apply f t = function
+  | `USER -> (fun x -> t.user <- f t.user x)
+  | `LOCK -> (fun x -> t.lock <- f t.lock x)
+  | `HOLD -> (fun x -> t.hold <- f t.hold x)
+
+let set = apply (fun _ x -> x)
+let add = apply (fun x y -> EStringSet.union x (String.make 1 y))
+let remove = apply (fun x y -> EStringSet.diff x (String.make 1 y))

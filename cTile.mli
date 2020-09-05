@@ -27,3 +27,9 @@ val get : t -> layer -> string
 
 val set : t -> layer -> string -> unit
 (** Updates the annotation at a given layer. *)
+
+val add : t -> layer -> char -> unit
+(** Adds an annotation at the given layer. *)
+
+val remove : t -> layer -> char -> unit
+(** Removes an annotation from the given layer. *)
