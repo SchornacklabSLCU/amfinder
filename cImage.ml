@@ -28,21 +28,20 @@ type sizes = { small : tiles; large : tiles }
 
 (* Graphical properties (number of rows and columns, width/height, etc.). *)
 type graph = {
-  rows : int;
-  cols : int;
-  xini : int;
-  yini : int;
-  imgw : int;
-  imgh : int;
+  rows : int; cols : int;
+  xini : int; yini : int;
+  imgw : int; imgh : int;
   mutable cursor : int * int;
 }
 
-type t = {
-  fpath : string;
-  sizes : sizes;
-  table : CTable.table;
-  graph : graph;
-}
+(* CastANet images consist of two mosaics of square tiles (to populate the two
+ * sides of the interface), a set of multi-level annotations (defined by the
+ * user or constrained by annotation rules), and graphical properties (to
+ * ensure proper display on the main window). *)
+type t = { fpath : string; sizes : sizes; table : CTable.table; graph : graph }
+
+
+
 
 (* garbage? 
 let cursor_pos t = t.graph.cursor
@@ -187,13 +186,17 @@ end
 
 
 let load () =
+  (* Retrieve the image path from the command line or displays
+   * a file chooser dialogue window. *)
   Par.initialize ();
   let path = match !Par.image_path with
     | None -> GUI_FileChooserDialog.run ()
     | Some path -> path in
+  (* Displays the main window in order to retrieve drawing parameters. *)
   CGUI.window#show ();
   let ui_width = GUI_Drawing.width ()
   and ui_height = GUI_Drawing.height () in
+  (* Loads the image, creates tiles and populates the main window. *)
   let t = create ~ui_width ~ui_height path in
   active_image := Some t;
   Paint.white_background ~sync:false ();
