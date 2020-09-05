@@ -104,5 +104,43 @@ let save
 
 let get tbl lvl ~r ~c = (get_matrix_at_level tbl lvl).(r).(c)
 
+let add tbl lvl ~r ~c chr =
+  let mat = get_matrix_at_level tbl lvl in
+  (* In this case, adds the annotations and propagate constraints. *)
+  if lvl = main_level tbl then (
+    let user = String.make 1 chr
+    and hold, lock = CAnnot.rule lvl lvl chr in
+    let tile = mat.(r).(c) in
+    let old_user = CTile.get tile `USER
+    and old_lock = CTile.get tile `LOCK
+    and old_hold = CTile.get tile `HOLD in
+    CTile.set tile `USER (`CHR chr);
+    CTile.set tile `LOCK (`STR lock);
+    CTile.set tile `HOLD (`STR hold);
+    CChangeLog.create ()
+    |> CChangeLog.add `USER (lvl, EStringSet.diff user old_user)
+    |> CChangeLog.add `LOCK (lvl, EStringSet.diff lock old_lock)
+    |> CChangeLog.add `HOLD (lvl, EStringSet.diff hold old_hold)
+    |> List.fold_right
+      (fun alt log -> (* propagates constraints. *)
+        (* TODO annotations added by the user on other layers. *)
+        let alt_tile = (get_matrix_at_level tbl alt).(r).(c) in
+        let old_lock = CTile.get alt_tile `LOCK
+        and old_hold = CTile.get alt_tile `HOLD in
+        let hold, lock = CAnnot.rule lvl alt chr in
+        CTile.set tile `LOCK (`STR lock);
+        CTile.set tile `HOLD (`STR hold);
+        CChangeLog.add `LOCK (alt, EStringSet.diff lock old_lock) log
+        |> CChangeLog.add `HOLD (alt, EStringSet.diff hold old_hold)
+      ) (CLevel.others lvl)
+    |> Option.some
+  (* In this case, just adds the annotations. No constraints propagation. *)
+  ) else (CTile.add mat.(r).(c) `USER (`CHR chr); None)
+
+let remove tbl lvl ~r ~c chr = None
+
+
+
+
 
 
