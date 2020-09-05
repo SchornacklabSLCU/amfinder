@@ -8,6 +8,9 @@ type t
 val create : unit -> t
 (** Creates an empty change log. *)
 
+val is_empty : t -> bool
+(** Indicates whether the change log is empty. *)
+
 val add : t -> CNote.layer -> CLevel.t * string -> t
 (** [add log t (lvl, str)] adds annotations [str] at level [lvl] in layer [t]
   * of changelog [log]. The changelog is left unchanged if annotations [str]

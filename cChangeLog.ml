@@ -10,6 +10,8 @@ type t = {
 
 let create () = {user = []; lock = []; hold = []}
 
+let is_empty {user; lock; hold} = user = [] && lock = [] && hold = []
+
 let get chg = function
   | `USER -> chg.user
   | `LOCK -> chg.lock
