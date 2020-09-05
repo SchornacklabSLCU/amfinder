@@ -70,7 +70,7 @@ module Box = struct
 end
 
 
-module GLevel = struct
+module GUI_levels = struct
   let curr = ref CLevel.lowest
   let current () = !curr
   let make_radio group str lvl =
@@ -174,11 +174,11 @@ module GToggles = struct
     let module T = (val mdl : Toolbox.TOGGLE) in
     let widget = T.table#coerce in
     packing widget;
-    GLevel.curr := typ;
+    GUI_levels.curr := typ;
     current_widget := Some widget
 
   let current_toggles () =
-    let current_toolbox = List.assoc !GLevel.curr toolboxes in
+    let current_toolbox = List.assoc !GUI_levels.curr toolboxes in
     let module T = (val current_toolbox : Toolbox.TOGGLE) in
     T.toggles
 
@@ -228,7 +228,7 @@ module GToggles = struct
       radio#connect#toggled ~callback:(fun () ->
         if radio#active then attach typ
       ); ()
-    ) GLevel.radios;
+    ) GUI_levels.radios;
     (* Initializes the callback function that activate or deactivate toggle
      * buttons based on key pressed and CAnnot-defined constraints. *)
     iter (fun _ chr toggle _ ->
@@ -260,7 +260,7 @@ module GMagnify = struct
 end
 
 
-module GThumbnail = struct
+module GUI_Drawing = struct
   let area = 
     let packing = Pane.right#attach ~left:0 ~top:0 in
     let packing = (GBin.frame ~width:600 ~packing ())#add in
@@ -394,7 +394,7 @@ module GLayers = struct
     current_widget := Some widget
  
   let current_radios () =
-    let toolbox = List.assoc !GLevel.curr toolboxes in
+    let toolbox = List.assoc !GUI_levels.curr toolboxes in
     let open (val toolbox : Toolbox.RADIO) in radios
 
   let get_joker () = current_radios ()
@@ -439,7 +439,7 @@ let _ =
     radio#connect#toggled ~callback:(fun () ->
       if radio#active then GLayers.attach typ
     ); ()
-  ) GLevel.radios
+  ) GUI_levels.radios
 
 
 let status = 
@@ -543,7 +543,7 @@ module GTileSet = struct
 end
 
 
-module GImageList = struct
+module GUI_FileChooserDialog = struct
   let jpeg = GFile.filter ~name:"JPEG image" ~mime_types:["image/jpeg"] ()
   let tiff = GFile.filter ~name:"TIFF image" ~mime_types:["image/tiff"] ()
 

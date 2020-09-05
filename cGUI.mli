@@ -7,7 +7,7 @@ val window : GWindow.window
 
 
 (** Annotation types. *)
-module GLevel : sig 
+module GUI_levels : sig 
   val current : unit -> CLevel.t
   (** Returns the active annotation level. *)
 
@@ -49,7 +49,7 @@ end
 
 
 (** Whole image (right pane). *)
-module GThumbnail : sig
+module GUI_Drawing : sig
   val area : GMisc.drawing_area
   (** Drawing area were the whole image is displayed. *)
 
@@ -150,7 +150,7 @@ end
   * provided on the command line) as well as when the main window is closed.
   * Users can therefore load successive images without closing the application,
   * but only one image is active at a time. *)
-module GImageList : sig
+module GUI_FileChooserDialog : sig
   val jpeg : GFile.filter
   (** File filter for JPEG images. *)
   

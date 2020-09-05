@@ -30,7 +30,7 @@ let add lay ((lvl, str) as dat) chg =
     if uni = log (* nothing has changed *) then chg 
     else set chg lay ((lvl, uni) :: List.remove_assoc lvl elt)
 
-let remove lay ((lvl, str) as dat) chg =
+let remove lay (lvl, str) chg =
   let elt = get chg lay in
   match List.assoc_opt lvl elt with
   | None -> (* already not there. *) chg
