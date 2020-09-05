@@ -11,6 +11,9 @@ val create : unit -> t
 val is_empty : t -> bool
 (** Indicates whether the change log is empty. *)
 
+val get : t -> CNote.layer -> (CLevel.t * string) list
+(** [get chg t] returns the changes at layer [t] in changelog [chg]. *)
+
 val add : t -> CNote.layer -> CLevel.t * string -> t
 (** [add log t (lvl, str)] adds annotations [str] at level [lvl] in layer [t]
   * of changelog [log]. The changelog is left unchanged if annotations [str]
