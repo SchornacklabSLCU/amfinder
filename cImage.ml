@@ -188,8 +188,7 @@ end
 
 
 let load () =
-  (* Retrieve the image path from the command line or displays
-   * a file chooser dialogue window. *)
+  (* Retrieves an image path from the command line or from a file chooser. *)
   Par.initialize ();
   let path = match !Par.image_path with
     | None -> GUI_FileChooserDialog.run ()
