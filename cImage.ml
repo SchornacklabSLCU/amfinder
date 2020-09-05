@@ -123,7 +123,9 @@ module Create = struct
     else CTable.create (`MAT tiles) 
 end
 
-let create ~ui_width:uiw ~ui_height:uih fpath =
+let create fpath =
+  let uiw = GUI_Drawing.width ()
+  and uih = GUI_Drawing.height () in
   let pix = GdkPixbuf.from_file fpath in
   let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
   let edge = !Par.edge in
@@ -195,9 +197,7 @@ let load () =
   (* Displays the main window in order to retrieve drawing parameters. *)
   CGUI.window#show ();
   (* Loads the image, creates tiles and populates the main window. *)
-  let t = create
-    ~ui_width:(GUI_Drawing.width ())
-    ~ui_height:(GUI_Drawing.height ()) path in
+  let t = create path in
   active_image := Some t;
   Paint.white_background ~sync:false ();
   Paint.tiles t;
