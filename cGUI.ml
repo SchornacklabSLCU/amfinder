@@ -128,7 +128,7 @@ module GToggles = struct
     chr, {toggle; image}
 
   let make_toolbox typ =
-    let code_list = CLevel.chars typ in
+    let code_list = CAnnot.char_list typ in
     let module T = struct
       let table = GPack.table
         ~rows:1 ~columns:(List.length code_list)
@@ -143,7 +143,7 @@ module GToggles = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CLevel.available_levels
+    ) CLevel.flags
 
   let iter f =
     List.iter (fun (typ, mdl) ->
@@ -182,7 +182,7 @@ module GToggles = struct
     let module T = (val current_toolbox : Toolbox.TOGGLE) in
     T.toggles
 
-  let apply any chr = String.index CLevel.all_chars chr
+  let apply any chr = String.index CAnnot.all_chars chr
     |> Array.get (current_toggles ())
     |> snd
     |> (fun {toggle; _} -> any toggle)
@@ -237,7 +237,7 @@ module GToggles = struct
 end
 
 
-module Magnify = struct
+module GMagnify = struct
   let rows = 3
   let columns = 3
   let edge = CCore.edge
@@ -260,7 +260,7 @@ module Magnify = struct
 end
 
 
-module Thumbnail = struct
+module GThumbnail = struct
   let area = 
     let packing = Pane.right#attach ~left:0 ~top:0 in
     let packing = (GBin.frame ~width:600 ~packing ())#add in
@@ -319,7 +319,7 @@ let make_toolbar_and_labels ~top ~title ~vsp1 ~vsp2 ~lbl1 ~lbl2 =
     let label_2 = ToolItem.label ~vspace:vsp2 packing lbl2
   end in (module M : Toolbox.LABEL)
 
-module Coords = struct
+module GCoords = struct
   let lbl = make_toolbar_and_labels
     ~top:0 ~title:"Coordinates" 
     ~vsp1:false ~vsp2:false
@@ -330,7 +330,7 @@ module Coords = struct
   let column = label_2
 end
 
-module Stats = struct
+module GStats = struct
   let lbl = make_toolbar_and_labels
     ~top:1 ~title:"Confidence"
     ~vsp1:true ~vsp2:false
@@ -342,7 +342,7 @@ module Stats = struct
 end
 
 
-module Layers = struct
+module GLayers = struct
   let add_item packing a_ref g_ref i chr =
     let active = !a_ref and group = !g_ref in
     let radio = GButton.radio_tool_button ~active ?group ~packing () in
@@ -356,7 +356,7 @@ module Layers = struct
     chr, {radio; label; image}
 
   let make_toolbox typ =
-    let code_list = '*' :: CLevel.chars typ in
+    let code_list = '*' :: CAnnot.char_list typ in
     let module T = struct
       let table = GButton.toolbar
         ~orientation:`VERTICAL
@@ -374,7 +374,7 @@ module Layers = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CLevel.available_levels
+    ) CLevel.flags
 
   let current_widget = ref None
 
@@ -434,10 +434,10 @@ let _ =
   (* Initializes the annotation toolbar using the lightweight annotation style
    * `COLONIZATION, and initiates the callback function that updates the UI
    * according to the active radio button. *)
-  Layers.attach `COLONIZATION;
+  GLayers.attach `COLONIZATION;
   List.iter (fun (typ, radio) ->
     radio#connect#toggled ~callback:(fun () ->
-      if radio#active then Layers.attach typ
+      if radio#active then GLayers.attach typ
     ); ()
   ) GLevel.radios
 
@@ -449,7 +449,7 @@ let status =
   lbl
 
 
-module TileSet = struct
+module GTileSet = struct
   let cols = new GTree.column_list
   let coords = cols#add Gobject.Data.string
   let pixbuf = cols#add (Gobject.Data.gobject_by_name "GdkPixbuf")
@@ -543,7 +543,7 @@ module TileSet = struct
 end
 
 
-module ImageList = struct
+module GImageList = struct
   let jpeg = GFile.filter ~name:"JPEG image" ~mime_types:["image/jpeg"] ()
   let tiff = GFile.filter ~name:"TIFF image" ~mime_types:["image/tiff"] ()
 

@@ -40,7 +40,7 @@ end
 
 
 (** Magnified view of the cursor area. *)
-module Magnify : sig
+module GMagnify : sig
   val tiles : GMisc.image array array
   (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
     * annotations shown in [HToolbox] correspond to the central tile. *)
@@ -49,7 +49,7 @@ end
 
 
 (** Whole image (right pane). *)
-module Thumbnail : sig
+module GThumbnail : sig
   val area : GMisc.drawing_area
   (** Drawing area were the whole image is displayed. *)
 
@@ -71,7 +71,7 @@ end
 
 
 (** TODO: documentation *)
-module Layers : sig
+module GLayers : sig
   val get_active : unit -> char
   (** Indicates which layer is currently active. *)
 
@@ -94,7 +94,7 @@ end
 
 (** Vertical toolbar which displays the coordinates (row and column) of the 
   * cursor. *)
-module Coords : sig
+module GCoords : sig
   val toolbar : GButton.toolbar
   (** Main container. *)
 
@@ -108,7 +108,7 @@ end
 
 (** Vertical toolbar which displays the confidence of the neural network 
   * predictions. *)
-module Stats : sig
+module GStats : sig
   val toolbar : GButton.toolbar
   (** Main container. *)
 
@@ -130,7 +130,7 @@ val status : GMisc.label
 
 
 (** Auxiliary window to display all tiles sharing a given annotation. *)
-module TileSet : sig
+module GTileSet : sig
   val add : r:int -> c:int -> ico:GdkPixbuf.pixbuf -> GdkPixbuf.pixbuf -> unit
   (** [add r c pix] adds the tile [pix] using coordinates [(r, c)] as legend. *)
 
@@ -150,7 +150,7 @@ end
   * provided on the command line) as well as when the main window is closed.
   * Users can therefore load successive images without closing the application,
   * but only one image is active at a time. *)
-module ImageList : sig
+module GImageList : sig
   val jpeg : GFile.filter
   (** File filter for JPEG images. *)
   
