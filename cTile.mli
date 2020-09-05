@@ -25,7 +25,7 @@ val to_string : t -> string
 val get : t -> layer -> string
 (** Retrieves an annotation at a given layer. *)
 
-val set : t -> layer -> string -> unit
+val set : t -> layer -> [`CHR of char | `STR of string] -> unit
 (** Updates the annotation at a given layer. *)
 
 val add : t -> layer -> [`CHR of char | `STR of string] -> unit

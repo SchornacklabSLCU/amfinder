@@ -35,6 +35,6 @@ let as_string = function
   | `CHR chr -> String.make 1 (Char.uppercase_ascii chr)
   | `STR str -> String.uppercase_ascii str
 
-let set = apply (fun _ x -> x)
+let set = apply (fun _ -> as_string)
 let add = apply (fun x y -> EStringSet.union x (as_string y))
 let remove = apply (fun x y -> EStringSet.diff x (as_string y))
