@@ -581,6 +581,6 @@ module GUI_FileChooserDialog = struct
       dialog#misc#hide ();
       (* Should not raise an error.
        * The open button is not active when no file is selected. *)
-      Option.get dialog#filename with
+      Option.get dialog#filename
     ) else exit 0
 end
