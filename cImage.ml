@@ -169,7 +169,7 @@ let digest t =
 
 
 module Paint = struct
-  let white_background () =
+  let white_background ?(sync = true) () =
     let t = GUI_Drawing.cairo () in
     Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
     let w = float (GUI_Drawing.width ()) 
@@ -177,9 +177,9 @@ module Paint = struct
     Cairo.rectangle t 0.0 0.0 ~w ~h;
     Cairo.fill t;
     Cairo.stroke t;
-    GUI_Drawing.synchronize ()
+    if sync then GUI_Drawing.synchronize ()
 
-  let tiles t =
+  let tiles ?(sync = true) t =
     let pixmap = GUI_Drawing.pixmap ()
     and xini = Mosaic.origin t `X
     and yini = Mosaic.origin t `Y
@@ -190,7 +190,7 @@ module Paint = struct
         ~y:(yini + r * edge)
         ~width:edge ~height:edge tile
     ) t `SMALL;
-    GUI_Drawing.synchronize ()
+    if sync then GUI_Drawing.synchronize ()
 end
 
 
@@ -204,6 +204,6 @@ let load () =
   and ui_height = GUI_Drawing.height () in
   let t = create ~ui_width ~ui_height path in
   active_image := Some t;
-  Paint.white_background ();
+  Paint.white_background ~sync:false ();
   Paint.tiles t;
   CGUI.status#set_label (digest t)
