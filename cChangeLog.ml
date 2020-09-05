@@ -35,5 +35,5 @@ let remove lay ((lvl, str) as dat) chg =
   match List.assoc_opt lvl elt with
   | None -> (* already not there. *) chg
   | Some log -> let rem = List.remove_assoc lvl elt
-    and dif = EStringSet.dif log str in
+    and dif = EStringSet.diff log str in
     set chg lay (if str = "*" || dif = "" then rem else (lvl, dif) :: rem)
