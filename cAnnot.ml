@@ -86,7 +86,17 @@ let all_chars =
 
 let all_chars_list = EText.explode all_chars
 
-let rule lvl = let open (val (get lvl) : S) in get
+let rule_of_char lvl = let open (val (get lvl) : S) in get
+
+let rule_of_string lv1 lv2 str =
+  Seq.fold_left (fun (x1, y1) chr ->
+    let x2, y2 = rule_of_char lv1 lv2 chr in
+    EStringSet.(union x1 x2, union y1 y2)
+  ) ("", "") (String.to_seq str)
+
+let rule lv1 lv2 = function
+  | `CHR chr -> rule_of_char lv1 lv2 chr
+  | `STR str -> rule_of_string lv1 lv2 str
 
 let others elt lvl =
   let str = match elt with

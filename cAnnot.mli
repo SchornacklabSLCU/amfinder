@@ -17,10 +17,15 @@ val all_chars : string
 val all_chars_list : char list
 (** Same as above, but returns a list of characters. *)
 
-val rule : CLevel.t -> CLevel.t -> char -> hold * lock
-(** [rule lvl1 lvl2 chr] returns the characters that are locked or on hold
-  * when character [chr] gets activated between levels [lvl1] and [lvl2]. *)
-  
+val rule : 
+  CLevel.t -> 
+  CLevel.t -> 
+  [`CHR of char | `STR of string] -> hold * lock
+(** [rule lvl1 lvl2 elt] returns the characters that are locked or on hold
+  * when the element [elt] gets activated between levels [lvl1] and [lvl2].
+  * [elt] can be a single character or a string. In the latter case, the
+  * rules associated with individual characters are combined. *)
+
 val others : [ `CHR of char | `STR of string ] -> CLevel.t -> string
 (** Returns the string containing all characters *)
 
