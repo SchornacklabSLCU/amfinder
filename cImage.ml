@@ -19,25 +19,17 @@ module ImageOps = struct
     dest
 end
 
-type tiles = GdkPixbuf.pixbuf EMatrix.t
+(* Images are represented as mosaics of square tiles. *)
+type tiles = { edge : int; matrix : GdkPixbuf.pixbuf EMatrix.t }
 
-type mosaic = {
-  edge : int;
-  matrix : tiles;
-}
- 
-type sizes = {
-  small : mosaic;
-  large : mosaic;
-}
+(* Large tiles are used in the "zoomed in" area on the left side of the 
+ * interface, while small tiles are drawn on the right side. *)
+type sizes = { small : tiles; large : tiles }
 
-type param = {
-  path : string; 
-  rows : int; 
-  cols : int;
-}
-
+(* Graphical properties (number of rows and columns, width/height, etc.). *)
 type graph = {
+  rows : int;
+  cols : int;
   xini : int;
   yini : int;
   imgw : int;
@@ -46,7 +38,7 @@ type graph = {
 }
 
 type t = {
-  param : param;
+  fpath : string;
   sizes : sizes;
   table : CTable.table;
   graph : graph;
@@ -76,7 +68,7 @@ module Par = struct
 end
 
 module Info = struct
-  let path t = t.param.path
+  let path t = t.fpath
   let basename t = Filename.basename (path t)
   let dirname t = Filename.dirname (path t)
 end
@@ -91,8 +83,8 @@ module Mosaic = struct
     | `Y -> t.graph.yini
 
   let dim t = function
-    | `R -> t.param.rows
-    | `C -> t.param.cols
+    | `R -> t.graph.rows
+    | `C -> t.graph.cols
 
   let edge t = function
     | `SMALL -> t.sizes.small.edge 
@@ -132,26 +124,26 @@ module Create = struct
     else CTable.create (`MAT tiles) 
 end
 
-let create ~ui_width:uiw ~ui_height:uih path =
-  let pix = GdkPixbuf.from_file path in
+let create ~ui_width:uiw ~ui_height:uih fpath =
+  let pix = GdkPixbuf.from_file fpath in
   let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
   let edge = !Par.edge in
   let rows = imgh / edge and cols = imgw / edge in
   let large = Create.large_tile_matrix rows cols edge pix in
   let sub = min (uiw / cols) (uih / rows) in
   let small = Create.small_tile_matrix sub large in
-  let table = Create.annotations path small in
-  let graph = {
+  let table = Create.annotations fpath small in
+  let graph = { rows; cols;
     imgw; imgh; cursor = (0, 0);
     xini = (uiw - sub * cols) / 2;
     yini = (uih - sub * rows) / 2;
   } and sizes = {
     small = {edge = sub; matrix = small};
     large = {edge = 180; matrix = large};
-  } and param = {path; rows; cols} in
-  let img = { param; sizes; graph; table } in
+  } in
+  let img = { fpath; sizes; graph; table } in
   CPalette.set_tile_edge sub;
-  CLog.info "source image: '%s'" path;
+  CLog.info "source image: '%s'" fpath;
   CLog.info "source image size: %d x %d pixels" imgw imgh;
   CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
   img
