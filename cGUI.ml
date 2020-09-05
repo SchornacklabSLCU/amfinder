@@ -579,8 +579,8 @@ module GUI_FileChooserDialog = struct
   let run () =
     if dialog#run () = `OPEN then (
       dialog#misc#hide ();
-      match dialog#filename with
-      | Some path -> path
-      | _ -> assert false (* `The OPEN button is not active in this case. *)
+      (* Should not raise an error.
+       * The open button is not active when no file is selected. *)
+      Option.get dialog#filename with
     ) else exit 0
 end
