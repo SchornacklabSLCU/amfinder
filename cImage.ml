@@ -194,10 +194,10 @@ let load () =
     | Some path -> path in
   (* Displays the main window in order to retrieve drawing parameters. *)
   CGUI.window#show ();
-  let ui_width = GUI_Drawing.width ()
-  and ui_height = GUI_Drawing.height () in
   (* Loads the image, creates tiles and populates the main window. *)
-  let t = create ~ui_width ~ui_height path in
+  let t = create
+    ~ui_width:(GUI_Drawing.width ())
+    ~ui_height:(GUI_Drawing.height ()) path in
   active_image := Some t;
   Paint.white_background ~sync:false ();
   Paint.tiles t;
