@@ -104,6 +104,7 @@ let save
 
 let get tbl lvl ~r ~c = (get_matrix_at_level tbl lvl).(r).(c)
 
+(* FIXME: The two functions below look very similar and may be combined. *)
 let add tbl lvl ~r ~c chr =
   let mat = get_matrix_at_level tbl lvl in
   (* In this case, adds the annotations and propagate constraints. *)
