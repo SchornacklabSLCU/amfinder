@@ -92,13 +92,13 @@ let save
   and c2 = Digest.string d2
   and c3 = Digest.string d3 in
   let e1, e2, e3 = match main_level t with
-    | `COLONIZATION -> "main", "", ""
-    | `ARB_VESICLES -> "", "main", ""
-    | `ALL_FEATURES -> "", "", "main" in
+    | `COLONIZATION -> Some "main", None, None
+    | `ARB_VESICLES -> None, Some "main", None
+    | `ALL_FEATURES -> None, None, Some "main" in
   let och = Zip.open_out zip in
-  Zip.add_entry d1 och "colonization.mldata" ~comment:c1 ~extra:e1;
-  Zip.add_entry d2 och "arb_vesicles.mldata" ~comment:c2 ~extra:e2;
-  Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ~extra:e3;
+  Zip.add_entry d1 och "colonization.mldata" ~comment:c1 ?extra:e1;
+  Zip.add_entry d2 och "arb_vesicles.mldata" ~comment:c2 ?extra:e2;
+  Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ?extra:e3;
   (* TODO: insert export here. *)
   Zip.close_out och
 
