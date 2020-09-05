@@ -109,7 +109,7 @@ let add tbl lvl ~r ~c chr =
   (* In this case, adds the annotations and propagate constraints. *)
   if lvl = main_level tbl then (
     let user = String.make 1 chr
-    and hold, lock = CAnnot.rule lvl lvl chr in
+    and hold, lock = CAnnot.rule lvl lvl (`CHR chr) in
     let tile = mat.(r).(c) in
     let old_user = CTile.get tile `USER
     and old_lock = CTile.get tile `LOCK
@@ -127,7 +127,7 @@ let add tbl lvl ~r ~c chr =
         let alt_tile = (get_matrix_at_level tbl alt).(r).(c) in
         let old_lock = CTile.get alt_tile `LOCK
         and old_hold = CTile.get alt_tile `HOLD in
-        let hold, lock = CAnnot.rule lvl alt chr in
+        let hold, lock = CAnnot.rule lvl alt (`CHR chr) in
         CTile.set tile `LOCK (`STR lock);
         CTile.set tile `HOLD (`STR hold);
         CChangeLog.add `LOCK (alt, EStringSet.diff lock old_lock) log
@@ -146,15 +146,8 @@ let remove tbl lvl ~r ~c chr =
     and old_hold = CTile.get tile `HOLD in
     CTile.remove tile `USER (`CHR chr);
     let user = CTile.get tile `USER in
-    (* Hold and lock from all remaining annotations.
-     * One cannot simply remove the annotations associated with chr.
-     * Indeed, these constraints may be maintained by other characters. *)
-    let seq = String.to_seq user in
-    let hold, lock = Seq.fold_left 
-      (fun (hold, lock) chr ->
-        let elt_hold, elt_lock = CAnnot.rule lvl lvl chr in
-        EStringSet.(union hold elt_hold , union lock elt_lock)
-      ) ("", "") seq in
+    (* Hold and lock from all remaining annotations. *)
+    let hold, lock = CAnnot.rule lvl lvl (`STR user) in
     CTile.set tile `LOCK (`STR lock);
     CTile.set tile `HOLD (`STR hold);
     CChangeLog.create ()
@@ -167,11 +160,7 @@ let remove tbl lvl ~r ~c chr =
         let alt_tile = (get_matrix_at_level tbl alt).(r).(c) in
         let old_lock = CTile.get alt_tile `LOCK
         and old_hold = CTile.get alt_tile `HOLD in
-        let hold, lock = Seq.fold_left
-          (fun (hold, lock) chr ->
-            let elt_hold, elt_lock = CAnnot.rule lvl alt chr in
-            EStringSet.(union hold elt_hold, union lock elt_lock)
-          ) ("", "") seq in      
+        let hold, lock = CAnnot.rule lvl alt (`STR user) in  
         CTile.set tile `LOCK (`STR lock);
         CTile.set tile `HOLD (`STR hold);
         CChangeLog.add `LOCK (alt, EStringSet.diff lock old_lock) log
@@ -179,8 +168,3 @@ let remove tbl lvl ~r ~c chr =
       ) (CLevel.others lvl)
     |> Option.some
   ) else (CTile.remove mat.(r).(c) `USER (`CHR chr); None)
-
-
-
-
-
