@@ -156,18 +156,6 @@ module EColor : sig
 end
 
 
-(** Image (Gdkpixbuf) manipulation. *)
-module EImage : sig
-  open GdkPixbuf
-
-  val crop_square : src_x:int -> src_y:int -> edge:int -> pixbuf -> pixbuf
-  (** Crop a square from the given pixbuf. *)
-  
-  val resize : ?interp:interpolation -> edge:int -> pixbuf -> pixbuf
-  (** Resize an image. By default, uses nearest-neighbor interpolation. *)
-end
-
-
 (** Drawing functions. *)
 module EDraw : sig
   val square : ?clr:string -> ?a:float -> int -> Cairo.Surface.t
