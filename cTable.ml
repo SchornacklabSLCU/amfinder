@@ -102,8 +102,7 @@ let save
   (* TODO: insert export here. *)
   Zip.close_out och
 
-
-
+let get tbl lvl ~r ~c = (get_matrix_at_level tbl lvl).(r).(c)
 
 
 

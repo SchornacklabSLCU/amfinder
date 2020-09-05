@@ -46,6 +46,10 @@ val save : ?export:bool -> ?flags:export_flag list -> table -> string -> unit
 
 (** {2 Edition} *)
 
+val get : table -> CLevel.t -> r:int -> c:int -> CTile.t
+(** [get t lvl ~r ~c] returns the annotations at row [r] and column [c] in 
+  * layer [lvl] of table [t]. *)
+
 (*val add : table -> CLevel.t -> r:int -> c:int -> char -> CChangeLog.t option
 (** [add t x ~r ~c chr] adds annotation [chr] at row [r] and column [c] in
   * level [x]-matrix of table [t], and returns a changelog of altered 
@@ -56,10 +60,9 @@ val remove : table -> CLevel.t -> r:int -> c:int -> char -> CChangeLog.t option
 (** Same arguments as [add], but this function tries and remove a given 
   * annotation from a given tile. Again the changelog indicates the triggered 
   * modifications. *)
+*)
 
-val get : table -> CLevel.t -> r:int -> c:int -> CNote.layer -> string
-(** [get t lvl ~r ~c nt] returns the annotations of type [nt] at row [r] and
-  * column [c] in layer [lvl] of table [t]. *)*)
+
 
 
 (** {2 Misc operations} *)
