@@ -199,6 +199,8 @@ let load () =
   (* Loads the image, creates tiles and populates the main window. *)
   let t = create path in
   active_image := Some t;
+  (* Draws the white background and the tiles, then adds image information
+   * to the status bar. *)
   Paint.white_background ~sync:false ();
   Paint.tiles t;
   CGUI.status#set_label (digest t)
