@@ -41,8 +41,6 @@ type graph = {
 type t = { fpath : string; sizes : sizes; table : CTable.table; graph : graph }
 
 
-
-
 (* garbage? 
 let cursor_pos t = t.graph.cursor
 let set_cursor_pos t pos = t.graph.cursor <- pos
@@ -104,6 +102,47 @@ module Iter = struct
 end
 
 
+module Paint = struct
+  let white_background ?(sync = true) () =
+    let t = GUI_Drawing.cairo () in
+    Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
+    let w = float (GUI_Drawing.width ()) 
+    and h = float (GUI_Drawing.height ()) in
+    Cairo.rectangle t 0.0 0.0 ~w ~h;
+    Cairo.fill t;
+    Cairo.stroke t;
+    if sync then GUI_Drawing.synchronize ()
+
+  let tiles ?(sync = true) t =
+    let pixmap = GUI_Drawing.pixmap ()
+    and xini = Mosaic.origin t `X
+    and yini = Mosaic.origin t `Y
+    and edge = Mosaic.edge t `SMALL in
+    Iter.tiles (fun ~r ~c tile ->
+      pixmap#put_pixbuf
+        ~x:(xini + c * edge)
+        ~y:(yini + r * edge)
+        ~width:edge ~height:edge tile
+    ) t `SMALL;
+    if sync then GUI_Drawing.synchronize ()
+
+  let square ?(alpha = 1.0) typ edge =
+    let edge = if edge > 0 then edge else invalid_arg "CImage.Paint.square" in    
+    let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
+    let t = Cairo.create surface in
+    Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
+    let clr = match typ with `CURSOR -> "#cc0000" | `RGB rgb -> rgb in
+    let r, g, b = EColor.html_to_float clr
+    and a = if alpha >= 0.0 && alpha <= 1.0 then alpha else 1.0 in
+    Cairo.set_source_rgba t r g b a;
+    let edge = float edge in
+    Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
+    Cairo.fill t;
+    Cairo.stroke t;
+    surface
+end
+
+
 
 
 
@@ -124,8 +163,7 @@ module Create = struct
 end
 
 let create fpath =
-  let uiw = GUI_Drawing.width ()
-  and uih = GUI_Drawing.height () in
+  let uiw, uih = GUI_Drawing.(width (), height ()) in
   let pix = GdkPixbuf.from_file fpath in
   let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
   let edge = !Par.edge in
@@ -159,33 +197,6 @@ let digest t =
     (Info.basename t)
     (Mosaic.source t `W) (Mosaic.source t `H)
     (Mosaic.dim t `R) (Mosaic.dim t `C)
-
-
-module Paint = struct
-  let white_background ?(sync = true) () =
-    let t = GUI_Drawing.cairo () in
-    Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
-    let w = float (GUI_Drawing.width ()) 
-    and h = float (GUI_Drawing.height ()) in
-    Cairo.rectangle t 0.0 0.0 ~w ~h;
-    Cairo.fill t;
-    Cairo.stroke t;
-    if sync then GUI_Drawing.synchronize ()
-
-  let tiles ?(sync = true) t =
-    let pixmap = GUI_Drawing.pixmap ()
-    and xini = Mosaic.origin t `X
-    and yini = Mosaic.origin t `Y
-    and edge = Mosaic.edge t `SMALL in
-    Iter.tiles (fun ~r ~c tile ->
-      pixmap#put_pixbuf
-        ~x:(xini + c * edge)
-        ~y:(yini + r * edge)
-        ~width:edge ~height:edge tile
-    ) t `SMALL;
-    if sync then GUI_Drawing.synchronize ()
-end
-
 
 let load () =
   (* Retrieves an image path from the command line or from a file chooser. *)
