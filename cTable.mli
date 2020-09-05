@@ -1,4 +1,4 @@
-(* CastANet - cAnnot.mli *)
+(* CastANet - cTable.mli *)
 
 open CExt
 

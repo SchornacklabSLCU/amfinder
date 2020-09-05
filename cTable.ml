@@ -1,4 +1,4 @@
-(* CastANet - cAnnot.ml *)
+(* CastANet - cTable.ml *)
 
 open CExt
 open Scanf
@@ -6,17 +6,17 @@ open Printf
 
 let auto_background = ref true
 
-let other = function
-  | `COLONIZATION -> `ARB_VESICLES, `ALL_FEATURES
-  | `ARB_VESICLES -> `COLONIZATION, `ALL_FEATURES
-  | `ALL_FEATURES -> `COLONIZATION, `ARB_VESICLES
-
 type table = {
   colonization : CNote.t EMatrix.t;
   arb_vesicles : CNote.t EMatrix.t;
   all_features : CNote.t EMatrix.t;
 (*network_pred : float array array array;*)
 }
+
+let get tbl = function
+  | `COLONIZATION -> tbl.colonization
+  | `ARB_VESICLES -> tbl.arb_vesicles
+  | `ALL_FEATURES -> tbl.all_features
 
 type changelog = {
   log_user : (CLevel.t * string) list;
@@ -49,7 +49,7 @@ module Note = struct
       end else begin
         let old_lock = CNote.get note `LOCK 
         and old_hold = CNote.get note `HOLD in
-        let hold, lock = CRule.get lvl1 lvl2 extra in
+        let hold, lock = CAnnot.rule lvl1 lvl2 extra in
         CNote.set note `LOCK (EStringSet.union old_lock lock);
         CNote.set note `HOLD (EStringSet.union old_hold hold);
         let dl = EStringSet.diff lock old_lock
@@ -69,7 +69,7 @@ module Note = struct
       end else begin
         let old_lock = CNote.get note `LOCK 
         and old_hold = CNote.get note `HOLD in
-        let hold, lock = CRule.get lvl1 lvl2 del in
+        let hold, lock = CAnnot.rule lvl1 lvl2 del in
         CNote.set note `LOCK (EStringSet.diff old_lock lock);
         CNote.set note `HOLD (EStringSet.diff old_hold hold);
         [], [lvl2, lock], [lvl2, hold]
@@ -77,32 +77,18 @@ module Note = struct
     in {log_user; log_lock; log_hold}
 end
 
-let level t = function
-  | `COLONIZATION -> t.colonization
-  | `ARB_VESICLES -> t.arb_vesicles
-  | `ALL_FEATURES -> t.all_features
-   
-let to_string tbl lvl = 
-  let mat = match lvl with
-    | `COLONIZATION -> tbl.colonization
-    | `ARB_VESICLES -> tbl.arb_vesicles
-    | `ALL_FEATURES -> tbl.all_features
-  in EMatrix.to_string ~cast:CNote.to_string mat
+let to_string tbl lvl = EMatrix.to_string ~cast:CNote.to_string (get tbl lvl)
   
 let of_string ~col:x ~arb:y ~all:z = 
   let f = EMatrix.of_string ~cast:CNote.of_string in
   { colonization = f x; arb_vesicles = f y; all_features = f z }
 
 let statistics tbl lvl =
-  let mat = match lvl with
-    | `COLONIZATION -> tbl.colonization
-    | `ARB_VESICLES -> tbl.arb_vesicles
-    | `ALL_FEATURES -> tbl.all_features in
   let stats = List.map (fun chr -> chr, ref 0) CLevel.all_chars_list in
   EMatrix.iter (fun note ->
     EStringSet.union (CNote.get note `USER) (CNote.get note `HOLD)
-    |> String.iter (fun chr -> incr (List.assoc chr stats))
-  ) mat;
+    |> String.iter (fun c -> incr (List.assoc c stats))
+  ) (get tbl lvl);
   List.map (fun (chr, r) -> chr, !r) stats
 
 module Changelog = struct
@@ -125,7 +111,7 @@ let add t lvl1 ~r ~c chr =
   let mat = level t lvl1 in
   if Note.mem chr mat.(r).(c) `FULL then None else (
     let log1 = Note.add lvl1 lvl1 chr mat.(r).(c) in
-    let lvl2, lvl3 = other lvl1 in
+    let lvl2, lvl3 = CLevel.others lvl1 in
     let log2 = Note.add lvl1 lvl2 chr (level t lvl2).(r).(c)
     and log3 = Note.add lvl1 lvl3 chr (level t lvl3).(r).(c) in
     ensure_not_empty Changelog.(add (add log1 log2) log3)
@@ -136,7 +122,7 @@ let remove t lvl1 ~r ~c chr =
   let mat = level t lvl1 in
   if Note.mem chr mat.(r).(c) `USER then (
     let log1 = Note.rem lvl1 lvl1 chr mat.(r).(c) in
-    let lvl2, lvl3 = other lvl1 in
+    let lvl2, lvl3 = CLevel.others lvl1 in
     let log2 = Note.rem lvl1 lvl2 chr (level t lvl2).(r).(c)
     and log3 = Note.rem lvl1 lvl3 chr (level t lvl3).(r).(c) in
     ensure_not_empty Changelog.(add (add log1 log2) log3)
@@ -178,9 +164,4 @@ let create src =
     arb_vesicles = EMatrix.copy mat;
     all_features = EMatrix.copy mat }
 
-
-let iter f table lvl = 
-  let mat = match lvl with
-    | `COLONIZATION -> EMatrix.iteri f table.colonization
-    | `ARB_VESICLES -> EMatrix.iteri f table.arb_vesicles
-    | `ALL_FEATURES -> EMatrix.iteri f table.all_features
+let iter f tbl lvl = EMatrix.iteri f (get tbl lvl)
