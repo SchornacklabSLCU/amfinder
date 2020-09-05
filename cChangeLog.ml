@@ -18,9 +18,9 @@ let get chg = function
   | `HOLD -> chg.hold
 
 let set chg = function
-  | `USER -> (fun x -> {chg with chg.user <- x})
-  | `LOCK -> (fun x -> {chg with chg.lock <- x})
-  | `HOLD -> (fun x -> {chg with chg.hold <- x})
+  | `USER -> (fun x -> {chg with user = x})
+  | `LOCK -> (fun x -> {chg with lock = x})
+  | `HOLD -> (fun x -> {chg with hold = x})
 
 let add chg lay ((lvl, str) as dat) =
   let elt = get chg lay in
