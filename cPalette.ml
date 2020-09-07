@@ -37,7 +37,7 @@ let cividis =
     "#6A6C71"; "#737475"; "#7C7B78"; "#868379"; "#918C78";
     "#9B9477"; "#A69D75"; "#B2A672"; "#BCAF6F"; "#C8B86A";
     "#D3C164"; "#E0CB5E"; "#ECD555"; "#F8DF4B"; "#FFEA46"; 
-  |] in EMemoize.create ~lbl:"cividis" f
+  |] in Ext_Memoize.create ~lbl:"cividis" f
 
 (* R source:
  *  library(viridis)
@@ -49,7 +49,7 @@ let plasma =
     "#B52F8C"; "#C13B82"; "#CC4678"; "#D5536F"; "#DE5F65";
     "#E56B5D"; "#ED7953"; "#F3864A"; "#F89441"; "#FCA338";
     "#FDB32F"; "#FDC328"; "#FBD424"; "#F6E726"; "#F0F921";
-  |] in EMemoize.create ~lbl:"plasma" f 
+  |] in Ext_Memoize.create ~lbl:"plasma" f 
 
 (* R source:
  *  library(scales)
@@ -61,7 +61,7 @@ let viridis =
     "#287C8E"; "#24868E"; "#21908C"; "#1F9A8A"; "#20A486"; 
     "#27AD81"; "#35B779"; "#47C16E"; "#5DC863"; "#75D054"; 
     "#8FD744"; "#AADC32"; "#C7E020"; "#E3E418"; "#FDE725";
-  |] in EMemoize.create ~lbl:"viridis" f
+  |] in Ext_Memoize.create ~lbl:"viridis" f
 
 let set_tile_edge n = edge := n
 

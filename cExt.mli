@@ -172,7 +172,7 @@ val time : ('a -> 'b) -> 'a -> 'b
   * only once within a given session. However, they can recomputed when a new 
   * session starts, for instance to take into account the modification of 
   * general settings that affect the computation of memoized values. *)
-module EMemoize : sig
+module Ext_Memoize : sig
   val create : ?lbl:string -> ?one:bool -> (unit -> 'a) -> unit -> 'a
   (** Memoization function. The optional parameter [lbl] is used to report when
     * data are being recomputed due to a previous call to [forget] (see below).

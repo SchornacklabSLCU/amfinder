@@ -151,7 +151,7 @@ let time f x =
 
 
 (* Memoized values with possible reinitialization. *)
-module EMemoize = struct
+module Ext_Memoize = struct
   let flag = ref 0 (* Main flag. *)
 
   type 'a t = {
