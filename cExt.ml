@@ -161,14 +161,14 @@ module Ext_Memoize = struct
 
   let exec f mem = let x = f () in mem.data <- `R x; x
 
-  let create ?lbl ?(one = false) f =
+  let create ?label ?(one = false) f =
     let mem = { flag = if one then -1 else 0; data = `F f } in
     (fun () -> match mem.data with
       | `F f -> exec f mem (* Runs the function, store and return result. *)
       | `R x -> 
         if mem.flag >= 0 && !flag > mem.flag then (
           (* The main flag has changed: recompute, store and return result. *)
-          Gaux.may (CLog.info "Recomputing data for '%s'") lbl;
+          Gaux.may (CLog.info "Recomputing data for '%s'") label;
           let x = exec f mem in 
           mem.flag <- mem.flag + 1;
           x

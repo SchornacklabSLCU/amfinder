@@ -173,7 +173,7 @@ val time : ('a -> 'b) -> 'a -> 'b
   * session starts, for instance to take into account the modification of 
   * general settings that affect the computation of memoized values. *)
 module Ext_Memoize : sig
-  val create : ?lbl:string -> ?one:bool -> (unit -> 'a) -> unit -> 'a
+  val create : ?label:string -> ?one:bool -> (unit -> 'a) -> unit -> 'a
   (** Memoization function. The optional parameter [lbl] is used to report when
     * data are being recomputed due to a previous call to [forget] (see below).
     * The optional parameter [one] defines memoized values that are never
