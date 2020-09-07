@@ -102,6 +102,7 @@ module Iter = struct
 end
 
 
+
 module Paint = struct
   let white_background ?(sync = true) () =
     let t = GUI_Drawing.cairo () in
@@ -126,14 +127,16 @@ module Paint = struct
     ) t `SMALL;
     if sync then GUI_Drawing.synchronize ()
 
-  let square ?(alpha = 1.0) typ edge =
-    let edge = if edge > 0 then edge else invalid_arg "CImage.Paint.square" in    
+  let square ?(alpha = 1.0) ~kind edge =
+    assert (edge > 0); 
     let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = Cairo.create surface in
     Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-    let clr = match typ with `CURSOR -> "#cc0000" | `RGB rgb -> rgb in
+    let clr = match kind with 
+      | `CURSOR -> "#cc0000" 
+      | `RGB x -> x in
     let r, g, b = EColor.html_to_float clr
-    and a = if alpha >= 0.0 && alpha <= 1.0 then alpha else 1.0 in
+    and a = max (min alpha 1.0) 0.0 in
     Cairo.set_source_rgba t r g b a;
     let edge = float edge in
     Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
@@ -143,6 +146,32 @@ module Paint = struct
 end
 
 
+module Surface = struct
+  let joker = 
+    let aux () =
+      match !active_image with
+      | None -> assert false (* does not happen. *)
+      | Some img -> let edge = Mosaic.edge img `SMALL in
+        Paint.square ~kind:(`RGB "#aaffaa") ~alpha:0.7 edge
+    in Ext_Memoize.create ~label:"Surface.master" aux
+
+  let layers =
+    List.map (fun lvl ->
+      let aux lvl () =
+        match !active_image with
+        | None -> assert false (* does not happen. *)
+        | Some img -> let edge = Mosaic.edge img `SMALL in   
+          List.map2 (fun chr rgb ->
+            chr, Paint.square ~kind:(`RGB rgb) ~alpha:0.8 edge
+          ) (CAnnot.char_list lvl) (CLevel.colors lvl)
+      in lvl, Ext_Memoize.create ~label:"Surface.layers" (aux lvl)
+    ) CLevel.flags
+
+  let get = function
+    | `JOKER -> joker ()
+    | `CHR c -> let lvl = GUI_levels.current () in
+      List.assoc c (List.assoc lvl layers ()) 
+end
 
 
 
@@ -198,6 +227,14 @@ let digest t =
     (Mosaic.source t `W) (Mosaic.source t `H)
     (Mosaic.dim t `R) (Mosaic.dim t `C)
 
+let save () =
+  match !active_image with
+  | None -> ()
+  | Some img -> Info.path img
+    |> Filename.remove_extension
+    |> sprintf "%s.zip"
+    |> CTable.save (Mosaic.annotations img)
+
 let load () =
   (* Retrieves an image path from the command line or from a file chooser. *)
   Par.initialize ();
@@ -212,4 +249,7 @@ let load () =
   (* Draws background and tiles, then adds image info to the status bar. *)
   Paint.white_background ~sync:false ();
   Paint.tiles t;
-  CGUI.status#set_label (digest t)
+  CGUI.status#set_label (digest t);
+  at_exit save (* FIXME this may not be the ideal situation! *)
+
+

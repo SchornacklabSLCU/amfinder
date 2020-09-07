@@ -7,3 +7,5 @@ val load : unit -> unit
   * dialogue window where the user can select the image file to open.
   * The application terminates if no file is selected (see module [CGUI]). *)
 
+val save : unit -> unit
+(** Save the current annotations, if any. *)
