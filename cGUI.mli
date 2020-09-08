@@ -94,7 +94,7 @@ end
 
 (** Vertical toolbar which displays the coordinates (row and column) of the 
   * cursor. *)
-module GCoords : sig
+module GUI_Coords : sig
   val toolbar : GButton.toolbar
   (** Main container. *)
 

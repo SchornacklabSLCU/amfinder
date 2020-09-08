@@ -319,7 +319,7 @@ let make_toolbar_and_labels ~top ~title ~vsp1 ~vsp2 ~lbl1 ~lbl2 =
     let label_2 = ToolItem.label ~vspace:vsp2 packing lbl2
   end in (module M : Toolbox.LABEL)
 
-module GCoords = struct
+module GUI_Coords = struct
   let lbl = make_toolbar_and_labels
     ~top:0 ~title:"Coordinates" 
     ~vsp1:false ~vsp2:false
