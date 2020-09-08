@@ -20,7 +20,7 @@ module ImageOps = struct
 end
 
 (* Images are represented as mosaics of square tiles. *)
-type tiles = { edge : int; matrix : GdkPixbuf.pixbuf EMatrix.t }
+type tiles = { edge : int; matrix : GdkPixbuf.pixbuf Ext_Matrix.t }
 
 (* Large tiles are used in the "zoomed in" area on the left side of the 
  * interface, while small tiles are drawn on the right side. *)
@@ -42,9 +42,8 @@ type t = { fpath : string; sizes : sizes; table : CTable.table; graph : graph }
 
 
 (* garbage? 
-let tile ~r ~c t typ = EMatrix.get_opt (tiles t typ) r c
-let annotation ~r ~c t = EMatrix.get_opt (annotations t) r c
-let is_valid ~r ~c t = EMatrix.get_opt (Mosaic.annotations t) r c <> None
+let annotation ~r ~c t = Ext_Matrix.get_opt (annotations t) r c
+let is_valid ~r ~c t = Ext_Matrix.get_opt (Mosaic.annotations t) r c <> None
  /end of garbage *)
 
 (* Image currently being processed. *)
@@ -88,6 +87,7 @@ module Mosaic = struct
   let tiles t = function
     | `SMALL -> t.sizes.small.matrix
     | `LARGE -> t.sizes.large.matrix
+  let tile ~r ~c t typ = Ext_Matrix.get_opt (tiles t typ) r c
 
   let annotations {table; _} = table
   let x ~c t typ = (origin t `X) + c * (edge t typ)
@@ -97,11 +97,13 @@ module Mosaic = struct
 end
 
 module Iter = struct
-  let tiles f t typ = EMatrix.iteri f (Mosaic.tiles t typ)
+  let tiles f t typ = Ext_Matrix.iteri f (Mosaic.tiles t typ)
 end
 
 let statistics img = CTable.statistics (Mosaic.annotations img)
 
+
+(* Interaction with the user interface. *)
 module Update_GUI = struct
   let set_coordinates =
     let set lbl =
@@ -113,6 +115,26 @@ module Update_GUI = struct
       List.iter (fun (chr, num) ->
         GUI_Layers.set_label chr num
       ) (statistics img (GUI_levels.current ()))
+    ) !active_image
+    
+  let blank_tile =
+    Ext_Memoize.create ~label:"CImage.Update_GUI.blank_tile" ~one:true
+    (fun () ->
+      let pix = GdkPixbuf.create ~width:180 ~height:180 () in
+      GdkPixbuf.fill pix 0l; pix)
+
+  let magnified_view () =
+    Option.iter (fun img ->
+      let cur_r, cur_c = Mosaic.cursor_pos img in
+      for i = 0 to 2 do
+        for j = 0 to 2 do
+          let r = cur_r + i - 1 and c = cur_c + j - 1 in
+          let pixbuf = match Mosaic.tile r c img `LARGE with
+            | None -> blank_tile ()
+            | Some x -> x
+          in GUI_Magnify.tiles.(i).(j)#set_pixbuf pixbuf
+        done
+      done;  
     ) !active_image
 end
 
@@ -196,12 +218,12 @@ end
 
 module Create = struct
   let large_tile_matrix nr nc edge src =
-    EMatrix.init nr nc (fun r c ->
+    Ext_Matrix.init nr nc (fun r c ->
       let src_x = c * edge and src_y = r * edge in
       ImageOps.crop ~src_x ~src_y ~edge src |> ImageOps.resize ~edge:180
     )
     
-  let small_tile_matrix edge = EMatrix.map (ImageOps.resize ~edge)
+  let small_tile_matrix edge = Ext_Matrix.map (ImageOps.resize ~edge)
     
   let annotations path tiles =
     let zip = Filename.remove_extension path ^ ".zip" in
