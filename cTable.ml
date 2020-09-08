@@ -6,10 +6,10 @@ open Printf
 
 type table = {
   main : CLevel.t;
-  colonization : CTile.t EMatrix.t;
-  arb_vesicles : CTile.t EMatrix.t;
-  all_features : CTile.t EMatrix.t;
-  network_pred : (string * float array EMatrix.t) list;
+  colonization : CTile.t Ext_Matrix.t;
+  arb_vesicles : CTile.t Ext_Matrix.t;
+  all_features : CTile.t Ext_Matrix.t;
+  network_pred : (string * float array Ext_Matrix.t) list;
 }
 
 let main_level {main; _} = main
@@ -19,23 +19,23 @@ let get_matrix_at_level tbl = function
   | `ARB_VESICLES -> tbl.arb_vesicles
   | `ALL_FEATURES -> tbl.all_features
 
-let iter f tbl lvl = EMatrix.iteri f (get_matrix_at_level tbl lvl)
+let iter f tbl lvl = Ext_Matrix.iteri f (get_matrix_at_level tbl lvl)
 
 let create ?(main = `COLONIZATION) src =
   let mat = match src with
-    | `DIM (r, c) -> EMatrix.init r c (fun _ _ -> CTile.create ())
-    | `MAT matrix -> EMatrix.map (fun _ -> CTile.create ()) matrix in
+    | `DIM (r, c) -> Ext_Matrix.init r c (fun _ _ -> CTile.create ())
+    | `MAT matrix -> Ext_Matrix.map (fun _ -> CTile.create ()) matrix in
   { main; colonization = mat;
-    arb_vesicles = EMatrix.copy mat;
-    all_features = EMatrix.copy mat;
+    arb_vesicles = Ext_Matrix.copy mat;
+    all_features = Ext_Matrix.copy mat;
     network_pred = [] }
 
 let to_string tbl lvl =
   let elt = get_matrix_at_level tbl lvl in
-  EMatrix.to_string ~cast:CTile.to_string elt
+  Ext_Matrix.to_string ~cast:CTile.to_string elt
 
 let of_string ~main ~col_table ~arb_table ~all_table = 
-  let f = EMatrix.of_string ~cast:CTile.of_string in
+  let f = Ext_Matrix.of_string ~cast:CTile.of_string in
   { main; colonization = f col_table;
     arb_vesicles = f arb_table;
     all_features = f all_table;
@@ -64,7 +64,7 @@ let load zip =
 
 let statistics tbl lvl =
   let stats = List.map (fun chr -> chr, ref 0) (CAnnot.char_list lvl) in
-  EMatrix.iter (fun t ->
+  Ext_Matrix.iter (fun t ->
     let annot = EStringSet.union (CTile.get t `USER) (CTile.get t `HOLD) in
     String.iter (fun c -> incr (List.assoc c stats)) annot
   ) (get_matrix_at_level tbl lvl);

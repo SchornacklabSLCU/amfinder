@@ -19,7 +19,7 @@ end
 
 
 (** Matrix iterators. *)
-module EMatrix : sig
+module Ext_Matrix : sig
   type 'a t = 'a array array
   (** The type of matrices. *)
 

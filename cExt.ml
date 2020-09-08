@@ -44,7 +44,7 @@ end
 
 external id : 'a -> 'a = "%identity"
 
-module EMatrix = struct
+module Ext_Matrix = struct
   type 'a t = 'a array array
   let get t r c = t.(r).(c)
   let get_opt t r c = try Some t.(r).(c) with _ -> None

@@ -14,7 +14,7 @@ type table
 
 val create :
   ?main:CLevel.t -> 
-  [ `DIM of (int * int) | `MAT of 'a EMatrix.t ] -> table
+  [ `DIM of (int * int) | `MAT of 'a Ext_Matrix.t ] -> table
 (** Creates an empty matrix with either the given dimensions, or by mapping an
   * existing matrix. The optional parameter [main] allows to define the main
   * annotation layer (defaults to [`COLONIZATION]). *)
