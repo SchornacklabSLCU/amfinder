@@ -283,13 +283,13 @@ end
 
 
 (* Keyboard-related actions. *)
-module Img_Keyboard = struct
+module Img_Move = struct
   let apply f =
     match !active_image with
     | None -> assert false
     | Some img -> f img
 
-  let move ~f_row ~f_col _ =
+  let run ~f_row ~f_col _ =
     Option.iter (fun img ->
       let r, c = Img_Mosaic.cursor_pos img in
       Img_Paint.tile r c;
@@ -303,7 +303,7 @@ module Img_Keyboard = struct
       GUI_Drawing.synchronize ()
     ) !active_image
 
-  let move_left ?(jump = 1) = move
+  let left ?(jump = 1) = run
     ~f_row:(fun r -> r)
     ~f_col:(fun c -> 
       let f img =
@@ -312,7 +312,7 @@ module Img_Keyboard = struct
         if c' >= nc then c' mod nc else c'
       in apply f)
 
-  let move_right ?(jump = 1) = move
+  let right ?(jump = 1) = run
     ~f_row:(fun r -> r)
     ~f_col:(fun c ->
       let f img =
@@ -321,7 +321,7 @@ module Img_Keyboard = struct
         if c' >= nc then c' mod nc else c'
       in apply f)
 
-  let move_up ?(jump = 1) = move
+  let up ?(jump = 1) = run
     ~f_row:(fun r -> 
       let f img =
         let nr = Img_Mosaic.dim img `R and r' = r - jump in
@@ -330,7 +330,7 @@ module Img_Keyboard = struct
       in apply f)
     ~f_col:(fun c -> c)
 
-  let move_down ?(jump = 1) = move
+  let down ?(jump = 1) = run
     ~f_row:(fun r ->
       let f img =
         let nr = Img_Mosaic.dim img `R and r' = r + jump in
@@ -338,35 +338,37 @@ module Img_Keyboard = struct
         if r' >= nr then r' mod nr else r'
       in apply f)
     ~f_col:(fun c -> c)
+end
 
-  let arrow_key_press ev =
+
+(* UI_based functions that trigger changes. *)
+module Img_Trigger = struct
+  let arrow_keys ev =
     let sym, modi = GdkEvent.Key.(keyval ev, state ev) in
     let jump = 
       if List.mem `CONTROL modi then 25 else
       if List.mem `SHIFT   modi then 10 else 1 in
     let out, f = match sym with
-      | 65361 -> true, move_left ~jump
-      | 65362 -> true, move_up ~jump
-      | 65363 -> true, move_right ~jump
-      | 65364 -> true, move_down ~jump
+      | 65361 -> true, Img_Move.left ~jump
+      | 65362 -> true, Img_Move.up ~jump
+      | 65363 -> true, Img_Move.right ~jump
+      | 65364 -> true, Img_Move.down ~jump
       | _     -> false, ignore
     in f [(* toggles *)];
     out
 
-  (* let at_mouse_pointer ?(toggles = [||]) ev =
-    Gaux.may (fun img ->
+  let mouse_click ev =
+    Option.iter (fun img ->
       let open GdkEvent.Button in
-      let x = truncate (x ev) - CImage.origin img `X
-      and y = truncate (y ev) - CImage.origin img `Y
-      and e = CImage.edge img `SMALL in
+      let x = truncate (x ev) - Img_Mosaic.origin img `X
+      and y = truncate (y ev) - Img_Mosaic.origin img `Y
+      and e = Img_Mosaic.edge img `SMALL in
       let r = y / e and c = x / e in
-      if CImage.is_valid ~r ~c img then
-        move ~f_row:(fun _ -> r) ~f_col:(fun _ -> c) toggles
-    )!curr;
-    false *)
+      if CTable.is_valid (Img_Mosaic.annotations img) ~r ~c then
+        Img_Move.run ~f_row:(fun _ -> r) ~f_col:(fun _ -> c)  [(* toggles *)]
+    )!active_image;
+    false
 end
-
-
 
 
 module Create = struct
@@ -447,7 +449,8 @@ let load () =
 
 (* Connect the events to the functions. *)
 let initialize () =
-  window#event#connect#key_press Img_Keyboard.arrow_key_press;
+  window#event#connect#key_press Img_Trigger.arrow_keys;
+  GUI_Drawing.area#event#connect#button_press Img_Trigger.mouse_click;
   ()
 
 
