@@ -196,6 +196,22 @@ module  GUI_Toggles = struct
   let unlock () = toggle_lock := false
   let is_locked () = !toggle_lock
   
+  let set_active ~user ~hold () =
+    let toolbox = List.assoc !GUI_levels.curr toolboxes in
+    let module T = (val toolbox : Toolbox.TOGGLE) in
+    Array.iter (fun (chr, toggle_ext) ->
+      toggle_lock := true;
+      let active, style =
+        match String.contains user chr with
+        | true -> true, `RGBA
+        | false -> match String.contains hold chr with
+          | true -> true, `RGBA_LOCKED
+          | false -> false, `GREY in
+      toggle_ext.toggle#set_active active;
+      toggle_ext.image#set_pixbuf (CIcon.get chr style `LARGE);
+      toggle_lock := false
+    ) T.toggles
+  
   let toggle ?(lock = true) ?level chr =
     let toggle_ext = get ?level chr in
     toggle_lock := lock;

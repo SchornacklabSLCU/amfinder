@@ -170,6 +170,12 @@ let remove tbl lvl ~r ~c chr =
     |> Option.some
   ) else (CTile.remove mat.(r).(c) `USER (`CHR chr); None)
 
+let is_valid tbl ~r ~c =
+  try
+    ignore (get_matrix_at_level tbl `COLONIZATION).(r).(c);
+    true
+  with _ -> false
+
 let is_empty tbl lvl ~r ~c =
   try
     let f = CTile.is_empty (get_matrix_at_level tbl lvl).(r).(c) in

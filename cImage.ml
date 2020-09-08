@@ -105,6 +105,15 @@ module Img_UI_update = struct
       ksprintf lbl#set_label "<tt><small><b>%c:</b> %03d</small></tt>"
     in fun r c -> GUI_Coords.(set row 'R' r; set column 'C' c)
     
+  let update_toggles ~r ~c () =
+    Option.iter (fun img ->
+      let tbl = Img_Mosaic.annotations img in
+      let tile = CTable.get tbl (GUI_levels.current ()) ~r ~c in
+      GUI_Toggles.set_active
+        ~user:(CTile.get tile `USER)
+        ~hold:(CTile.get tile `HOLD) ()
+    ) !active_image
+    
   let set_counters =
     Option.iter (fun img ->
       List.iter (fun (chr, num) ->
@@ -297,7 +306,7 @@ module Img_Move = struct
       Img_Mosaic.set_cursor_pos img (new_r, new_c);
       Img_UI_update.set_coordinates new_r new_c;
       Img_UI_update.magnified_view ();
-      (* GUI.update_active_toggles toggles; *)
+      Img_UI_update.update_toggles ~r:new_r ~c:new_c ();
       Img_Paint.cursor ();      
       GUI_Drawing.synchronize ()
     ) !active_image
@@ -504,7 +513,10 @@ let initialize () =
     toggle#connect#toggled (fun () ->
       if not (GUI_Toggles.is_locked ()) then begin
         let style = if toggle#active then `RGBA else `GREY in
-        GUI_Toggles.set_icon chr (CIcon.get chr style `LARGE)
+        GUI_Toggles.set_icon chr (CIcon.get chr style `LARGE);
+        (* We need to retrieve the changelog and apply the modifications. *)
+        
+        
       end
     ); ()
   );

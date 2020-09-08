@@ -33,6 +33,9 @@ module GUI_Toggles : sig
   (** Same as [iter], but builds a new list from the result of the application 
     * of function [f] to the toggle button sets. *)
 
+  val set_active : user:string -> hold:string -> unit -> unit
+  (** Updates all toggle buttons. *)
+
   val is_locked : unit -> bool
   (** Indicates whether a toggle is locked and callbacks should not apply. *)
 

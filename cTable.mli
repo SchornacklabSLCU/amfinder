@@ -46,6 +46,9 @@ val save : ?export:bool -> ?flags:export_flag list -> table -> string -> unit
 
 (** {2 Edition} *)
 
+val is_valid : table -> r:int -> c:int -> bool
+(** Indicates whether the given coordinates are valid. *)
+
 val get : table -> CLevel.t -> r:int -> c:int -> CTile.t
 (** [get t lvl ~r ~c] returns the annotations at row [r] and column [c] in 
   * layer [lvl] of table [t]. *)
