@@ -170,6 +170,11 @@ let remove tbl lvl ~r ~c chr =
     |> Option.some
   ) else (CTile.remove mat.(r).(c) `USER (`CHR chr); None)
 
+let is_empty table lvl ~r ~c =
+  try
+    let f = CTile.is_empty (get_matrix_at_level tbl lvl).(r).(c) in
+    f `USER | f `HOLD
+  with _ -> invalid_arg "CTable.is_empty"
 
 let mem table lvl ~r ~c elt =
   try

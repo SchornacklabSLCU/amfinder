@@ -61,9 +61,14 @@ val remove : table -> CLevel.t -> r:int -> c:int -> char -> CChangeLog.t option
   * annotation from a given tile. Again the changelog indicates the triggered 
   * modifications. *)
 
+val is_empty : table -> CLevel.t -> r:int -> c:int -> bool
+(** Indicates whether a given tile contains an annotation by looking into the
+  * user and hold layers.
+  * @raise Invalid_argument if the row or column number is invalid. *)
+
 val mem : table -> CLevel.t -> r:int -> c:int -> char -> bool
 (** Indicates whether an annotation exists at the given coordinates.
-  * @raise Invalid_argument if the row or column number is not valid. *)
+  * @raise Invalid_argument if the row or column number is invalid. *)
 
 
 (** {2 Misc operations} *)
