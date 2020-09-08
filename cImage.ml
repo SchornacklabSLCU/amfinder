@@ -42,8 +42,6 @@ type t = { fpath : string; sizes : sizes; table : CTable.table; graph : graph }
 
 
 (* garbage? 
-let cursor_pos t = t.graph.cursor
-let set_cursor_pos t pos = t.graph.cursor <- pos
 let tile ~r ~c t typ = EMatrix.get_opt (tiles t typ) r c
 let annotation ~r ~c t = EMatrix.get_opt (annotations t) r c
 let is_valid ~r ~c t = EMatrix.get_opt (Mosaic.annotations t) r c <> None
@@ -94,13 +92,29 @@ module Mosaic = struct
   let annotations {table; _} = table
   let x ~c t typ = (origin t `X) + c * (edge t typ)
   let y ~r t typ = (origin t `Y) + r * (edge t typ)
+  let cursor_pos t = t.graph.cursor
+  let set_cursor_pos t pos = t.graph.cursor <- pos
 end
-
 
 module Iter = struct
   let tiles f t typ = EMatrix.iteri f (Mosaic.tiles t typ)
 end
 
+let statistics img = CTable.statistics (Mosaic.annotations img)
+
+module Update_GUI = struct
+  let set_coordinates =
+    let set lbl =
+      ksprintf lbl#set_label "<tt><small><b>%c:</b> %03d</small></tt>"
+    in fun r c -> GUI_Coords.(set row 'R' r; set column 'C' c)
+    
+  let set_counters =
+    Option.iter (fun img ->
+      List.iter (fun (chr, num) ->
+        GUI_Layers.set_label chr num
+      ) (statistics img (GUI_levels.current ()))
+    ) !active_image
+end
 
 
 module Paint = struct
@@ -174,6 +188,10 @@ module Surface = struct
 end
 
 
+module Cursor = struct
+
+end
+
 
 
 module Create = struct
@@ -215,9 +233,7 @@ let create fpath =
   CLog.info "source image size: %d x %d pixels" imgw imgh;
   CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
   img
-
-let statistics img = CTable.statistics (Mosaic.annotations img)
-   
+  
 let digest t =
   sprintf "<small><tt> \
     <b>Image:</b> %s ▪ \
