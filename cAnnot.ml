@@ -75,7 +75,7 @@ let get = function
 
 let chars lvl = let open (val (get lvl) : S) in diff ""
 
-let char_list lvl = EText.explode (chars lvl)
+let char_list lvl = Ext_Text.explode (chars lvl)
 
 (* Not hardcoded, should the list change in the future. *)
 let all_chars =
@@ -84,7 +84,7 @@ let all_chars =
   and all = chars `ALL_FEATURES in
   EStringSet.(union (union col arb) all)
 
-let all_chars_list = EText.explode all_chars
+let all_chars_list = Ext_Text.explode all_chars
 
 let rule_of_char lvl = let open (val (get lvl) : S) in get
 
@@ -107,5 +107,5 @@ let others elt lvl =
 let rec mem elt lvl = 
   match elt with
   | `CHR chr -> String.contains (chars lvl) (Char.uppercase_ascii chr)
-  | `STR str -> List.for_all (fun c -> mem (`CHR c) lvl) (EText.explode str)
+  | `STR str -> List.for_all (fun c -> mem (`CHR c) lvl) (Ext_Text.explode str)
 

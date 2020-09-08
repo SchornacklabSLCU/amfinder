@@ -60,7 +60,7 @@ end
 
 
 (** Text operations. *)
-module EText : sig
+module Ext_Text : sig
   val explode : string -> char list
   (** Converts a string into a list of characters. *)
 

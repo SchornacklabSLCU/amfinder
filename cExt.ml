@@ -73,7 +73,7 @@ module Ext_Matrix = struct
 end
 
 
-module EText = struct
+module Ext_Text = struct
   let explode s = String.(List.init (length s) (get s))
   let implode t = String.concat "" (List.map (String.make 1) t)
 end
