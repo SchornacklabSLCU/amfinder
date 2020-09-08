@@ -33,3 +33,6 @@ val add : t -> layer -> [`CHR of char | `STR of string] -> unit
 
 val remove : t -> layer -> [`CHR of char | `STR of string] -> unit
 (** Removes an annotation from the given layer. *)
+
+val mem : t -> layer -> [`CHR of char | `STR of string] -> bool
+(** Indicates whether an annotation exists in the given layer. *)

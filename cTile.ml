@@ -38,3 +38,12 @@ let as_string = function
 let set = apply (fun _ -> as_string)
 let add = apply (fun x y -> EStringSet.union x (as_string y))
 let remove = apply (fun x y -> EStringSet.diff x (as_string y))
+
+let exists src = function
+  | `CHR chr -> String.contains src chr
+  | `STR str -> List.for_all (String.contains src) (Ext_Text.explode str)
+
+let mem t = function
+  | `USER -> exists t.user
+  | `LOCK -> exists t.lock
+  | `HOLD -> exists t.hold
