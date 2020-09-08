@@ -40,7 +40,7 @@ end
 
 
 (** Magnified view of the cursor area. *)
-module GMagnify : sig
+module GUI_Magnify : sig
   val tiles : GMisc.image array array
   (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
     * annotations shown in [HToolbox] correspond to the central tile. *)

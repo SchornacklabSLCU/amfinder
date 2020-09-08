@@ -237,7 +237,7 @@ module GToggles = struct
 end
 
 
-module GMagnify = struct
+module GUI_Magnify = struct
   let rows = 3
   let columns = 3
   let edge = CCore.edge
@@ -417,10 +417,9 @@ module GUI_Layers = struct
     let ext = if chr = '*' then get_joker () else get_layer chr in
     ext.image#set_pixbuf
 
-  (* Commented out due to an exception raised. *)
-  let set_label chr num = () (*
+  let set_label chr num =
     let ext = if chr = '*' then get_joker () else get_layer chr in
-    ksprintf ext.label#set_label "<small><tt>%04d</tt></small>" num*)
+    ksprintf ext.label#set_label "<small><tt>%04d</tt></small>" num
   
   let set_toggled chr callback =
     let ext = if chr = '*' then get_joker () else get_layer chr in
