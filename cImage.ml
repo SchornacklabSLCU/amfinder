@@ -455,10 +455,14 @@ module Img_Trigger = struct
     in f [(* toggles *)];
     out
 
-  let annotation_keys ev =
+  (* Can be given GdkEvent.Key.t values or characters. *)
+  let annotation_keys ev = 
     begin try
-      let key = Char.uppercase_ascii (GdkEvent.Key.string ev).[0] in
-      CLog.info "Key pressed is %C" key;
+      let key = Char.uppercase_ascii (
+        match ev with
+        | `CHR chr -> chr
+        | `GDK key -> (GdkEvent.Key.string key).[0]) in
+      if false (* FIXME verbose? *) then CLog.info "Key pressed is %C" key;
       if CAnnot.mem (`CHR key) (GUI_levels.current ()) then (
         let is_active = GUI_Toggles.toggle key in
         (* Updates the icon accordingly. *)
@@ -482,10 +486,9 @@ module Img_Trigger = struct
 
   let mouse_move ev =
     Option.iter (fun img ->
-      let open GdkEvent.Motion in
-      let x = truncate (x ev) - Img_Mosaic.origin img `X
-      and y = truncate (y ev) - Img_Mosaic.origin img `Y
-      and e = Img_Mosaic.edge img `SMALL in
+      let e = Img_Mosaic.edge img `SMALL
+      and x = truncate (GdkEvent.Motion.x ev) - Img_Mosaic.origin img `X
+      and y = truncate (GdkEvent.Motion.y ev) - Img_Mosaic.origin img `Y in
       Img_Tracker.show ~r:(y / e) ~c:(x / e) img
     ) !active_image;
     false
@@ -495,15 +498,23 @@ module Img_Trigger = struct
     false
 end
 
-(* Connect the events to the functions. *)
 let initialize () =
-  CGUI.window#event#connect#key_press Img_Trigger.arrow_keys;
-  CGUI.window#event#connect#key_press Img_Trigger.annotation_keys;
+  (* Callback functions for button activation from the interface. *)
+  GUI_Toggles.iter (fun lvl chr toggle _ ->
+    toggle#connect#toggled (fun () ->
+      if not (GUI_Toggles.is_locked ()) then begin
+        let style = if toggle#active then `RGBA else `GREY in
+        GUI_Toggles.set_icon chr (CIcon.get chr style `LARGE)
+      end
+    ); ()
+  );
+  (* Callback functions for keyboard events. *)
+  let connect = CGUI.window#event#connect in
+  connect#key_press Img_Trigger.arrow_keys;
+  connect#key_press (fun x -> Img_Trigger.annotation_keys (`GDK x));
+  (* Callback functions for mouse events. *)
   let connect = GUI_Drawing.area#event#connect in
   connect#button_press Img_Trigger.mouse_click;
   connect#motion_notify Img_Trigger.mouse_move;
   connect#leave_notify Img_Trigger.mouse_leave;
-
   ()
-
-
