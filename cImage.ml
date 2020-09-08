@@ -455,6 +455,19 @@ module Img_Trigger = struct
     in f [(* toggles *)];
     out
 
+  let annotation_keys ev =
+    begin try
+      let key = Char.uppercase_ascii (GdkEvent.Key.string ev).[0] in
+      CLog.info "Key pressed is %C" key;
+      if CAnnot.mem (`CHR key) (GUI_levels.current ()) then (
+        let is_active = GUI_Toggles.toggle key in
+        (* Updates the icon accordingly. *)
+        let style = if is_active then `RGBA else `GREY in
+        GUI_Toggles.set_icon key (CIcon.get key style `LARGE)
+      )
+    with _ -> () end;
+    false
+
   let mouse_click ev =
     Option.iter (fun img ->
       let open GdkEvent.Button in
@@ -485,10 +498,12 @@ end
 (* Connect the events to the functions. *)
 let initialize () =
   CGUI.window#event#connect#key_press Img_Trigger.arrow_keys;
+  CGUI.window#event#connect#key_press Img_Trigger.annotation_keys;
   let connect = GUI_Drawing.area#event#connect in
   connect#button_press Img_Trigger.mouse_click;
   connect#motion_notify Img_Trigger.mouse_move;
   connect#leave_notify Img_Trigger.mouse_leave;
+
   ()
 
 
