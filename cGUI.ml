@@ -342,7 +342,7 @@ module GStats = struct
 end
 
 
-module GLayers = struct
+module GUI_Layers = struct
   let add_item packing a_ref g_ref i chr =
     let active = !a_ref and group = !g_ref in
     let radio = GButton.radio_tool_button ~active ?group ~packing () in
@@ -426,7 +426,10 @@ module GLayers = struct
     let ext = if chr = '*' then get_joker () else get_layer chr in
     ext.radio#connect#toggled ~callback
     
-  let iter_radios f = List.iter (fun (chr, _) -> f chr) (current_radios ()) 
+  let iter f =
+    List.iter (fun (chr, r) -> 
+      f chr r.radio r.label r.image) 
+    (current_radios ()) 
 end
 
 
@@ -434,10 +437,10 @@ let _ =
   (* Initializes the annotation toolbar using the lightweight annotation style
    * `COLONIZATION, and initiates the callback function that updates the UI
    * according to the active radio button. *)
-  GLayers.attach `COLONIZATION;
+  GUI_Layers.attach `COLONIZATION;
   List.iter (fun (typ, radio) ->
     radio#connect#toggled ~callback:(fun () ->
-      if radio#active then GLayers.attach typ
+      if radio#active then GUI_Layers.attach typ
     ); ()
   ) GUI_levels.radios
 

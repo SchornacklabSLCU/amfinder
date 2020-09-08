@@ -71,7 +71,7 @@ end
 
 
 (** TODO: documentation *)
-module GLayers : sig
+module GUI_Layers : sig
   val get_active : unit -> char
   (** Indicates which layer is currently active. *)
 
@@ -84,7 +84,9 @@ module GLayers : sig
   val set_image : char -> GdkPixbuf.pixbuf -> unit
   (** Updates the icon of the given annotation. *)
 
-  val iter_radios : (char -> unit) -> unit
+  val iter :
+    (char -> 
+      GButton.radio_tool_button -> GMisc.label -> GMisc.image -> unit) -> unit
   (** Iterator over radio buttons. *)
 
   val set_toggled : char -> (unit -> unit) -> GtkSignal.id
