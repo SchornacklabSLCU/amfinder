@@ -49,6 +49,10 @@ let is_valid ~r ~c t = Ext_Matrix.get_opt (Img_Mosaic.annotations t) r c <> None
 (* Image currently being processed. *)
 let active_image = ref None
 
+(* Not sure if needed outside. *)
+let get_active () = !active_image
+let rem_active () = active_image := None
+
 module Par = struct
   open Arg
   let edge = ref 236
@@ -166,6 +170,14 @@ module Img_Surface = struct
         square ~kind:(`RGB "#aaffaa") ~alpha:0.7 edge
     in Ext_Memoize.create ~label:"Img_Surface.master" aux
 
+  let cursor = 
+    let aux () =
+      match !active_image with
+      | None -> assert false (* does not happen. *)
+      | Some img -> let edge = Img_Mosaic.edge img `SMALL in
+        square ~kind:`CURSOR ~alpha:0.9 edge
+    in Ext_Memoize.create ~label:"Img_Surface.cursor" aux
+
   let layers =
     List.map (fun lvl ->
       let aux lvl () =
@@ -180,6 +192,7 @@ module Img_Surface = struct
 
   let get = function
     | '*' -> joker ()
+    | '.' -> cursor ()
     | chr -> let lvl = GUI_levels.current () in
       List.assoc chr (List.assoc lvl layers ()) 
 end
@@ -245,24 +258,25 @@ module Img_Paint = struct
       end
     ) !active_image
 
+  let cursor ?(sync = false) () =
+    Option.iter (fun img ->
+      let r, c = Img_Mosaic.cursor_pos img in
+      tile r c;
+      surface r c (Img_Surface.get '.');
+      if sync then GUI_Drawing.synchronize ()
+    ) !active_image
+
   let active_layer ?(sync = true) () =
     Option.iter (fun img ->
       CTable.iter (fun ~r ~c _ ->
         tile r c;
         annot r c
       ) (Img_Mosaic.annotations img) (GUI_levels.current ());
-      (* cursor ();
-      let r, c = CImage.cursor_pos img in GUI.update_text_areas ~r ~c (); *)
+      cursor ();
+      let r, c = Img_Mosaic.cursor_pos img in
+      Update_GUI.set_coordinates r c;
       if sync then GUI_Drawing.synchronize ()
     ) !active_image
-end
-
-
-
-
-
-module Cursor = struct
-
 end
 
 
