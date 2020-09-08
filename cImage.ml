@@ -108,7 +108,7 @@ let statistics img = CTable.statistics (Img_Mosaic.annotations img)
 
 
 (* Interaction with the user interface. *)
-module Update_GUI = struct
+module Img_UI_update = struct
   let set_coordinates =
     let set lbl =
       ksprintf lbl#set_label "<tt><small><b>%c:</b> %03d</small></tt>"
@@ -122,7 +122,7 @@ module Update_GUI = struct
     ) !active_image
     
   let blank_tile =
-    Ext_Memoize.create ~label:"CImage.Update_GUI.blank_tile" ~one:true
+    Ext_Memoize.create ~label:"CImage.Img_UI_update.blank_tile" ~one:true
     (fun () ->
       let pix = GdkPixbuf.create ~width:180 ~height:180 () in
       GdkPixbuf.fill pix 0l; pix)
@@ -145,7 +145,7 @@ end
 
 (* Cairo surfaces for the painting functions below. *)
 module Img_Surface = struct
-  let square ?(alpha = 1.0) ~kind edge =
+  let square ?(alpha = 0.75) ~kind edge =
     assert (edge > 0); 
     let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = Cairo.create surface in
@@ -167,7 +167,7 @@ module Img_Surface = struct
       match !active_image with
       | None -> assert false (* does not happen. *)
       | Some img -> let edge = Img_Mosaic.edge img `SMALL in
-        square ~kind:(`RGB "#aaffaa") ~alpha:0.7 edge
+        square ~kind:(`RGB "#aaffaa") edge
     in Ext_Memoize.create ~label:"Img_Surface.master" aux
 
   let cursor = 
@@ -175,7 +175,7 @@ module Img_Surface = struct
       match !active_image with
       | None -> assert false (* does not happen. *)
       | Some img -> let edge = Img_Mosaic.edge img `SMALL in
-        square ~kind:`CURSOR ~alpha:0.9 edge
+        square ~kind:`CURSOR edge
     in Ext_Memoize.create ~label:"Img_Surface.cursor" aux
 
   let layers =
@@ -185,7 +185,7 @@ module Img_Surface = struct
         | None -> assert false (* does not happen. *)
         | Some img -> let edge = Img_Mosaic.edge img `SMALL in   
           List.map2 (fun chr rgb ->
-            chr, square ~kind:(`RGB rgb) ~alpha:0.8 edge
+            chr, square ~kind:(`RGB rgb) edge
           ) (CAnnot.char_list lvl) (CLevel.colors lvl)
       in lvl, Ext_Memoize.create ~label:"Img_Surface.layers" (aux lvl)
     ) CLevel.flags
@@ -210,18 +210,20 @@ module Img_Paint = struct
     Cairo.stroke t;
     if sync then GUI_Drawing.synchronize ()
 
-  let tiles ?(sync = true) t =
-    let pixmap = GUI_Drawing.pixmap ()
-    and xini = Img_Mosaic.origin t `X
-    and yini = Img_Mosaic.origin t `Y
-    and edge = Img_Mosaic.edge t `SMALL in
-    Iter.tiles (fun ~r ~c tile ->
-      pixmap#put_pixbuf
-        ~x:(xini + c * edge)
-        ~y:(yini + r * edge)
-        ~width:edge ~height:edge tile
-    ) t `SMALL;
-    if sync then GUI_Drawing.synchronize ()
+  let tiles ?(sync = true) () =
+    Option.iter (fun img ->
+      let pixmap = GUI_Drawing.pixmap ()
+      and xini = Img_Mosaic.origin img `X
+      and yini = Img_Mosaic.origin img `Y
+      and edge = Img_Mosaic.edge img `SMALL in
+      Iter.tiles (fun ~r ~c tile ->
+        pixmap#put_pixbuf
+          ~x:(xini + c * edge)
+          ~y:(yini + r * edge)
+          ~width:edge ~height:edge tile
+      ) img `SMALL;
+      if sync then GUI_Drawing.synchronize ()
+    ) !active_image
 
   let tile ?(sync = false) r c =
     Option.iter (fun img ->
@@ -274,10 +276,96 @@ module Img_Paint = struct
       ) (Img_Mosaic.annotations img) (GUI_levels.current ());
       cursor ();
       let r, c = Img_Mosaic.cursor_pos img in
-      Update_GUI.set_coordinates r c;
+      Img_UI_update.set_coordinates r c;
       if sync then GUI_Drawing.synchronize ()
     ) !active_image
 end
+
+
+(* Keyboard-related actions. *)
+module Img_Keyboard = struct
+  let apply f =
+    match !active_image with
+    | None -> assert false
+    | Some img -> f img
+
+  let move ~f_row ~f_col _ =
+    Option.iter (fun img ->
+      let r, c = Img_Mosaic.cursor_pos img in
+      Img_Paint.tile r c;
+      Img_Paint.annot r c;    
+      let new_r, new_c = f_row r, f_col c in
+      Img_Mosaic.set_cursor_pos img (new_r, new_c);
+      Img_UI_update.set_coordinates new_r new_c;
+      Img_UI_update.magnified_view ();
+      (* GUI.update_active_toggles toggles; *)
+      Img_Paint.cursor ();      
+      GUI_Drawing.synchronize ()
+    ) !active_image
+
+  let move_left ?(jump = 1) = move
+    ~f_row:(fun r -> r)
+    ~f_col:(fun c -> 
+      let f img =
+        let nc = Img_Mosaic.dim img `C and c' = c - jump in
+        if c' < 0 then (c' + nc) mod nc else
+        if c' >= nc then c' mod nc else c'
+      in apply f)
+
+  let move_right ?(jump = 1) = move
+    ~f_row:(fun r -> r)
+    ~f_col:(fun c ->
+      let f img =
+        let nc = Img_Mosaic.dim img `C and c' = c + jump in
+        if c' < 0 then (c' + nc) mod nc else
+        if c' >= nc then c' mod nc else c'
+      in apply f)
+
+  let move_up ?(jump = 1) = move
+    ~f_row:(fun r -> 
+      let f img =
+        let nr = Img_Mosaic.dim img `R and r' = r - jump in
+        if r' < 0 then (r' + nr) mod nr else
+        if r' >= nr then r' mod nr else r'
+      in apply f)
+    ~f_col:(fun c -> c)
+
+  let move_down ?(jump = 1) = move
+    ~f_row:(fun r ->
+      let f img =
+        let nr = Img_Mosaic.dim img `R and r' = r + jump in
+        if r' < 0 then (r' + nr) mod nr else
+        if r' >= nr then r' mod nr else r'
+      in apply f)
+    ~f_col:(fun c -> c)
+
+  let arrow_key_press ev =
+    let sym, modi = GdkEvent.Key.(keyval ev, state ev) in
+    let jump = 
+      if List.mem `CONTROL modi then 25 else
+      if List.mem `SHIFT   modi then 10 else 1 in
+    let out, f = match sym with
+      | 65361 -> true, move_left ~jump
+      | 65362 -> true, move_up ~jump
+      | 65363 -> true, move_right ~jump
+      | 65364 -> true, move_down ~jump
+      | _     -> false, ignore
+    in f [(* toggles *)];
+    out
+
+  (* let at_mouse_pointer ?(toggles = [||]) ev =
+    Gaux.may (fun img ->
+      let open GdkEvent.Button in
+      let x = truncate (x ev) - CImage.origin img `X
+      and y = truncate (y ev) - CImage.origin img `Y
+      and e = CImage.edge img `SMALL in
+      let r = y / e and c = x / e in
+      if CImage.is_valid ~r ~c img then
+        move ~f_row:(fun _ -> r) ~f_col:(fun _ -> c) toggles
+    )!curr;
+    false *)
+end
+
 
 
 
@@ -351,8 +439,15 @@ let load () =
   active_image := Some t;
   (* Draws background and tiles, then adds image info to the status bar. *)
   Img_Paint.white_background ~sync:false ();
-  Img_Paint.tiles t;
+  Img_Paint.tiles ();
+  Img_Paint.cursor ();
   CGUI.status#set_label (digest t);
   at_exit save (* FIXME this may not be the ideal situation! *)
+
+
+(* Connect the events to the functions. *)
+let initialize () =
+  window#event#connect#key_press Img_Keyboard.arrow_key_press;
+  ()
 
 
