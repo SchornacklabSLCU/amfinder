@@ -109,7 +109,7 @@ module Pane = struct
 end
 
 
-module GToggles = struct
+module  GUI_Toggles = struct
   (* Values here ensure that new buttons appear between existing ones when
    * the user switches between the different annotation levels. *)
   let get_col_spacing = function
@@ -181,6 +181,33 @@ module GToggles = struct
     let current_toolbox = List.assoc !GUI_levels.curr toolboxes in
     let module T = (val current_toolbox : Toolbox.TOGGLE) in
     T.toggles
+
+  let get ?level chr =
+    let lvl = match level with
+      | None -> !GUI_levels.curr
+      | Some lvl -> lvl in
+    let toolbox = List.assoc lvl toolboxes in
+    let module T = (val toolbox : Toolbox.TOGGLE) in
+    List.assoc chr (Array.to_list T.toggles)
+  
+  let toggle_lock = ref false
+  
+  let lock () = toggle_lock := true
+  let unlock () = toggle_lock := false
+  let is_locked () = !toggle_lock
+  
+  let toggle ?(lock = true) ?level chr =
+    let toggle_ext = get ?level chr in
+    toggle_lock := lock;
+    let new_status = not toggle_ext.toggle#active in
+    toggle_ext.toggle#set_active new_status;
+    toggle_lock := false;
+    new_status
+
+  let set_icon ?(lock = true) ?level chr buf =
+    toggle_lock := lock;
+    (get ?level chr).image#set_pixbuf buf;
+    toggle_lock := false
 
   let apply any chr = String.index CAnnot.all_chars chr
     |> Array.get (current_toggles ())

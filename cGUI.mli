@@ -21,7 +21,7 @@ end
   * buttons which correspond to basic ([`COLONIZATION]), intermediate 
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
-module GToggles : sig
+module GUI_Toggles : sig
   val iter : (
     CLevel.t -> 
     char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
@@ -33,8 +33,16 @@ module GToggles : sig
   (** Same as [iter], but builds a new list from the result of the application 
     * of function [f] to the toggle button sets. *)
 
-  val toggle_any : char -> unit
-  (** Inverts the status of the given toggle button. *)
+  val is_locked : unit -> bool
+  (** Indicates whether a toggle is locked and callbacks should not apply. *)
+
+  val toggle : ?lock:bool -> ?level:CLevel.t -> char -> bool
+  (** Reverts the status of the given toggle is active or not. Returns a 
+    * boolean value which indicates whether the button is active or not. *)
+
+  val set_icon :
+    ?lock:bool -> ?level:CLevel.t -> char -> GdkPixbuf.pixbuf -> unit
+  (** Defines the icon associated with the given toggle. *)
 end
 
 
