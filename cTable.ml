@@ -169,3 +169,17 @@ let remove tbl lvl ~r ~c chr =
       ) (CLevel.others lvl)
     |> Option.some
   ) else (CTile.remove mat.(r).(c) `USER (`CHR chr); None)
+
+
+let mem table lvl ~r ~c elt =
+  try
+    let f = CTile.mem (get_matrix_at_level tbl lvl).(r).(c) in
+    f `USER elt || f `HOLD elt
+  with _ -> invalid_arg "CTable.mem"
+
+
+
+
+
+
+
