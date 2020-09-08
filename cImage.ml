@@ -72,34 +72,25 @@ module Info = struct
 end
 
 module Img_Mosaic = struct
-  let source t = function
-    | `W -> t.graph.imgw 
-    | `H -> t.graph.imgh
-
-  let origin t = function
-    | `X -> t.graph.xini
-    | `Y -> t.graph.yini
-
-  let dim t = function
-    | `R -> t.graph.rows
-    | `C -> t.graph.cols
-
+  let source t = function `W -> t.graph.imgw | `H -> t.graph.imgh
+  let origin t = function `X -> t.graph.xini | `Y -> t.graph.yini
+  let dim t = function `R -> t.graph.rows | `C -> t.graph.cols
+  let annotations {table; _} = table
   let edge t = function
     | `SMALL -> t.sizes.small.edge 
     | `LARGE -> t.sizes.large.edge
-
   let tiles t = function
     | `SMALL -> t.sizes.small.matrix
     | `LARGE -> t.sizes.large.matrix
   let tile ~r ~c t typ = Ext_Matrix.get_opt (tiles t typ) r c
-
-  let annotations {table; _} = table
   let x ~c t typ = (origin t `X) + c * (edge t typ)
   let y ~r t typ = (origin t `Y) + r * (edge t typ)
   let cursor_pos t = t.graph.cursor
   let set_cursor_pos t pos = t.graph.cursor <- pos
 end
 
+
+(* Iterators *)
 module Iter = struct
   let tiles f t typ = Ext_Matrix.iteri f (Img_Mosaic.tiles t typ)
 end
@@ -145,7 +136,7 @@ end
 
 (* Cairo surfaces for the painting functions below. *)
 module Img_Surface = struct
-  let square ?(alpha = 0.75) ~kind edge =
+  let square ?(alpha = 0.65) ~kind edge =
     assert (edge > 0); 
     let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = Cairo.create surface in
@@ -177,6 +168,14 @@ module Img_Surface = struct
       | Some img -> let edge = Img_Mosaic.edge img `SMALL in
         square ~kind:`CURSOR edge
     in Ext_Memoize.create ~label:"Img_Surface.cursor" aux
+
+  let pointer = 
+    let create () = 
+      match !active_image with
+      | None -> assert false
+      | Some img -> let edge = Img_Mosaic.edge img `SMALL in
+        square ~kind:`CURSOR ~alpha:0.40 edge
+    in Ext_Memoize.create ~label:"Img_Surface.pointer" create
 
   let layers =
     List.map (fun lvl ->
@@ -341,36 +340,6 @@ module Img_Move = struct
 end
 
 
-(* UI_based functions that trigger changes. *)
-module Img_Trigger = struct
-  let arrow_keys ev =
-    let sym, modi = GdkEvent.Key.(keyval ev, state ev) in
-    let jump = 
-      if List.mem `CONTROL modi then 25 else
-      if List.mem `SHIFT   modi then 10 else 1 in
-    let out, f = match sym with
-      | 65361 -> true, Img_Move.left ~jump
-      | 65362 -> true, Img_Move.up ~jump
-      | 65363 -> true, Img_Move.right ~jump
-      | 65364 -> true, Img_Move.down ~jump
-      | _     -> false, ignore
-    in f [(* toggles *)];
-    out
-
-  let mouse_click ev =
-    Option.iter (fun img ->
-      let open GdkEvent.Button in
-      let x = truncate (x ev) - Img_Mosaic.origin img `X
-      and y = truncate (y ev) - Img_Mosaic.origin img `Y
-      and e = Img_Mosaic.edge img `SMALL in
-      let r = y / e and c = x / e in
-      if CTable.is_valid (Img_Mosaic.annotations img) ~r ~c then
-        Img_Move.run ~f_row:(fun _ -> r) ~f_col:(fun _ -> c)  [(* toggles *)]
-    )!active_image;
-    false
-end
-
-
 module Create = struct
   let large_tile_matrix nr nc edge src =
     Ext_Matrix.init nr nc (fun r c ->
@@ -447,10 +416,79 @@ let load () =
   at_exit save (* FIXME this may not be the ideal situation! *)
 
 
+module Img_Tracker = struct
+  let mem = ref None
+
+  let erase ?(sync = false) img =
+    Gaux.may (fun ((r, c) as pos) ->
+      Img_Paint.tile r c;
+      Img_Paint.annot r c;
+      if pos = Img_Mosaic.cursor_pos img then Img_Paint.cursor ();
+      if sync then GUI_Drawing.synchronize ()
+    ) !mem
+
+  let show ~r ~c img =
+    erase img;
+    if CTable.is_valid (Img_Mosaic.annotations img) ~r ~c then begin
+      erase img;
+      Img_Paint.tile r c;
+      Img_Paint.surface r c (Img_Surface.pointer ());
+      mem := Some (r, c)
+    end;
+    GUI_Drawing.synchronize ()
+end
+
+
+(* UI-based functions that trigger changes. *)
+module Img_Trigger = struct
+  let arrow_keys ev =
+    let sym, modi = GdkEvent.Key.(keyval ev, state ev) in
+    let jump = 
+      if List.mem `CONTROL modi then 25 else
+      if List.mem `SHIFT   modi then 10 else 1 in
+    let out, f = match sym with
+      | 65361 -> true, Img_Move.left ~jump
+      | 65362 -> true, Img_Move.up ~jump
+      | 65363 -> true, Img_Move.right ~jump
+      | 65364 -> true, Img_Move.down ~jump
+      | _     -> false, ignore
+    in f [(* toggles *)];
+    out
+
+  let mouse_click ev =
+    Option.iter (fun img ->
+      let open GdkEvent.Button in
+      let x = truncate (x ev) - Img_Mosaic.origin img `X
+      and y = truncate (y ev) - Img_Mosaic.origin img `Y
+      and e = Img_Mosaic.edge img `SMALL in
+      let r = y / e and c = x / e in
+      if CTable.is_valid (Img_Mosaic.annotations img) ~r ~c then
+        Img_Move.run ~f_row:(fun _ -> r) ~f_col:(fun _ -> c)  [(* toggles *)]
+    )!active_image;
+    false
+
+  let mouse_move ev =
+    Option.iter (fun img ->
+      let open GdkEvent.Motion in
+      let x = truncate (x ev) - Img_Mosaic.origin img `X
+      and y = truncate (y ev) - Img_Mosaic.origin img `Y
+      and e = Img_Mosaic.edge img `SMALL in
+      Img_Tracker.show ~r:(y / e) ~c:(x / e) img
+    ) !active_image;
+    false
+  
+  let mouse_leave _ =
+    Option.iter (Img_Tracker.erase ~sync:true) !active_image;
+    false
+end
+
 (* Connect the events to the functions. *)
 let initialize () =
-  window#event#connect#key_press Img_Trigger.arrow_keys;
-  GUI_Drawing.area#event#connect#button_press Img_Trigger.mouse_click;
+  CGUI.window#event#connect#key_press Img_Trigger.arrow_keys;
+  let connect = GUI_Drawing.area#event#connect in
+  connect#button_press Img_Trigger.mouse_click;
+  connect#motion_notify Img_Trigger.mouse_move;
+  connect#leave_notify Img_Trigger.mouse_leave;
   ()
 
 
