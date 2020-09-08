@@ -43,6 +43,11 @@ let exists src = function
   | `CHR chr -> String.contains src chr
   | `STR str -> List.for_all (String.contains src) (Ext_Text.explode str)
 
+let is_empty t = function
+  | `USER -> t.user = ""
+  | `LOCK -> t.lock = ""
+  | `HOLD -> t.hold = ""
+
 let mem t = function
   | `USER -> exists t.user
   | `LOCK -> exists t.lock
