@@ -290,7 +290,7 @@ module GUI_Drawing = struct
         ~x ~y ~xsrc:x ~ysrc:y
         ~width ~height (pixmap ())#pixmap;
       false in
-    area#event#add [`EXPOSURE];
+    area#event#add [`EXPOSURE; `POINTER_MOTION; `BUTTON_PRESS; `LEAVE_NOTIFY];
     area#event#connect#expose repaint;
     (* Creates a GtkPixmap and its Cairo.context upon widget size allocation. *)
     let initialize {Gtk.width; height} =  
