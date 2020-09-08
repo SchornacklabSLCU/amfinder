@@ -66,7 +66,9 @@ val is_empty : table -> CLevel.t -> r:int -> c:int -> bool
   * user and hold layers.
   * @raise Invalid_argument if the row or column number is invalid. *)
 
-val mem : table -> CLevel.t -> r:int -> c:int -> char -> bool
+val mem : 
+  table -> 
+  CLevel.t -> r:int -> c:int -> [ `CHR of char | `STR of string ] -> bool
 (** Indicates whether an annotation exists at the given coordinates.
   * @raise Invalid_argument if the row or column number is invalid. *)
 
