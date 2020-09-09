@@ -22,17 +22,6 @@ end
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
 module GUI_Toggles : sig
-  val iter : (
-    CLevel.t -> 
-    char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
-  (** [iter f] applies the function [f] to every set of toggle buttons. *)
-
-  val map : (
-    CLevel.t -> 
-    char -> GButton.toggle_button -> GMisc.image -> 'a) -> 'a array list
-  (** Same as [iter], but builds a new list from the result of the application 
-    * of function [f] to the toggle button sets. *)
-
   val is_active : char -> bool option
   (** Indicates whether the given annotation is active at the current level. *)
 

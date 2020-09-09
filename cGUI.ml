@@ -375,10 +375,7 @@ module GUI_Layers = struct
         List.mapi (add_item packing active group) code_list
     end in (module T : Toolbox.RADIO)
     
-  let toolboxes =
-    List.map (fun typ ->
-      typ, make_toolbox typ
-    ) CLevel.flags
+  let toolboxes = List.map (fun typ -> typ, make_toolbox typ) CLevel.flags
 
   let current_widget = ref None
 
@@ -445,7 +442,18 @@ let _ =
     radio#connect#toggled ~callback:(fun () ->
       if radio#active then GUI_Layers.attach typ
     ); ()
-  ) GUI_levels.radios
+  ) GUI_levels.radios;
+  (* Update the icon style when a GtkRadioToolButton is toggled. *)
+  List.iter (fun (_, toolbox) ->
+    let module T = (val toolbox : Toolbox.RADIO) in
+    List.iter (fun (chr, ext) ->
+      let callback () =
+        let style = if ext.r_radio#get_active then `RGBA else `GREY in
+        ext.r_image#set_pixbuf (CIcon.get chr style `SMALL)
+      in ignore (ext.r_radio#connect#toggled ~callback)
+    ) T.radios
+  ) GUI_Layers.toolboxes
+  
 
 
 let status = 
