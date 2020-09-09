@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+# Modified from the following:
+# http://www.tom-ridge.com/2015-01-23_ocaml_dependency_graph_via_graphviz_and_dot_file.html
+
 import os
 import re
 import sys
