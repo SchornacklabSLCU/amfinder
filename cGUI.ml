@@ -93,6 +93,12 @@ module GUI_levels = struct
       if !group = None then group := Some radio#group;
       lvl, radio
     ) CLevel.flags CLevel.strings
+    
+  let set_callback f =
+    List.iter (fun (lvl, radio) ->
+      let callback () = f lvl radio in
+      ignore (radio#connect#toggled ~callback)
+    ) radios
 end
 
 
@@ -219,15 +225,18 @@ module  GUI_Toggles = struct
       let toolbox = List.assoc lvl toolboxes in
       let module T = (val toolbox : Toolbox.TOGGLE) in
       let assoc_table = Array.to_list T.toggles in
-      let apply_settings str status style =
+      let apply_settings ~layer ~status ~style ?alt_style () =
         String.iter (fun chr ->
           let ext = List.assoc chr assoc_table in
           ext.t_toggle#set_active status;
-          ext.t_image#set_pixbuf (CIcon.get chr style `LARGE)
-        ) str in
-      apply_settings user true `RGBA;
-      apply_settings hold true `RGBA_LOCKED;
-      apply_settings lock false `GREY
+          let style = match lvl = GUI_levels.current () with
+            | true -> style
+            | false -> Option.value alt_style ~default:style in
+          ext.t_image#set_pixbuf (CIcon.get chr style `LARGE);
+        ) layer in
+      apply_settings ~layer:user ~status:true ~style:`RGBA ();
+      apply_settings ~layer:hold ~status:true ~style:`RGBA_LOCKED ();
+      apply_settings ~layer:lock ~status:false ~style:`GREY ~alt_style:`GREY_LOCKED ()
     ) t;
     toggle_lock := false
 
@@ -422,10 +431,15 @@ module GUI_Layers = struct
     let ext = if chr = '*' then get_joker () else get_layer chr in
     ksprintf ext.r_label#set_label "<small><tt>%04d</tt></small>" num
   
-  let set_toggled chr callback =
-    let ext = if chr = '*' then get_joker () else get_layer chr in
-    ext.r_radio#connect#toggled ~callback
-    
+  let set_callback f =
+    List.iter (fun (_, toolbox) ->
+      let module T = (val toolbox : Toolbox.RADIO) in
+      List.iter (fun (chr, ext) ->
+        let callback () = f chr ext.r_radio ext.r_label ext.r_image in
+        ignore (ext.r_radio#connect#toggled ~callback)
+      ) T.radios
+    ) toolboxes  
+ 
   let iter f =
     List.iter (fun (chr, r) -> 
       f chr r.r_radio r.r_label r.r_image) 
@@ -444,16 +458,10 @@ let _ =
     ); ()
   ) GUI_levels.radios;
   (* Update the icon style when a GtkRadioToolButton is toggled. *)
-  List.iter (fun (_, toolbox) ->
-    let module T = (val toolbox : Toolbox.RADIO) in
-    List.iter (fun (chr, ext) ->
-      let callback () =
-        let style = if ext.r_radio#get_active then `RGBA else `GREY in
-        ext.r_image#set_pixbuf (CIcon.get chr style `SMALL)
-      in ignore (ext.r_radio#connect#toggled ~callback)
-    ) T.radios
-  ) GUI_Layers.toolboxes
-  
+  let callback chr radio _ icon =
+    let style = if radio#get_active then `RGBA else `GREY in
+    icon#set_pixbuf (CIcon.get chr style `SMALL)
+  in GUI_Layers.set_callback callback
 
 
 let status = 

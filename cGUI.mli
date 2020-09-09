@@ -13,6 +13,9 @@ module GUI_levels : sig
 
   val radios : (CLevel.t * GButton.radio_button) list
   (** Radio buttons corresponding to the different annotation types. *)
+  
+  val set_callback : (CLevel.t -> GButton.radio_button -> unit) -> unit
+  (** Applies a callback function to all radio buttons. *)
 end
 
 
@@ -70,22 +73,14 @@ module GUI_Layers : sig
   val get_active : unit -> char
   (** Indicates which layer is currently active. *)
 
-  val is_active : char -> bool
-  (** Indicates whether the given layer is active. *)
-
   val set_label : char -> int -> unit
   (** Updates the counter of the given annotation. *)
 
-  val set_image : char -> GdkPixbuf.pixbuf -> unit
-  (** Updates the icon of the given annotation. *)
-
-  val iter :
+  val set_callback : 
     (char -> 
       GButton.radio_tool_button -> GMisc.label -> GMisc.image -> unit) -> unit
-  (** Iterator over radio buttons. *)
-
-  val set_toggled : char -> (unit -> unit) -> GtkSignal.id
-  (** Sets a callback function to call when a button is toggled. *)
+  (** Sets a callback function to call when a button is toggled. The callback
+    * function will be applied to all tool buttons. *)
 end
 
 
