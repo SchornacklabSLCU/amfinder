@@ -53,13 +53,20 @@ val get : table -> CLevel.t -> r:int -> c:int -> CTile.t
 (** [get t lvl ~r ~c] returns the annotations at row [r] and column [c] in 
   * layer [lvl] of table [t]. *)
 
-val add : table -> CLevel.t -> r:int -> c:int -> char -> CChangeLog.t option
+val get_all : table -> r:int -> c:int -> (CLevel.t * CTile.t) list
+(** Same as get, but gives information for all the annotation layers. *)
+
+val add :
+  table -> 
+  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CTile.t) list
 (** [add t x ~r ~c chr] adds annotation [chr] at row [r] and column [c] in
   * level [x]-matrix of table [t], and returns a changelog of altered 
   * annotations in all other layers. These changes are to be reflected in the
   * user interface. The function returns [None] if no change was made. *)
 
-val remove : table -> CLevel.t -> r:int -> c:int -> char -> CChangeLog.t option
+val remove :
+  table -> 
+  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CTile.t) list
 (** Same arguments as [add], but this function tries and remove a given 
   * annotation from a given tile. Again the changelog indicates the triggered 
   * modifications. *)

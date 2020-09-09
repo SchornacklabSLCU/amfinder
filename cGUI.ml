@@ -3,14 +3,14 @@
 open Printf
 
 type toggle_ext = {
-  toggle : GButton.toggle_button;
-  image : GMisc.image;
+  t_toggle : GButton.toggle_button;
+  t_image : GMisc.image;
 }
 
 type radio_ext = {
-  radio : GButton.radio_tool_button;
-  label : GMisc.label;
-  image : GMisc.image;
+  r_radio : GButton.radio_tool_button;
+  r_label : GMisc.label;
+  r_image : GMisc.image;
 }
 
 module Toolbox = struct
@@ -122,10 +122,10 @@ module  GUI_Toggles = struct
 
   let add_item (table : GPack.table) i chr =
     let packing = table#attach ~left:i ~top:0 in
-    let toggle = GButton.toggle_button ~relief:`NONE ~packing () in
-    let image = GMisc.image ~width:48 ~packing:toggle#set_image () in
-    image#set_pixbuf (CIcon.get chr `GREY `LARGE);
-    chr, {toggle; image}
+    let t_toggle = GButton.toggle_button ~relief:`NONE ~packing () in
+    let t_image = GMisc.image ~width:48 ~packing:t_toggle#set_image () in
+    t_image#set_pixbuf (CIcon.get chr `GREY `LARGE);
+    chr, {t_toggle; t_image}
 
   let make_toolbox typ =
     let code_list = CAnnot.char_list typ in
@@ -148,16 +148,16 @@ module  GUI_Toggles = struct
   let iter f =
     List.iter (fun (typ, mdl) ->
       let module T = (val mdl : Toolbox.TOGGLE) in
-      Array.iter (fun (chr, {toggle; image}) -> 
-        f typ chr toggle image
+      Array.iter (fun (chr, {t_toggle; t_image}) -> 
+        f typ chr t_toggle t_image
       ) T.toggles
     ) toolboxes
 
   let map f =
     List.map (fun (typ, mdl) ->
       let module T = (val mdl : Toolbox.TOGGLE) in
-      Array.map (fun (chr, {toggle; image}) ->
-        f typ chr toggle image
+      Array.map (fun (chr, {t_toggle; t_image}) ->
+        f typ chr t_toggle t_image
       ) T.toggles
     ) toolboxes
 
@@ -188,7 +188,7 @@ module  GUI_Toggles = struct
       | Some lvl -> lvl in
     let toolbox = List.assoc lvl toolboxes in
     let module T = (val toolbox : Toolbox.TOGGLE) in
-    List.assoc chr (Array.to_list T.toggles)
+    List.assoc_opt (Char.uppercase_ascii chr) (Array.to_list T.toggles)
   
   let toggle_lock = ref false
   
@@ -196,22 +196,38 @@ module  GUI_Toggles = struct
   let unlock () = toggle_lock := false
   let is_locked () = !toggle_lock
   
-  let set_active ~user ~hold () =
-    let toolbox = List.assoc !GUI_levels.curr toolboxes in
-    let module T = (val toolbox : Toolbox.TOGGLE) in
-    Array.iter (fun (chr, toggle_ext) ->
-      toggle_lock := true;
-      let active, style =
-        match String.contains user chr with
-        | true -> true, `RGBA
-        | false -> match String.contains hold chr with
-          | true -> true, `RGBA_LOCKED
-          | false -> false, `GREY in
-      toggle_ext.toggle#set_active active;
-      toggle_ext.image#set_pixbuf (CIcon.get chr style `LARGE);
-      toggle_lock := false
-    ) T.toggles
+  let is_active chr =
+    match get chr with
+    | None -> None
+    | Some ext -> Some ext.t_toggle#active
   
+  let revert_all lvl =
+    let toolbox = List.assoc lvl toolboxes in
+    let module T = (val toolbox : Toolbox.TOGGLE) in  
+    Array.iter (fun (chr, ext) ->
+      ext.t_toggle#set_active false;
+      ext.t_image#set_pixbuf (CIcon.get chr `GREY `LARGE);
+    ) T.toggles
+
+  let set_status t =
+    toggle_lock := true;
+    List.iter2 (fun layer style ->
+      List.iter (fun (lvl, tile) ->
+        revert_all lvl;
+        let str = CTile.get tile layer in
+        let toolbox = List.assoc lvl toolboxes in
+        let module T = (val toolbox : Toolbox.TOGGLE) in
+        Array.iter (fun (chr, ext) ->
+          if String.contains str chr then begin
+            ext.t_toggle#set_active (layer <> `LOCK);
+            ext.t_image#set_pixbuf (CIcon.get chr style `LARGE)
+          end
+        ) T.toggles
+      ) t
+    ) [`USER; `HOLD; `LOCK] [`RGBA; `RGBA_LOCKED; `GREY_LOCKED];
+    toggle_lock := false
+
+(*
   let toggle ?(lock = true) ?level chr =
     let toggle_ext = get ?level chr in
     toggle_lock := lock;
@@ -224,6 +240,7 @@ module  GUI_Toggles = struct
     toggle_lock := lock;
     (get ?level chr).image#set_pixbuf buf;
     toggle_lock := false
+
 
   let apply any chr = String.index CAnnot.all_chars chr
     |> Array.get (current_toggles ())
@@ -260,7 +277,7 @@ module  GUI_Toggles = struct
 
   let toggle_any chr =
     set_status `INVERT chr;
-    check chr ()
+    check chr () *)
 
   let _ =
     (* Initializes the annotation toolbar using the lightweight annotation style
@@ -271,12 +288,7 @@ module  GUI_Toggles = struct
       radio#connect#toggled ~callback:(fun () ->
         if radio#active then attach typ
       ); ()
-    ) GUI_levels.radios;
-    (* Initializes the callback function that activate or deactivate toggle
-     * buttons based on key pressed and CAnnot-defined constraints. *)
-    iter (fun _ chr toggle _ ->
-      ignore (toggle#connect#toggled ~callback:(check chr))
-    )
+    ) GUI_levels.radios
 end
 
 
@@ -388,15 +400,16 @@ end
 module GUI_Layers = struct
   let add_item packing a_ref g_ref i chr =
     let active = !a_ref and group = !g_ref in
-    let radio = GButton.radio_tool_button ~active ?group ~packing () in
-    if active then (a_ref := false; g_ref := Some radio);
-    let hbox = GPack.hbox ~spacing:2 ~packing:radio#set_icon_widget () in
+    let r_radio = GButton.radio_tool_button ~active ?group ~packing () in
+    if active then (a_ref := false; g_ref := Some r_radio);
+    let hbox = GPack.hbox ~spacing:2 ~packing:r_radio#set_icon_widget () in
     let packing = hbox#add in
-    let image = GMisc.image ~width:24 ~packing () in
-    let label = GMisc.label
+    let r_image = GMisc.image ~width:24 ~packing () in
+    let r_label = GMisc.label
       ~markup:"<small><tt>0000</tt></small>" ~packing () in
-    image#set_pixbuf (CIcon.get chr (if chr = '*' then `RGBA else `GREY) `SMALL);
-    chr, {radio; label; image}
+    let style = if chr = '*' then `RGBA else `GREY in
+    r_image#set_pixbuf (CIcon.get chr style `SMALL);
+    chr, {r_radio; r_label; r_image}
 
   let make_toolbox typ =
     let code_list = '*' :: CAnnot.char_list typ in
@@ -449,28 +462,28 @@ module GUI_Layers = struct
     |> snd
 
   let get_active () = current_radios ()
-    |> List.find (fun (_, t) -> t.radio#get_active)
+    |> List.find (fun (_, t) -> t.r_radio#get_active)
     |> fst
   
   let is_active chr =
     let ext = if chr = '*' then get_joker () else get_layer chr in
-    ext.radio#get_active
+    ext.r_radio#get_active
 
   let set_image chr =
     let ext = if chr = '*' then get_joker () else get_layer chr in
-    ext.image#set_pixbuf
+    ext.r_image#set_pixbuf
 
   let set_label chr num =
     let ext = if chr = '*' then get_joker () else get_layer chr in
-    ksprintf ext.label#set_label "<small><tt>%04d</tt></small>" num
+    ksprintf ext.r_label#set_label "<small><tt>%04d</tt></small>" num
   
   let set_toggled chr callback =
     let ext = if chr = '*' then get_joker () else get_layer chr in
-    ext.radio#connect#toggled ~callback
+    ext.r_radio#connect#toggled ~callback
     
   let iter f =
     List.iter (fun (chr, r) -> 
-      f chr r.radio r.label r.image) 
+      f chr r.r_radio r.r_label r.r_image) 
     (current_radios ()) 
 end
 

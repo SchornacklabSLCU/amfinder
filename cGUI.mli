@@ -33,19 +33,14 @@ module GUI_Toggles : sig
   (** Same as [iter], but builds a new list from the result of the application 
     * of function [f] to the toggle button sets. *)
 
-  val set_active : user:string -> hold:string -> unit -> unit
-  (** Updates all toggle buttons. *)
+  val is_active : char -> bool option
+  (** Indicates whether the given annotation is active at the current level. *)
+
+  val set_status : (CLevel.t * CTile.t) list -> unit
+  (** Updates all toggle buttons according to the change log. *)
 
   val is_locked : unit -> bool
   (** Indicates whether a toggle is locked and callbacks should not apply. *)
-
-  val toggle : ?lock:bool -> ?level:CLevel.t -> char -> bool
-  (** Reverts the status of the given toggle is active or not. Returns a 
-    * boolean value which indicates whether the button is active or not. *)
-
-  val set_icon :
-    ?lock:bool -> ?level:CLevel.t -> char -> GdkPixbuf.pixbuf -> unit
-  (** Defines the icon associated with the given toggle. *)
 end
 
 

@@ -108,10 +108,8 @@ module Img_UI_update = struct
   let update_toggles ~r ~c () =
     Option.iter (fun img ->
       let tbl = Img_Mosaic.annotations img in
-      let tile = CTable.get tbl (GUI_levels.current ()) ~r ~c in
-      GUI_Toggles.set_active
-        ~user:(CTile.get tile `USER)
-        ~hold:(CTile.get tile `HOLD) ()
+      let tiles = CTable.get_all tbl ~r ~c in
+      GUI_Toggles.set_status tiles
     ) !active_image
     
   let set_counters =
@@ -307,7 +305,7 @@ module Img_Move = struct
       Img_UI_update.set_coordinates new_r new_c;
       Img_UI_update.magnified_view ();
       Img_UI_update.update_toggles ~r:new_r ~c:new_c ();
-      Img_Paint.cursor ();      
+      Img_Paint.cursor ();
       GUI_Drawing.synchronize ()
     ) !active_image
 
@@ -466,20 +464,24 @@ module Img_Trigger = struct
 
   (* Can be given GdkEvent.Key.t values or characters. *)
   let annotation_keys ev = 
-    begin try
-      let key = Char.uppercase_ascii (
-        match ev with
-        | `CHR chr -> chr
-        | `GDK key -> (GdkEvent.Key.string key).[0]) in
-      if false (* FIXME verbose? *) then CLog.info "Key pressed is %C" key;
-      if CAnnot.mem (`CHR key) (GUI_levels.current ()) then (
-        let is_active = GUI_Toggles.toggle key in
-        (* Updates the icon accordingly. *)
-        let style = if is_active then `RGBA else `GREY in
-        GUI_Toggles.set_icon key (CIcon.get key style `LARGE)
-      )
-    with _ -> () end;
-    false
+    try
+      Option.iter (fun img ->
+        let key = Char.uppercase_ascii (
+          match ev with
+          | `CHR chr -> chr
+          | `GDK evt -> (GdkEvent.Key.string evt).[0]
+        ) in
+        CLog.info "Key pressed: %C" key;
+        match GUI_Toggles.is_active key with
+        | None -> () (* Invalid key, nothing to do! *)
+        | Some is_active -> let tbl = Img_Mosaic.annotations img
+          and lvl = GUI_levels.current ()
+          and r, c = Img_Mosaic.cursor_pos img in
+          CTable.(if is_active then remove else add) tbl lvl ~r ~c key
+          |> GUI_Toggles.set_status
+      ) !active_image;
+      false
+    with _ -> false
 
   let mouse_click ev =
     Option.iter (fun img ->
@@ -508,18 +510,6 @@ module Img_Trigger = struct
 end
 
 let initialize () =
-  (* Callback functions for button activation from the interface. *)
-  GUI_Toggles.iter (fun lvl chr toggle _ ->
-    toggle#connect#toggled (fun () ->
-      if not (GUI_Toggles.is_locked ()) then begin
-        let style = if toggle#active then `RGBA else `GREY in
-        GUI_Toggles.set_icon chr (CIcon.get chr style `LARGE);
-        (* We need to retrieve the changelog and apply the modifications. *)
-        
-        
-      end
-    ); ()
-  );
   (* Callback functions for keyboard events. *)
   let connect = CGUI.window#event#connect in
   connect#key_press Img_Trigger.arrow_keys;
