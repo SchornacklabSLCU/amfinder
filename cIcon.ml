@@ -33,9 +33,9 @@ module Build = struct
 end
 
 let m_rgba = Build.icon_set "rgba"
-let m_rgba_lock = Build.icon_set "lock"
+let m_rgba_lock = Build.icon_set "hold"
 let m_grey = Build.icon_set "grey"
-let m_grey_lock = Build.icon_set "hold"
+let m_grey_lock = Build.icon_set "lock"
 
 
 (* Joker icon for display any annotation (irrespective of their type). *)
