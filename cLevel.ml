@@ -30,3 +30,14 @@ let colors = function
   | `COLONIZATION -> Colors.colonization
   | `ARB_VESICLES -> Colors.arb_vesicles
   | `ALL_FEATURES -> Colors.all_features  
+
+let to_string = function
+  | `COLONIZATION -> "`COLONIZATION"
+  | `ARB_VESICLES -> "`ARB_VESICLES"
+  | `ALL_FEATURES -> "`ALL_FEATURES"
+
+let of_string = function
+  | "`COLONIZATION" -> `COLONIZATION
+  | "`ARB_VESICLES" -> `ARB_VESICLES
+  | "`ALL_FEATURES" -> `ALL_FEATURES
+  | _               -> invalid_arg "CLevel.of_string" 

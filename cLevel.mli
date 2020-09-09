@@ -28,3 +28,7 @@ val others : t -> t list
 
 val colors : t -> string list
 (** Returns the list of colors at the given level. *)
+
+val to_string : t -> string
+
+val of_string : string -> t

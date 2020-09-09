@@ -22,12 +22,12 @@ let get_matrix_at_level tbl = function
 let iter f tbl lvl = Ext_Matrix.iteri f (get_matrix_at_level tbl lvl)
 
 let create ?(main = `COLONIZATION) src =
-  let mat = match src with
+  let mat () = match src with
     | `DIM (r, c) -> Ext_Matrix.init r c (fun _ _ -> CTile.create ())
     | `MAT matrix -> Ext_Matrix.map (fun _ -> CTile.create ()) matrix in
-  { main; colonization = mat;
-    arb_vesicles = Ext_Matrix.copy mat;
-    all_features = Ext_Matrix.copy mat;
+  { main; colonization = mat ();
+    arb_vesicles = mat ();
+    all_features = mat ();
     network_pred = [] }
 
 let to_string tbl lvl =
@@ -117,28 +117,24 @@ let add tbl lvl ~r ~c chr =
       let user = String.make 1 chr
       and hold, lock = CAnnot.rule lvl lvl (`CHR chr) in
       let tile = mat.(r).(c) in
-      let old_user = CTile.get tile `USER
-      and old_lock = CTile.get tile `LOCK
-      and old_hold = CTile.get tile `HOLD in
+      CLog.info "At level %s, adding user=%S hold=%S lock=%S"
+        (CLevel.to_string lvl) user hold lock;
       CTile.set tile `USER (`CHR chr);
       CTile.set tile `LOCK (`STR lock);
       CTile.set tile `HOLD (`STR hold);
-      let log = CTile.create () in
-      CTile.add log `USER (`STR (EStringSet.diff user old_user));
-      CTile.add log `LOCK (`STR (EStringSet.diff lock old_lock));
-      CTile.add log `HOLD (`STR (EStringSet.diff hold old_hold));
+      let log = CTile.make
+        ~user:(`STR user)
+        ~lock:(`STR lock)
+        ~hold:(`STR hold) () in
       List.fold_right
         (fun alt log -> (* propagates constraints. *)
           (* TODO annotations added by the user on other layers. *)
           let alt_tile = (get_matrix_at_level tbl alt).(r).(c) in
-          let old_lock = CTile.get alt_tile `LOCK
-          and old_hold = CTile.get alt_tile `HOLD in
           let hold, lock = CAnnot.rule lvl alt (`CHR chr) in
-          CTile.set tile `LOCK (`STR lock);
-          CTile.set tile `HOLD (`STR hold);
-          let more_log = CTile.create () in
-          CTile.add more_log `LOCK (`STR (EStringSet.diff lock old_lock));
-          CTile.add more_log `HOLD (`STR (EStringSet.diff hold old_hold));
+          CLog.info "At level %s, hold=%S lock=%S" (CLevel.to_string alt) hold lock;
+          CTile.set alt_tile `LOCK (`STR lock);
+          CTile.set alt_tile `HOLD (`STR hold);
+          let more_log = CTile.make ~lock:(`STR lock) ~hold:(`STR hold) () in
           (alt, more_log) :: log
         ) (CLevel.others lvl) [lvl, log]
     (* In this case, just adds the annotations. No constraints propagation. *)
@@ -171,8 +167,8 @@ let remove tbl lvl ~r ~c chr =
           let old_lock = CTile.get alt_tile `LOCK
           and old_hold = CTile.get alt_tile `HOLD in
           let hold, lock = CAnnot.rule lvl alt (`STR user) in  
-          CTile.set tile `LOCK (`STR lock);
-          CTile.set tile `HOLD (`STR hold);
+          CTile.set alt_tile `LOCK (`STR lock);
+          CTile.set alt_tile `HOLD (`STR hold);
           let more_log = CTile.create () in
           CTile.add more_log `LOCK (`STR (EStringSet.diff lock old_lock));
           CTile.add more_log `HOLD (`STR (EStringSet.diff hold old_hold));

@@ -15,6 +15,12 @@ type layer = [
 val create : unit -> t
 (** Creates an empty annotation. *)
 
+val make :
+  ?user:[`CHR of char | `STR of string] -> 
+  ?lock:[`CHR of char | `STR of string] ->
+  ?hold:[`CHR of char | `STR of string] -> unit -> t
+(** Same as create, but can specify individual values at creation time. *)
+
 val of_string : string -> t
 (** Retrieves a note from its string representation.
   * @raise Invalid_argument when given a malformed string. *)

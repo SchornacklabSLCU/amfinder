@@ -211,83 +211,31 @@ module  GUI_Toggles = struct
 
   let set_status t =
     toggle_lock := true;
-    List.iter2 (fun layer style ->
-      List.iter (fun (lvl, tile) ->
-        revert_all lvl;
-        let str = CTile.get tile layer in
-        let toolbox = List.assoc lvl toolboxes in
-        let module T = (val toolbox : Toolbox.TOGGLE) in
-        Array.iter (fun (chr, ext) ->
-          if String.contains str chr then begin
-            ext.t_toggle#set_active (layer <> `LOCK);
-            ext.t_image#set_pixbuf (CIcon.get chr style `LARGE)
-          end
-        ) T.toggles
-      ) t
-    ) [`USER; `HOLD; `LOCK] [`RGBA; `RGBA_LOCKED; `GREY_LOCKED];
+    List.iter (fun (lvl, tile) ->
+      revert_all lvl;
+      let user = CTile.get tile `USER
+      and hold = CTile.get tile `HOLD
+      and lock = CTile.get tile `LOCK in
+      let toolbox = List.assoc lvl toolboxes in
+      let module T = (val toolbox : Toolbox.TOGGLE) in
+      let assoc_table = Array.to_list T.toggles in
+      let apply_settings str status style =
+        String.iter (fun chr ->
+          let ext = List.assoc chr assoc_table in
+          ext.t_toggle#set_active status;
+          ext.t_image#set_pixbuf (CIcon.get chr style `LARGE)
+        ) str in
+      apply_settings user true `RGBA;
+      apply_settings hold true `RGBA_LOCKED;
+      apply_settings lock false `GREY
+    ) t;
     toggle_lock := false
 
-(*
-  let toggle ?(lock = true) ?level chr =
-    let toggle_ext = get ?level chr in
-    toggle_lock := lock;
-    let new_status = not toggle_ext.toggle#active in
-    toggle_ext.toggle#set_active new_status;
-    toggle_lock := false;
-    new_status
-
-  let set_icon ?(lock = true) ?level chr buf =
-    toggle_lock := lock;
-    (get ?level chr).image#set_pixbuf buf;
-    toggle_lock := false
-
-
-  let apply any chr = String.index CAnnot.all_chars chr
-    |> Array.get (current_toggles ())
-    |> snd
-    |> (fun {toggle; _} -> any toggle)
- 
-  let is_active = apply (fun t -> t#active)
-
-  let set_status status = 
-    apply (fun t -> 
-      let status = match status with
-        | `INVERT -> not t#active
-        | `BOOL b -> b
-      in t#set_active status)
-  
-  let lock = ref false
-  
-  let activate t = 
-    lock := true;
-    String.iter (set_status (`BOOL true)) t;
-    lock := false
-  
-  let deactivate t =
-    lock := true;
-    String.iter (set_status (`BOOL false)) t;
-    lock := false
-  
-  let check chr () = () (*
-    if not !lock then begin
-      activate (CAnnot.requires chr); (* FIXME *)
-      deactivate (CAnnot.forbids chr); (* FIXME *)
-      if not (is_active chr) then deactivate (CAnnot.erases chr) (* FIXME *)
-    end*)
-
-  let toggle_any chr =
-    set_status `INVERT chr;
-    check chr () *)
-
-  let _ =
-    (* Initializes the annotation toolbar using the lightweight annotation style
-     * `COLONIZATION, and initiates the callback function that updates the UI
-     * according to the active radio button. *)
+  let _ = (* initialization. *)
     attach `COLONIZATION;
     List.iter (fun (typ, radio) ->
-      radio#connect#toggled ~callback:(fun () ->
-        if radio#active then attach typ
-      ); ()
+      let callback () = if radio#active then attach typ in
+      ignore (radio#connect#toggled ~callback)
     ) GUI_levels.radios
 end
 

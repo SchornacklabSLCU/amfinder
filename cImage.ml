@@ -105,9 +105,10 @@ module Img_UI_update = struct
       ksprintf lbl#set_label "<tt><small><b>%c:</b> %03d</small></tt>"
     in fun r c -> GUI_Coords.(set row 'R' r; set column 'C' c)
     
-  let update_toggles ~r ~c () =
+  let update_toggles () =
     Option.iter (fun img ->
-      let tbl = Img_Mosaic.annotations img in
+      let tbl = Img_Mosaic.annotations img
+      and r, c = Img_Mosaic.cursor_pos img in
       let tiles = CTable.get_all tbl ~r ~c in
       GUI_Toggles.set_status tiles
     ) !active_image
@@ -297,14 +298,16 @@ module Img_Move = struct
 
   let run ~f_row ~f_col _ =
     Option.iter (fun img ->
+      (* Cursor gets removed; we need to repaint the tile. *)
       let r, c = Img_Mosaic.cursor_pos img in
       Img_Paint.tile r c;
-      Img_Paint.annot r c;    
+      Img_Paint.annot r c;
+      (* Moves to the new cursor position. *)
       let new_r, new_c = f_row r, f_col c in
       Img_Mosaic.set_cursor_pos img (new_r, new_c);
       Img_UI_update.set_coordinates new_r new_c;
       Img_UI_update.magnified_view ();
-      Img_UI_update.update_toggles ~r:new_r ~c:new_c ();
+      Img_UI_update.update_toggles ();
       Img_Paint.cursor ();
       GUI_Drawing.synchronize ()
     ) !active_image
@@ -474,7 +477,8 @@ module Img_Trigger = struct
         CLog.info "Key pressed: %C" key;
         match GUI_Toggles.is_active key with
         | None -> () (* Invalid key, nothing to do! *)
-        | Some is_active -> let tbl = Img_Mosaic.annotations img
+        | Some is_active ->
+          let tbl = Img_Mosaic.annotations img
           and lvl = GUI_levels.current ()
           and r, c = Img_Mosaic.cursor_pos img in
           CTable.(if is_active then remove else add) tbl lvl ~r ~c key
@@ -512,11 +516,10 @@ end
 let initialize () =
   (* Callback functions for keyboard events. *)
   let connect = CGUI.window#event#connect in
-  connect#key_press Img_Trigger.arrow_keys;
-  connect#key_press (fun x -> Img_Trigger.annotation_keys (`GDK x));
+  ignore (connect#key_press Img_Trigger.arrow_keys);
+  ignore (connect#key_press (fun x -> Img_Trigger.annotation_keys (`GDK x)));
   (* Callback functions for mouse events. *)
   let connect = GUI_Drawing.area#event#connect in
-  connect#button_press Img_Trigger.mouse_click;
-  connect#motion_notify Img_Trigger.mouse_move;
-  connect#leave_notify Img_Trigger.mouse_leave;
-  ()
+  ignore (connect#button_press Img_Trigger.mouse_click);
+  ignore (connect#motion_notify Img_Trigger.mouse_move);
+  ignore (connect#leave_notify Img_Trigger.mouse_leave)

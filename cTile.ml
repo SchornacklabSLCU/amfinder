@@ -10,14 +10,23 @@ type t = {
   mutable hold : string;
 }
 
+let as_string = function
+  | `CHR chr -> String.make 1 (Char.uppercase_ascii chr)
+  | `STR str -> String.uppercase_ascii str
+
 type layer = [ `USER | `HOLD | `LOCK ]
 
 let create () = { user = ""; lock = ""; hold = "" }
 
-let to_string t = sprintf "%s %s %s" t.user t.lock t.hold
+let make ?(user = `STR "") ?(lock = `STR "") ?(hold = `STR "") () = 
+  let user = as_string user
+  and lock = as_string lock
+  and hold = as_string hold in {user; lock; hold}
+
+let to_string t = sprintf "[%S %S %S]" t.user t.lock t.hold
 
 let of_string s = 
-  let import s = sscanf s "%[A-Z] %[A-Z] %[A-Z]"
+  let import s = sscanf s "[%S %S %S]"
     (fun x y z -> {user = x; lock = y; hold = z})
   in try import s with _ -> invalid_arg s
 
@@ -31,9 +40,7 @@ let apply f t = function
   | `LOCK -> (fun x -> t.lock <- f t.lock x)
   | `HOLD -> (fun x -> t.hold <- f t.hold x)
 
-let as_string = function
-  | `CHR chr -> String.make 1 (Char.uppercase_ascii chr)
-  | `STR str -> String.uppercase_ascii str
+
 
 let set = apply (fun _ -> as_string)
 let add = apply (fun x y -> EStringSet.union x (as_string y))
