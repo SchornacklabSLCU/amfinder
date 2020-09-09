@@ -186,7 +186,7 @@ let is_valid tbl ~r ~c =
 let is_empty tbl lvl ~r ~c =
   try
     let f = CTile.is_empty (get_matrix_at_level tbl lvl).(r).(c) in
-    f `USER || f `HOLD
+    f `USER && f `HOLD
   with _ -> invalid_arg "CTable.is_empty"
 
 let mem tbl lvl ~r ~c elt =
