@@ -87,15 +87,9 @@ module Img_Mosaic = struct
   let y ~r t typ = (origin t `Y) + r * (edge t typ)
   let cursor_pos t = t.graph.cursor
   let set_cursor_pos t pos = t.graph.cursor <- pos
+  let iter_tiles f t typ = Ext_Matrix.iteri f (tiles t typ)
+  let statistics t = CTable.statistics (annotations t)
 end
-
-
-(* Iterators *)
-module Iter = struct
-  let tiles f t typ = Ext_Matrix.iteri f (Img_Mosaic.tiles t typ)
-end
-
-let statistics img = CTable.statistics (Img_Mosaic.annotations img)
 
 
 (* Cairo surfaces for the painting functions below. *)
@@ -179,7 +173,7 @@ module Img_Paint = struct
       and xini = Img_Mosaic.origin img `X
       and yini = Img_Mosaic.origin img `Y
       and edge = Img_Mosaic.edge img `SMALL in
-      Iter.tiles (fun ~r ~c tile ->
+      Img_Mosaic.iter_tiles (fun ~r ~c tile ->
         pixmap#put_pixbuf
           ~x:(xini + c * edge)
           ~y:(yini + r * edge)
@@ -264,7 +258,7 @@ module Img_UI_update = struct
     Option.iter (fun img ->
       List.iter (fun (chr, num) ->
         GUI_Layers.set_label chr num
-      ) (statistics img (GUI_levels.current ()))
+      ) (Img_Mosaic.statistics img (GUI_levels.current ()))
     ) !active_image
     
   let blank_tile =
