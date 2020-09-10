@@ -113,7 +113,6 @@ let create ?(edge = 236) fpath =
     large = {edge = 180; matrix = large};
   } in
   let img = { fpath; sizes; graph; table } in
-  CPalette.set_tile_edge sub;
   CLog.info "source image: '%s'" fpath;
   CLog.info "source image size: %d x %d pixels" imgw imgh;
   CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
