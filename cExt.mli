@@ -82,34 +82,6 @@ module Ext_File : sig
 end
 
 
-(** Operations on colors. *)
-module EColor : sig
-  val html_to_int : string -> int * int * int
-  (** [html_to_int "#RRGGBB"] returns 8-bit red, green and blue integers. *)
-
-  val html_to_int16 : string -> int * int * int
-  (** Same as [html_to_int], but returns 16-bit integers. *)
-
-  val html_to_float : string -> float * float * float
-  (** Same as [html_to_int], but returns floating-point numbers. *)
-
-  val float_to_int : float -> float -> float -> int * int * int
-  (** [float_to_int r g b] returns 8-bit red, green and blue integers. *)
-
-  val float_to_html : float -> float -> float -> string
-  (** [float_to_html r g b] returns the HTML notation "#RRGGBB". *)
-end
-
-
-(** Drawing functions. *)
-module EDraw : sig
-  val square : ?clr:string -> ?a:float -> int -> Cairo.Surface.t
-  (** [square ?clr ?a e] draws a square with an edge of [e] pixels (minimum 
-    * value: [2] pixels) filled with color ["#RRGGBB"] and alpha channel [a]
-    * (default value : [1.0], i.e. opaque). *)
-end
-
-
 val time : ('a -> 'b) -> 'a -> 'b
 (** Benchmark function. *)
 

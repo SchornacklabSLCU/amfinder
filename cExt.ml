@@ -82,45 +82,6 @@ module Ext_Text = struct
 end
 
 
-module EColor = struct
-  let html_to_int s =
-    Scanf.sscanf s "#%02x%02x%02x" (fun r g b -> r, g, b)
-
-  let html_to_int16 s = 
-    let r, g, b = html_to_int s in 
-    r lsl 8, g lsl 8, b lsl 8
-
-  let html_to_float =
-    let f x = float x /. 255.0 in
-    fun s -> let r, g, b = html_to_int s in f r, f g, f b
-
-  let float_to_int =
-    let f x = truncate (x *. 255.0) in
-    fun r g b -> (f r, f g, f b)
-
-  let float_to_html r g b =
-    let r, g, b = float_to_int r g b in
-    Printf.sprintf "#%02x%02x%02x" r g b
-end
-
-
-module EDraw = struct
-  let square ?(clr = "#cc0000") ?(a = 1.0) edge =
-    let open Cairo in
-    let edge = if edge <= 2 then 2 else edge
-    and a = if a >= 0.0 && a <= 1.0 then a else 1.0 in
-    let surface = Image.(create ARGB32 ~w:edge ~h:edge) in
-    let t = create surface in
-    set_antialias t ANTIALIAS_SUBPIXEL;
-    let r, g, b = EColor.html_to_float clr in
-    set_source_rgba t r g b a;
-    let edge = float edge in
-    rectangle t 0.0 0.0 ~w:edge ~h:edge;
-    fill t;
-    stroke t;
-    surface
-end
-
 let time f x =
   let t_1 = Unix.gettimeofday () in
   let res = f x in
