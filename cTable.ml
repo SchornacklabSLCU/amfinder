@@ -41,6 +41,10 @@ let of_string ~main ~col_table ~arb_table ~all_table =
     all_features = f all_table;
     network_pred = [] }
 
+let load_from_old_tsv tsv =
+  let dat = 
+
+
 let load zip =
   let unsafe_load zip =
     assert (Sys.file_exists zip);
@@ -65,7 +69,7 @@ let load zip =
 let statistics tbl lvl =
   let stats = List.map (fun chr -> chr, ref 0) (CAnnot.char_list lvl) in
   Ext_Matrix.iter (fun t ->
-    let annot = EStringSet.union (CTile.get t `USER) (CTile.get t `HOLD) in
+    let annot = Ext_StringSet.union (CTile.get t `USER) (CTile.get t `HOLD) in
     String.iter (fun c -> incr (List.assoc c stats)) annot
   ) (get_matrix_at_level tbl lvl);
   List.map (fun (chr, r) -> chr, !r) stats
@@ -157,9 +161,9 @@ let remove tbl lvl ~r ~c chr =
       CTile.set tile `LOCK (`STR lock);
       CTile.set tile `HOLD (`STR hold);
       let log = CTile.create () in
-      CTile.add log `USER (`STR (EStringSet.diff user old_user));
-      CTile.add log `LOCK (`STR (EStringSet.diff lock old_lock));
-      CTile.add log `HOLD (`STR (EStringSet.diff hold old_hold));
+      CTile.add log `USER (`STR (Ext_StringSet.diff user old_user));
+      CTile.add log `LOCK (`STR (Ext_StringSet.diff lock old_lock));
+      CTile.add log `HOLD (`STR (Ext_StringSet.diff hold old_hold));
       List.fold_right
         (fun alt log -> (* propagates constraints. *)
           (* TODO annotations added by the user on other layers. *)
@@ -170,8 +174,8 @@ let remove tbl lvl ~r ~c chr =
           CTile.set alt_tile `LOCK (`STR lock);
           CTile.set alt_tile `HOLD (`STR hold);
           let more_log = CTile.create () in
-          CTile.add more_log `LOCK (`STR (EStringSet.diff lock old_lock));
-          CTile.add more_log `HOLD (`STR (EStringSet.diff hold old_hold));
+          CTile.add more_log `LOCK (`STR (Ext_StringSet.diff lock old_lock));
+          CTile.add more_log `HOLD (`STR (Ext_StringSet.diff hold old_hold));
           (alt, more_log) :: log
         ) (CLevel.others lvl) [lvl, log]
     ) else (CTile.remove mat.(r).(c) `USER (`CHR chr); [])

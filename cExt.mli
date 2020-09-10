@@ -3,7 +3,7 @@
 (** Lightweight extension of the OCaml standard library. *)
 
 (** String sets. *)
-module EStringSet : sig
+module Ext_StringSet : sig
   val union : string -> string -> string
   (** [union s1 s2] returns a string containing one instance of all characters
     * occurring in either [s1] or [s2], sorted in alphabetical order.  *)
@@ -91,7 +91,7 @@ end
 
 
 (** Operations on files. *)
-module EFile : sig
+module Ext_File : sig
   val read : ?binary:bool -> ?trim:bool -> string -> string
   (** Reads a file. Setting up option [binary] results in file being opened in
     * binary mode (default: [false]). Option [trim] triggers trimming of 

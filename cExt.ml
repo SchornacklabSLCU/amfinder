@@ -1,7 +1,7 @@
 (* CastANet - cExt.ml *)
 
 (* Operations on string sets. *)
-module EStringSet = struct
+module Ext_StringSet = struct
   open Printf
   let sort s = String.to_seq s
     |> List.of_seq
@@ -31,7 +31,7 @@ module EStringSet = struct
     sort !res
 end
 
-module EFile = struct
+module Ext_File = struct
   let read ?(binary = false) ?(trim = true) str = 
     let ich = (if binary then open_in_bin else open_in) str in
     let len = in_channel_length ich in

@@ -43,8 +43,8 @@ let apply f t = function
 
 
 let set = apply (fun _ -> as_string)
-let add = apply (fun x y -> EStringSet.union x (as_string y))
-let remove = apply (fun x y -> EStringSet.diff x (as_string y))
+let add = apply (fun x y -> Ext_StringSet.union x (as_string y))
+let remove = apply (fun x y -> Ext_StringSet.diff x (as_string y))
 
 let exists src = function
   | `CHR chr -> String.contains src chr
