@@ -78,30 +78,6 @@ module Ext_Text = struct
   let implode t = String.concat "" (List.map (String.make 1) t)
 end
 
-module Ext_Split = struct
-  let lines = String.split_on_char '\n'
-  let tabs = String.split_on_char '\t'
-  let colons = String.split_on_char ':'
-  let semicolons = String.split_on_char ';'
-  let commas = String.split_on_char ','
-  let spaces = String.split_on_char ' '
-end
-
-
-module EMaybe = struct
-  type 'a t = V of 'a | E of exn
-  let from_value x = V x
-  let from_exception e = E e
-  let from_option = function None -> E Not_found | Some x -> V x
-  let to_option = function V x -> Some x | _ -> None
-  let is_value = function V _ -> true | _ -> false
-  let is_exception = function E _ -> true | _ -> false
-  let eval f x = try V (f x) with e -> E e
-  let iter f = function V x -> f x | _ -> ()
-  let map f = function V x -> eval f x | E e -> E e
-  let fix g = function E e -> eval g e | value -> value
-end
-
 
 module EColor = struct
   let html_to_int s =
