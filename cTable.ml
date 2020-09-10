@@ -41,9 +41,55 @@ let of_string ~main ~col_table ~arb_table ~all_table =
     all_features = f all_table;
     network_pred = [] }
 
-let load_from_old_tsv tsv =
-  let dat = 
 
+
+module Method = struct
+  let threshold ?(threshold = 0.9) hdr dat =
+    List.fold_left2 (fun s chr z ->
+      if z > threshold then sprintf "%s%c" s chr else s
+    ) "" hdr dat |> (fun a -> `STR a)
+
+  let best hdr dat =
+    List.fold_left2 (fun ((x, y) as m) chr z ->
+      if z > y then (chr, z) else m
+    ) ('.', 0.0) hdr dat |> (fun (a, _) -> `CHR a)
+end
+
+let float_of_string s =
+  CLog.info "(>float) %s" s;
+  float_of_string s
+
+let load_tsv ?(use_method = Method.best) tsv =
+  assert (Sys.file_exists tsv);
+  let dat = Ext_File.read tsv
+    |> String.split_on_char '\n'
+    |> List.map (String.split_on_char '\t')
+    |> List.map Array.of_list in
+  let codes, data = match dat with
+  | [] -> assert false (* Cannot happen! *)
+  | hdr :: rem ->
+    let codes = Array.(sub hdr 2 (length hdr - 2))
+    |> Array.map (fun s -> s.[0])
+    |> Array.to_list in
+    let data = List.map (fun t ->
+      let x = int_of_string t.(0)
+      and y = int_of_string t.(1) in
+      let p = Array.(sub t 2 (length t - 2)) in
+      (x, y), Array.(map float_of_string p |> to_list)
+    ) rem in
+    codes, data in
+  let nr = List.fold_left (fun m ((a, _), _) -> max m a) 0 data + 1
+  and nc = List.fold_left (fun m ((_, b), _) -> max m b) 0 data + 1 in
+  CLog.info "The table to import has %d rows and %d columns" nr nc;
+  let t = Array.init nr (fun r ->
+    Array.init nc (fun c -> 
+      let user = use_method codes (List.assoc (r, c) data) in
+      CTile.make ~user ()
+  )) in
+  Some { main = `COLONIZATION; colonization = t ; 
+    arb_vesicles = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ());
+    all_features = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ());
+    network_pred = [] }
 
 let load zip =
   let unsafe_load zip =
