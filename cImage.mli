@@ -2,42 +2,44 @@
 
 open CExt
 
-type t
+type image
+(** The type for CastANet images. *)
 
-val get_active : unit -> t option
+val get_active : unit -> image option
 
 val rem_active : unit -> unit
 
-val path : t -> string
+val path : image -> string
+(** Path to the loaded image. *)
 
-val basename : t -> string
+val basename : image -> string
 
-val dirname : t -> string
+val dirname : image -> string
 
-val source : t -> [`W | `H] -> int
+val source : image -> [`W | `H] -> int
 
-val origin : t -> [`X | `Y] -> int
+val origin : image -> [`X | `Y] -> int
 
-val dim : t -> [`R | `C] -> int
+val dim : image -> [`R | `C] -> int
 
-val annotations : t -> CTable.table
+val annotations : image -> CTable.table
 
-val edge : t -> [`SMALL | `LARGE] -> int
+val edge : image -> [`SMALL | `LARGE] -> int
 
-val tiles : t -> [`SMALL | `LARGE] -> GdkPixbuf.pixbuf Ext_Matrix.t
+val tiles : image -> [`SMALL | `LARGE] -> GdkPixbuf.pixbuf Ext_Matrix.t
 
-val tile : r:int -> c:int -> t -> [`SMALL | `LARGE] -> GdkPixbuf.pixbuf option
+val tile : r:int -> c:int -> image -> [`SMALL | `LARGE] -> GdkPixbuf.pixbuf option
 
-val x : c:int -> t -> [`SMALL | `LARGE] -> int
+val x : c:int -> image -> [`SMALL | `LARGE] -> int
 
-val y : r:int -> t -> [`SMALL | `LARGE] -> int
+val y : r:int -> image -> [`SMALL | `LARGE] -> int
 
-val cursor_pos : t -> int * int
+val cursor_pos : image -> int * int
 
-val set_cursor_pos : t -> int * int -> unit
+val set_cursor_pos : image -> int * int -> unit
 
-val iter_tiles : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> t -> [`SMALL | `LARGE] -> unit
+val iter_tiles : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> image -> [`SMALL | `LARGE] -> unit
 
-val statistics : t -> CLevel.t -> (char * int) list
+val statistics : image -> CLevel.t -> (char * int) list
 
-val create : ?edge:int -> string -> t
+val create : ?edge:int -> string -> image

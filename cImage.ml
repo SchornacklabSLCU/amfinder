@@ -4,11 +4,17 @@ open CExt
 open CGUI
 
 (* Images are represented as mosaics of square tiles. *)
-type tiles = { edge : int; matrix : GdkPixbuf.pixbuf Ext_Matrix.t }
+type tiles = {
+  edge : int;
+  matrix : GdkPixbuf.pixbuf Ext_Matrix.t;
+}
 
 (* Large tiles are used in the "zoomed in" area on the left side of the 
  * interface, while small tiles are drawn on the right side. *)
-type sizes = { small : tiles; large : tiles }
+type sizes = {
+  small : tiles;
+  large : tiles;
+}
 
 (* Graphical properties (number of rows and columns, width/height, etc.). *)
 type graph = {
@@ -22,7 +28,12 @@ type graph = {
  * sides of the interface), a set of multi-level annotations (defined by the
  * user or constrained by annotation rules), and graphical properties (to
  * ensure proper display on the main window). *)
-type t = { fpath : string; sizes : sizes; table : CTable.table; graph : graph }
+type image = {
+  fpath : string;
+  sizes : sizes;
+  table : CTable.table;
+  graph : graph;
+}
 
 let active_image = ref None
 
