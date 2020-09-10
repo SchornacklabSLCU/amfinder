@@ -2,6 +2,18 @@
 
 open CExt
 
+type pytable = {
+  py_label : string;                    (* Base name without extension.    *)
+  py_level : CLevel.t;                  (* Annotation level (from header). *)
+  py_header : char list;                (* Header character order.         *)
+  py_matrix : float list Ext_Matrix.t;  (* Probabilities.                  *)
+}
+
+let label t = t.py_label
+let level t = t.py_level
+let header t = t.py_header
+let matrix t = t.py_matrix
+
 let ensure_consistency f = function
   | [] -> [] (* nothing to be checked here. *)
   | hdr :: rem as dat -> let n = f hdr in
@@ -29,11 +41,11 @@ let import tsv =
     and label = Filename.(basename tsv |> remove_extension)
     in Some (label, chars, probs)
       
-let to_matrix (label, chars, probs) =
-  let level = CLevel.of_list chars in
+let to_matrix (py_label, py_header, probs) =
+  let py_level = CLevel.of_list py_header in
   let nr = List.fold_left (fun m ((r, _), _) -> max m r) 0 probs + 1
   and nc = List.fold_left (fun m ((_, c), _) -> max m c) 0 probs + 1 in
-  let matrix = Ext_Matrix.init nr nc (fun r c -> List.assoc (r, c) probs) in
-  (level, (label, matrix))
+  let py_matrix = Ext_Matrix.init nr nc (fun r c -> List.assoc (r, c) probs) in
+  {py_label; py_level; py_header; py_matrix}
 
 let load ~tsv = Option.map to_matrix (import tsv)

@@ -9,7 +9,7 @@ type table = {
   colonization : CTile.t Ext_Matrix.t;
   arb_vesicles : CTile.t Ext_Matrix.t;
   all_features : CTile.t Ext_Matrix.t;
-  network_pred : (CLevel.t * (string * float list Ext_Matrix.t)) list;
+  network_pred : CPyTable.pytable list;
 }
 
 let main_level {main; _} = main
@@ -60,14 +60,14 @@ end *)
 let load_tsv tsv =
   match CPyTable.load tsv with
   | None -> assert false (* Not very good... *)
-  | Some ((_, (_, mat)) as elt) -> let nr, nc = Ext_Matrix.dim mat in
+  | Some pytable -> let nr, nc = Ext_Matrix.dim (CPyTable.matrix pytable) in
     let create () = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ()) in
     Some {
       main = `COLONIZATION; 
       colonization = create ();
       arb_vesicles = create ();
       all_features = create ();
-      network_pred = [elt];
+      network_pred = [pytable];
     }
 
 
