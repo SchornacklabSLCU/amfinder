@@ -15,6 +15,7 @@ def sanitize(s):
 f=sys.stdin #open('.depend','r')
 counter=0
 dictionary={} # for storing map from int to filename
+memo = []
 
 print "digraph depend {"
 for line in f:
@@ -23,5 +24,8 @@ for line in f:
         src = os.path.splitext(s[0])[0]
         dst = os.path.splitext(s[x])[0]
         if (src <> dst):
-          print(src + " -> " + dst)
+          link = src + " -> " + dst
+          if not link in memo:
+            memo.append(link)
+            print(link)
 print "}"
