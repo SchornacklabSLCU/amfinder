@@ -356,8 +356,8 @@ module GUI_Probs = struct
     let radio = GButton.radio_tool_button ~active ?group ~packing () in
     let hbox = GPack.hbox ~packing:radio#set_icon_widget () in
     let image = GMisc.image ~width:20 ~packing:(hbox#pack ~expand:false) () in
-    let label = GMisc.label ~markup:(sprintf "<span size='x-small'>%s</span>" label)
-      ~packing:(hbox#pack ~fill:true) () in
+    ignore (GMisc.label ~markup:(sprintf "<span size='x-small'>%s</span>" label)
+      ~packing:(hbox#pack ~fill:true) ());
     image#set_pixbuf (CIcon.get_palette typ `SMALL);
     radio, image
   let viridis = radio_tool_button ~active:true ~label:"Viridis" `VIRIDIS
