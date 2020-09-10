@@ -25,3 +25,15 @@ val load : tsv:string -> pytable
   
 val to_string : pytable -> string
 (** Converts a Python table to string (for export purposes). *)
+
+(* Convert a prediction to a set of annotations.
+
+type row = int
+type column = int
+
+val threshold : float -> pytable -> CTile.tile Ext_Matrix.t
+
+val best : pytable -> CTile.tile Ext_Matrix.t
+
+
+*)

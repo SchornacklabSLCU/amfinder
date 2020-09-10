@@ -45,24 +45,28 @@ let load ~tsv =
     let py_matrix = Ext_Matrix.init nr nc (fun r c -> List.assoc (r, c) probs) in
     {py_label; py_level; py_header; py_matrix}
 
+
 let to_string pytable =
   let mat = matrix pytable in
   let nr, nc = Ext_Matrix.dim mat in
+  (* loop is tail-rec to ensure it does not fail on very large tables. Items
+   * get inserted in reverse order so there is no need for List.rev. *)
   let rec loop res r c =
-    if r < nr then (
-      if c < nc then (
-        Ext_Matrix.get mat r c
+    if r > 0 then (
+      if c > 0 then (
+        let r' = r - 1 and c' = c - 1 in
+        Ext_Matrix.get mat r' c'
         |> List.map Float.to_string
         |> String.concat "\t"
-        |> sprintf "%d\t%d\t%s" r c
-        |> (fun elt -> loop (elt :: res) r (c + 1)) 
-      ) else loop res (r + 1) 0
-    ) else List.rev res
+        |> sprintf "%d\t%d\t%s" r' c'
+        |> (fun elt -> loop (elt :: res) r (c - 1)) 
+      ) else loop res (r - 1) nc
+    ) else res
   in
   header pytable
   |> List.map (String.make 1)
   |> String.concat "\t"
   |> sprintf "row\tcol\t%s"
-  |> (fun hdr -> hdr :: loop [] 0 0)
+  |> (fun hdr -> hdr :: loop [] nr nc)
   |> String.concat "\n"
 
