@@ -58,17 +58,14 @@ end *)
 (* Function to load old tsv files that are not part of a zip!
  * Will be removed at some point. *)
 let load_tsv tsv =
-  match CPyTable.load tsv with
-  | None -> assert false (* Not very good... *)
-  | Some pytable -> let nr, nc = Ext_Matrix.dim (CPyTable.matrix pytable) in
-    let create () = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ()) in
-    Some {
-      main = `COLONIZATION; 
-      colonization = create ();
-      arb_vesicles = create ();
-      all_features = create ();
-      network_pred = [pytable];
-    }
+  let pytable = CPyTable.load tsv in
+  let nr, nc = Ext_Matrix.dim (CPyTable.matrix pytable) in
+  let create () = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ()) in
+  Some { main = `COLONIZATION; 
+    colonization = create ();
+    arb_vesicles = create ();
+    all_features = create ();
+    network_pred = [pytable] }
 
 
 let load zip =
@@ -126,10 +123,16 @@ let save
     | `ARB_VESICLES -> None, Some "main", None
     | `ALL_FEATURES -> None, None, Some "main" in
   let och = Zip.open_out zip in
+  (* Saving annotation tables. *)
   Zip.add_entry d1 och "colonization.mldata" ~comment:c1 ?extra:e1;
   Zip.add_entry d2 och "arb_vesicles.mldata" ~comment:c2 ?extra:e2;
-  Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ?extra:e3; 
-  (* TODO: insert export here. *)
+  Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ?extra:e3;
+  (* Saving CNN-generated predictions. *)
+  List.iter (fun pt ->
+    let tsv = CPyTable.to_string pt in 
+    let out = sprintf "predictions/%s.tsv" (CPyTable.label pt) in
+    Zip.add_entry tsv och out ~comment:(Digest.string tsv);
+  ) t.network_pred;
   Zip.close_out och
 
 (* FIXME: Get may no be used at all. *)
