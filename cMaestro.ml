@@ -4,39 +4,6 @@ open CExt
 open CGUI
 open Printf
 
-(* Images are represented as mosaics of square tiles. *)
-type tiles = { edge : int; matrix : GdkPixbuf.pixbuf Ext_Matrix.t }
-
-(* Large tiles are used in the "zoomed in" area on the left side of the 
- * interface, while small tiles are drawn on the right side. *)
-type sizes = { small : tiles; large : tiles }
-
-(* Graphical properties (number of rows and columns, width/height, etc.). *)
-type graph = {
-  rows : int; cols : int;
-  xini : int; yini : int;
-  imgw : int; imgh : int;
-  mutable cursor : int * int;
-}
-
-(* CastANet images consist of two mosaics of square tiles (to populate the two
- * sides of the interface), a set of multi-level annotations (defined by the
- * user or constrained by annotation rules), and graphical properties (to
- * ensure proper display on the main window). *)
-type t = { fpath : string; sizes : sizes; table : CTable.table; graph : graph }
-
-
-(* garbage? 
-let annotation ~r ~c t = Ext_Matrix.get_opt (annotations t) r c
-let is_valid ~r ~c t = Ext_Matrix.get_opt (Img_Mosaic.annotations t) r c <> None
- /end of garbage *)
-
-(* Image currently being processed. *)
-let active_image = ref None
-
-(* Not sure if needed outside. *)
-let get_active () = !active_image
-let rem_active () = active_image := None
 
 module Par = struct
   open Arg
@@ -50,31 +17,7 @@ module Par = struct
   let initialize () = parse specs set_image_path usage
 end
 
-module Info = struct
-  let path t = t.fpath
-  let basename t = Filename.basename (path t)
-  let dirname t = Filename.dirname (path t)
-end
 
-module Img_Mosaic = struct
-  let source t = function `W -> t.graph.imgw | `H -> t.graph.imgh
-  let origin t = function `X -> t.graph.xini | `Y -> t.graph.yini
-  let dim t = function `R -> t.graph.rows | `C -> t.graph.cols
-  let annotations {table; _} = table
-  let edge t = function
-    | `SMALL -> t.sizes.small.edge 
-    | `LARGE -> t.sizes.large.edge
-  let tiles t = function
-    | `SMALL -> t.sizes.small.matrix
-    | `LARGE -> t.sizes.large.matrix
-  let tile ~r ~c t typ = Ext_Matrix.get_opt (tiles t typ) r c
-  let x ~c t typ = (origin t `X) + c * (edge t typ)
-  let y ~r t typ = (origin t `Y) + r * (edge t typ)
-  let cursor_pos t = t.graph.cursor
-  let set_cursor_pos t pos = t.graph.cursor <- pos
-  let iter_tiles f t typ = Ext_Matrix.iteri f (tiles t typ)
-  let statistics t = CTable.statistics (annotations t)
-end
 
 
 (* Cairo surfaces for the painting functions below. *)
@@ -98,34 +41,34 @@ module Img_Surface = struct
 
   let joker = 
     let aux () =
-      match !active_image with
+      match (CImage.get_active ()) with
       | None -> assert false (* does not happen. *)
-      | Some img -> let edge = Img_Mosaic.edge img `SMALL in
+      | Some img -> let edge = CImage.edge img `SMALL in
         square ~kind:(`RGB "#aaffaa") edge
     in Ext_Memoize.create ~label:"Img_Surface.master" aux
 
   let cursor = 
     let aux () =
-      match !active_image with
+      match (CImage.get_active ()) with
       | None -> assert false (* does not happen. *)
-      | Some img -> let edge = Img_Mosaic.edge img `SMALL in
+      | Some img -> let edge = CImage.edge img `SMALL in
         square ~kind:`CURSOR edge
     in Ext_Memoize.create ~label:"Img_Surface.cursor" aux
 
   let pointer = 
     let create () = 
-      match !active_image with
+      match (CImage.get_active ()) with
       | None -> assert false
-      | Some img -> let edge = Img_Mosaic.edge img `SMALL in
+      | Some img -> let edge = CImage.edge img `SMALL in
         square ~kind:`CURSOR ~alpha:0.40 edge
     in Ext_Memoize.create ~label:"Img_Surface.pointer" create
 
   let layers =
     List.map (fun lvl ->
       let aux lvl () =
-        match !active_image with
+        match (CImage.get_active ()) with
         | None -> assert false (* does not happen. *)
-        | Some img -> let edge = Img_Mosaic.edge img `SMALL in   
+        | Some img -> let edge = CImage.edge img `SMALL in   
           List.map2 (fun chr rgb ->
             chr, square ~kind:(`RGB rgb) edge
           ) (CAnnot.char_list lvl) (CLevel.colors lvl)
@@ -155,43 +98,43 @@ module Img_Paint = struct
   let tiles ?(sync = true) () =
     Option.iter (fun img ->
       let pixmap = GUI_Drawing.pixmap ()
-      and xini = Img_Mosaic.origin img `X
-      and yini = Img_Mosaic.origin img `Y
-      and edge = Img_Mosaic.edge img `SMALL in
-      Img_Mosaic.iter_tiles (fun ~r ~c tile ->
+      and xini = CImage.origin img `X
+      and yini = CImage.origin img `Y
+      and edge = CImage.edge img `SMALL in
+      CImage.iter_tiles (fun ~r ~c tile ->
         pixmap#put_pixbuf
           ~x:(xini + c * edge)
           ~y:(yini + r * edge)
           ~width:edge ~height:edge tile
       ) img `SMALL;
       if sync then GUI_Drawing.synchronize ()
-    ) !active_image
+    ) (CImage.get_active ())
 
   let tile ?(sync = false) r c =
     Option.iter (fun img ->
       Option.iter (fun tile ->
         (GUI_Drawing.pixmap ())#put_pixbuf
-          ~x:(Img_Mosaic.x ~c img `SMALL)
-          ~y:(Img_Mosaic.y ~r img `SMALL) tile;
+          ~x:(CImage.x ~c img `SMALL)
+          ~y:(CImage.y ~r img `SMALL) tile;
         if sync then GUI_Drawing.synchronize ()
-      ) (Img_Mosaic.tile r c img `SMALL)
-    ) !active_image
+      ) (CImage.tile r c img `SMALL)
+    ) (CImage.get_active ())
 
   (* FIXME Unsafe function - not for use outside! *)
   let surface ?(sync = false) r c surface =
     Option.iter (fun img ->
       let t = GUI_Drawing.cairo () in
-      let x = Img_Mosaic.x ~c img `SMALL 
-      and y = Img_Mosaic.y ~r img `SMALL in
+      let x = CImage.x ~c img `SMALL 
+      and y = CImage.y ~r img `SMALL in
       Cairo.set_source_surface t surface (float x) (float y);
       Cairo.paint t;
       if sync then GUI_Drawing.synchronize ()
-    ) !active_image
+    ) (CImage.get_active ())
 
   let annot ?(sync = false) r c =
     Option.iter (fun img ->
       let typ = GUI_Layers.get_active ()
-      and tbl = Img_Mosaic.annotations img
+      and tbl = CImage.annotations img
       and lvl = GUI_levels.current () in
       let draw = match typ with
         | '*' -> not (CTable.is_empty tbl lvl ~r ~c) (* Catches any annotation. *)
@@ -200,27 +143,27 @@ module Img_Paint = struct
         surface r c (Img_Surface.get typ);
         if sync then GUI_Drawing.synchronize ()
       end
-    ) !active_image
+    ) (CImage.get_active ())
 
   let cursor ?(sync = false) () =
     Option.iter (fun img ->
-      let r, c = Img_Mosaic.cursor_pos img in
+      let r, c = CImage.cursor_pos img in
       tile r c;
       surface r c (Img_Surface.get '.');
       if sync then GUI_Drawing.synchronize ()
-    ) !active_image
+    ) (CImage.get_active ())
 
   let active_layer ?(sync = true) () =
     Option.iter (fun img ->
       CTable.iter (fun ~r ~c _ ->
         tile r c;
         annot r c
-      ) (Img_Mosaic.annotations img) (GUI_levels.current ());
+      ) (CImage.annotations img) (GUI_levels.current ());
       cursor ();
- (*     let r, c = Img_Mosaic.cursor_pos img in
+ (*     let r, c = CImage.cursor_pos img in
       Img_UI_update.set_coordinates r c; *)
       if sync then GUI_Drawing.synchronize ()
-    ) !active_image
+    ) (CImage.get_active ())
 end
 
 
@@ -233,18 +176,18 @@ module Img_UI_update = struct
     
   let update_toggles () =
     Option.iter (fun img ->
-      let tbl = Img_Mosaic.annotations img
-      and r, c = Img_Mosaic.cursor_pos img in
+      let tbl = CImage.annotations img
+      and r, c = CImage.cursor_pos img in
       let tiles = CTable.get_all tbl ~r ~c in
       GUI_Toggles.set_status tiles
-    ) !active_image
+    ) (CImage.get_active ())
     
   let set_counters =
     Option.iter (fun img ->
       List.iter (fun (chr, num) ->
         GUI_Layers.set_label chr num
-      ) (Img_Mosaic.statistics img (GUI_levels.current ()))
-    ) !active_image
+      ) (CImage.statistics img (GUI_levels.current ()))
+    ) (CImage.get_active ())
     
   let blank_tile =
     Ext_Memoize.create ~label:"CImage.Img_UI_update.blank_tile" ~one:true
@@ -254,48 +197,48 @@ module Img_UI_update = struct
 
   let magnified_view () =
     Option.iter (fun img ->
-      let cur_r, cur_c = Img_Mosaic.cursor_pos img in
+      let cur_r, cur_c = CImage.cursor_pos img in
       for i = 0 to 2 do
         for j = 0 to 2 do
           let r = cur_r + i - 1 and c = cur_c + j - 1 in
-          let pixbuf = match Img_Mosaic.tile r c img `LARGE with
+          let pixbuf = match CImage.tile r c img `LARGE with
             | None -> blank_tile ()
             | Some x -> x
           in GUI_Magnify.tiles.(i).(j)#set_pixbuf pixbuf
         done
       done;  
-    ) !active_image
+    ) (CImage.get_active ())
 end
 
 
 (* Keyboard-related actions. *)
 module Img_Move = struct
   let apply f =
-    match !active_image with
+    match (CImage.get_active ()) with
     | None -> assert false
     | Some img -> f img
 
   let run ~f_row ~f_col _ =
     Option.iter (fun img ->
       (* Cursor gets removed; we need to repaint the tile. *)
-      let r, c = Img_Mosaic.cursor_pos img in
+      let r, c = CImage.cursor_pos img in
       Img_Paint.tile r c;
       Img_Paint.annot r c;
       (* Moves to the new cursor position. *)
       let new_r, new_c = f_row r, f_col c in
-      Img_Mosaic.set_cursor_pos img (new_r, new_c);
+      CImage.set_cursor_pos img (new_r, new_c);
       Img_UI_update.set_coordinates new_r new_c;
       Img_UI_update.magnified_view ();
       Img_UI_update.update_toggles ();
       Img_Paint.cursor ();
       GUI_Drawing.synchronize ()
-    ) !active_image
+    ) (CImage.get_active ())
 
   let left ?(jump = 1) = run
     ~f_row:(fun r -> r)
     ~f_col:(fun c -> 
       let f img =
-        let nc = Img_Mosaic.dim img `C and c' = c - jump in
+        let nc = CImage.dim img `C and c' = c - jump in
         if c' < 0 then (c' + nc) mod nc else
         if c' >= nc then c' mod nc else c'
       in apply f)
@@ -304,7 +247,7 @@ module Img_Move = struct
     ~f_row:(fun r -> r)
     ~f_col:(fun c ->
       let f img =
-        let nc = Img_Mosaic.dim img `C and c' = c + jump in
+        let nc = CImage.dim img `C and c' = c + jump in
         if c' < 0 then (c' + nc) mod nc else
         if c' >= nc then c' mod nc else c'
       in apply f)
@@ -312,7 +255,7 @@ module Img_Move = struct
   let up ?(jump = 1) = run
     ~f_row:(fun r -> 
       let f img =
-        let nr = Img_Mosaic.dim img `R and r' = r - jump in
+        let nr = CImage.dim img `R and r' = r - jump in
         if r' < 0 then (r' + nr) mod nr else
         if r' >= nr then r' mod nr else r'
       in apply f)
@@ -321,7 +264,7 @@ module Img_Move = struct
   let down ?(jump = 1) = run
     ~f_row:(fun r ->
       let f img =
-        let nr = Img_Mosaic.dim img `R and r' = r + jump in
+        let nr = CImage.dim img `R and r' = r + jump in
         if r' < 0 then (r' + nr) mod nr else
         if r' >= nr then r' mod nr else r'
       in apply f)
@@ -329,65 +272,24 @@ module Img_Move = struct
 end
 
 
-module Create = struct
-  let large_tile_matrix nr nc edge src =
-    Ext_Matrix.init nr nc (fun r c ->
-      let src_x = c * edge and src_y = r * edge in
-      CPixbuf.crop ~src_x ~src_y ~edge src |> CPixbuf.resize ~edge:180
-    )
-    
-  let small_tile_matrix edge = Ext_Matrix.map (CPixbuf.resize ~edge)
-    
-  let annotations path tiles =
-    let zip = Filename.remove_extension path ^ ".zip" in
-    (* FIXME Remove this once everything has been converted! *)
-    let tsv = Filename.remove_extension path ^ ".tsv" in
-    if Sys.file_exists zip then CTable.load zip |> Option.get 
-    else if Sys.file_exists tsv then CTable.load_tsv tsv |> Option.get
-    else CTable.create (`MAT tiles) 
-end
 
-let create fpath =
-  let uiw, uih = GUI_Drawing.(width (), height ()) in
-  let pix = GdkPixbuf.from_file fpath in
-  let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
-  let edge = !Par.edge in
-  let rows = imgh / edge and cols = imgw / edge in
-  let large = Create.large_tile_matrix rows cols edge pix in
-  let sub = min (uiw / cols) (uih / rows) in
-  let small = Create.small_tile_matrix sub large in
-  let table = Create.annotations fpath small in
-  let graph = { rows; cols;
-    imgw; imgh; cursor = (0, 0);
-    xini = (uiw - sub * cols) / 2;
-    yini = (uih - sub * rows) / 2;
-  } and sizes = {
-    small = {edge = sub; matrix = small};
-    large = {edge = 180; matrix = large};
-  } in
-  let img = { fpath; sizes; graph; table } in
-  CPalette.set_tile_edge sub;
-  CLog.info "source image: '%s'" fpath;
-  CLog.info "source image size: %d x %d pixels" imgw imgh;
-  CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
-  img
   
 let digest t =
   sprintf "<small><tt> \
     <b>Image:</b> %s ▪ \
     <b>Size:</b> %d × %d pixels ▪ \
     <b>Tiles:</b> %d × %d</tt></small>" 
-    (Info.basename t)
-    (Img_Mosaic.source t `W) (Img_Mosaic.source t `H)
-    (Img_Mosaic.dim t `R) (Img_Mosaic.dim t `C)
+    (CImage.basename t)
+    (CImage.source t `W) (CImage.source t `H)
+    (CImage.dim t `R) (CImage.dim t `C)
 
 let save () =
-  match !active_image with
+  match (CImage.get_active ()) with
   | None -> ()
-  | Some img -> Info.path img
+  | Some img -> CImage.path img
     |> Filename.remove_extension
     |> sprintf "%s.zip"
-    |> CTable.save (Img_Mosaic.annotations img)
+    |> CTable.save (CImage.annotations img)
 
 let load () =
   (* Retrieves an image path from the command line or from a file chooser. *)
@@ -398,8 +300,7 @@ let load () =
   (* Displays the main window in order to retrieve drawing parameters. *)
   CGUI.window#show ();
   (* Loads the image, creates tiles and populates the main window. *)
-  let t = create path in
-  active_image := Some t;
+  let t = CImage.create ~edge:!Par.edge path in
   (* Draws background and tiles, then adds image info to the status bar. *)
   Img_Paint.white_background ~sync:false ();
   Img_Paint.tiles ();
@@ -415,13 +316,13 @@ module Img_Tracker = struct
     Gaux.may (fun ((r, c) as pos) ->
       Img_Paint.tile r c;
       Img_Paint.annot r c;
-      if pos = Img_Mosaic.cursor_pos img then Img_Paint.cursor ();
+      if pos = CImage.cursor_pos img then Img_Paint.cursor ();
       if sync then GUI_Drawing.synchronize ()
     ) !mem
 
   let show ~r ~c img =
     erase img;
-    if CTable.is_valid (Img_Mosaic.annotations img) ~r ~c then begin
+    if CTable.is_valid (CImage.annotations img) ~r ~c then begin
       erase img;
       Img_Paint.tile r c;
       Img_Paint.surface r c (Img_Surface.pointer ());
@@ -460,38 +361,38 @@ module Img_Trigger = struct
         match GUI_Toggles.is_active key with
         | None -> () (* Invalid key, nothing to do! *)
         | Some is_active ->
-          let tbl = Img_Mosaic.annotations img
+          let tbl = CImage.annotations img
           and lvl = GUI_levels.current ()
-          and r, c = Img_Mosaic.cursor_pos img in
+          and r, c = CImage.cursor_pos img in
           CTable.(if is_active then remove else add) tbl lvl ~r ~c key
           |> GUI_Toggles.set_status
-      ) !active_image;
+      ) (CImage.get_active ());
       false
     with _ -> false
 
   let mouse_click ev =
     Option.iter (fun img ->
       let open GdkEvent.Button in
-      let x = truncate (x ev) - Img_Mosaic.origin img `X
-      and y = truncate (y ev) - Img_Mosaic.origin img `Y
-      and e = Img_Mosaic.edge img `SMALL in
+      let x = truncate (x ev) - CImage.origin img `X
+      and y = truncate (y ev) - CImage.origin img `Y
+      and e = CImage.edge img `SMALL in
       let r = y / e and c = x / e in
-      if CTable.is_valid (Img_Mosaic.annotations img) ~r ~c then
+      if CTable.is_valid (CImage.annotations img) ~r ~c then
         Img_Move.run ~f_row:(fun _ -> r) ~f_col:(fun _ -> c)  [(* toggles *)]
-    )!active_image;
+    )(CImage.get_active ());
     false
 
   let mouse_move ev =
     Option.iter (fun img ->
-      let e = Img_Mosaic.edge img `SMALL
-      and x = truncate (GdkEvent.Motion.x ev) - Img_Mosaic.origin img `X
-      and y = truncate (GdkEvent.Motion.y ev) - Img_Mosaic.origin img `Y in
+      let e = CImage.edge img `SMALL
+      and x = truncate (GdkEvent.Motion.x ev) - CImage.origin img `X
+      and y = truncate (GdkEvent.Motion.y ev) - CImage.origin img `Y in
       Img_Tracker.show ~r:(y / e) ~c:(x / e) img
-    ) !active_image;
+    ) (CImage.get_active ());
     false
   
   let mouse_leave _ =
-    Option.iter (Img_Tracker.erase ~sync:true) !active_image;
+    Option.iter (Img_Tracker.erase ~sync:true) (CImage.get_active ());
     false
 end
 
