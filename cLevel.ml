@@ -36,7 +36,7 @@ let of_list t =
     List.map Char.uppercase_ascii t
     |> List.sort Char.compare
     |> List.map (String.make 1)
-    |> String.concat
+    |> String.concat ""
   in
   match header with
   | "NXY" -> `COLONIZATION
