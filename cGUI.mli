@@ -28,7 +28,7 @@ module GUI_Toggles : sig
   val is_active : char -> bool option
   (** Indicates whether the given annotation is active at the current level. *)
 
-  val set_status : (CLevel.t * CTile.t) list -> unit
+  val set_status : (CLevel.t * CTile.tile) list -> unit
   (** Updates all toggle buttons. *)
 
   val is_locked : unit -> bool

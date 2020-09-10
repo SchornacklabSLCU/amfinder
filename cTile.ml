@@ -4,7 +4,7 @@ open CExt
 open Scanf
 open Printf
 
-type t = {
+type tile = {
   mutable user : string;
   mutable lock : string;
   mutable hold : string;

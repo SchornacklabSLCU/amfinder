@@ -6,9 +6,9 @@ open Printf
 
 type table = {
   main : CLevel.t;
-  colonization : CTile.t Ext_Matrix.t;
-  arb_vesicles : CTile.t Ext_Matrix.t;
-  all_features : CTile.t Ext_Matrix.t;
+  colonization : CTile.tile Ext_Matrix.t;
+  arb_vesicles : CTile.tile Ext_Matrix.t;
+  all_features : CTile.tile Ext_Matrix.t;
   network_pred : CPyTable.pytable list;
 }
 
