@@ -47,7 +47,7 @@ end
 let window =
   ignore (GMain.init ());
   let wnd = GWindow.window
-    ~title:"CastANet Editor 1.0"
+    ~title:"CastANet Editor 2.0"
     ~resizable:false
     ~position:`CENTER () in
   wnd#connect#destroy GMain.quit;
