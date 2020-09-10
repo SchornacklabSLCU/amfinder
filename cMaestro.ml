@@ -4,21 +4,6 @@ open CExt
 open CGUI
 open Printf
 
-module ImageOps = struct
-  let crop ~src_x ~src_y ~edge:e pix =
-    let dest = GdkPixbuf.create ~width:e ~height:e () in
-    GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
-    dest
-      
-  let resize ?(interp = `NEAREST) ~edge:e pix =
-    let open GdkPixbuf in
-    let scale_x = float e /. (float (get_width pix))
-    and scale_y = float e /. (float (get_height pix)) in
-    let dest = create ~width:e ~height:e () in
-    scale ~dest ~scale_x ~scale_y ~interp pix;
-    dest
-end
-
 (* Images are represented as mosaics of square tiles. *)
 type tiles = { edge : int; matrix : GdkPixbuf.pixbuf Ext_Matrix.t }
 
@@ -94,7 +79,7 @@ end
 
 (* Cairo surfaces for the painting functions below. *)
 module Img_Surface = struct
-  let square ?(alpha = 0.65) ~kind edge =
+  let square ?(alpha = 0.85) ~kind edge =
     assert (edge > 0); 
     let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = Cairo.create surface in
@@ -348,14 +333,17 @@ module Create = struct
   let large_tile_matrix nr nc edge src =
     Ext_Matrix.init nr nc (fun r c ->
       let src_x = c * edge and src_y = r * edge in
-      ImageOps.crop ~src_x ~src_y ~edge src |> ImageOps.resize ~edge:180
+      CPixbuf.crop ~src_x ~src_y ~edge src |> CPixbuf.resize ~edge:180
     )
     
-  let small_tile_matrix edge = Ext_Matrix.map (ImageOps.resize ~edge)
+  let small_tile_matrix edge = Ext_Matrix.map (CPixbuf.resize ~edge)
     
   let annotations path tiles =
     let zip = Filename.remove_extension path ^ ".zip" in
-    if Sys.file_exists zip then CTable.load zip |> Option.get (* FIXME *)
+    (* FIXME Remove this once everything has been converted! *)
+    let tsv = Filename.remove_extension path ^ ".tsv" in
+    if Sys.file_exists zip then CTable.load zip |> Option.get 
+    else if Sys.file_exists tsv then CTable.load_tsv tsv |> Option.get
     else CTable.create (`MAT tiles) 
 end
 
