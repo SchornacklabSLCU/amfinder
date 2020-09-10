@@ -23,6 +23,10 @@ module Ext_Matrix : sig
   type 'a t = 'a array array
   (** The type of matrices. *)
 
+  val dim : 'a t -> int * int
+  (** Returns the dimensions of the given matrix, i.e. the number of rows and
+    * columns. *)
+
   val get : 'a t -> int -> int -> 'a
   (** [get t r c] returns [t.(r).(c)] or raises an error. *)
   

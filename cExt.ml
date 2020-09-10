@@ -46,6 +46,9 @@ external id : 'a -> 'a = "%identity"
 
 module Ext_Matrix = struct
   type 'a t = 'a array array
+  let dim t =
+    let r = Array.length t in
+    if r = 0 then (0, 0) else r, Array.length t.(0)
   let get t r c = t.(r).(c)
   let get_opt t r c = try Some t.(r).(c) with _ -> None
   let init nr nc f = Array.(init nr (fun r -> init nc (f r)))
