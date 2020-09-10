@@ -31,6 +31,19 @@ let colors = function
   | `ARB_VESICLES -> Colors.arb_vesicles
   | `ALL_FEATURES -> Colors.all_features  
 
+let of_list t =
+  let header =
+    List.map Char.uppercase_ascii t
+    |> List.sort Char.compare
+    |> List.map (String.make 1)
+    |> String.concat
+  in
+  match header with
+  | "NXY" -> `COLONIZATION
+  | "ANVX" -> `ARB_VESICLES
+  | "AEHIRVX" -> `ALL_FEATURES
+  | _ -> CLog.error "Invalid header %S (CLevel.of_list)" header
+
 let to_string = function
   | `COLONIZATION -> "`COLONIZATION"
   | `ARB_VESICLES -> "`ARB_VESICLES"

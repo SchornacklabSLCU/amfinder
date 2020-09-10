@@ -32,3 +32,7 @@ val colors : t -> string list
 val to_string : t -> string
 
 val of_string : string -> t
+
+val of_list : char list -> t
+(** [of_list t] returns the level corresponding to the header [t]. The function
+  * is case-insensitive and characters can be given in any order. *)
