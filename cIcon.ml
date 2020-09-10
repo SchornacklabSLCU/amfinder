@@ -2,6 +2,7 @@
 
 type style = [`RGBA | `RGBA_LOCKED | `GREY | `GREY_LOCKED]
 type size = [`SMALL | `LARGE]
+type palette = [`CIVIDIS | `VIRIDIS | `PLASMA]
 
 (* Icon sources. Load icons as pixbufs of 24 (small) or 48 (large) pixels. *)
 module Source = struct
@@ -37,6 +38,22 @@ let m_rgba_lock = Build.icon_set "hold"
 let m_grey = Build.icon_set "grey"
 let m_grey_lock = Build.icon_set "lock"
 
+module Palette = struct
+  let pixbuf n s = 
+    let path = Filename.concat CCore.icon_dir s in
+  GdkPixbuf.from_file_at_size ~width:n ~height:n path
+  let import f s = f (if s = `SMALL then 20 else 48)
+  let load = import pixbuf
+  let cividis = load `SMALL "cividis.png", load `LARGE "cividis.png"
+  let viridis = load `SMALL "viridis.png", load `LARGE "viridis.png"
+  let plasma = load `SMALL "plasma.png", load `LARGE "plasma.png"
+  let get_func = function `SMALL -> fst | `LARGE -> snd
+end
+
+let get_palette = function
+  | `CIVIDIS -> Palette.(fun sz -> get_func sz cividis)
+  | `VIRIDIS -> Palette.(fun sz -> get_func sz viridis)
+  | `PLASMA  -> Palette.(fun sz -> get_func sz plasma)
 
 (* Joker icon for display any annotation (irrespective of their type). *)
 module Joker = struct

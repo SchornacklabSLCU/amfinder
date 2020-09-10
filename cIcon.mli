@@ -16,6 +16,16 @@ type style = [
 ]
 (** Available icon styles. *)
 
+type palette = [
+  | `CIVIDIS 
+  | `VIRIDIS 
+  | `PLASMA
+]
+(** Available color palettes. *)
+
+val get_palette : palette -> size -> GdkPixbuf.pixbuf
+(** Returns a palette icon. *)
+
 val get : char -> style -> size -> GdkPixbuf.pixbuf
 (** [get chr sty sz] returns a GdkPixbuf corresponding to icon [chr], of 
   * style [sty] and size [sz].
