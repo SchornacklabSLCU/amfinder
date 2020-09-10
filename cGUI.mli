@@ -98,20 +98,28 @@ module GUI_Coords : sig
 end
 
 
-(** Vertical toolbar which displays the confidence of the neural network 
-  * predictions. *)
-module GStats : sig
+(** Prediction manager. *)
+module GUI_Probs : sig
   val toolbar : GButton.toolbar
   (** Main container. *)
 
-  val confidence : GMisc.label
-  (** To be primarily used with computer-generated annotations. Indicates how
-    * confident the annotation is (using percentage). *)
+  val current : unit -> CIcon.palette
+  (** Returns the current palette. *)
 
-  val confidence_color : GMisc.label
-  (** To be primarily used with computer-generated annotations. This label
-    * displays the Viridis colour corresponding to the percentage displayed by
-    * the label [confidence] (see above). *)
+  val viridis : GButton.radio_tool_button * GMisc.image
+  (** Activates the viridis palette. *)
+  
+  val cividis : GButton.radio_tool_button * GMisc.image
+  (** Activates the cividis palette. *)
+  
+  val plasma : GButton.radio_tool_button * GMisc.image
+  (** Activates the plasma palette. *)
+  
+  val best : GButton.tool_button
+  (** Palette settings. *)
+  
+  val threshold : GButton.tool_button
+  (** Applies a given prediction. *)
 end
 
 

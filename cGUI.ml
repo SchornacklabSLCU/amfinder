@@ -342,15 +342,35 @@ module GUI_Coords = struct
   let column = label_2
 end
 
-module GStats = struct
-  let lbl = make_toolbar_and_labels
-    ~top:1 ~title:"Confidence"
-    ~vsp1:true ~vsp2:false
-    ~lbl1:"<tt><b> n/a </b></tt>"
-    ~lbl2:"<tt><span background='white' foreground='white'>DDDDD</span></tt>"
-  include (val lbl : Toolbox.LABEL)
-  let confidence = label_1
-  let confidence_color = label_2
+module GUI_Probs = struct
+  let current_palette = ref `VIRIDIS
+  let current () = !current_palette
+  let toolbar = GButton.toolbar
+    ~orientation:`VERTICAL
+    ~style:`ICONS
+    ~width:78 ~height:205
+    ~packing:(container#attach ~left:0 ~top:1) ()
+  let packing = toolbar#insert
+  let _ = ToolItem.separator packing; ToolItem.label packing "Predictions"
+  let radio_tool_button ?(active = false) ?group ~label typ =
+    let radio = GButton.radio_tool_button ~active ?group ~packing () in
+    let hbox = GPack.hbox ~packing:radio#set_icon_widget () in
+    let image = GMisc.image ~width:20 ~packing:(hbox#pack ~expand:false) () in
+    let label = GMisc.label ~markup:(sprintf "<span size='x-small'>%s</span>" label)
+      ~packing:(hbox#pack ~fill:true) () in
+    image#set_pixbuf (CIcon.get_palette typ `SMALL);
+    radio, image
+  let viridis = radio_tool_button ~active:true ~label:"Viridis" `VIRIDIS
+  let group = fst viridis
+  let cividis = radio_tool_button ~group  ~label:"Cividis" `CIVIDIS
+  let plasma = radio_tool_button ~group  ~label:"Plasma" `PLASMA
+  let labelled_button label =
+    let btn = GButton.tool_button ~packing () in
+    ignore (GMisc.label ~markup:(sprintf "<small>%s</small>" label)
+      ~packing:btn#set_icon_widget ());
+    btn
+  let best = labelled_button "Best"
+  let threshold = labelled_button "Threshold"
 end
 
 
@@ -374,7 +394,7 @@ module GUI_Layers = struct
       let table = GButton.toolbar
         ~orientation:`VERTICAL
         ~style:`ICONS
-        ~width:78 ~height:480 ()
+        ~width:78 ~height:340 ()
       let active = ref true
       let group = ref None
       let packing = table#insert
