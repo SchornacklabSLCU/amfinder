@@ -78,7 +78,7 @@ module Ext_Text = struct
   let implode t = String.concat "" (List.map (String.make 1) t)
 end
 
-module ESplit = struct
+module Ext_Split = struct
   let lines = String.split_on_char '\n'
   let tabs = String.split_on_char '\t'
   let colons = String.split_on_char ':'

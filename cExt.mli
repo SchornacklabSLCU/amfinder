@@ -68,27 +68,6 @@ module Ext_Text : sig
   (** Converts a list of characters into a string. *)
 end
 
-(** Text splitting functions. *)
-module ESplit : sig
-  val lines : string -> string list
-  (** Split the input string at any linefeed (['\n']). *)
-
-  val tabs : string -> string list
-  (** Split the input string at any tabulation (['\t']). *)
-
-  val colons : string -> string list
-  (** Split the input string at any colon ([':']). *)
-
-  val semicolons : string -> string list
-  (** Split the input string at any semicolon ([';']). *)
-
-  val commas : string -> string list
-  (** Split the input string at any comma ([',']). *)
-
-  val spaces : string -> string list
-  (** Split the input string at any space ([' ']). *)
-end
-
 
 (** Operations on files. *)
 module Ext_File : sig
@@ -96,44 +75,6 @@ module Ext_File : sig
   (** Reads a file. Setting up option [binary] results in file being opened in
     * binary mode (default: [false]). Option [trim] triggers trimming of 
     * leading and trailing spaces (default: [true]). *)
-end
-
-
-(** Maybe-values, aka value/error monad. This carries a little more information
-  * than ['a option], by retrieving any exception raised during evaluation. *)
-module EMaybe : sig
-  type 'a t
-  (** The type for maybe-values. *)
-
-  val from_value : 'a -> 'a t
-  (** Creates a maybe-value from a value. *)
-
-  val from_exception : exn -> 'a t
-  (** Creates a maybe-value from an exception. *)
-
-  val from_option : 'a option -> 'a t
-  (** Creates a maybe-value from an option. *)
-  
-  val to_option : 'a t -> 'a option
-  (** Converts a maybe-value to option. *)
-
-  val is_value : 'a t -> bool
-  (** Returns [true] if a maybe-value contains a value. *)
-
-  val is_exception : 'a t -> bool
-  (** Returns [true] if a maybe-value contains an exception. *)
-
-  val eval : ('a -> 'b) -> 'a -> 'b t
-  (** Creates a maybe-value from a function. *)
-
-  val iter : ('a -> unit) -> 'a t -> unit
-  (** Applies a function to the previously stored value, if any. *)
-
-  val map : ('a -> 'b) -> 'a t -> 'b t
-  (** Modifies the previously stored value, if any. *)
-
-  val fix : (exn -> 'a) -> 'a t -> 'a t
-  (** Tries to fix a previously raised error. *)
 end
 
 
