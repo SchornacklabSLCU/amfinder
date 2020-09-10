@@ -19,6 +19,9 @@ val header : pytable -> char list
 val matrix : pytable -> float list Ext_Matrix.t
 (** Returns the prediction matrix. *)
 
-val load : tsv:string -> pytable option
+val load : tsv:string -> pytable
 (** [load tsv] returns a matrix containing the computer-generated predictions
   * saved by the Pyton script castanet.py. *)
+  
+val to_string : pytable -> string
+(** Converts a Python table to string (for export purposes). *)
