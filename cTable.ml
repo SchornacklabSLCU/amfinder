@@ -9,7 +9,7 @@ type table = {
   colonization : CTile.t Ext_Matrix.t;
   arb_vesicles : CTile.t Ext_Matrix.t;
   all_features : CTile.t Ext_Matrix.t;
-  network_pred : (string * float array Ext_Matrix.t) list;
+  network_pred : (CLevel.t * (string * float list Ext_Matrix.t)) list;
 }
 
 let main_level {main; _} = main
@@ -42,54 +42,34 @@ let of_string ~main ~col_table ~arb_table ~all_table =
     network_pred = [] }
 
 
-
+(* Not used at the moment. ---
 module Method = struct
-  let threshold ?(threshold = 0.9) hdr dat =
+  let threshold hdr dat =
     List.fold_left2 (fun s chr z ->
-      if z > threshold then sprintf "%s%c" s chr else s
+      if z > 0.9 then sprintf "%s%c" s chr else s
     ) "" hdr dat |> (fun a -> `STR a)
 
   let best hdr dat =
     List.fold_left2 (fun ((x, y) as m) chr z ->
       if z > y then (chr, z) else m
     ) ('.', 0.0) hdr dat |> (fun (a, _) -> `CHR a)
-end
+end *)
 
-let float_of_string s =
-  CLog.info "(>float) %s" s;
-  float_of_string s
+(* Function to load old tsv files that are not part of a zip!
+ * Will be removed at some point. *)
+let load_tsv tsv =
+  match CPyTable.load tsv with
+  | None -> assert false (* Not very good... *)
+  | Some ((_, (_, mat)) as elt) -> let nr, nc = Ext_Matrix.dim mat in
+    let create () = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ()) in
+    Some {
+      main = `COLONIZATION; 
+      colonization = create ();
+      arb_vesicles = create ();
+      all_features = create ();
+      network_pred = [elt];
+    }
 
-let load_tsv ?(use_method = Method.best) tsv =
-  assert (Sys.file_exists tsv);
-  let dat = Ext_File.read tsv
-    |> String.split_on_char '\n'
-    |> List.map (String.split_on_char '\t')
-    |> List.map Array.of_list in
-  let codes, data = match dat with
-  | [] -> assert false (* Cannot happen! *)
-  | hdr :: rem ->
-    let codes = Array.(sub hdr 2 (length hdr - 2))
-    |> Array.map (fun s -> s.[0])
-    |> Array.to_list in
-    let data = List.map (fun t ->
-      let x = int_of_string t.(0)
-      and y = int_of_string t.(1) in
-      let p = Array.(sub t 2 (length t - 2)) in
-      (x, y), Array.(map float_of_string p |> to_list)
-    ) rem in
-    codes, data in
-  let nr = List.fold_left (fun m ((a, _), _) -> max m a) 0 data + 1
-  and nc = List.fold_left (fun m ((_, b), _) -> max m b) 0 data + 1 in
-  CLog.info "The table to import has %d rows and %d columns" nr nc;
-  let t = Array.init nr (fun r ->
-    Array.init nc (fun c -> 
-      let user = use_method codes (List.assoc (r, c) data) in
-      CTile.make ~user ()
-  )) in
-  Some { main = `COLONIZATION; colonization = t ; 
-    arb_vesicles = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ());
-    all_features = Ext_Matrix.init nr nc (fun _ _ -> CTile.create ());
-    network_pred = [] }
 
 let load zip =
   let unsafe_load zip =
@@ -148,7 +128,7 @@ let save
   let och = Zip.open_out zip in
   Zip.add_entry d1 och "colonization.mldata" ~comment:c1 ?extra:e1;
   Zip.add_entry d2 och "arb_vesicles.mldata" ~comment:c2 ?extra:e2;
-  Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ?extra:e3;
+  Zip.add_entry d3 och "all_features.mldata" ~comment:c3 ?extra:e3; 
   (* TODO: insert export here. *)
   Zip.close_out och
 

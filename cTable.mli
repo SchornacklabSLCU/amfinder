@@ -22,8 +22,7 @@ val create :
 val load : string -> table option
 (** Imports tables from a ZIP archive. Returns [None] in case of error. *)
 
-val load_tsv : ?use_method:(char list ->
-  float list -> [ `CHR of char | `STR of string ]) -> string -> table option
+val load_tsv : string -> table option
 (** Imports table from a TSV file. This is there only during software 
   * development, to deal with older file versions. *)
 
