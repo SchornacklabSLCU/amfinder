@@ -36,7 +36,7 @@ module Img_UI_update = struct
   let set_counters =
     Option.iter (fun img ->
       List.iter (fun (chr, num) ->
-        GUI_Layers.set_label chr num
+        CGUI.Layers.set_label chr num
       ) (CImage.statistics img (CGUI.Levels.current ()))
     ) (CImage.get_active ())
     
@@ -146,7 +146,7 @@ let load () =
   (* Retrieves an image path from the command line or from a file chooser. *)
   Par.initialize ();
   let path = match !Par.image_path with
-    | None -> GUI_FileChooserDialog.run ()
+    | None -> CGUI.FileChooser.run ()
     | Some path -> path in
   (* Displays the main window in order to retrieve drawing parameters. *)
   CGUI.window#show ();
@@ -258,7 +258,7 @@ let initialize () =
   ignore (connect#motion_notify Img_Trigger.mouse_move);
   ignore (connect#leave_notify Img_Trigger.mouse_leave);
   (* Repaints the tiles when the active layer changes. *)
-  GUI_Layers.set_callback (fun _ r _ _ -> 
+  CGUI.Layers.set_callback (fun _ r _ _ -> 
     if r#get_active then CPaint.active_layer ());
   (* Repaints the tiles when the annotation level changes. *)
   CGUI.Levels.set_callback (fun _ r ->

@@ -5,17 +5,15 @@
 val window : GWindow.window
 (** Application main window. *)
 
-
-(** Annotation types. *)
 module Levels : CGUI_Levels.S
+(** Annotation types. *)
 
+module Toggles : UI_ToggleBar.TOGGLE_BAR
 (** The horizontal toolbox (left pane) contains the toggle buttons used to
   * set mycorrhizal annotations. Users can switch between three sets of toggle 
   * buttons which correspond to basic ([`COLONIZATION]), intermediate 
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
-module Toggles : UI_ToggleBar.TOGGLE_BAR
-
 
 module Magnifier : UI_Magnifier.MAGNIFIER
 (** Magnified view of the cursor area. *)
@@ -23,22 +21,8 @@ module Magnifier : UI_Magnifier.MAGNIFIER
 module Drawing : UI_Drawing.DRAWING
 (** Whole image (right pane). *)
 
-
-
-(** TODO: documentation *)
-module GUI_Layers : sig
-  val get_active : unit -> char
-  (** Indicates which layer is currently active. *)
-
-  val set_label : char -> int -> unit
-  (** Updates the counter of the given annotation. *)
-
-  val set_callback : 
-    (char -> 
-      GButton.radio_tool_button -> GMisc.label -> GMisc.image -> unit) -> unit
-  (** Sets a callback function to call when a button is toggled. The callback
-    * function will be applied to all tool buttons. *)
-end
+module Layers : UI_Layers.LAYERS
+(** Annotation layers. *)
 
 
 (** Vertical toolbar which displays the coordinates (row and column) of the 
@@ -55,66 +39,19 @@ module GUI_Coords : sig
 end
 
 
+module Palette : UI_Palette.S
 (** Prediction manager. *)
-module GUI_Probs : sig
-  val toolbar : GButton.toolbar
-  (** Main container. *)
-
-  val current : unit -> CIcon.palette
-  (** Returns the current palette. *)
-
-  val viridis : GButton.radio_tool_button * GMisc.image
-  (** Activates the viridis palette. *)
-  
-  val cividis : GButton.radio_tool_button * GMisc.image
-  (** Activates the cividis palette. *)
-  
-  val plasma : GButton.radio_tool_button * GMisc.image
-  (** Activates the plasma palette. *)
-  
-  val best : GButton.tool_button
-  (** Palette settings. *)
-  
-  val threshold : GButton.tool_button
-  (** Applies a given prediction. *)
-end
-
 
 val status : GMisc.label
 (** Label used as a status bar. It displays general information related to the 
   * loaded image, such as height and width (in pixels). *)
 
-
-
+module TileSet : UI_TileSet.S
 (** Auxiliary window to display all tiles sharing a given annotation. *)
-module GTileSet : sig
-  val add : r:int -> c:int -> ico:GdkPixbuf.pixbuf -> GdkPixbuf.pixbuf -> unit
-  (** [add r c pix] adds the tile [pix] using coordinates [(r, c)] as legend. *)
 
-  val run : unit -> [`OK | `SAVE | `DELETE_EVENT]
-  (** Displays the dialog and returns the output flag. *)
-
-  val set_title : ('a, unit, string, unit) format4 -> 'a
-  (** Sets tile set title, using [printf]-like style. *)
-
-  val hide : unit -> unit
-  (** Hides the tile set and clears all tiles. *)
-end
-
-
+module FileChooser : UI_FileChooser.S
 (** File chooser dialog to allow for selection of the JPEG/TIFF image to open
   * within the CastAnet editor. This dialog shows at startup (unless an image is
   * provided on the command line) as well as when the main window is closed.
   * Users can therefore load successive images without closing the application,
   * but only one image is active at a time. *)
-module GUI_FileChooserDialog : sig
-  val jpeg : GFile.filter
-  (** File filter for JPEG images. *)
-  
-  val tiff : GFile.filter
-  (** File filter for TIFF images. *)
-
-  val run : unit -> string
-  (** Displays a dialog window to select the image to open (if not provided
-    * on the command line). The program terminates if no image is selected. *)
-end

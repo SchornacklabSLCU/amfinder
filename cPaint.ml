@@ -124,7 +124,7 @@ let surface ?(sync = false) ~r ~c surface =
 
 let annot ?(sync = false) ~r ~c () =
   Option.iter (fun img ->
-    let typ = GUI_Layers.get_active ()
+    let typ = CGUI.Layers.get_active ()
     and tbl = CImage.annotations img
     and lvl = CGUI.Levels.current () in
     let draw = match typ with
