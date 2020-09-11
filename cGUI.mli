@@ -7,65 +7,22 @@ val window : GWindow.window
 
 
 (** Annotation types. *)
-module GUI_levels : sig 
-  val current : unit -> CLevel.t
-  (** Returns the active annotation level. *)
-
-  val radios : (CLevel.t * GButton.radio_button) list
-  (** Radio buttons corresponding to the different annotation types. *)
-  
-  val set_callback : (CLevel.t -> GButton.radio_button -> unit) -> unit
-  (** Applies a callback function to all radio buttons. *)
-end
-
+module Levels : CGUI_Levels.S
 
 (** The horizontal toolbox (left pane) contains the toggle buttons used to
   * set mycorrhizal annotations. Users can switch between three sets of toggle 
   * buttons which correspond to basic ([`COLONIZATION]), intermediate 
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
-module GUI_Toggles : sig
-  val is_active : char -> bool option
-  (** Indicates whether the given annotation is active at the current level. *)
-
-  val set_status : (CLevel.t * CMask.tile) list -> unit
-  (** Updates all toggle buttons. *)
-
-  val is_locked : unit -> bool
-  (** Indicates whether a toggle is locked and callbacks should not apply. *)
-end
+module Toggles : UI_ToggleBar.TOGGLE_BAR
 
 
-
+module Magnifier : UI_Magnifier.MAGNIFIER
 (** Magnified view of the cursor area. *)
-module GUI_Magnify : sig
-  val tiles : GMisc.image array array
-  (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
-    * annotations shown in [HToolbox] correspond to the central tile. *)
-end
 
-
-
+module Drawing : UI_Drawing.DRAWING
 (** Whole image (right pane). *)
-module GUI_Drawing : sig
-  val area : GMisc.drawing_area
-  (** Drawing area were the whole image is displayed. *)
 
-  val cairo : unit -> Cairo.context
-  (** Cairo context used to overlay annotation information. *)
-
-  val pixmap : unit -> GDraw.pixmap
-  (** Backing pixmap used to draw offscreen. *)
-
-  val width : unit -> int
-  (** Width of the drawing area, in pixels. *)
-
-  val height : unit -> int
-  (** Height of the drawing area, in pixels. *)
-
-  val synchronize : unit -> unit
-  (** Synchronizes the backing [pixmap] with the foreground [area]. *)
-end
 
 
 (** TODO: documentation *)

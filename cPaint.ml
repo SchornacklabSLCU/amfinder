@@ -73,19 +73,19 @@ end
 
 
 let white_background ?(sync = true) () =
-  let t = GUI_Drawing.cairo () in
+  let t = CGUI.Drawing.cairo () in
   Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
-  let w = float (GUI_Drawing.width ()) 
-  and h = float (GUI_Drawing.height ()) in
+  let w = float (CGUI.Drawing.width ()) 
+  and h = float (CGUI.Drawing.height ()) in
   Cairo.rectangle t 0.0 0.0 ~w ~h;
   Cairo.fill t;
   Cairo.stroke t;
-  if sync then GUI_Drawing.synchronize ()
+  if sync then CGUI.Drawing.synchronize ()
 
 
 let tiles ?(sync = true) () =
   Option.iter (fun img ->
-    let pixmap = GUI_Drawing.pixmap ()
+    let pixmap = CGUI.Drawing.pixmap ()
     and xini = CImage.origin img `X
     and yini = CImage.origin img `Y
     and edge = CImage.edge img `SMALL in
@@ -95,17 +95,17 @@ let tiles ?(sync = true) () =
         ~y:(yini + r * edge)
         ~width:edge ~height:edge tile
     ) img `SMALL;
-    if sync then GUI_Drawing.synchronize ()
+    if sync then CGUI.Drawing.synchronize ()
   ) (CImage.get_active ())
 
 
 let tile ?(sync = false) ~r ~c () =
   Option.iter (fun img ->
     Option.iter (fun tile ->
-      (GUI_Drawing.pixmap ())#put_pixbuf
+      (CGUI.Drawing.pixmap ())#put_pixbuf
         ~x:(CImage.x ~c img `SMALL)
         ~y:(CImage.y ~r img `SMALL) tile;
-      if sync then GUI_Drawing.synchronize ()
+      if sync then CGUI.Drawing.synchronize ()
     ) (CImage.tile r c img `SMALL)
   ) (CImage.get_active ())
 
@@ -113,12 +113,12 @@ let tile ?(sync = false) ~r ~c () =
 (* FIXME Unsafe function - not for use outside! *)
 let surface ?(sync = false) ~r ~c surface =
   Option.iter (fun img ->
-    let t = GUI_Drawing.cairo () in
+    let t = CGUI.Drawing.cairo () in
     let x = CImage.x ~c img `SMALL 
     and y = CImage.y ~r img `SMALL in
     Cairo.set_source_surface t surface (float x) (float y);
     Cairo.paint t;
-    if sync then GUI_Drawing.synchronize ()
+    if sync then CGUI.Drawing.synchronize ()
   ) (CImage.get_active ())
 
 
@@ -132,7 +132,7 @@ let annot ?(sync = false) ~r ~c () =
       | chr -> CTable.mem tbl lvl r c (`CHR chr) in
     if draw then begin
       surface ~r ~c (Surface.get_from_char typ);
-      if sync then GUI_Drawing.synchronize ()
+      if sync then CGUI.Drawing.synchronize ()
     end
   ) (CImage.get_active ())
 
@@ -142,7 +142,7 @@ let cursor ?(sync = false) () =
     let r, c = CImage.cursor_pos img in
     tile ~r ~c ();
     surface ~r ~c (Surface.get_from_char '.');
-    if sync then GUI_Drawing.synchronize ()
+    if sync then CGUI.Drawing.synchronize ()
   ) (CImage.get_active ())
 
 
@@ -155,7 +155,7 @@ let active_layer ?(sync = true) () =
     cursor ();
 (*     let r, c = CImage.cursor_pos img in
     Img_UI_update.set_coordinates r c; *)
-    if sync then GUI_Drawing.synchronize ()
+    if sync then CGUI.Drawing.synchronize ()
   ) (CImage.get_active ())
 
 

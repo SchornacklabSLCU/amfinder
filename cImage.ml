@@ -96,7 +96,7 @@ module Create = struct
 end
 
 let create ?(edge = 236) fpath =
-  let uiw, uih = GUI_Drawing.(width (), height ()) in
+  let uiw, uih = CGUI.Drawing.(width (), height ()) in
   let pix = GdkPixbuf.from_file fpath in
   let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
   let rows = imgh / edge and cols = imgw / edge in

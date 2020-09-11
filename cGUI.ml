@@ -95,46 +95,11 @@ end
 module Magnifier = UI_Magnifier.Make(Magnifier_params)
 
 
-
-module GUI_Drawing = struct
-  let area = 
-    let packing = Pane.right#attach ~left:0 ~top:0 in
-    let packing = (GBin.frame ~width:600 ~packing ())#add in
-    GMisc.drawing_area ~packing ()
-
-  type drawing_tools = { pixmap : GDraw.pixmap; cairo : Cairo.context }
-  let dt = ref None
-
-  let get f () = match !dt with None -> assert false | Some dt -> f dt
-  let cairo = get (fun dt -> dt.cairo)
-  let pixmap = get (fun dt -> dt.pixmap)
-  let width = get (fun dt -> fst dt.pixmap#size)
-  let height = get (fun dt -> snd dt.pixmap#size)
-
-  let synchronize () =
-    let width = width () and height = height () in
-    area#misc#draw (Some (Gdk.Rectangle.create ~x:0 ~y:0 ~width ~height))
-
-  let _ =
-    (* Repaint masked area upon GtkDrawingArea exposure. *)
-    let repaint ev =
-      let open Gdk.Rectangle in
-      let r = GdkEvent.Expose.area ev in
-      let x = x r and y = y r and width = width r and height = height r in
-      let drawing = new GDraw.drawable area#misc#window in
-      drawing#put_pixmap
-        ~x ~y ~xsrc:x ~ysrc:y
-        ~width ~height (pixmap ())#pixmap;
-      false in
-    area#event#add [`EXPOSURE; `POINTER_MOTION; `BUTTON_PRESS; `LEAVE_NOTIFY];
-    area#event#connect#expose repaint;
-    (* Creates a GtkPixmap and its Cairo.context upon widget size allocation. *)
-    let initialize {Gtk.width; height} =  
-      let pixmap = GDraw.pixmap ~width ~height () in
-      let cairo = Cairo_gtk.create pixmap#pixmap in
-      dt := Some {pixmap; cairo}
-    in area#misc#connect#size_allocate initialize
+module Drawing_params = struct
+  let packing x = Pane.right#attach ~left:0 ~top:0 x
 end
+
+module Drawing = UI_Drawing.Make(Drawing_params)
 
 
 let container = GPack.table 

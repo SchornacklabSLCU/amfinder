@@ -82,7 +82,7 @@ module Img_Move = struct
       Img_UI_update.magnified_view ();
       Img_UI_update.update_toggles ();
       CPaint.cursor ();
-      GUI_Drawing.synchronize ()
+      CGUI.Drawing.synchronize ()
     ) (CImage.get_active ())
 
   let left ?(jump = 1) = run
@@ -168,7 +168,7 @@ module Img_Tracker = struct
       CPaint.tile ~r ~c ();
       CPaint.annot ~r ~c ();
       if pos = CImage.cursor_pos img then CPaint.cursor ();
-      if sync then GUI_Drawing.synchronize ()
+      if sync then CGUI.Drawing.synchronize ()
     ) !mem
 
   let show ~r ~c img =
@@ -179,7 +179,7 @@ module Img_Tracker = struct
       CPaint.surface ~r ~c (CPaint.Surface.pointer ());
       mem := Some (r, c)
     end;
-    GUI_Drawing.synchronize ()
+    CGUI.Drawing.synchronize ()
 end
 
 
@@ -253,7 +253,7 @@ let initialize () =
   ignore (connect#key_press Img_Trigger.arrow_keys);
   ignore (connect#key_press (fun x -> Img_Trigger.annotation_keys (`GDK x)));
   (* Callback functions for mouse events. *)
-  let connect = GUI_Drawing.area#event#connect in
+  let connect = CGUI.Drawing.area#event#connect in
   ignore (connect#button_press Img_Trigger.mouse_click);
   ignore (connect#motion_notify Img_Trigger.mouse_move);
   ignore (connect#leave_notify Img_Trigger.mouse_leave);
