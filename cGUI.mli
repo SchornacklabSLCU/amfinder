@@ -5,7 +5,7 @@
 val window : GWindow.window
 (** Application main window. *)
 
-module Levels : CGUI_Levels.S
+module Levels : UI_Levels.S
 (** Annotation types. *)
 
 module Toggles : UI_ToggleBar.TOGGLE_BAR
@@ -27,17 +27,7 @@ module Layers : UI_Layers.LAYERS
 
 (** Vertical toolbar which displays the coordinates (row and column) of the 
   * cursor. *)
-module GUI_Coords : sig
-  val toolbar : GButton.toolbar
-  (** Main container. *)
-
-  val row : GMisc.label
-  (** Indicates the current row index. *)
-
-  val column : GMisc.label
-  (** Indicate the current column index. *)
-end
-
+module CursorPos : UI_CursorPos.S
 
 module Palette : UI_Palette.S
 (** Prediction manager. *)

@@ -23,7 +23,7 @@ module Img_UI_update = struct
   let set_coordinates =
     let set lbl =
       ksprintf lbl#set_label "<tt><small><b>%c:</b> %03d</small></tt>"
-    in fun r c -> GUI_Coords.(set row 'R' r; set column 'C' c)
+    in fun r c -> CGUI.CursorPos.(set row 'R' r; set column 'C' c)
     
   let update_toggles () =
     Option.iter (fun img ->

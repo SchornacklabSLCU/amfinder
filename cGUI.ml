@@ -2,14 +2,6 @@
 
 open Printf
 
-module Toolbox = struct
-  module type LABEL = sig
-    val toolbar : GButton.toolbar
-    val label_1 : GMisc.label
-    val label_2 : GMisc.label
-  end
-end
-
 let window =
   ignore (GMain.init ());
   let wnd = GWindow.window
@@ -26,16 +18,22 @@ let border_width = spacing
 module Box = struct
   (* To allow for a status label to be added at the bottom of the interface. *)
   let v = GPack.vbox ~border_width ~packing:window#add ()
+
   (* To display the annotation modes (as radio buttons). *)
   let b = GPack.button_box `HORIZONTAL
     ~border_width:(2 * spacing) (* more space to make it clearly visible. *)
     ~layout:`SPREAD
     ~packing:(v#pack ~expand:false) ()
+
   (* To display the magnified view and whole image side by side. *)
   let h = GPack.hbox ~spacing ~border_width ~packing:v#add ()
 end
 
-module Levels = (val (CGUI_Levels.make ~packing:Box.b#add ()) : CGUI_Levels.S)
+module Levels_par = struct
+  let init_level = CLevel.lowest
+  let packing = Box.b#add
+end
+module Levels = UI_Levels.Make(Levels_par)
 
 module Pane = struct
   let initialize label ~r ~c =
@@ -80,35 +78,19 @@ let container = GPack.table
   ~row_spacings:spacing
   ~packing:(Pane.right#attach ~left:1 ~top:0) ()
 
-let make_toolbar_and_labels ~top ~title ~vsp1 ~vsp2 ~lbl1 ~lbl2 =
-  let module M = struct
-    let toolbar = GButton.toolbar
-      ~orientation:`VERTICAL
-      ~style:`ICONS
-      ~width:78 ~height:80
-      ~packing:(container#attach ~left:0 ~top) ()
-    let packing = toolbar#insert
-    let _ = UI_Helper.separator packing; UI_Helper.label packing title
-    let label_1 = UI_Helper.label ~vspace:vsp1 packing lbl1
-    let label_2 = UI_Helper.label ~vspace:vsp2 packing lbl2
-  end in (module M : Toolbox.LABEL)
-
-module GUI_Coords = struct
-  let lbl = make_toolbar_and_labels
-    ~top:0 ~title:"Coordinates" 
-    ~vsp1:false ~vsp2:false
-    ~lbl1:"<tt><b>R:</b> 000</tt>"
-    ~lbl2:"<tt><b>C:</b> 000</tt>" 
-  include (val lbl : Toolbox.LABEL)
-  let row = label_1
-  let column = label_2
+module CursorPos_params = struct
+  let packing ~top x = container#attach ~left:0 ~top x
 end
+module CursorPos = UI_CursorPos.Make(CursorPos_params)
+
 
 
 module Palette_params = struct
   let packing x = container#attach ~left:0 ~top:1 x
 end
 module Palette = UI_Palette.Make(Palette_params)
+
+
 
 module Layers_params = struct
   let packing x = container#attach ~left:0 ~top:2 ~expand:`NONE ~fill:`Y x
