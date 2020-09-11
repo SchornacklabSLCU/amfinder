@@ -29,11 +29,13 @@ module Box = struct
   let h = GPack.hbox ~spacing ~border_width ~packing:v#add ()
 end
 
-module Levels_par = struct
-  let init_level = CLevel.lowest
-  let packing = Box.b#add
-end
-module Levels = UI_Levels.Make(Levels_par)
+
+module Levels = UI_Levels.Make (
+  struct
+    let init_level = CLevel.lowest
+    let packing = Box.b#add
+  end
+)
 
 module Pane = struct
   let initialize label ~r ~c =
@@ -47,57 +49,53 @@ module Pane = struct
   let right = initialize "Whole image" ~r:1 ~c:2
 end
 
-(* Toggle bar. *)
-module ToggleBar_params = struct
-  let packing x = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE x
-  let remove = Pane.left#remove
-  include Levels
-end
-module Toggles = UI_ToggleBar.Make(ToggleBar_params)
+module Toggles = UI_ToggleBar.Make (
+  struct
+    include Levels
+    let packing x = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE x
+    let remove = Pane.left#remove  
+  end
+)
 
+module Magnifier = UI_Magnifier.Make (
+  struct
+    let rows = 3
+    let columns = 3
+    let tile_edge = 180
+    let packing x = Pane.left#attach ~top:1 ~left:0 x
+  end
+)
 
-(* Magnifying glass *)
-module Magnifier_params = struct
-  let rows = 3
-  let columns = 3
-  let tile_edge = 180
-  let packing x = Pane.left#attach ~top:1 ~left:0 x
-end
-module Magnifier = UI_Magnifier.Make(Magnifier_params)
-
-
-(* Drawing. *)
-module Drawing_params = struct
-  let packing x = Pane.right#attach ~left:0 ~top:0 x
-end
-module Drawing = UI_Drawing.Make(Drawing_params)
-
+module Drawing = UI_Drawing.Make (
+  struct
+    let packing x = Pane.right#attach ~left:0 ~top:0 x
+  end
+)
 
 let container = GPack.table 
   ~rows:3 ~columns:1
   ~row_spacings:spacing
   ~packing:(Pane.right#attach ~left:1 ~top:0) ()
 
-module CursorPos_params = struct
-  let packing ~top x = container#attach ~left:0 ~top x
-end
-module CursorPos = UI_CursorPos.Make(CursorPos_params)
+module CursorPos = UI_CursorPos.Make (
+  struct
+    let packing ~top x = container#attach ~left:0 ~top x
+  end
+)
 
+module Palette = UI_Palette.Make (
+  struct
+    let packing x = container#attach ~left:0 ~top:1 x
+  end
+)
 
-
-module Palette_params = struct
-  let packing x = container#attach ~left:0 ~top:1 x
-end
-module Palette = UI_Palette.Make(Palette_params)
-
-
-
-module Layers_params = struct
-  let packing x = container#attach ~left:0 ~top:2 ~expand:`NONE ~fill:`Y x
-  let remove = container#remove
-  include Levels
-end
-module Layers = UI_Layers.Make(Layers_params)
+module Layers = UI_Layers.Make (
+  struct
+    include Levels
+    let packing x = container#attach ~left:0 ~top:2 ~expand:`NONE ~fill:`Y x
+    let remove = container#remove
+  end
+)
 
 let status = 
   let lbl = GMisc.label ~xalign:0.0 ~yalign:0.0
@@ -105,21 +103,21 @@ let status =
   lbl#set_use_markup true;
   lbl
 
-(* Tile set. *)
-module TileSet_params = struct
-  let parent = window
-  let spacing = spacing
-  let border_width = border_width
-  let window_width = 320
-  let window_height = 500
-  let window_title = "Tile Set"
-end 
-module TileSet = UI_TileSet.Make(TileSet_params)
+module TileSet = UI_TileSet.Make (
+  struct
+    let parent = window
+    let spacing = spacing
+    let border_width = border_width
+    let window_width = 320
+    let window_height = 500
+    let window_title = "Tile Set"
+  end
+)
 
-(* File chooser. *)
-module FileChooser_params = struct
-  let parent = window
-  let title = "CastANet Image Chooser"
-  let border_width = border_width
-end
-module FileChooser = UI_FileChooser.Make(FileChooser_params)
+module FileChooser = UI_FileChooser.Make (
+  struct
+    let parent = window
+    let title = "CastANet Image Chooser"
+    let border_width = border_width
+  end
+)
