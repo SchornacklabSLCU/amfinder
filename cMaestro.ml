@@ -55,7 +55,7 @@ module Img_UI_update = struct
           let pixbuf = match CImage.tile r c img `LARGE with
             | None -> blank_tile ()
             | Some x -> x
-          in GUI_Magnify.tiles.(i).(j)#set_pixbuf pixbuf
+          in CGUI.Magnifier.tiles.(i).(j)#set_pixbuf pixbuf
         done
       done;  
     ) (CImage.get_active ())

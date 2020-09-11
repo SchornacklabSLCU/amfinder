@@ -76,35 +76,24 @@ module Pane = struct
   let right = initialize "Whole image" ~r:1 ~c:2
 end
 
-module P = struct
+module ToggleBar_params = struct
   let packing x = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE x
   let remove = Pane.left#remove
   include Levels
 end
 
-module Toggles = CGUI_Toggles.Make(P)
+module Toggles = UI_ToggleBar.Make(ToggleBar_params)
 
-module GUI_Magnify = struct
+
+module Magnifier_params = struct
   let rows = 3
   let columns = 3
-  let edge = 180
-
-  let table = GPack.table
-    ~rows ~columns
-    ~packing:(Pane.left#attach ~top:1 ~left:0) ()
-
-  let tile_image top left =
-    let event = GBin.event_box
-      ~width:(edge + 2) ~height:(edge + 2) 
-      ~packing:(table#attach ~top ~left) ()
-    (* The centre has a red frame to grab users attention. *)
-    and color = if top = 1 && left = 1 then "red" else "gray60" in
-    event#misc#modify_bg [`NORMAL, `NAME color];
-    let pixmap = GDraw.pixmap ~width:edge ~height:edge () in
-    GMisc.pixmap pixmap ~packing:event#add ()
-
-  let tiles = Array.(init rows (fun t -> init columns (tile_image t)))
+  let tile_edge = 180
+  let packing x = Pane.left#attach ~top:1 ~left:0 x
 end
+
+module Magnifier = UI_Magnifier.Make(Magnifier_params)
+
 
 
 module GUI_Drawing = struct
