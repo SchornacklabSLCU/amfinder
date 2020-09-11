@@ -30,7 +30,7 @@ module Img_UI_update = struct
       let tbl = CImage.annotations img
       and r, c = CImage.cursor_pos img in
       let tiles = CTable.get_all tbl ~r ~c in
-      GUI_Toggles.set_status tiles
+      CGUI.Toggles.set_status tiles
     ) (CImage.get_active ())
     
   let set_counters =
@@ -209,14 +209,14 @@ module Img_Trigger = struct
           | `GDK evt -> (GdkEvent.Key.string evt).[0]
         ) in
         CLog.info "Key pressed: %C" key;
-        match GUI_Toggles.is_active key with
+        match CGUI.Toggles.is_active key with
         | None -> () (* Invalid key, nothing to do! *)
         | Some is_active ->
           let tbl = CImage.annotations img
           and lvl = CGUI.Levels.current ()
           and r, c = CImage.cursor_pos img in
           CTable.(if is_active then remove else add) tbl lvl ~r ~c key
-          |> GUI_Toggles.set_status
+          |> CGUI.Toggles.set_status
       ) (CImage.get_active ());
       false
     with _ -> false

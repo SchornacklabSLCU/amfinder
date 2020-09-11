@@ -2,10 +2,7 @@
 
 open Printf
 
-type toggle_ext = {
-  t_toggle : GButton.toggle_button;
-  t_image : GMisc.image;
-}
+
 
 type radio_ext = {
   r_radio : GButton.radio_tool_button;
@@ -14,10 +11,6 @@ type radio_ext = {
 }
 
 module Toolbox = struct
-  module type TOGGLE = sig
-    val table : GPack.table
-    val toggles : (char * toggle_ext) array
-  end 
   module type RADIO = sig
     val table : GButton.toolbar
     val radios : (char * radio_ext) list
@@ -83,140 +76,13 @@ module Pane = struct
   let right = initialize "Whole image" ~r:1 ~c:2
 end
 
-
-module  GUI_Toggles = struct
-  (* Values here ensure that new buttons appear between existing ones when
-   * the user switches between the different annotation levels. *)
-  let get_col_spacing = function
-    | `COLONIZATION -> 134
-    | `ARB_VESICLES -> 68
-    | `ALL_FEATURES -> 2
-
-  let set_icon image button rgba grey () =
-    image#set_pixbuf (if button#active then rgba else grey)  
-
-  let add_item (table : GPack.table) i chr =
-    let packing = table#attach ~left:i ~top:0 in
-    let t_toggle = GButton.toggle_button ~relief:`NONE ~packing () in
-    let t_image = GMisc.image ~width:48 ~packing:t_toggle#set_image () in
-    t_image#set_pixbuf (CIcon.get chr `GREY `LARGE);
-    chr, {t_toggle; t_image}
-
-  let make_toolbox typ =
-    let code_list = CAnnot.char_list typ in
-    let module T = struct
-      let table = GPack.table
-        ~rows:1 ~columns:(List.length code_list)
-        ~col_spacings:(get_col_spacing typ)
-        ~homogeneous:true ()
-      let toggles = Array.of_list (List.mapi (add_item table) code_list)
-    end in (module T : Toolbox.TOGGLE)
-
-  (* Setting up expand/fill allows to centre the button box. *)
-  let packing = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE
-
-  let toolboxes =
-    List.map (fun typ ->
-      typ, make_toolbox typ
-    ) CLevel.flags
-
-  let iter f =
-    List.iter (fun (typ, mdl) ->
-      let module T = (val mdl : Toolbox.TOGGLE) in
-      Array.iter (fun (chr, {t_toggle; t_image}) -> 
-        f typ chr t_toggle t_image
-      ) T.toggles
-    ) toolboxes
-
-  let map f =
-    List.map (fun (typ, mdl) ->
-      let module T = (val mdl : Toolbox.TOGGLE) in
-      Array.map (fun (chr, {t_toggle; t_image}) ->
-        f typ chr t_toggle t_image
-      ) T.toggles
-    ) toolboxes
-
-  let current_widget = ref None
-
-  let detach () =
-    match !current_widget with
-    | None -> ()
-    | Some widget -> Pane.left#remove widget
-
-  let attach typ =
-    detach ();
-    let mdl = List.assoc typ toolboxes in
-    let module T = (val mdl : Toolbox.TOGGLE) in
-    let widget = T.table#coerce in
-    packing widget;
-    Levels.set_current typ;
-    current_widget := Some widget
-
-  let current_toggles () =
-    let current_toolbox = List.assoc (Levels.current ()) toolboxes in
-    let module T = (val current_toolbox : Toolbox.TOGGLE) in
-    T.toggles
-
-  let get ?level chr =
-    let lvl = match level with
-      | None -> Levels.current ()
-      | Some lvl -> lvl in
-    let toolbox = List.assoc lvl toolboxes in
-    let module T = (val toolbox : Toolbox.TOGGLE) in
-    List.assoc_opt (Char.uppercase_ascii chr) (Array.to_list T.toggles)
-  
-  let toggle_lock = ref false
-  
-  let lock () = toggle_lock := true
-  let unlock () = toggle_lock := false
-  let is_locked () = !toggle_lock
-  
-  let is_active chr =
-    match get chr with
-    | None -> None
-    | Some ext -> Some ext.t_toggle#active
-  
-  let revert_all lvl =
-    let toolbox = List.assoc lvl toolboxes in
-    let module T = (val toolbox : Toolbox.TOGGLE) in  
-    Array.iter (fun (chr, ext) ->
-      ext.t_toggle#set_active false;
-      ext.t_image#set_pixbuf (CIcon.get chr `GREY `LARGE);
-    ) T.toggles
-
-  let set_status t =
-    toggle_lock := true;
-    List.iter (fun (lvl, tile) ->
-      revert_all lvl;
-      let user = CMask.get tile `USER
-      and hold = CMask.get tile `HOLD
-      and lock = CMask.get tile `LOCK in
-      let toolbox = List.assoc lvl toolboxes in
-      let module T = (val toolbox : Toolbox.TOGGLE) in
-      let assoc_table = Array.to_list T.toggles in
-      let apply_settings ~layer ~status ~style ?alt_style () =
-        String.iter (fun chr ->
-          let ext = List.assoc chr assoc_table in
-          ext.t_toggle#set_active status;
-          let style = match lvl = Levels.current () with
-            | true -> style
-            | false -> Option.value alt_style ~default:style in
-          ext.t_image#set_pixbuf (CIcon.get chr style `LARGE);
-        ) layer in
-      apply_settings ~layer:user ~status:true ~style:`RGBA ();
-      apply_settings ~layer:hold ~status:true ~style:`RGBA_LOCKED ();
-      apply_settings ~layer:lock ~status:false ~style:`GREY ~alt_style:`GREY_LOCKED ()
-    ) t;
-    toggle_lock := false
-
-  let _ = (* initialization. *)
-    attach `COLONIZATION;
-    List.iter (fun (typ, radio) ->
-      let callback () = if radio#active then attach typ in
-      ignore (radio#connect#toggled ~callback)
-    ) Levels.radios
+module P = struct
+  let packing x = Pane.left#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE x
+  let remove = Pane.left#remove
+  include Levels
 end
 
+module Toggles = CGUI_Toggles.Make(P)
 
 module GUI_Magnify = struct
   let rows = 3
