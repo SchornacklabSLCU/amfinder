@@ -87,7 +87,7 @@ module Toggles = CGUI_Toggles.Make(P)
 module GUI_Magnify = struct
   let rows = 3
   let columns = 3
-  let edge = CCore.edge
+  let edge = 180
 
   let table = GPack.table
     ~rows ~columns
@@ -368,7 +368,7 @@ module GTileSet = struct
   module Cell = struct
     let xc = `XALIGN 0.5
     let yc = `YALIGN 0.5
-    let sz = CCore.edge 
+    let sz = 180
     let bg = `CELL_BACKGROUND_GDK (GDraw.color (`NAME "dimgray"))
     open GTree
     let mycflg = cell_renderer_pixbuf [bg; `XPAD 2; `WIDTH 34; xc; yc]

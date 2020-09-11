@@ -22,7 +22,7 @@ end
 module Build = struct
   let path_list suf =
     let make_pair chr = Printf.sprintf "%c_%s.png" chr suf
-      |> Filename.concat CCore.icon_dir
+      |> Filename.concat "data/icons"
       |> (fun path -> chr, path)
     in List.map make_pair CAnnot.all_chars_list
   let icon_set suf =
@@ -40,7 +40,7 @@ let m_grey_lock = Build.icon_set "lock"
 
 module Palette = struct
   let pixbuf n s = 
-    let path = Filename.concat CCore.icon_dir s in
+    let path = Filename.concat "data/icons" s in
   GdkPixbuf.from_file_at_size ~width:n ~height:n path
   let import f s = f (if s = `SMALL then 20 else 48)
   let load = import pixbuf
@@ -59,7 +59,7 @@ let get_palette = function
 module Joker = struct
   let make suf =
     let ico = Printf.sprintf "Joker_%s.png" suf
-      |> Filename.concat CCore.icon_dir
+      |> Filename.concat "data/icons"
       |> (fun path -> '*', path)
     in Source.(snd (load `SMALL ico), snd (load `LARGE ico))
   (* There are no constraints on the joker icon (no _lock variants). *)
