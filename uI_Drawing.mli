@@ -4,7 +4,7 @@ module type PARAMS = sig
   val packing : GObj.widget -> unit
 end
 
-module type DRAWING = sig
+module type S = sig
   val area : GMisc.drawing_area
   (** Drawing area were the whole image is displayed. *)
 
@@ -24,5 +24,5 @@ module type DRAWING = sig
   (** Synchronizes the backing [pixmap] with the foreground [area]. *)
 end
 
-module Make : PARAMS -> DRAWING
+module Make : PARAMS -> S
 (** Generator. *)

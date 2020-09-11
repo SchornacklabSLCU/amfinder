@@ -7,11 +7,11 @@ module type PARAMS = sig
   val packing : GObj.widget -> unit
 end
 
-module type MAGNIFIER = sig
+module type S = sig
   val tiles : GMisc.image array array
   (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
     * annotations shown in [HToolbox] correspond to the central tile. *)
 end
 
-module Make : PARAMS -> MAGNIFIER
+module Make : PARAMS -> S
 (** Generator. *)

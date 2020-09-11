@@ -15,13 +15,13 @@ module Toggles : UI_ToggleBar.S
   * ([`ARB_VESICLES]) and full ([`ALL_FEATURES]) annotation modes.
   * Only one set is active at a given time. *)
 
-module Magnifier : UI_Magnifier.MAGNIFIER
+module Magnifier : UI_Magnifier.S
 (** Magnified view of the cursor area. *)
 
-module Drawing : UI_Drawing.DRAWING
+module Drawing : UI_Drawing.S
 (** Whole image (right pane). *)
 
-module Layers : UI_Layers.LAYERS
+module Layers : UI_Layers.S
 (** Annotation layers. *)
 
 module CursorPos : UI_CursorPos.S

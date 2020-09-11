@@ -7,7 +7,7 @@ module type PARAMS = sig
   val radios : (CLevel.t * GButton.radio_button) list
 end
 
-module type LAYERS = sig
+module type S = sig
   val get_active : unit -> char
   (** Indicates which layer is currently active. *)
 
@@ -21,5 +21,5 @@ module type LAYERS = sig
     * function will be applied to all tool buttons. *)
 end
 
-module Make : PARAMS -> LAYERS
+module Make : PARAMS -> S
 (** Generator. *)

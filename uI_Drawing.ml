@@ -9,7 +9,7 @@ module type PARAMS = sig
   val packing : GObj.widget -> unit
 end
 
-module type DRAWING = sig
+module type S = sig
   val area : GMisc.drawing_area
   val cairo : unit -> Cairo.context
   val pixmap : unit -> GDraw.pixmap
@@ -18,7 +18,7 @@ module type DRAWING = sig
   val synchronize : unit -> unit
 end
 
-module Make (P : PARAMS) : DRAWING = struct
+module Make (P : PARAMS) : S = struct
   let area = 
     let frame = GBin.frame ~width:600 ~packing:P.packing () in
     GMisc.drawing_area ~packing:frame#add ()

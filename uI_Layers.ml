@@ -20,7 +20,7 @@ module type PARAMS = sig
   val radios : (CLevel.t * GButton.radio_button) list
 end
 
-module type LAYERS = sig
+module type S = sig
   val get_active : unit -> char
   val set_label : char -> int -> unit
   val set_callback : 
@@ -29,7 +29,7 @@ module type LAYERS = sig
 end
 
 
-module Make (P : PARAMS) : LAYERS = struct
+module Make (P : PARAMS) : S = struct
   let add_item packing a_ref g_ref i chr =
     let active = !a_ref and group = !g_ref in
     let r_radio = GButton.radio_tool_button ~active ?group ~packing () in
