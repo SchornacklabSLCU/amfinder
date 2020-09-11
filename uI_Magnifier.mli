@@ -3,6 +3,8 @@
 (** GUI auxiliary module. Implements a magnified view of the 3x3 tile square
   * surrounding the cursor position. *)
 
+open CExt
+
 (** Module parameters. *)
 module type PARAMS = sig
   val rows : int
@@ -15,17 +17,20 @@ module type PARAMS = sig
   (** Size, in pixels, of a magnified tile. *)
   
   val packing : GObj.widget -> unit
-  (**  *)
+  (** Packing function to bind the magnified view to the interface. *)
 end
 
 (** Output module. *)
 module type S = sig
-  val tiles : GMisc.image array array
-  (** Tiles (3 x 3 matrix) for magnified view of the cursor area. The 
-    * annotations shown in [HToolbox] correspond to the central tile. *)
+  val tiles : GMisc.image Ext_Matrix.t
+  (** Matrix of GtkImage widgets used to display a magnified view of the tile
+    * square surrounding the cursor position. Square size is determined by
+    * [rows] and [columns] (see [PARAMS]). *)
 
   val set_pixbuf : r:int -> c:int -> GdkPixbuf.pixbuf -> unit
-  (** [set_pixbuf ~r ~c p] displays pixbuf [p] at row [r] and column [c]. *)
+  (** [set_pixbuf ~r ~c p] displays pixbuf [p] at row [r] and column [c].
+    * Both values must be greater or equal to zero and strictly lower than
+    * [rows] and [columns], respectively (see [PARAMS]). *)
 end
 
 module Make : PARAMS -> S

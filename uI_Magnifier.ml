@@ -1,5 +1,7 @@
 (* CastANet - uI_Magnifier.ml *)
 
+open CExt
+
 module type PARAMS = sig
   val rows : int
   val columns : int
@@ -26,10 +28,12 @@ module Make (P : PARAMS) : S = struct
     (* The centre has a red frame to grab users attention. *)
     and color = if top = 1 && left = 1 then "red" else "gray60" in
     event#misc#modify_bg [`NORMAL, `NAME color];
-    let pixmap = GDraw.pixmap ~width:P.tile_edge ~height:P.tile_edge () in
-    GMisc.pixmap pixmap ~packing:event#add ()
+    let pixmap = GDraw.pixmap
+      ~width:P.tile_edge
+      ~height:P.tile_edge ()
+    in GMisc.pixmap pixmap ~packing:event#add ()
 
-  let tiles = Array.(init P.rows (fun t -> init P.columns (tile_image t)))
+  let tiles = Ext_Matrix.init P.rows P.columns tile_image
   
   let set_pixbuf ~r ~c buf =
     try
