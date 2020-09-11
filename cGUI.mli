@@ -25,8 +25,7 @@ module Layers : UI_Layers.S
 (** Annotation layers. *)
 
 module CursorPos : UI_CursorPos.S
-(** Vertical toolbar which displays the coordinates (row and column) of the 
-  * cursor. *)
+(** Vertical toolbar to display cursor position (row/column). *)
 
 module Palette : UI_Palette.S
 (** Prediction manager. *)
