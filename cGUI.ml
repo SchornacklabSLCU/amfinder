@@ -69,38 +69,7 @@ module Box = struct
   let h = GPack.hbox ~spacing ~border_width ~packing:v#add ()
 end
 
-
-module GUI_levels = struct
-  let curr = ref CLevel.lowest
-  let current () = !curr
-  let make_radio group str lvl =
-    (* Container for the GtkRadioButton and its corresponding GtkLabel. *)
-    let packing = (GPack.hbox ~packing:Box.b#add ())#pack ~expand:false in
-    (* Radio button without a label (will use a GtkLabel for that). *)
-    let active = group = None in
-    let r = GButton.radio_button ?group ~active ~packing () in
-    (* Removes the unpleasant focus square around the round button. *)
-    r#misc#set_can_focus false;
-    let markup = sprintf "<big><b>%s</b></big>" str in
-    ignore (GMisc.label ~markup ~packing ());
-    (* Updates the annotation level upon activation. *)
-    r#connect#toggled (fun () -> if r#active then curr := lvl);
-    r
-  let radios = 
-    let group = ref None in
-    List.map2 (fun lvl lbl ->
-      let radio = make_radio !group lbl lvl in
-      if !group = None then group := Some radio#group;
-      lvl, radio
-    ) CLevel.flags CLevel.strings
-    
-  let set_callback f =
-    List.iter (fun (lvl, radio) ->
-      let callback () = f lvl radio in
-      ignore (radio#connect#toggled ~callback)
-    ) radios
-end
-
+module Levels = (val (CGUI_Levels.make ~packing:Box.b#add ()) : CGUI_Levels.S)
 
 module Pane = struct
   let initialize label ~r ~c =
@@ -180,17 +149,17 @@ module  GUI_Toggles = struct
     let module T = (val mdl : Toolbox.TOGGLE) in
     let widget = T.table#coerce in
     packing widget;
-    GUI_levels.curr := typ;
+    Levels.set_current typ;
     current_widget := Some widget
 
   let current_toggles () =
-    let current_toolbox = List.assoc !GUI_levels.curr toolboxes in
+    let current_toolbox = List.assoc (Levels.current ()) toolboxes in
     let module T = (val current_toolbox : Toolbox.TOGGLE) in
     T.toggles
 
   let get ?level chr =
     let lvl = match level with
-      | None -> !GUI_levels.curr
+      | None -> Levels.current ()
       | Some lvl -> lvl in
     let toolbox = List.assoc lvl toolboxes in
     let module T = (val toolbox : Toolbox.TOGGLE) in
@@ -229,7 +198,7 @@ module  GUI_Toggles = struct
         String.iter (fun chr ->
           let ext = List.assoc chr assoc_table in
           ext.t_toggle#set_active status;
-          let style = match lvl = GUI_levels.current () with
+          let style = match lvl = Levels.current () with
             | true -> style
             | false -> Option.value alt_style ~default:style in
           ext.t_image#set_pixbuf (CIcon.get chr style `LARGE);
@@ -245,7 +214,7 @@ module  GUI_Toggles = struct
     List.iter (fun (typ, radio) ->
       let callback () = if radio#active then attach typ in
       ignore (radio#connect#toggled ~callback)
-    ) GUI_levels.radios
+    ) Levels.radios
 end
 
 
@@ -424,7 +393,7 @@ module GUI_Layers = struct
     current_widget := Some widget
  
   let current_radios () =
-    let toolbox = List.assoc !GUI_levels.curr toolboxes in
+    let toolbox = List.assoc (Levels.current ()) toolboxes in
     let open (val toolbox : Toolbox.RADIO) in radios
 
   let get_joker () = current_radios ()
@@ -476,7 +445,7 @@ let _ =
     radio#connect#toggled ~callback:(fun () ->
       if radio#active then GUI_Layers.attach typ
     ); ()
-  ) GUI_levels.radios;
+  ) Levels.radios;
   (* Update the icon style when a GtkRadioToolButton is toggled. *)
   let callback chr radio _ icon =
     let style = if radio#get_active then `RGBA else `GREY in

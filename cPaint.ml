@@ -67,7 +67,7 @@ module Surface = struct
   let get_from_char = function
     | '*' -> joker ()
     | '.' -> cursor ()
-    | chr -> let lvl = GUI_levels.current () in
+    | chr -> let lvl = CGUI.Levels.current () in
       List.assoc chr (List.assoc lvl layers ()) 
 end
 
@@ -126,7 +126,7 @@ let annot ?(sync = false) ~r ~c () =
   Option.iter (fun img ->
     let typ = GUI_Layers.get_active ()
     and tbl = CImage.annotations img
-    and lvl = GUI_levels.current () in
+    and lvl = CGUI.Levels.current () in
     let draw = match typ with
       | '*' -> not (CTable.is_empty tbl lvl ~r ~c) (* Catches any annotation. *)
       | chr -> CTable.mem tbl lvl r c (`CHR chr) in
@@ -151,7 +151,7 @@ let active_layer ?(sync = true) () =
     CTable.iter (fun ~r ~c _ ->
       tile ~r ~c ();
       annot ~r ~c ()
-    ) (CImage.annotations img) (GUI_levels.current ());
+    ) (CImage.annotations img) (CGUI.Levels.current ());
     cursor ();
 (*     let r, c = CImage.cursor_pos img in
     Img_UI_update.set_coordinates r c; *)

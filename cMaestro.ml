@@ -37,7 +37,7 @@ module Img_UI_update = struct
     Option.iter (fun img ->
       List.iter (fun (chr, num) ->
         GUI_Layers.set_label chr num
-      ) (CImage.statistics img (GUI_levels.current ()))
+      ) (CImage.statistics img (CGUI.Levels.current ()))
     ) (CImage.get_active ())
     
   let blank_tile =
@@ -213,7 +213,7 @@ module Img_Trigger = struct
         | None -> () (* Invalid key, nothing to do! *)
         | Some is_active ->
           let tbl = CImage.annotations img
-          and lvl = GUI_levels.current ()
+          and lvl = CGUI.Levels.current ()
           and r, c = CImage.cursor_pos img in
           CTable.(if is_active then remove else add) tbl lvl ~r ~c key
           |> GUI_Toggles.set_status
@@ -261,7 +261,7 @@ let initialize () =
   GUI_Layers.set_callback (fun _ r _ _ -> 
     if r#get_active then CPaint.active_layer ());
   (* Repaints the tiles when the annotation level changes. *)
-  GUI_levels.set_callback (fun _ r ->
+  CGUI.Levels.set_callback (fun _ r ->
     if r#active then CPaint.active_layer ())
 
 
