@@ -31,9 +31,9 @@ val to_string : pytable -> string
 type row = int
 type column = int
 
-val threshold : float -> pytable -> CTile.tile Ext_Matrix.t
+val threshold : float -> pytable -> CMask.tile Ext_Matrix.t
 
-val best : pytable -> CTile.tile Ext_Matrix.t
+val best : pytable -> CMask.tile Ext_Matrix.t
 
 
 *)

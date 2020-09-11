@@ -53,16 +53,16 @@ val save : ?export:bool -> ?flags:export_flag list -> table -> string -> unit
 val is_valid : table -> r:int -> c:int -> bool
 (** Indicates whether the given coordinates are valid. *)
 
-val get : table -> CLevel.t -> r:int -> c:int -> CTile.tile
+val get : table -> CLevel.t -> r:int -> c:int -> CMask.tile
 (** [get t lvl ~r ~c] returns the annotations at row [r] and column [c] in 
   * layer [lvl] of table [t]. *)
 
-val get_all : table -> r:int -> c:int -> (CLevel.t * CTile.tile) list
+val get_all : table -> r:int -> c:int -> (CLevel.t * CMask.tile) list
 (** Same as get, but gives information for all the annotation layers. *)
 
 val add :
   table -> 
-  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CTile.tile) list
+  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CMask.tile) list
 (** [add t x ~r ~c chr] adds annotation [chr] at row [r] and column [c] in
   * level [x]-matrix of table [t], and returns a changelog of altered 
   * annotations in all other layers. These changes are to be reflected in the
@@ -70,7 +70,7 @@ val add :
 
 val remove :
   table -> 
-  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CTile.tile) list
+  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CMask.tile) list
 (** Same arguments as [add], but this function tries and remove a given 
   * annotation from a given tile. Again the changelog indicates the triggered 
   * modifications. *)
@@ -96,5 +96,5 @@ val statistics : table -> CLevel.t -> (char * int) list
 (** [statistics t lvl] returns the counts for each structure at level [lvl]
   * in table [t]. *)
 
-val iter : (r:int -> c:int -> CTile.tile -> unit) -> table -> CLevel.t -> unit
+val iter : (r:int -> c:int -> CMask.tile -> unit) -> table -> CLevel.t -> unit
 (** Table iterator. *)

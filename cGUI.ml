@@ -219,9 +219,9 @@ module  GUI_Toggles = struct
     toggle_lock := true;
     List.iter (fun (lvl, tile) ->
       revert_all lvl;
-      let user = CTile.get tile `USER
-      and hold = CTile.get tile `HOLD
-      and lock = CTile.get tile `LOCK in
+      let user = CMask.get tile `USER
+      and hold = CMask.get tile `HOLD
+      and lock = CMask.get tile `LOCK in
       let toolbox = List.assoc lvl toolboxes in
       let module T = (val toolbox : Toolbox.TOGGLE) in
       let assoc_table = Array.to_list T.toggles in
