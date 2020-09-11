@@ -9,6 +9,7 @@ end
 
 module type S = sig
   val tiles : GMisc.image array array
+  val set_pixbuf : r:int -> c:int -> GdkPixbuf.pixbuf -> unit
 end
 
 module Make (P : PARAMS) : S = struct
@@ -29,4 +30,12 @@ module Make (P : PARAMS) : S = struct
     GMisc.pixmap pixmap ~packing:event#add ()
 
   let tiles = Array.(init P.rows (fun t -> init P.columns (tile_image t)))
+  
+  let set_pixbuf ~r ~c buf =
+    try
+      assert (r >= 0 && r < P.rows);
+      assert (c >= 0 && c < P.columns);
+      tiles.(r).(c)#set_pixbuf buf
+    with Assert_failure _ -> CLog.error "UI_Magnifier.Make.set_pixbuf was \
+      given incorrect values (r = %d, c = %d)" r c
 end
