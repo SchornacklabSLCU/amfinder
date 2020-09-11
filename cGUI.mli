@@ -8,7 +8,7 @@ val window : GWindow.window
 module Levels : UI_Levels.S
 (** Annotation types. *)
 
-module Toggles : UI_ToggleBar.TOGGLE_BAR
+module Toggles : UI_ToggleBar.S
 (** The horizontal toolbox (left pane) contains the toggle buttons used to
   * set mycorrhizal annotations. Users can switch between three sets of toggle 
   * buttons which correspond to basic ([`COLONIZATION]), intermediate 
@@ -24,10 +24,9 @@ module Drawing : UI_Drawing.DRAWING
 module Layers : UI_Layers.LAYERS
 (** Annotation layers. *)
 
-
+module CursorPos : UI_CursorPos.S
 (** Vertical toolbar which displays the coordinates (row and column) of the 
   * cursor. *)
-module CursorPos : UI_CursorPos.S
 
 module Palette : UI_Palette.S
 (** Prediction manager. *)

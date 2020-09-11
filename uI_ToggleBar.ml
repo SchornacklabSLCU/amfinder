@@ -10,7 +10,7 @@ module type TOGGLE = sig
   val toggles : (char * toggle_ext) array
 end
 
-module type TOGGLE_BAR = sig
+module type S = sig
   val is_active : char -> bool option
   val set_status : (CLevel.t * CMask.tile) list -> unit
   val is_locked : unit -> bool
@@ -26,7 +26,7 @@ module type PARAMS = sig
 end
 
 
-module Make (P : PARAMS) : TOGGLE_BAR = struct
+module Make (P : PARAMS) : S = struct
 
   (* Values here ensure that new buttons appear between existing ones when
    * the user switches between the different annotation levels. *)

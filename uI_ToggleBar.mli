@@ -15,7 +15,7 @@ module type PARAMS = sig
 end
 
 
-module type TOGGLE_BAR = sig
+module type S = sig
   val is_active : char -> bool option
   (** Indicates whether the given annotation is active at the current level. *)
 
@@ -27,5 +27,5 @@ module type TOGGLE_BAR = sig
 end
 
 
-module Make : PARAMS -> TOGGLE_BAR
+module Make : PARAMS -> S
 (** Generator. *)
