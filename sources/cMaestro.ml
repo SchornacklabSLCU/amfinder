@@ -152,10 +152,12 @@ let load () =
   CGUI.window#show ();
   (* Loads the image, creates tiles and populates the main window. *)
   let t = CImage.create ~edge:!Par.edge path in
-  (* Draws background and tiles, then adds image info to the status bar. *)
-  CPaint.white_background ~sync:false ();
-  CPaint.tiles ();
-  CPaint.active_layer ();
+  (* Draws background, tiles and active layer. No need to sync here. *)
+  CPaint.background ~sync:false ();
+  CPaint.tiles ~sync:false ();
+  CPaint.active_layer ~sync:false ();
+  (* Displays cursor and the corresponding magnified view. *)
+  Img_Move.run ~f_row:(fun r -> r) ~f_col:(fun c -> c) ();
   CGUI.status#set_label (digest t);
   at_exit save (* FIXME this may not be the ideal situation! *)
 

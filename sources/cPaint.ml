@@ -1,14 +1,14 @@
 (* CastANet - cPaint.ml *)
 
-open CGUI
 open CExt
+open Scanf
 
-let html_to_int s =
-  Scanf.sscanf s "#%02x%02x%02x" (fun r g b -> r, g, b)
+let html_to_float =
+  let f n = float n /. 255.0 in
+  fun s -> sscanf s "#%02x%02x%02x" (fun r g b -> f r, f g, f b)
 
-let html_to_float s =
-  let r, g, b = html_to_int s in
-  float r /. 255.0, float g /. 255.0, float b /. 255.0
+(* Error function for calls to Option.fold. *)
+let none loc () = CLog.error "No active image (%s)" loc
 
 module Surface = struct
   let square ?(alpha = 0.85) ~kind ~edge () =
@@ -28,42 +28,36 @@ module Surface = struct
     Cairo.stroke t;
     surface
 
+  let small_square ?alpha ~kind () =
+    let some img =
+      let edge = CImage.edge img `SMALL in
+      square ?alpha ~kind ~edge
+    in
+    Option.fold
+      ~none:(none "CPaint.Surface.small_square")
+      ~some (CImage.get_active ()) ()
+
   let joker = 
-    let aux () =
-      match (CImage.get_active ()) with
-      | None -> assert false (* does not happen. *)
-      | Some img -> let edge = CImage.edge img `SMALL in
-        square ~kind:(`RGB "#aaffaa") ~edge ()
-    in Ext_Memoize.create ~label:"Surface.master" aux
+    let f () = small_square ~kind:(`RGB "#aaffaa") () in
+    Ext_Memoize.create ~label:"CPaint.Surface.master" f
 
   let cursor = 
-    let aux () =
-      match (CImage.get_active ()) with
-      | None -> assert false (* does not happen. *)
-      | Some img -> let edge = CImage.edge img `SMALL in
-        square ~kind:`CURSOR ~edge ()
-    in Ext_Memoize.create ~label:"Surface.cursor" aux
+    let f () = small_square ~kind:`CURSOR () in
+    Ext_Memoize.create ~label:"CPaint.Surface.cursor" f
 
-  let pointer = 
-    let create () = 
-      match (CImage.get_active ()) with
-      | None -> assert false
-      | Some img -> let edge = CImage.edge img `SMALL in
-        square ~kind:`CURSOR ~alpha:0.40 ~edge ()
-    in Ext_Memoize.create ~label:"Surface.pointer" create
+  let pointer =
+    let f () = small_square ~kind:`CURSOR ~alpha:0.4 () in
+    Ext_Memoize.create ~label:"CPaint.Surface.pointer" f
 
   let layers =
     List.map (fun lvl ->
-      let aux lvl () =
-        match (CImage.get_active ()) with
-        | None -> assert false (* does not happen. *)
-        | Some img -> let edge = CImage.edge img `SMALL in   
-          List.map2 (fun chr rgb ->
-            chr, square ~kind:(`RGB rgb) ~edge ()
-          ) (CAnnot.char_list lvl) (CLevel.colors lvl)
-      in lvl, Ext_Memoize.create ~label:"Surface.layers" (aux lvl)
+      let f lvl () =
+        List.map2 (fun chr rgb ->
+          chr, small_square ~kind:(`RGB rgb) ()
+        ) (CAnnot.char_list lvl) (CLevel.colors lvl)
+      in lvl, Ext_Memoize.create ~label:"CPaint.Surface.layers" (f lvl)
     ) CLevel.flags
-
+          
   let get_from_char = function
     | '*' -> joker ()
     | '.' -> cursor ()
@@ -72,11 +66,12 @@ module Surface = struct
 end
 
 
-let white_background ?(sync = true) () =
+let background ?(color = "#ffffff") ?(alpha = 1.0) ?(sync = true) () =
   let t = CGUI.Drawing.cairo () in
-  Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
-  let w = float (CGUI.Drawing.width ()) 
-  and h = float (CGUI.Drawing.height ()) in
+  let r, g, b = html_to_float color in
+  Cairo.set_source_rgba t r g b alpha;
+  let w = float @@ CGUI.Drawing.width () 
+  and h = float @@ CGUI.Drawing.height () in
   Cairo.rectangle t 0.0 0.0 ~w ~h;
   Cairo.fill t;
   Cairo.stroke t;
@@ -153,8 +148,6 @@ let active_layer ?(sync = true) () =
       annot ~r ~c ()
     ) (CImage.annotations img) (CGUI.Levels.current ());
     cursor ();
-(*     let r, c = CImage.cursor_pos img in
-    Img_UI_update.set_coordinates r c; *)
     if sync then CGUI.Drawing.synchronize ()
   ) (CImage.get_active ())
 

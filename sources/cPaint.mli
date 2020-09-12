@@ -1,11 +1,11 @@
 (* CastANet - cPaint.mli *)
 
-(** Painting functions. Cairo surfaces and functions to draw background, tiles
-  * and annotations on the UI drawing area. *)
+(** Painting functions. This module implements Cairo surfaces and functions to 
+  * draw background, tiles and annotations on the UI drawing area. *)
 
 (** {2 Cairo surfaces} *)
 
-(** Cairo surfaces. *)
+(** Memoized Cairo surfaces. *)
 module Surface : sig
   val square :
     ?alpha:float -> 
@@ -36,7 +36,7 @@ end
 
 (** {2 General drawing functions} *)
 
-val white_background : ?sync:bool -> unit -> unit
+val background : ?color:string -> ?alpha:float -> ?sync:bool -> unit -> unit
 (** Draws a white background on the right image area.
   * @param sync defaults to [true]. *)
 
