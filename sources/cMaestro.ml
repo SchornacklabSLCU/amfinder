@@ -84,7 +84,8 @@ module Img_Move = struct
     ~f_col:(fun c -> 
       let f img =
         let nc = CImage.dim img `C and c' = c - jump in
-        if c' < 0 then (c' + nc) mod nc else
+        (* We need to make sure the final value is positive. *)
+        if c' < 0 then (c' + (max 2 (jump / nc)) * nc) mod nc else
         if c' >= nc then c' mod nc else c'
       in apply f)
 
@@ -101,7 +102,8 @@ module Img_Move = struct
     ~f_row:(fun r -> 
       let f img =
         let nr = CImage.dim img `R and r' = r - jump in
-        if r' < 0 then (r' + nr) mod nr else
+        (* We need to make sure the final value is positive. *)
+        if r' < 0 then (r' + (max 2 (jump / nr)) * nr) mod nr else
         if r' >= nr then r' mod nr else r'
       in apply f)
     ~f_col:(fun c -> c)
@@ -183,7 +185,7 @@ end
 module Img_Trigger = struct
   let arrow_keys ev =
     let sym, modi = GdkEvent.Key.(keyval ev, state ev) in
-    let jump = 
+    let jump =
       if List.mem `CONTROL modi then 25 else
       if List.mem `SHIFT   modi then 10 else 1 in
     let out, f = match sym with
