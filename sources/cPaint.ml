@@ -160,23 +160,30 @@ module Palette = struct
   let folder = "data/palettes"
   let palette_db = ref []
 
+  let validate_color s =
+    (* Ignores user-defined alpha channel, if any. *)
+    ksscanf s (fun _ _ -> raise Exit) "#%02x%02x%02x" 
+      (sprintf "#%02x%02x%02xcc")
+
   let load () =
     let all = Array.fold_left (fun pal elt ->
-      let path = Filename.concat folder elt in
-      if Filename.check_suffix path ".palette" then (
-        let base = Filename.remove_extension elt in
-        CLog.info "Loading palette %s" base;
-        let colors = Ext_File.read path
-          |> String.split_on_char '\n'
-          |> List.map (sprintf "%scc")
-          |> Array.of_list in
-        let surfaces =
-          Array.map (fun c -> 
-            Surface.small_square ~kind:(`RGBA_COLOR c) ()
-          ) colors in
-        let max_group = Array.length surfaces - 1 in
-        (base, {colors; surfaces; max_group}) :: pal
-      ) else pal
+      try
+        let path = Filename.concat folder elt in
+        if Filename.check_suffix path ".palette" then (
+          let base = Filename.remove_extension elt in
+          let colors = Ext_File.read path
+            |> String.split_on_char '\n'
+            |> List.map validate_color
+            |> Array.of_list in
+          let surfaces =
+            Array.map (fun c -> 
+              Surface.small_square ~kind:(`RGBA_COLOR c) ()
+            ) colors in
+          let max_group = Array.length surfaces - 1 in
+          CLog.info "Loading palette %s" base;
+          (base, {colors; surfaces; max_group}) :: pal
+        ) else pal
+      with Exit -> pal
     ) [] (Sys.readdir folder) in palette_db := all
 
   let mem str = List.mem_assoc str !palette_db
