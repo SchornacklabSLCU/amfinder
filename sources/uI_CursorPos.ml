@@ -29,8 +29,9 @@ module Make (P : PARAMS) : S = struct
 
   let packing = toolbar#insert
 
-  let _ = UI_Helper.separator packing
-  let _ = UI_Helper.label packing "Coordinates"
+  let _ =
+    UI_Helper.separator packing;
+    UI_Helper.label packing "<span foreground='#cc0000'>Coordinates</span>"
 
   let row = UI_Helper.label ~vspace:false packing (pango `ROW 0)
   let column = UI_Helper.label ~vspace:false packing (pango `COL 0)
