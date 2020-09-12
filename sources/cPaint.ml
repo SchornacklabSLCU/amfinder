@@ -131,12 +131,10 @@ let annot ?(sync = false) ~r ~c () =
 
 
 let cursor ?(sync = false) () =
-  Option.iter (fun img ->
-    let r, c = CImage.cursor_pos img in
-    tile ~r ~c ();
-    surface ~r ~c (Surface.get_from_char '.');
-    if sync then CGUI.Drawing.synchronize ()
-  ) (CImage.get_active ())
+  let r, c = CGUI.CursorPos.get () in
+  tile ~r ~c ();
+  surface ~r ~c (Surface.get_from_char '.');
+  if sync then CGUI.Drawing.synchronize ()
 
 
 let active_layer ?(sync = true) () =

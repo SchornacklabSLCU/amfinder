@@ -34,10 +34,6 @@ val x : c:int -> image -> [`SMALL | `LARGE] -> int
 
 val y : r:int -> image -> [`SMALL | `LARGE] -> int
 
-val cursor_pos : image -> int * int
-
-val set_cursor_pos : image -> int * int -> unit
-
 val iter_tiles : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> image -> [`SMALL | `LARGE] -> unit
 
 val statistics : image -> CLevel.t -> (char * int) list

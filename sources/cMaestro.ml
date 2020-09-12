@@ -19,16 +19,11 @@ end
 
 
 (* Interaction with the user interface. *)
-module Img_UI_update = struct
-  let set_coordinates =
-    let set lbl =
-      ksprintf lbl#set_label "<tt><small><b>%c:</b> %03d</small></tt>"
-    in fun r c -> CGUI.CursorPos.(set row 'R' r; set column 'C' c)
-    
+module Img_UI_update = struct   
   let update_toggles () =
     Option.iter (fun img ->
       let tbl = CImage.annotations img
-      and r, c = CImage.cursor_pos img in
+      and r, c = CGUI.CursorPos.get () in
       let tiles = CTable.get_all tbl ~r ~c in
       CGUI.Toggles.set_status tiles
     ) (CImage.get_active ())
@@ -48,7 +43,7 @@ module Img_UI_update = struct
 
   let magnified_view () =
     Option.iter (fun img ->
-      let cur_r, cur_c = CImage.cursor_pos img in
+      let cur_r, cur_c = CGUI.CursorPos.get () in
       for i = 0 to 2 do
         for j = 0 to 2 do
           let r = cur_r + i - 1 and c = cur_c + j - 1 in
@@ -72,13 +67,12 @@ module Img_Move = struct
   let run ~f_row ~f_col _ =
     Option.iter (fun img ->
       (* Cursor gets removed; we need to repaint the tile. *)
-      let r, c = CImage.cursor_pos img in
+      let r, c = CGUI.CursorPos.get () in
       CPaint.tile ~r ~c ();
       CPaint.annot ~r ~c ();
       (* Moves to the new cursor position. *)
       let new_r, new_c = f_row r, f_col c in
-      CImage.set_cursor_pos img (new_r, new_c);
-      Img_UI_update.set_coordinates new_r new_c;
+      CGUI.CursorPos.set ~r:new_r ~c:new_c;
       Img_UI_update.magnified_view ();
       Img_UI_update.update_toggles ();
       CPaint.cursor ();
@@ -169,7 +163,7 @@ module Img_Tracker = struct
     Gaux.may (fun ((r, c) as pos) ->
       CPaint.tile ~r ~c ();
       CPaint.annot ~r ~c ();
-      if pos = CImage.cursor_pos img then CPaint.cursor ();
+      if pos = CGUI.CursorPos.get () then CPaint.cursor ();
       if sync then CGUI.Drawing.synchronize ()
     ) !mem
 
@@ -216,7 +210,7 @@ module Img_Trigger = struct
         | Some is_active ->
           let tbl = CImage.annotations img
           and lvl = CGUI.Levels.current ()
-          and r, c = CImage.cursor_pos img in
+          and r, c = CGUI.CursorPos.get () in
           CTable.(if is_active then remove else add) tbl lvl ~r ~c key
           |> CGUI.Toggles.set_status
       ) (CImage.get_active ());

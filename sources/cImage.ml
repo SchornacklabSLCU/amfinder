@@ -21,7 +21,6 @@ type graph = {
   rows : int; cols : int;
   xini : int; yini : int;
   imgw : int; imgh : int;
-  mutable cursor : int * int;
 }
 
 (* CastANet images consist of two mosaics of square tiles (to populate the two
@@ -69,10 +68,6 @@ let x ~c t typ = (origin t `X) + c * (edge t typ)
 
 let y ~r t typ = (origin t `Y) + r * (edge t typ)
 
-let cursor_pos t = t.graph.cursor
-
-let set_cursor_pos t pos = t.graph.cursor <- pos
-
 let iter_tiles f t typ = Ext_Matrix.iteri f (tiles t typ)
 
 let statistics t = CTable.statistics (annotations t)
@@ -104,8 +99,9 @@ let create ?(edge = 236) fpath =
   let sub = min (uiw / cols) (uih / rows) in
   let small = Create.small_tile_matrix sub large in
   let table = Create.annotations fpath small in
-  let graph = { rows; cols;
-    imgw; imgh; cursor = (0, 0);
+  let graph = {
+    rows; cols;
+    imgw; imgh;
     xini = (uiw - sub * cols) / 2;
     yini = (uih - sub * rows) / 2;
   } and sizes = {
