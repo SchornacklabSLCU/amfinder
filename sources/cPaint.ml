@@ -3,24 +3,24 @@
 open CExt
 open Scanf
 
-let html_to_float =
-  let f n = float n /. 255.0 in
-  fun s -> sscanf s "#%02x%02x%02x" (fun r g b -> f r, f g, f b)
+let parse_html_color =
+  let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
+  fun s -> sscanf s "#%02x%02x%02x%02x" (fun r g b a -> f r, f g, f b, f a)
 
 (* Error function for calls to Option.fold. *)
 let none loc () = CLog.error "No active image (%s)" loc
 
 module Surface = struct
-  let square ?(alpha = 0.85) ~kind ~edge () =
+  let square ~kind ~edge () =
     assert (edge > 0); 
     let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = Cairo.create surface in
     Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
     let clr = match kind with 
-      | `CURSOR -> "#cc0000" 
-      | `RGB x -> x in
-    let r, g, b = html_to_float clr
-    and a = max (min alpha 1.0) 0.0 in
+      | `SOLID_CURSOR -> "#cc0000cc" (* 80% opacity. *)
+      | `LIGHT_CURSOR -> "#cc000066" (* 40% opacity. *)
+      | `RGBA_COLOR x -> x in
+    let r, g, b, a = parse_html_color clr in
     Cairo.set_source_rgba t r g b a;
     let edge = float edge in
     Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
@@ -28,32 +28,29 @@ module Surface = struct
     Cairo.stroke t;
     surface
 
-  let small_square ?alpha ~kind () =
-    let some img =
-      let edge = CImage.edge img `SMALL in
-      square ?alpha ~kind ~edge
-    in
+  let small_square ~kind () =
+    let some img = square ~kind ~edge:(CImage.edge img `SMALL) in
     Option.fold
       ~none:(none "CPaint.Surface.small_square")
       ~some (CImage.get_active ()) ()
 
   let joker = 
-    let f () = small_square ~kind:(`RGB "#aaffaa") () in
+    let f () = small_square ~kind:(`RGBA_COLOR "#aaffaacc") () in
     Ext_Memoize.create ~label:"CPaint.Surface.master" f
 
   let cursor = 
-    let f () = small_square ~kind:`CURSOR () in
+    let f () = small_square ~kind:`SOLID_CURSOR () in
     Ext_Memoize.create ~label:"CPaint.Surface.cursor" f
 
   let pointer =
-    let f () = small_square ~kind:`CURSOR ~alpha:0.4 () in
+    let f () = small_square ~kind:`LIGHT_CURSOR () in
     Ext_Memoize.create ~label:"CPaint.Surface.pointer" f
 
   let layers =
     List.map (fun lvl ->
       let f lvl () =
         List.map2 (fun chr rgb ->
-          chr, small_square ~kind:(`RGB rgb) ()
+          chr, small_square ~kind:(`RGBA_COLOR rgb) ()
         ) (CAnnot.char_list lvl) (CLevel.colors lvl)
       in lvl, Ext_Memoize.create ~label:"CPaint.Surface.layers" (f lvl)
     ) CLevel.flags
@@ -66,10 +63,10 @@ module Surface = struct
 end
 
 
-let background ?(color = "#ffffff") ?(alpha = 1.0) ?(sync = true) () =
+let background ?(color = "#ffffffff") ?(sync = true) () =
   let t = CGUI.Drawing.cairo () in
-  let r, g, b = html_to_float color in
-  Cairo.set_source_rgba t r g b alpha;
+  let r, g, b, a = parse_html_color color in
+  Cairo.set_source_rgba t r g b a;
   let w = float @@ CGUI.Drawing.width () 
   and h = float @@ CGUI.Drawing.height () in
   Cairo.rectangle t 0.0 0.0 ~w ~h;
@@ -166,7 +163,8 @@ module Palette = struct
 
   let make_surface_table colors =
     Array.map (fun clr ->
-      Surface.square ~alpha:0.8 ~kind:(`RGB clr) ~edge:!edge ()
+      let clr = clr ^ "cc" in (* 80% opacity *)
+      Surface.square ~kind:(`RGBA_COLOR clr) ~edge:!edge ()
     ) colors
 
   let make colors () = {

@@ -7,14 +7,6 @@
 
 (** Memoized Cairo surfaces. *)
 module Surface : sig
-  val square :
-    ?alpha:float -> 
-    kind:[`CURSOR | `RGB of string] -> edge:int -> unit -> Cairo.Surface.t
-  (** [square ~alpha:a ~kind:k ~edge:e ()] returns a square Cairo surface with
-    * a transparency of [a] (defaults to [0.85]) and an edge of [e] pixels.
-    * Square color is determined by the [kind] parameter, which can be bright 
-    * red ([`CURSOR]) or any other color ([`RGB]). *)
-
   val joker : unit -> Cairo.Surface.t
   (** Cairo surface for joker layer (= any annotation). *)
 
@@ -36,7 +28,7 @@ end
 
 (** {2 General drawing functions} *)
 
-val background : ?color:string -> ?alpha:float -> ?sync:bool -> unit -> unit
+val background : ?color:string -> ?sync:bool -> unit -> unit
 (** Draws a white background on the right image area.
   * @param sync defaults to [true]. *)
 
