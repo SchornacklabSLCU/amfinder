@@ -60,27 +60,26 @@ val active_layer : ?sync:bool -> unit -> unit
 (** {2 Color Palettes} *)
 
 module Palette : sig
-  type id = [
-    | `CIVIDIS
-    | `PLASMA 
-    | `VIRIDIS
-  ]
-  (** The available palettes. *)
+  type palette
+  (** The type of color palettes. *)
 
-  val set_tile_edge : int -> unit
-  (** Initialization function. This functions is required to define the size of
-    * an individual size, in pixels. *)
+  val load : unit -> unit
+  (** Loads color palettes. *)
 
-  val max_group : id -> int
+  val mem : string -> bool
+  (** Indicates whether a palette exists. *)
+
+  val get : string -> palette
+  (** Retrieves a given color palette by name. *)
+
+  val max_group : palette -> int
   (** Returns the identifier of the last group the given palette can represent 
     * (this is zero-based, so the total number of groups is obtained by adding
     * one to the returned value). *)
 
-  val surface : id -> int -> Cairo.Surface.t
-  (** [surface id n] returns the Cairo surface corresponding to group [n] in
-    * palette [id]. *)
+  val surfaces : palette -> Cairo.Surface.t array
+  (** Returns all Cairo surfaces for a given palette. *)
     
-  val color : id -> int -> string
-  (** [color id n] returns the HTML color (["#RRGGBB"]) corresponding to 
-    * group [n] in palette [id]. *)
+  val colors : palette -> string array
+  (** Returns all (as HTML-formatted) colors used in the given palette. *)
 end
