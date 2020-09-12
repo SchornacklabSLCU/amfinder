@@ -78,8 +78,11 @@ module Palette : sig
     * one to the returned value). *)
 
   val surfaces : palette -> Cairo.Surface.t array
-  (** Returns all Cairo surfaces for a given palette. *)
+  (** [surfaces pal] returns an array containing the Cairo surfaces 
+    * corresponding to palette [pal]. *)
     
   val colors : palette -> string array
-  (** Returns all (as HTML-formatted) colors used in the given palette. *)
+  (** [colors pal] returns the HTML-formatted colors corresponding to palette
+    * [pal]. Colors are returned as a ["#RRGGBBAA"] string with the alpha 
+    * channel set to ["cc"]. *)
 end
