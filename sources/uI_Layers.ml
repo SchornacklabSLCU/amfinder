@@ -49,7 +49,7 @@ module Make (P : PARAMS) : S = struct
       let table = GButton.toolbar
         ~orientation:`VERTICAL
         ~style:`ICONS
-        ~width:78 ~height:340 ()
+        ~width:78 ~height:330 ()
       let active = ref true
       let group = ref None
       let packing = table#insert

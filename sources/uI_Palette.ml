@@ -12,8 +12,6 @@ module type S = sig
   val viridis : GButton.radio_tool_button * GMisc.image
   val cividis : GButton.radio_tool_button * GMisc.image
   val plasma : GButton.radio_tool_button * GMisc.image
-  val best : GButton.tool_button
-  val threshold : GButton.tool_button
 end
 
 module Make (P : PARAMS) : S = struct
@@ -23,7 +21,7 @@ module Make (P : PARAMS) : S = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:78 ~height:205
+    ~width:78 ~height:195
     ~packing:P.packing ()
 
   let packing = toolbar#insert
@@ -52,7 +50,4 @@ module Make (P : PARAMS) : S = struct
     ignore (GMisc.label ~markup:(sprintf "<small>%s</small>" label)
       ~packing:btn#set_icon_widget ());
     btn
-
-  let best = labelled_button "Best"
-  let threshold = labelled_button "Threshold"
 end

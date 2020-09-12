@@ -85,14 +85,14 @@ module CursorPos = UI_CursorPos.Make (
 
 module Palette = UI_Palette.Make (
   struct
-    let packing obj = container#attach ~left:0 ~top:1 obj
+    let packing obj = container#attach ~left:0 ~top:2 obj
   end )
 
 module Layers = UI_Layers.Make (
   struct
     include Levels
     let packing obj = container#attach
-      ~left:0 ~top:2 
+      ~left:0 ~top:1 
       ~expand:`NONE ~fill:`Y obj
     let remove = container#remove
   end )

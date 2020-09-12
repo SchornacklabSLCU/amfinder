@@ -19,12 +19,6 @@ module type S = sig
   
   val plasma : GButton.radio_tool_button * GMisc.image
   (** Activates the plasma palette. *)
-  
-  val best : GButton.tool_button
-  (** Palette settings. *)
-  
-  val threshold : GButton.tool_button
-  (** Applies a given prediction. *)
 end
 
 module Make : PARAMS -> S
