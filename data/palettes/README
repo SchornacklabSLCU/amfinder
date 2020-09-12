@@ -1,0 +1,14 @@
+CastANet
+  --- Palette sources
+
+CIVIDIS
+  library(cividis)
+  cividis(25)
+
+PLASMA
+  library(viridis)
+  viridis_pal(option='C')(25)
+
+VIRIDIS
+  library(scales)
+  viridis_pal()(25)
