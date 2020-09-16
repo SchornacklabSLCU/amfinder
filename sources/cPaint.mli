@@ -59,6 +59,7 @@ val active_layer : ?sync:bool -> unit -> unit
 
 (** {2 Color Palettes} *)
 
+(*
 module Palette : sig
   type palette
   (** The type of color palettes. *)
@@ -86,3 +87,4 @@ module Palette : sig
     * [pal]. Colors are returned as a ["#RRGGBBAA"] string with the alpha 
     * channel set to ["cc"]. *)
 end
+*)

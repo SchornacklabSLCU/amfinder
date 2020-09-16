@@ -10,8 +10,9 @@ let window =
   wnd
 
 let spacing = 5
-
 let border_width = spacing
+
+let tooltips = GData.tooltips ()
 
 module Box = struct
   (* To allow for a status label to be added
@@ -85,7 +86,10 @@ module CursorPos = UI_CursorPos.Make (
 
 module Palette = UI_Palette.Make (
   struct
+    let parent = window
+    let border_width = border_width
     let packing obj = container#attach ~left:0 ~top:2 obj
+    let tooltips = tooltips
   end )
 
 module Layers = UI_Layers.Make (

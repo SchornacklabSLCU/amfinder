@@ -26,7 +26,7 @@ module Make (P : PARAMS) : S = struct
       ~height:(P.tile_edge + 2) 
       ~packing:(table#attach ~top ~left) ()
     (* The centre has a red frame to grab users attention. *)
-    and color = if top = 1 && left = 1 then "red" else "gray60" in
+    and color = if top = 1 && left = 1 then "red" else "grey40" in
     event#misc#modify_bg [`NORMAL, `NAME color];
     let pixmap = GDraw.pixmap
       ~width:P.tile_edge
