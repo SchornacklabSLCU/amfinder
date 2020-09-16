@@ -12,3 +12,7 @@ PLASMA
 VIRIDIS
   library(scales)
   viridis_pal()(25)
+  
+PAL3 (and others)
+  library(jcolors)
+  jcolors_contin("pal3")(25)
