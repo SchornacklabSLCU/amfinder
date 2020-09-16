@@ -67,6 +67,28 @@ let draw_icon ?(digest = false) colors =
   pixmap#get_pixbuf pix;
   pix
 
+
+module TreeView = struct
+  module Data = struct
+    let cols = new GTree.column_list
+    let name = cols#add Gobject.Data.string
+    let colors = cols#add Gobject.Data.caml
+    let pixbuf = cols#add Gobject.Data.gobject
+    let store = GTree.list_store cols
+  end
+  module Cell = struct
+    let name = GTree.cell_renderer_text [`WEIGHT `BOLD]
+    let pixbuf = GTree.cell_renderer_pixbuf [`XALIGN 0.0; `YALIGN 0.5]
+  end
+  module VCol = struct
+    let markup = GTree.view_column ~title:"Name"
+      ~renderer:(Cell.name, ["text", Data.name]) ()
+    let pixbuf = GTree.view_column ~title:"Palette"
+      ~renderer:(Cell.pixbuf, ["pixbuf", Data.pixbuf]) ()
+  end
+end
+
+
 module Make (P : PARAMS) : S = struct
 
   let toolbar = GButton.toolbar
@@ -87,82 +109,62 @@ module Make (P : PARAMS) : S = struct
     image, button
 
   let set_tooltip s =
-    let text = sprintf "Current palette : %s" s in
+    let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
     P.tooltips#set_tip ~text palette#coerce
   let set_icon t = palette_icon#set_pixbuf (draw_icon ~digest:true t)
 
-  module TreeView = struct
-    module Data = struct
-      let cols = new GTree.column_list
-      let name = cols#add Gobject.Data.string
-      let colors = cols#add Gobject.Data.caml
-      let pixbuf = cols#add Gobject.Data.gobject
-      let store = GTree.list_store cols
-    end
-    module Cell = struct
-      let name = GTree.cell_renderer_text [`WEIGHT `BOLD]
-      let pixbuf = GTree.cell_renderer_pixbuf [`XALIGN 0.0; `YALIGN 0.5]
-    end
-    module VCol = struct
-      let markup = GTree.view_column ~title:"Palette"
-        ~renderer:(Cell.name, ["text", Data.name]) ()
-      let pixbuf = GTree.view_column ~title:"Colors"
-        ~renderer:(Cell.pixbuf, ["pixbuf", Data.pixbuf]) ()
-    end
-    let scroll = GBin.scrolled_window
-      ~hpolicy:`NEVER
-      ~vpolicy:`ALWAYS
-      ~border_width:P.border_width ()
-    let view =
-      let tv = GTree.view
-        ~model:Data.store
-        ~headers_visible:false
-        ~packing:scroll#add () in
-      tv#selection#set_mode `SINGLE;
-      ignore (tv#append_column VCol.markup);
-      ignore (tv#append_column VCol.pixbuf);
-      tv
-  end
+  let dialog = 
+    let dlg = GWindow.dialog
+      ~parent:P.parent
+      ~width:250
+      ~height:200
+      ~deletable:false
+      ~resizable:false
+      ~title:"Color Palettes"
+      ~type_hint:`UTILITY
+      ~destroy_with_parent:true
+      ~position:`CENTER_ON_PARENT () in
+    dlg#add_button_stock `OK `OK;
+    dlg#vbox#set_border_width P.border_width;
+    dlg
 
-  module Dialog = struct
-    let dialog = 
-      let dlg = GWindow.dialog
-        ~parent:P.parent
-        ~width:250
-        ~height:250
-        ~resizable:false
-        ~title:"Color Palettes"
-        ~type_hint:`DOCK
-        ~destroy_with_parent:true
-        ~position:`CENTER_ON_PARENT () in
-      dlg#add_button_stock `OK `OK;
-      dlg#vbox#set_border_width P.border_width;
-      dlg#vbox#add TreeView.scroll#coerce;
-      dlg
+  let scroll = GBin.scrolled_window
+    ~hpolicy:`NEVER
+    ~vpolicy:`ALWAYS
+    ~border_width:P.border_width
+    ~packing:dialog#vbox#add ()
 
-    let initialize =
-      let aux () =
-        let sel = ref None in
-        List.iteri (fun i (id, colors) ->
-          let id = String.capitalize_ascii id in
-          let row = TreeView.Data.store#append () in
-          if i = 0 then sel := Some (id, colors, row);
-          let set ~column x = TreeView.Data.store#set ~row ~column x in
-          set ~column:TreeView.Data.name id;
-          set ~column:TreeView.Data.colors colors;
-          set ~column:TreeView.Data.pixbuf (draw_icon colors)
-        ) (load ());
-        Option.iter (fun (id, colors, row) ->
-          set_icon colors;
-          set_tooltip id;
-          TreeView.view#selection#select_iter row
-        ) !sel
-      in Ext_Memoize.create ~label:"UI_Palette.Make" aux
-    let run = dialog#run
-  end
+  let view =
+    let tv = GTree.view
+      ~model:TreeView.Data.store
+      ~headers_visible:false
+      ~packing:scroll#add () in
+    tv#selection#set_mode `SINGLE;
+    ignore (tv#append_column TreeView.VCol.markup);
+    ignore (tv#append_column TreeView.VCol.pixbuf);
+    tv
+
+  let initialize =
+    let aux () =
+      let sel = ref None in
+      List.iteri (fun i (id, colors) ->
+        let id = String.capitalize_ascii id in
+        let row = TreeView.Data.store#append () in
+        if i = 0 then sel := Some (id, colors, row);
+        let set ~column x = TreeView.Data.store#set ~row ~column x in
+        set ~column:TreeView.Data.name id;
+        set ~column:TreeView.Data.colors colors;
+        set ~column:TreeView.Data.pixbuf (draw_icon colors)
+      ) (load ());
+      Option.iter (fun (id, colors, row) ->
+        set_icon colors;
+        set_tooltip id;
+        view#selection#select_iter row
+      ) !sel
+    in Ext_Memoize.create ~label:"UI_Palette.Make" aux
 
   let get_selected_iter () =
-    TreeView.view#selection#get_selected_rows
+    view#selection#get_selected_rows
     |> List.hd
     |> TreeView.Data.store#get_iter
     
@@ -175,12 +177,12 @@ module Make (P : PARAMS) : S = struct
     TreeView.Data.store#get ~row ~column:TreeView.Data.name
 
   let _ =
-    Dialog.initialize ();
+    initialize ();
     let callback () =
-      if Dialog.run () = `OK then (
+      if dialog#run () = `OK then (
         set_icon (get_colors ());
         set_tooltip (get_name ());
-        Dialog.dialog#misc#hide ()
+        dialog#misc#hide ()
       )
     in palette#connect#clicked ~callback
 end
