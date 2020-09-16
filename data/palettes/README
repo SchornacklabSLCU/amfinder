@@ -16,3 +16,4 @@ VIRIDIS
 PAL3 (and others)
   library(jcolors)
   jcolors_contin("pal3")(25)
+  Source: https://jaredhuling.org/jcolors/index.html
