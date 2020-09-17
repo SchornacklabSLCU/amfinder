@@ -24,7 +24,7 @@ module Make (P : PARAMS) : S = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:78 ~height:80
+    ~width:78 ~height:75
     ~packing:(P.packing ~top:0) ()
 
   let packing = toolbar#insert
