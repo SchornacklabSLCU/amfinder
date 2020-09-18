@@ -44,7 +44,8 @@ def get(s):
       identifier does not exist. """
   s = s.lower()
   if s in PAR:
-    return PAR[s]
+    # The h5 file may contain a placeholder ({}) for annotation level.
+    return PAR[s].format(PAR['level']) if s == 'weights' else PAR[s]
   elif s in PAR['monitors']:
     return PAR['monitors'][s]
   else:
