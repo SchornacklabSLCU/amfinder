@@ -18,7 +18,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -t EDGE, --tile EDGE  tile edge, in pixels.
+  -t EDGE, --tile EDGE  tile edge (in pixels) used for image segmentation.
                         default value: 40 pixels
 ```
 

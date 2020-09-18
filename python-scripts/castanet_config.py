@@ -92,7 +92,7 @@ def build_argument_parser():
   main.add_argument('-t', '--tile',
                     action='store', dest='edge',
                     type=int, default=40,
-                    help='tile edge, in pixels.'
+                    help='tile edge (in pixels) used for image segmentation.'
                          '\ndefault value: 40 pixels')
 
   subparsers = main.add_subparsers(dest='run_mode', required=True,
