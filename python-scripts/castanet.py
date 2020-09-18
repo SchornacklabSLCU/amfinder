@@ -32,9 +32,8 @@ def load_cnn():
       training only). It terminates the program if CastANet
       launched in prediction mode, and the provided h5 file
       is not available. """
-  name = cConfig.get('weights')
-  path = os.path.abspath(name)
-  if os.path.isfile(path):
+  path = cConfig.get('model')
+  if path is not None and os.path.isfile(path):
     print('* Loading a pre-trained model.')
     return keras.models.load_model(path)
   elif cConfig.get('run_mode') == 'train':

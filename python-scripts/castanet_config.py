@@ -14,13 +14,13 @@ HEADERS = {
 PAR = {
   'run_mode': None,
   'level': None,
+  'model': None,
   'source_tile_edge': None,
   'input_files': None,
   'batch_size': None,
   'drop_background': None,  
   'epochs': None,
   'fraction': None,
-  'weights': None,
   'image': None,
   'monitors': {
     'csv_logger': None,
@@ -95,6 +95,12 @@ def build_argument_parser():
                     help='Annotation level.'
                          '\ndefault value: colonization')
 
+  main.add_argument('-m', '--model',
+                    action='store', dest='model', metavar='H5',
+                    type=str, default=None,
+                    help='path to the pre-trained neural network.'
+                         '\ndefault value: None')
+
   main.add_argument('-t', '--tile',
                     action='store', dest='edge',
                     type=int, default=40,
@@ -138,13 +144,6 @@ def build_argument_parser():
                                    help='predicts AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
 
-  h5 = os.path.join('weights', 'castanet_{}.h5')
-  p_parser.add_argument('-w', '--weights',
-                        action='store', dest='weights', metavar='H5',
-                        type=str, default=h5,
-                        help='path to the pre-trained neural network.'
-                             '\ndefault value: "{}"'.format(h5))
-
   main.add_argument('image', nargs='*',
                     default=['*.jpg'],
                     help='plant root scan to be processed.'
@@ -164,6 +163,7 @@ def initialize():
   # Main arguments.
   set('run_mode', par.run_mode)
   set('level', par.level)
+  set('model', par.model)
   set('source_tile_edge', par.edge)
   set('input_files', par.image)
   # Sub-parser specific arguments.
@@ -172,5 +172,3 @@ def initialize():
     set('drop_background', par.dfrac) 
     set('epochs', par.epochs)
     set('fraction', par.vfrac)
-  else: # par.run_mode == 'predict' 
-    set('weights', par.weights)
