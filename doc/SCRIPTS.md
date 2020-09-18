@@ -31,7 +31,13 @@ optional arguments:
                         default value: 40 pixels
 ```
 
-### CastANet training mode
+### Training mode
+
+Here is the initial, learning step, where you allow the model to determine how
+to identify mycorrhizal structures using a manually annotated set of root
+images. You can either train a model from scratch or fine-tune a pre-trained
+model. Although low-resolution pictures allow running this script on a personal
+computer, using high-performance computing (HPC) is recommended.
 
 ```
 usage: castanet.py train [-h] [-b NUM] [-d N%] [-e NUM] [-l ID | -m H5]
@@ -55,7 +61,13 @@ optional arguments:
 ```
 
 
-### CastANet prediction mode
+### Prediction mode
+
+Run the Python script in prediction mode when you want to annotate root images
+automatically. Prediction relies on a pre-trained model (see training mode
+above). The results obtained through computer prediction are probabilities.
+Users should double-check results using the CastANet browser before calculating
+colonization levels..
 
 ```
 usage: castanet.py predict [-h] H5
