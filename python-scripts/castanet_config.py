@@ -90,9 +90,10 @@ def build_argument_parser():
                         formatter_class=RawTextHelpFormatter)
 
   main.add_argument('-l', '--level',
-                    action='store', dest='level', metavar='NAME',
+                    action='store', dest='level', metavar='ID',
                     type=str, default='colonization',
-                    help='Annotation level.'
+                    help='Annotation level identifier.'
+                         '\nchoices: {colonization, arb_vesicles, all_features}'
                          '\ndefault value: colonization')
 
   main.add_argument('-m', '--model',
