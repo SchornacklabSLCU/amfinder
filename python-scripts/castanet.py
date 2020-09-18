@@ -4,6 +4,7 @@ import os
 # Disables tensorflow messages/warnings.
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
+import keras
 import mimetypes 
 
 import castanet_core as cCore
