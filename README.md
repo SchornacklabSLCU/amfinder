@@ -1,11 +1,17 @@
-# CastANet Editor
+# CastANet Suite
 
-![](doc/castanet-editor.png)
+The CastANet suite contains Python scripts that enable high-throughput 
+annotation of mycorrhizal structures from pictures of ink-stained plant 
+roots, as well as a fully-featured browser for manual curation and 
+heatmap generation.
 
-CastANet editor is a graphical user interface to assist with the annotation of 
-mycorrhiza images.
 
 ## Summary
 
 1. [Installation instructions](doc/INSTALL.md)
-2. [The CastANet interface](doc/INTERFACE.md)
+2. [CastANet scripts](doc/SCRIPTS.md)
+3. [CastANet browser](doc/BROWSER.md)
+
+## CastANet browser
+
+![](doc/castanet-editor.png)
