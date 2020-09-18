@@ -89,19 +89,6 @@ def build_argument_parser():
                         allow_abbrev=False,
                         formatter_class=RawTextHelpFormatter)
 
-  main.add_argument('-l', '--level',
-                    action='store', dest='level', metavar='ID',
-                    type=str, default='colonization',
-                    help='Annotation level identifier.'
-                         '\nchoices: {colonization, arb_vesicles, all_features}'
-                         '\ndefault value: colonization')
-
-  main.add_argument('-m', '--model',
-                    action='store', dest='model', metavar='H5',
-                    type=str, default=None,
-                    help='path to the pre-trained neural network.'
-                         '\ndefault value: None')
-
   main.add_argument('-t', '--tile',
                     action='store', dest='edge',
                     type=int, default=40,
@@ -134,6 +121,21 @@ def build_argument_parser():
                         help='number of epochs to run.'
                              '\ndefault value: 100')
 
+  t_source = t_parser.add_mutually_exclusive_group()
+
+  t_source.add_argument('-l', '--level',
+                        action='store', dest='level', metavar='ID',
+                        type=str, default='colonization',
+                        help='Annotation level identifier.'
+                             '\nchoices: {colonization, arb_vesicles, all_features}'
+                             '\ndefault value: colonization')
+
+  t_source.add_argument('-m', '--model',
+                        action='store', dest='model', metavar='H5',
+                        type=str, default=None,
+                        help='path to the pre-trained model.'
+                             '\ndefault value: none')
+
   t_parser.add_argument('-v', '--validate',
                         action='store', dest='vfrac', metavar='N%',
                         type=int, default=30,
@@ -144,6 +146,10 @@ def build_argument_parser():
   p_parser = subparsers.add_parser('predict',
                                    help='predicts AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
+
+  p_parser.add_argument('model', action='store', metavar='H5',
+                        type=str, default=None,
+                        help='path to the pre-trained model.')
 
   main.add_argument('image', nargs='*',
                     default=['*.jpg'],
