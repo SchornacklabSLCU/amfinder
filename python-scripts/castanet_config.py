@@ -45,7 +45,7 @@ def get(s):
     return None
 
 
-def set(s, x):
+def set(s, x, create=False):
   if x is not None:
     if s in PAR:
       PAR[s] = x
@@ -53,6 +53,8 @@ def set(s, x):
         PAR['header'] = HEADERS[s]
     elif s in PAR['monitors']:
       PAR['monitors'][s] = x
+    elif create:
+      PAR[s] = x
     else:
       print('WARNING: Unknown parameter {}'.format(s))
 
