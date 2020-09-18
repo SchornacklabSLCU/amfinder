@@ -1,8 +1,8 @@
 # CastANet - castanet_config.py
 
 import os
-import json
-from argparse import ArgumentParser, RawTextHelpFormatter
+from argparse import ArgumentParser
+from argparse import RawTextHelpFormatter
 
 HEADERS = {
   'colonization': ['Y', 'N', 'X'],
@@ -10,8 +10,10 @@ HEADERS = {
   'all_features': ['A', 'V', 'I', 'E', 'H', 'R', 'X']
 }
 
+# CastANet settings.
 PAR = {
   'run_mode': None,
+  'level': None,
   'source_tile_edge': None,
   'input_files': None,
   'batch_size': None,
@@ -19,23 +21,28 @@ PAR = {
   'epochs': None,
   'fraction': None,
   'weights': None,
-  # Things to change.
-  'header': HEADERS['colonization'],
-  'name': ['Colonized', 'Non-colonized', 'Background'],
-  'curr': '',
-  'level': None,
-  'output_tile_edge': 62,
+  'image': None,
   'monitors': {
     'csv_logger': None,
     'early_stopping': None,
     'reduce_lr_on_plateau': None,
     'model_checkpoint': None,
   },
+  # FIXME: edit or remove.
+  'header': HEADERS['colonization'],
+  'name': ['Colonized', 'Non-colonized', 'Background'],
+  'output_tile_edge': 62,
   'outdir': 'output',
 }
 
 
+
 def get(s):
+  """ This function retrieves a value based on its identifier. Identifiers
+      get searched in general settings, then among Keras callback monitors.
+      Search is case-insensitive. The function returns None when the
+      identifier does not exist. """
+  s = s.lower()
   if s in PAR:
     return PAR[s]
   elif s in PAR['monitors']:
@@ -45,8 +52,16 @@ def get(s):
     return None
 
 
+
 def set(s, x, create=False):
+  """ This function updates the value associated with an identifier.
+      Identifiers get searched in general settings, then among Keras
+      callback monitors. Search is case-insensitive. If the identifier
+      does not exist, the function creates a new (id, value) pair if
+      the optional parameter <create> equals True, or prints a warning
+      message. No change occurs if the provided value is None. """
   if x is not None:
+    s = s.lower()
     if s in PAR:
       PAR[s] = x
       if s == 'level':
@@ -61,9 +76,23 @@ def set(s, x, create=False):
 
 
 def build_argument_parser():
+  """ This function builds CastAnet command-line parser. The parser
+      consists of two mutually exclusive sub-parsers: <train> and
+      <predict>. The former defines arguments concerning the learning
+      step, while the latter defines those associated with the
+      prediction of mycorrhizal structures. Each sub-parser comes with
+      a specific set of optional arguments. Beside sub-parsers, the
+      main parser also defines general arguments such as tile size
+      and annotation level. """
   main = ArgumentParser(description='CastANet command-line arguments.',
                         allow_abbrev=False,
                         formatter_class=RawTextHelpFormatter)
+
+  main.add_argument('-l', '--level',
+                    action='store', dest='level', metavar='NAME',
+                    type=str, default='colonization',
+                    help='Annotation level.'
+                         '\ndefault value: colonization')
 
   main.add_argument('-t', '--tile',
                     action='store', dest='edge',
@@ -74,7 +103,7 @@ def build_argument_parser():
   subparsers = main.add_subparsers(dest='run_mode', required=True,
                                    help='action to be performed.')
 
-  # Training subparser.
+  # Subparser dedicated to network training using pre-annotated images.
   t_parser = subparsers.add_parser('train',
                                    help='learns how to identify AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
@@ -103,7 +132,7 @@ def build_argument_parser():
                         help='percentage of tiles to be used for validation.'
                              '\ndefault value: 30%%')
 
-  # Prediction subparser.
+  # Subparser dedicated to prediction of mycorrhizal structures.
   p_parser = subparsers.add_parser('predict',
                                    help='predicts AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
@@ -125,17 +154,22 @@ def build_argument_parser():
 
 
 def initialize():
+  """ Here is CastANet initialization function. It parses command-line
+      arguments, performs type-checking, then updates internal settings
+      accordingly. """
   parser = build_argument_parser()
   par = parser.parse_known_args()[0]
 
   # Main arguments.
   set('run_mode', par.run_mode)
+  set('level', par.level)
   set('source_tile_edge', par.edge)
   set('input_files', par.image)
+  # Sub-parser specific arguments.
   if par.run_mode == 'train':
     set('batch_size', par.batch_size)
     set('drop_background', par.dfrac) 
     set('epochs', par.epochs)
     set('fraction', par.vfrac)
-  else:
+  else: # par.run_mode == 'predict' 
     set('weights', par.weights)
