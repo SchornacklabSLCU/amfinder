@@ -14,7 +14,7 @@ structures in JPEG or TIFF images.
 
 
 ```
-usage: castanet.py [-h] [-t EDGE] {train,predict} ... [image [image ...]]
+usage: castanet.py [-h] [-t EDGE] {train,predict} ...
 
 CastANet command-line arguments.
 
@@ -22,8 +22,6 @@ positional arguments:
   {train,predict}       action to be performed.
     train               learns how to identify AMF structures.
     predict             predicts AMF structures.
-  image                 plant root scan to be processed.
-                        default value: *jpg
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -42,6 +40,11 @@ computer, using high-performance computing (HPC) is recommended.
 ```
 usage: castanet.py train [-h] [-b NUM] [-d N%] [-e NUM] [-l ID | -m H5]
                          [-v N%]
+                         [image [image ...]]
+
+positional arguments:
+  image                 plant root scan to be processed.
+                        default value: *jpg
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -70,10 +73,12 @@ Users should double-check results using the CastANet browser before calculating
 colonization levels..
 
 ```
-usage: castanet.py predict [-h] H5
+usage: castanet.py predict [-h] H5 [image [image ...]]
 
 positional arguments:
   H5          path to the pre-trained model.
+  image       plant root scan to be processed.
+              default value: *jpg
 
 optional arguments:
   -h, --help  show this help message and exit
