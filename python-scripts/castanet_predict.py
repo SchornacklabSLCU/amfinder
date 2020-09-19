@@ -3,7 +3,7 @@
 import os
 import numpy as np
 import pandas as pd
-from keras.preprocessing import image as keras_image
+from keras.preprocessing import image as K_image
 
 import castanet_save as cSave
 import castanet_config as cConfig
@@ -11,50 +11,69 @@ import castanet_segmentation as cSegm
 
 
 
-def get_tile_arrays(image):
-  """ This functions builds numpy arrays containing all tiles of
-      the same row. These tables are then used for predictions. """
-  # Determines the number of tiles per row or column.
-  edge = cConfig.get('tile_edge')
-  r_range = range(image.height // edge)
-  c_range = range(image.width // edge)
-  # Extracts all tiles from the input image.
-  tiles = [[cSegm.tile(image, r, c) for c in c_range] for r in r_range]
-  # Converts inner lists to numpy arrays and normalizes pixel values.
-  return [np.array(t, np.float32) / 255.0 for t in tiles]
+def normalize(t):
+    """ Simple normalization function. """
+    return t / 255.0
 
 
 
-def make_table(cnn, tiles):
-  """ This function creates a prediction table by iterating a list
-      of Numpy arrays containing tiles for each row. """
-  nrows = len(tiles)
-  if nrows == 0:
-    return None
-  else:
-    bs = cConfig.get('batch_size')
-    results = [pd.DataFrame(cnn.predict(t, batch_size=bs)) for t in tiles]
-    # Generates the final table.
-    table = pd.concat(results, ignore_index=True)
-    table.columns = cConfig.get('header')   
-    # Inserts row and column indexes.
-    ncols = len(results[0])
-    col_values = list(range(ncols)) * nrows
-    row_values = [x // ncols for x in range(nrows * ncols)]
-    table.insert(0, column='col', value=col_values)
-    table.insert(0, column='row', value=row_values)
-    return table
+def make_table(image, model):
+    """ Memory-efficient function to predict mycorrhizal structures
+        on a large image. Tiles are generated row by row and processed
+        on the fly to prevent memory overhead (this would not be a
+        problem on HPC. However, one should be able to predict
+        mycorrhizal structures on a desktop computer). """
+
+    edge = cConfig.get('tile_edge')
+    nrows = image.height // edge
+    ncols = image.width // edge
+
+    if nrows == 0 or ncols == 0:
+
+        return None
+
+    else:
+
+        bs = cConfig.get('batch_size')
+        c_range = range(ncols)
+
+        # Full row processing, from tile extraction to structure prediction.
+        def process_row(r):
+            # First, extract all tiles within a row.
+            row = [cSegm.tile(image, r, c) for c in c_range]
+            # Convert to NumPy array, and normalize.
+            row = normalize(np.array(row, np.float32))
+            # Predict mycorrhizal structures.
+            row = model.predict(row, batch_size=bs)
+            # Return prediction as Pandas data frame.
+            return pd.DataFrame(row)
+
+        # Retrieve predictions for all rows within the image.
+        results = [process_row(r) for r in range(nrows)]
+
+        # Concat to a single Pandas dataframe and add header.
+        table = pd.concat(results, ignore_index=True)
+        table.columns = cConfig.get('header')
+
+        # Add row and column indexes to the Pandas data frame.
+        # col_values = 0, 1, ..., c, 0, ..., c, ..., 0, ..., c; c = ncols - 1
+        col_values = list(range(ncols)) * nrows
+        # row_values = 0, 0, ..., 0, 1, ..., 1, ..., r, ..., r; r = nrows - 1
+        row_values = [x // ncols for x in range(nrows * ncols)]
+        table.insert(0, column='col', value=col_values)
+        table.insert(0, column='row', value=row_values)
+
+        return table
 
 
 
-def run(cnn, input_files):
+def run(input_files, model):
   """ For each image given as input, performs segmentation into tiles
-      and predicts mycorrhizal structures. The final table is then 
+      and predicts mycorrhizal structures. The final table is then
       saved as ZIP archive in the same location as the input image. """
   for path in input_files:
     name = os.path.basename(path)
     print('* Predicting mycorrhizal structures on "{}"'.format(name))
-    image = keras_image.load_img(path)
-    tiles = get_tile_arrays(image)
-    table = make_table(cnn, tiles)
+    image = K_image.load_img(path)
+    table = make_table(image, model)
     cSave.archive(table, path)

@@ -5,7 +5,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 import keras
-import mimetypes 
+import mimetypes
 
 import castanet_core as cCore
 import castanet_model as cModel
@@ -19,10 +19,11 @@ def get_input_files():
   """ This function analyses the input file list and retains
       images based on their MIME type (files must be either
       JPEG or TIFF). """
-  print('* Retrieving input images.')
   raw_list = cCore.abspath(cConfig.get('input_files'))
   valid_types = ['image/jpeg', 'image/tiff']
-  return [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
+  images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
+  print('* Number of valid input images: {}.'.format(len(images)))
+  return images
 
 
 
@@ -50,8 +51,8 @@ def load_cnn():
 if __name__ == '__main__':
   cConfig.initialize()
   input_files = get_input_files()
-  cnn = load_cnn() 
+  model = load_cnn()
   if cConfig.get('run_mode') == 'train':
-    cTrain.run(cnn, input_files)
+    cTrain.run(model, input_files)
   else: # cConfig.get('run_mode') == 'predict'
-    cPredict.run(cnn, input_files)   
+    cPredict.run(input_files, model)   
