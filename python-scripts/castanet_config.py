@@ -15,10 +15,10 @@ PAR = {
   'run_mode': None,
   'level': None,
   'model': None,
-  'source_tile_edge': None,
+  'tile_edge': None,
   'input_files': None,
   'batch_size': None,
-  'drop_background': None,  
+  'drop_background': None,
   'epochs': None,
   'fraction': None,
   'image': None,
@@ -31,7 +31,7 @@ PAR = {
   # FIXME: edit or remove.
   'header': HEADERS['colonization'],
   'name': ['Colonized', 'Non-colonized', 'Background'],
-  'output_tile_edge': 62,
+  'model_input_size': 62,
   'outdir': 'output',
 }
 
@@ -102,7 +102,7 @@ def build_argument_parser():
   t_parser = subparsers.add_parser('train',
                                    help='learns how to identify AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
- 
+
   t_parser.add_argument('-b', '--batch',
                         action='store', dest='batch_size', metavar='NUM',
                         type=int, default=32,
@@ -142,6 +142,11 @@ def build_argument_parser():
                         help='percentage of tiles to be used for validation.'
                              '\ndefault value: 30%%')
 
+  t_parser.add_argument('image', nargs='*',
+                        default=['*.jpg'],
+                        help='plant root scan to be processed.'
+                             '\ndefault value: *jpg')
+
   # Subparser dedicated to prediction of mycorrhizal structures.
   p_parser = subparsers.add_parser('predict',
                                    help='predicts AMF structures.',
@@ -151,10 +156,10 @@ def build_argument_parser():
                         type=str, default=None,
                         help='path to the pre-trained model.')
 
-  main.add_argument('image', nargs='*',
-                    default=['*.jpg'],
-                    help='plant root scan to be processed.'
-                         '\ndefault value: *jpg')
+  p_parser.add_argument('image', nargs='*',
+                        default=['*.jpg'],
+                        help='plant root scan to be processed.'
+                             '\ndefault value: *jpg')
 
   return main
 
@@ -169,13 +174,15 @@ def initialize():
 
   # Main arguments.
   set('run_mode', par.run_mode)
-  set('level', par.level)
-  set('model', par.model)
-  set('source_tile_edge', par.edge)
+  set('tile_edge', par.edge)
   set('input_files', par.image)
   # Sub-parser specific arguments.
   if par.run_mode == 'train':
     set('batch_size', par.batch_size)
-    set('drop_background', par.dfrac) 
+    set('drop_background', par.dfrac)
     set('epochs', par.epochs)
     set('fraction', par.vfrac)
+    set('level', par.level)
+    set('model', par.model)
+  else: # par.run_mode == 'predict'
+    set('model', par.model)

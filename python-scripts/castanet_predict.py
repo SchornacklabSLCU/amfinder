@@ -1,8 +1,8 @@
 # CastANet - castanet_predict.py
 
+import pyvips
 import numpy as np
 import pandas as pd
-from keras.preprocessing import image as K_image
 
 import castanet_save as cSave
 import castanet_config as cConfig
@@ -72,6 +72,7 @@ def run(input_images, model):
       saved as ZIP archive in the same location as the input image. """
   for path in input_images:
     print('* Processing "{}"'.format(path))
-    image = K_image.load_img(path)
+    image = pyvips.Image.new_from_file(path, access='random')
     table = make_table(image, model)
+    print(table.head(36))
     cSave.archive(table, path)

@@ -1,19 +1,28 @@
 # CastANet - castanet_segmentation.py
 
-import castanet_config as CFG
-from keras.preprocessing import image as keras_image
+import random
+import pyvips
+import numpy as np
+
+import castanet_config as cConfig
+
+INTERP_NEAREST = pyvips.vinterpolate.Interpolate.new('nearest')
+
+
 
 def tile(image, r, c):
-  src_edge = CFG.get('source_tile_edge')
-  out_edge = CFG.get('output_tile_edge')
-  c *= src_edge
-  r *= src_edge
-  s = (c, r, c + src_edge, r + src_edge)
-  if s[0] < 0 or s[1] < 0 or s[2] > image.width or s[3] > image.height:
-    return None
-  else:
-    tile = image.crop(s)
-    return keras_image.img_to_array(tile.resize((out_edge, out_edge)))
+    """ Extracts a tile from a large image, resizes it to
+        model input size, and returns it as a NumPy array. """
+
+    edge = cConfig.get('tile_edge')
+    tile = image.crop(c * edge, r * edge, edge, edge)
+    scale = cConfig.get('model_input_size') / edge
+    tile = tile.resize(scale, interpolate=INTERP_NEAREST)
+
+    buffer = tile.write_to_memory()
+    return np.ndarray(buffer=buffer, dtype=np.uint8,
+                      shape=[tile.height, tile.width, tile.bands])
+
 
 
 def drop_background(tiles, hot_labels):
