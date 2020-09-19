@@ -1,6 +1,5 @@
 # CastANet - castanet_predict.py
 
-import os
 import numpy as np
 import pandas as pd
 from keras.preprocessing import image as K_image
@@ -67,13 +66,12 @@ def make_table(image, model):
 
 
 
-def run(input_files, model):
+def run(input_images, model):
   """ For each image given as input, performs segmentation into tiles
       and predicts mycorrhizal structures. The final table is then
       saved as ZIP archive in the same location as the input image. """
-  for path in input_files:
-    name = os.path.basename(path)
-    print('* Predicting mycorrhizal structures on "{}"'.format(name))
+  for path in input_images:
+    print('* Processing "{}"'.format(path))
     image = K_image.load_img(path)
     table = make_table(image, model)
     cSave.archive(table, path)
