@@ -80,7 +80,9 @@ def print_statistics(labels):
 
 
 def load_annotations(input_files):
-    """Build training dataset, possibly removing some background images"""
+    """ Builds the training dataset by extracting tiles from
+        large images, removing some background images where
+        appropriate. """
     
     level = cConfig.get('level')
     headers = cConfig.get('header')
@@ -143,7 +145,8 @@ def load_annotations(input_files):
 
 
 def get_callbacks():
-    """ """
+    """ Initializes Keras callbacks that control learning rate
+        and monitor validation loss. """
 
     callbacks = []
 
@@ -169,7 +172,8 @@ def get_callbacks():
 
 
 def run(input_files):
-    """ """
+    """ Trains a model (see castanet_model.py) with a set of tiles
+        containing mycorrhizal structures. """
 
     model = cModel.load()
 
