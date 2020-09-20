@@ -76,7 +76,7 @@ def run(input_images):
     model = cModel.load()
 
     for path in input_images:
-        print('* Processing "{}"'.format(path))
+        print(f'* Processing {path}')
         image = pyvips.Image.new_from_file(path, access='random')
         table = make_table(image, model)
         cSave.archive(table, path)
