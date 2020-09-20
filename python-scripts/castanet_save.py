@@ -1,10 +1,14 @@
 # CastANet - castanet_save.py
 
 import os
+import io
 import sys
+import pickle
 import datetime
+import numpy as np
 import zipfile as zf
 
+import castanet_plot as cPlot
 import castanet_config as cConfig
 
 CORRUPTED_ARCHIVE = 30
@@ -18,7 +22,38 @@ def now():
 
 
 
-def archive(results, path):
+def training_data(history, model):
+    """ Saves training weights, history and plots. """
+
+    zipf = os.path.join(cConfig.get('outdir'), now() + '_training.zip')
+    
+    with zf.ZipFile(zipf, 'w') as z:
+
+        # Saves history.
+        data = pickle.dumps(history, protocol=pickle.HIGHEST_PROTOCOL)
+        z.writestr('history.bin', data)
+
+        # Saves weights.
+        weights = model.get_weights()
+        output = io.BytesIO()
+        np.save(output, weights)
+        z.writestr('weights.hdf5', output.getvalue())
+
+        # Saves plots.
+        early = cConfig.get('early_stopping').stopped_epoch
+        epochs = early + 1 if early > 0 else cConfig.get('epochs')
+        x_range = np.arange(0, epochs)
+
+        cPlot.initialize()
+        data = cPlot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
+        z.writestr('loss.png', data.getvalue())
+
+        data = cPlot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
+        z.writestr('accuracy.png', data.getvalue())
+
+
+
+def predictions(results, path):
     """ Saves or append predictions to an archive. """
 
     # TODO: check whether None may happen.
