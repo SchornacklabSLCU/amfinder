@@ -1,14 +1,16 @@
 # CastANet - castanet_train.py
 
 import os
+import io
 import random
 import pickle
+import pyvips
 import numpy as np
 import pandas as pd
+import zipfile as zf
 
-from keras.callbacks import CSVLogger
+from functools import partial
 from keras.callbacks import EarlyStopping
-from keras.callbacks import ModelCheckpoint
 from keras.callbacks import ReduceLROnPlateau
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import ImageDataGenerator
@@ -16,132 +18,180 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 
 import castanet_plot as cPlot
+import castanet_save as cSave
+import castanet_model as cModel
 import castanet_config as cConfig
-
-
-XY = ['row', 'col']
+import castanet_segmentation as cSegm
 
 
 
 def get_data_generator(data_augmentation=False):
-  """ Creates a data generator which applies or not data augmentation.
-      Data augmentation is kept to a minimum (ie horizontal and vertical
-      flip) to avoid signal loss when mycorrhizal structures occur near
-      tile edges. """
-  if data_augmentation:
-    return ImageDataGenerator(horizontal_flip=True, vertical_flip=True)
-  else:
-    return ImageDataGenerator()
+    """ Creates a data generator which applies or not data augmentation.
+        Data augmentation is kept to a minimum (ie horizontal and vertical
+        flip) to avoid signal loss when mycorrhizal structures occur near
+        tile edges. """
+
+    if data_augmentation:
+        return ImageDataGenerator(horizontal_flip=True,
+                                  vertical_flip=True,
+                                  brightness_range = (0.05, 0.15))
+    else:
+
+        return ImageDataGenerator()
 
 
 
-# TODO: Improve this function to load data from a ZIP file!
-def load_tiles_and_annotations(input_file_list):
-  print('* Loading tiles and annotations.')
-  tiles = pd.DataFrame()
-  for img_path in input_file_list:
-    noext = os.path.splitext(img_path)[0]
-    cConfig.set('image', os.path.basename(noext))
-    print('    - File {}'.format(cConfig.get('image')))
-    image = load_img(img_path, color_mode='rgb', target_size=None)
-    # Loads the annotation table.
-    tbl_path = "{}.tsv".format(noext)
-    annot = pd.read_table(tbl_path)
+def may_load_tile(level, drop, image, x):
+    """ Loads a tile under specific conditions. """
+
+    if x['X'] == 1 and drop > 0 and random.uniform(0, 100) < drop:
+
+        return None
+
+    else:
+
+        return cSegm.tile(image, x['row'], x['col'])
+
+
+
+def print_statistics(labels):
+    """ Prints statistics irrespective of the annotation level. """
+
+    header = cConfig.get('header')
+    hrange = range(len(header))
+    counts = list(hrange)
+
+    for hot in labels:
+    
+        for i in hrange:
+        
+            if hot[i] == 1:
+            
+                counts[i] += 1
+
+    print('* Statistics')          
+    for i in hrange:
+    
+        lbl = header[i]
+        num = counts[i]
+        pct = int(round(100.0 * num / sum(counts)))
+        print(f'    - Class {lbl}: {num} tiles ({pct}%)')
+
+
+
+def load_annotations(input_files):
+    """Build training dataset, possibly removing some background images"""
+    
+    level = cConfig.get('level')
     headers = cConfig.get('header')
-    annot['Tile'] = annot[XY].apply(lambda x: segm.tile(image, x[0], x[1]), axis=1)
-    annot = annot[annot['Tile'].notnull()]
-    annot['Tag'] = annot[headers].values.tolist()
-    annot = annot.drop(columns=(XY + headers))
-    tiles = tiles.append(annot)  
-  annot = pd.Series(tiles['Tag'])
-  hot_labels = np.asarray(annot)
-  return (tiles, hot_labels)
 
+    # Partial application to avoid using cConfig.get too often.
+    tile = partial(may_load_tile, level, cConfig.get('drop'))
 
+    random.seed(42)
 
-def get_training_datasets(tiles, hot_labels):
-  """"""
-  print('* Preparing training and validation datasets.')
-  random.seed(42)
-  x_train_list, y_train_list = segm.drop_background(tiles, hot_labels)
-  y_train_raw = np.array(y_train_list, np.uint8)
-  preprocess = lambda x: x / 255.0
-  x_train_raw = preprocess(np.array(x_train_list, np.float32))
-  return train_test_split(
-      x_train_raw,
-      y_train_raw,
-      test_size=cConfig.get('fraction'),
-      random_state=42)
+    tiles = []
+    labels = []
+
+    print('* Image segmentation.')
+
+    for path in input_files:
+
+        base = os.path.basename(path)
+        zipf = os.path.splitext(path)[0] + '.zip'
+
+        print(f'    - {base}... ', end='', flush=True)
+
+        if os.path.isfile(zipf) and zf.is_zipfile(zipf):
+        
+            with zf.ZipFile(zipf, 'r') as z:
+                data = z.read(f'python/{level}.tsv').decode('utf-8')
+                data = pd.read_csv(io.StringIO(data), sep='\t')
+
+        else: # No annotations or corrupted archive.
+        
+            print(f'WARNING: Missing annotations for {base}')
+            continue
+
+        image = pyvips.Image.new_from_file(path, access='random')
+
+        # Loads tiles (omitting some background tiles if requested).
+        data['tile'] = data.apply(lambda x: tile(image, x), axis=1)
+        data = data[data['tile'].notnull()]
+
+        # Converts tile annotations to one-hot vectors.
+        data['hot'] = data[headers].values.tolist()
+
+        # Fast method to assign the new data to the existing lists.
+        # Order does not matter here (data will get shuffled later).
+        # Reference: https://stackoverflow.com/a/58898489
+        tiles[0:0] = data['tile'].values.tolist()
+        labels[0:0] = data['hot'].values.tolist()
+        print('OK')
+
+        del image
+
+    print_statistics(labels)
+
+    # Preprocessing and conversion to NumPy arrays.
+    preprocess = lambda x: x / 255.0
+    labels = np.array(labels, np.uint8)
+    tiles = preprocess(np.array(tiles, np.float32))
+
+    return tiles, labels
 
 
 
 def get_callbacks():
-  callbacks = []
+    """ """
 
-  cb = CSVLogger('training_Logger.csv',
-           separator=',',
-           append=False)
-  cConfig.set('csv_logger', cb)
-  callbacks.append(cb)
+    callbacks = []
 
-  cb = EarlyStopping(monitor='val_loss',
+    cb = EarlyStopping(monitor='val_loss',
            min_delta=0,
            patience=10,
            verbose=1,
            mode='auto',
            restore_best_weights=True)
-  cConfig.set('early_stopping', cb)
-  callbacks.append(cb)
+    cConfig.set('early_stopping', cb)
+    callbacks.append(cb)
 
-  cb = ReduceLROnPlateau(monitor='val_loss',
+    cb = ReduceLROnPlateau(monitor='val_loss',
            factor=0.2,
            patience=2,
            verbose=1,
            min_lr=0.001)
-  cConfig.set('reduce_lr_on_plateau', cb)
-  callbacks.append(cb)
+    cConfig.set('reduce_lr_on_plateau', cb)
+    callbacks.append(cb)
 
-  cb = ModelCheckpoint(filepath='best_model.h5',
-           monitor='val_loss',
-           save_best_only=True)
-  cConfig.set('model_checkpoint', cb)
-  callbacks.append(cb)
-
-  return callbacks
+    return callbacks
 
 
 
-def draw_training_history(history):
-  """ Determines the last epoch, initialize plotting, and produce graphs. """
-  es_epoch = cConfig.get('early_stopping').stopped_epoch
-  epochs = es_epoch + 1 if es_epoch > 0 else cConfig.get('epochs')
-  x_range = np.arange(0, epochs)
-  cPlot.initialize()
-  cPlot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
-  cPlot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
+def run(input_files):
+    """ """
 
+    model = cModel.load()
 
+    tiles, labels = load_annotations(input_files)
 
-def run(cnn, input_files):
-  #os.chdir(cConfig.get('outdir'))
-  #cConfig.set('dir', core.now())
-  #os.mkdir(SETTINGS['dir'])
-  #os.chdir(SETTINGS['dir'])
-  tiles, hot_labels = load_tiles_and_annotations(input_files)
-  x_train, x_check, y_train, y_check = get_training_datasets(tiles, hot_labels)
-  train_generator = get_data_generator(data_augmentation=True)
-  valid_generator = get_data_generator()
-  batch = cConfig.get('batch_size')
-  steps_per_epoch = len(x_train) // batch
-  H = cnn.fit(
-    train_generator.flow(x_train, y_train, batch_size=batch),
-    steps_per_epoch=steps_per_epoch,
-    epochs=cConfig.get('epochs'),
-    validation_data=valid_generator.flow(x_check, y_check, batch_size=batch),
-    validation_steps=len(x_check) // batch,
-    callbacks=get_callbacks(), verbose=1)
-  with open("history.bin", 'wb') as handle:
-    pickle.dump(H.history, handle, protocol=pickle.HIGHEST_PROTOCOL)
-  #cnn.save("flatbed_model.h5")
-  draw_training_history(H.history)
+    # Generates training and validation datasets.
+    xt, xc, yt, yc = train_test_split(tiles, labels,
+                                      shuffle=True,
+                                      test_size=cConfig.get('vfrac') / 100.0,
+                                      random_state=42)
 
+    t_gen = get_data_generator(data_augmentation=True)
+    v_gen = get_data_generator()
+
+    bs = cConfig.get('batch_size')
+
+    his = model.fit(t_gen.flow(xt, yt, batch_size=bs),
+                    steps_per_epoch=len(xt) // bs,
+                    epochs=cConfig.get('epochs'),
+                    validation_data=v_gen.flow(xc, yc, batch_size=bs),
+                    validation_steps=len(xc) // bs,
+                    callbacks=get_callbacks(),
+                    verbose=1)
+
+    cSave.training_data(his.history, model)
