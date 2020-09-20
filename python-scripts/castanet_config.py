@@ -1,6 +1,8 @@
 # CastANet - castanet_config.py
 
 import os
+import glob
+import mimetypes
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
@@ -16,6 +18,7 @@ PAR = {
   'level': None,
   'model': None,
   'tile_edge': None,
+  'model_input_size': 62,
   'input_files': None,
   'batch_size': None,
   'drop_background': None,
@@ -31,7 +34,6 @@ PAR = {
   # FIXME: edit or remove.
   'header': HEADERS['colonization'],
   'name': ['Colonized', 'Non-colonized', 'Background'],
-  'model_input_size': 62,
   'outdir': 'output',
 }
 
@@ -44,8 +46,7 @@ def get(s):
       identifier does not exist. """
   s = s.lower()
   if s in PAR:
-    # The h5 file may contain a placeholder ({}) for annotation level.
-    return PAR[s].format(PAR['level']) if s == 'weights' else PAR[s]
+    return PAR[s]
   elif s in PAR['monitors']:
     return PAR['monitors'][s]
   else:
@@ -66,7 +67,7 @@ def set(s, x, create=False):
     if s in PAR:
       PAR[s] = x
       if s == 'level':
-        PAR['header'] = HEADERS[s]
+        PAR['header'] = HEADERS[x]
     elif s in PAR['monitors']:
       PAR['monitors'][s] = x
     elif create:
@@ -165,6 +166,25 @@ def build_argument_parser():
 
 
 
+def abspath(files):
+    """Expand wildcards and return absolute paths to input files."""
+    files = sum([glob.glob(x) for x in files], [])
+    return [os.path.abspath(x) for x in files]
+
+
+
+def get_input_files():
+    """ This function analyses the input file list and retains
+        images based on their MIME type (files must be either
+        JPEG or TIFF). """
+    raw_list = abspath(get('input_files'))
+    valid_types = ['image/jpeg', 'image/tiff']
+    images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
+    print('* Number of valid input images: {}.'.format(len(images)))
+    return images
+
+
+
 def initialize():
   """ Here is CastANet initialization function. It parses command-line
       arguments, performs type-checking, then updates internal settings
@@ -185,4 +205,4 @@ def initialize():
     set('level', par.level)
     set('model', par.model)
   else: # par.run_mode == 'predict'
-    set('model', par.model)
+    set('model', par.model)    
