@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 import castanet_save as cSave
+import castanet_model as cModel
 import castanet_config as cConfig
 import castanet_segmentation as cSegm
 
@@ -12,6 +13,7 @@ import castanet_segmentation as cSegm
 
 def normalize(t):
     """ Simple normalization function. """
+
     return t / 255.0
 
 
@@ -66,13 +68,15 @@ def make_table(image, model):
 
 
 
-def run(input_images, model):
-  """ For each image given as input, performs segmentation into tiles
-      and predicts mycorrhizal structures. The final table is then
-      saved as ZIP archive in the same location as the input image. """
-  for path in input_images:
-    print('* Processing "{}"'.format(path))
-    image = pyvips.Image.new_from_file(path, access='random')
-    table = make_table(image, model)
-    print(table.head(36))
-    cSave.archive(table, path)
+def run(input_images):
+    """ For each image given as input, performs segmentation into tiles
+        and predicts mycorrhizal structures. The final table is then
+        saved as ZIP archive in the same location as the input image. """
+
+    model = cModel.load()
+
+    for path in input_images:
+        print('* Processing "{}"'.format(path))
+        image = pyvips.Image.new_from_file(path, access='random')
+        table = make_table(image, model)
+        cSave.archive(table, path)
