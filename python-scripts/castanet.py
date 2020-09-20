@@ -10,7 +10,7 @@ import castanet_predict as cPredict
 
 
 
-if __name__ == '__main__':
+def main():
 
     cConfig.initialize()
     run_mode = cConfig.get('run_mode')
@@ -25,5 +25,11 @@ if __name__ == '__main__':
         cPredict.run(input_files)
 
     else:
-    
+
         pass
+
+
+
+if __name__ == '__main__':
+
+    main()
