@@ -1,5 +1,6 @@
 # CastANet - castanet_plot.py
 
+import io
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -22,15 +23,13 @@ def draw(history, epochs, title, x_range, t_name, v_name):
     plt_ylabel = 'Percentage'
     plt_title = 'Loss'
     legend_pos = 'upper right'
-    png = 'flatbed_loss.png'
     padding = 0.1
     if title == 'Loss':
-      plt.xlim(-padding, epochs + padding)
+        plt.xlim(-padding, epochs + padding)
     else:
-      legend_pos = 'lower right'
-      plt_title = 'Accuracy'
-      png = 'flatbed_accuracy.png'
-      plt.axis([-padding, epochs + padding, 0, 1])
+        legend_pos = 'lower right'
+        plt_title = 'Accuracy'
+        plt.axis([-padding, epochs + padding, 0, 1])
     plt.ylabel(plt_ylabel)
     plt.title(plt_title)
     ax = plt.gca()
@@ -38,4 +37,6 @@ def draw(history, epochs, title, x_range, t_name, v_name):
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     plt.legend(loc=legend_pos)
     plt.draw()
-    plt.savefig(png)
+    plot_data = io.BytesIO()
+    plt.savefig(plot_data, format='png')
+    return plot_data
