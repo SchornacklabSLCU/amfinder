@@ -28,53 +28,45 @@ def core_model(input_shape):
     model = Sequential()
 
     # Input size: 62 pixels; output_size: 60 pixels
-    model.add(Conv2D(32, kernel_size=3, name='C1',
-                   input_shape=input_shape, activation='relu',
-                   kernel_initializer=he_uniform()))
+    model.add(Conv2D(32, kernel_size=3, name='C1', input_shape=input_shape,
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 60 pixels; output_size: 58 pixels
     model.add(Conv2D(32, kernel_size=3, name='C2',
-                   input_shape=input_shape, activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 58 pixels; output_size: 56 pixels
     model.add(Conv2D(32, kernel_size=3, name='C3',
-                   input_shape=input_shape, activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 56 pixels; output_size: 28 pixels
     model.add(MaxPooling2D(pool_size=2, name='M1'))
 
     # Input size: 28 pixels; output_size: 26 pixels
     model.add(Conv2D(64, kernel_size=3, name='C4',
-                   activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 26 pixels; output_size: 24 pixels
     model.add(Conv2D(64, kernel_size=3, name='C5',
-                   activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 24 pixels; output_size: 12 pixels
     model.add(MaxPooling2D(pool_size=2, name='M2'))
 
     # Input size: 12 pixels; output_size: 10 pixels
     model.add(Conv2D(128, kernel_size=3, name='C6',
-                   activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 10 pixels; output_size: 08 pixels
     model.add(Conv2D(128, kernel_size=3, name='C7',
-                   activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 08 pixels; output_size: 04 pixels
     model.add(MaxPooling2D(pool_size=2, name='M3'))
 
     # Input size: 04 pixels; output_size: 02 pixels
     model.add(Conv2D(128, kernel_size=3, name='C8',
-                   activation='relu',
-                   kernel_initializer=he_uniform()))
+                     activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 02 pixels; output_size: 01 pixels
     model.add(MaxPooling2D(pool_size=2, name='M4'))
@@ -82,12 +74,12 @@ def core_model(input_shape):
     model.add(Flatten(name='F'))
 
     model.add(Dense(64, activation='relu', name='H1',
-    kernel_initializer=he_uniform()))
+                    kernel_initializer=he_uniform()))
 
     model.add(Dropout(0.3, name='D1'))
 
     model.add(Dense(16, activation='relu', name='H2',
-    kernel_initializer=he_uniform()))
+                    kernel_initializer=he_uniform()))
 
     model.add(Dropout(0.2, name='D2'))
 
