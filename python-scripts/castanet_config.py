@@ -14,27 +14,24 @@ HEADERS = {
 
 # CastANet settings.
 PAR = {
-  'run_mode': None,
-  'level': None,
-  'model': None,
-  'tile_edge': None,
-  'model_input_size': 62,
-  'input_files': None,
-  'batch_size': None,
-  'drop_background': None,
-  'epochs': None,
-  'fraction': None,
-  'image': None,
-  'monitors': {
-    'csv_logger': None,
-    'early_stopping': None,
-    'reduce_lr_on_plateau': None,
-    'model_checkpoint': None,
-  },
-  # FIXME: edit or remove.
-  'header': HEADERS['colonization'],
-  'name': ['Colonized', 'Non-colonized', 'Background'],
-  'outdir': 'output',
+    'run_mode': None,
+    'level': None,
+    'model': None,
+    'tile_edge': None,
+    'model_input_size': 62,
+    'input_files': None,
+    'batch_size': None,
+    'drop': None,
+    'epochs': None,
+    'vfrac': None,
+    'header': HEADERS['colonization'],
+    'outdir': None,
+    'monitors': {
+        'csv_logger': None,
+        'early_stopping': None,
+        'reduce_lr_on_plateau': None,
+        'model_checkpoint': None,
+    }
 }
 
 
@@ -90,12 +87,6 @@ def build_argument_parser():
                         allow_abbrev=False,
                         formatter_class=RawTextHelpFormatter)
 
-  main.add_argument('-t', '--tile',
-                    action='store', dest='edge',
-                    type=int, default=40,
-                    help='tile edge (in pixels) used for image segmentation.'
-                         '\ndefault value: 40 pixels')
-
   subparsers = main.add_subparsers(dest='run_mode', required=True,
                                    help='action to be performed.')
 
@@ -103,6 +94,12 @@ def build_argument_parser():
   t_parser = subparsers.add_parser('train',
                                    help='learns how to identify AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
+
+  t_parser.add_argument('-t', '--tile',
+                        action='store', dest='edge',
+                        type=int, default=40,
+                        help='tile edge (in pixels) used for image segmentation.'
+                             '\ndefault value: 40 pixels')
 
   t_parser.add_argument('-b', '--batch',
                         action='store', dest='batch_size', metavar='NUM',
@@ -121,6 +118,18 @@ def build_argument_parser():
                         type=int, default=100,
                         help='number of epochs to run.'
                              '\ndefault value: 100')
+
+  t_parser.add_argument('-f', '--fraction',
+                        action='store', dest='vfrac', metavar='N%',
+                        type=int, default=20,
+                        help='output directory for training files.'
+                             '\ndefaults to current directory.')
+
+  t_parser.add_argument('-o', '--output',
+                        action='store', dest='outdir', metavar='DIR',
+                        type=str, default='.',
+                        help='output directory for training files.'
+                             '\ndefaults to current directory.')
 
   t_source = t_parser.add_mutually_exclusive_group()
 
@@ -152,6 +161,12 @@ def build_argument_parser():
   p_parser = subparsers.add_parser('predict',
                                    help='predicts AMF structures.',
                                    formatter_class=RawTextHelpFormatter)
+
+  p_parser.add_argument('-t', '--tile',
+                        action='store', dest='edge',
+                        type=int, default=40,
+                        help='tile edge (in pixels) used for image segmentation.'
+                             '\ndefault value: 40 pixels')
 
   p_parser.add_argument('model', action='store', metavar='H5',
                         type=str, default=None,
@@ -186,23 +201,25 @@ def get_input_files():
 
 
 def initialize():
-  """ Here is CastANet initialization function. It parses command-line
-      arguments, performs type-checking, then updates internal settings
-      accordingly. """
-  parser = build_argument_parser()
-  par = parser.parse_known_args()[0]
+    """ Here is CastANet initialization function. It parses command-line
+        arguments, performs type-checking, then updates internal settings
+        accordingly. """
+    parser = build_argument_parser()
+    par = parser.parse_known_args()[0]
 
-  # Main arguments.
-  set('run_mode', par.run_mode)
-  set('tile_edge', par.edge)
-  set('input_files', par.image)
-  # Sub-parser specific arguments.
-  if par.run_mode == 'train':
-    set('batch_size', par.batch_size)
-    set('drop_background', par.dfrac)
-    set('epochs', par.epochs)
-    set('fraction', par.vfrac)
-    set('level', par.level)
-    set('model', par.model)
-  else: # par.run_mode == 'predict'
-    set('model', par.model)    
+    # Main arguments.
+    set('run_mode', par.run_mode)
+    set('tile_edge', par.edge)
+    set('input_files', par.image)
+    # Sub-parser specific arguments.
+    if par.run_mode == 'train':
+        set('batch_size', par.batch_size)
+        set('drop', par.dfrac)
+        set('epochs', par.epochs)
+        set('fraction', par.vfrac)
+        set('level', par.level)
+        set('model', par.model)
+        set('outdir', par.outdir)
+        set('vfrac', par.vfrac)
+    else: # par.run_mode == 'predict'
+        set('model', par.model)    
