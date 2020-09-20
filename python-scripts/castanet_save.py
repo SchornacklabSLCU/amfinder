@@ -21,6 +21,7 @@ def now():
 def archive(results, path):
     """ Saves or append predictions to an archive. """
 
+    # TODO: check whether None may happen.
     if results is not None:
 
         data = results.to_csv(sep='\t', encoding='utf-8', index=False)
@@ -47,7 +48,3 @@ def archive(results, path):
             with zf.ZipFile(zipf, 'w') as z:
                 z.comment = cConfig.get('level').encode('utf-8')
                 z.writestr(tsv, data)
-
-    else:
-
-        print("WARNING: Empty table")
