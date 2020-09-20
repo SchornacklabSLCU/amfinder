@@ -53,7 +53,7 @@ def training_data(history, model):
 
 
 
-def predictions(results, path):
+def prediction_table(results, path):
     """ Saves or append predictions to an archive. """
 
     # TODO: check whether None may happen.

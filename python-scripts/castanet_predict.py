@@ -79,4 +79,4 @@ def run(input_images):
         print(f'* Processing {path}')
         image = pyvips.Image.new_from_file(path, access='random')
         table = make_table(image, model)
-        cSave.archive(table, path)
+        cSave.prediction_table(table, path)
