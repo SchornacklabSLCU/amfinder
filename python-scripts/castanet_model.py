@@ -160,15 +160,15 @@ def create():
     level = cConfig.get('level')
     input_shape = get_input_shape(level) 
 
-    if id == 'colonization':
+    if level == 'colonization':
 
         return colonization(input_shape)
 
-    elif id == 'arb_vesicles':
+    elif level == 'arb_vesicles':
 
         return arb_vesicles(input_shape)
 
-    elif id == 'all_features':
+    elif level == 'all_features':
 
         print('WARNING: Not implemented yet')
         return None
