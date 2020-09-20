@@ -254,6 +254,4 @@ def load():
         else:
 
             print('* Creates an untrained model.')
-            model = create()
-            model.summary()
-            return model
+            return create()
