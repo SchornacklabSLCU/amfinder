@@ -121,7 +121,7 @@ def build_argument_parser():
 
   t_parser.add_argument('-f', '--fraction',
                         action='store', dest='vfrac', metavar='N%',
-                        type=int, default=20,
+                        type=int, default=15,
                         help='output directory for training files.'
                              '\ndefaults to current directory.')
 
