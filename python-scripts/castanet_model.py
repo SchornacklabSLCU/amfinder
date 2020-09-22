@@ -3,6 +3,7 @@
 import os
 import sys
 
+import keras
 from keras.models import Sequential
 from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
@@ -68,6 +69,7 @@ def core_model(input_shape):
                      activation='relu', kernel_initializer=he_uniform()))
 
     # Input size: 02 pixels; output_size: 01 pixels
+    # TODO: replace with average pooling?
     model.add(MaxPooling2D(pool_size=2, name='M4'))
 
     model.add(Flatten(name='F'))

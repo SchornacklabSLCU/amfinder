@@ -30,7 +30,8 @@ def make_table(image, model):
     nrows = image.height // edge
     ncols = image.width // edge
 
-    #cMapping.initialize(model, nrows, ncols)
+    # Creates the images to save the class activation maps.
+    cMapping.initialize(model, nrows, ncols)
 
     if nrows == 0 or ncols == 0:
 
@@ -48,14 +49,16 @@ def make_table(image, model):
             # Convert to NumPy array, and normalize.
             row = normalize(np.array(row, np.float32))
             # Predict mycorrhizal structures.
-            row = model.predict(row, batch_size=bs)
-            # Retrieve class activation maps (upon request).
-            # cMapping.generate(model, row)
+            prd = model.predict(row, batch_size=bs)
+            # Retrieve class activation maps.
+            cMapping.generate(model, row, r)
             # Return prediction as Pandas data frame.
-            return pd.DataFrame(row)
+            return pd.DataFrame(prd)
 
         # Retrieve predictions for all rows within the image.
         results = [process_row(r) for r in range(nrows)]
+
+        cMapping.finalize()
 
         # Concat to a single Pandas dataframe and add header.
         table = pd.concat(results, ignore_index=True)
