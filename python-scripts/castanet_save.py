@@ -1,8 +1,8 @@
 # CastANet - castanet_save.py
 
 import os
-import io
 import sys
+import h5py
 import pickle
 import datetime
 import numpy as np
@@ -33,11 +33,14 @@ def training_data(history, model):
         data = pickle.dumps(history, protocol=pickle.HIGHEST_PROTOCOL)
         z.writestr('history.bin', data)
 
-        # Saves weights.
-        weights = model.get_weights()
-        output = io.BytesIO()
-        np.save(output, weights)
-        z.writestr('weights.hdf5', output.getvalue())
+        # Saves model. BytesIO is not yet available.
+        with h5py.File('any', mode='w', 
+                       driver='core', backing_store=False) as h5file:
+        
+            model.save(h5file)
+            h5file.flush()
+            bin_data = h5file.id.get_file_image()
+            z.writestr(cConfig.get('level') + '.h5', bin_data)
 
         # Saves plots.
         early = cConfig.get('early_stopping').stopped_epoch
