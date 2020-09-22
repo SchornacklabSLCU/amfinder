@@ -32,9 +32,7 @@ def get_data_generator(data_augmentation=False):
         tile edges. """
 
     if data_augmentation:
-        return ImageDataGenerator(horizontal_flip=True,
-                                  vertical_flip=True,
-                                  brightness_range = (0.05, 0.15))
+        return ImageDataGenerator(horizontal_flip=True, vertical_flip=True)
     else:
 
         return ImageDataGenerator()

@@ -8,6 +8,7 @@ import castanet_save as cSave
 import castanet_model as cModel
 import castanet_config as cConfig
 import castanet_segmentation as cSegm
+import castanet_activation_mapping as cMapping
 
 
 
@@ -29,6 +30,8 @@ def make_table(image, model):
     nrows = image.height // edge
     ncols = image.width // edge
 
+    #cMapping.initialize(model, nrows, ncols)
+
     if nrows == 0 or ncols == 0:
 
         return None
@@ -46,6 +49,8 @@ def make_table(image, model):
             row = normalize(np.array(row, np.float32))
             # Predict mycorrhizal structures.
             row = model.predict(row, batch_size=bs)
+            # Retrieve class activation maps (upon request).
+            # cMapping.generate(model, row)
             # Return prediction as Pandas data frame.
             return pd.DataFrame(row)
 
