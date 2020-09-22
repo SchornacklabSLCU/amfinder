@@ -133,14 +133,17 @@ def get_input_shape(level):
 
     if level == 'colonization':
 
+        cConfig.set('model_input_size', 62)
         return (62, 62, 3)
 
     elif level == 'arb_vesicles':
 
+        cConfig.set('model_input_size', 62)
         return (62, 62, 4)
 
     else:
 
+        cConfig.set('model_input_size', 224)
         return (224, 224, 7)
 
 
@@ -177,7 +180,9 @@ def pre_trained(path):
         according to its input shape. """
 
     print('* Loading a pre-trained model.')
-    model = keras.models.load_model(path)
+    
+    # Loads model.
+    model = keras.models.load_model(path)   
     dim = model.layers[0].input_shape
     
     x = dim[1] # tile width
