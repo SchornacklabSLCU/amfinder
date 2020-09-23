@@ -51,14 +51,15 @@ def make_table(image, model):
             # Predict mycorrhizal structures.
             prd = model.predict(row, batch_size=bs)
             # Retrieve class activation maps.
-            cMapping.generate(model, row, r)
+            cMapping.generate(model, row, r, prd)
             # Return prediction as Pandas data frame.
             return pd.DataFrame(prd)
 
         # Retrieve predictions for all rows within the image.
         results = [process_row(r) for r in range(nrows)]
 
-        cMapping.finalize()
+        # Returns the class activation maps.
+        cams = cMapping.finalize()
 
         # Concat to a single Pandas dataframe and add header.
         table = pd.concat(results, ignore_index=True)
@@ -72,7 +73,7 @@ def make_table(image, model):
         table.insert(0, column='col', value=col_values)
         table.insert(0, column='row', value=row_values)
 
-        return table
+        return (table, cams)
 
 
 
@@ -86,5 +87,5 @@ def run(input_images):
     for path in input_images:
         print(f'* Processing {path}')
         image = pyvips.Image.new_from_file(path, access='random')
-        table = make_table(image, model)
-        cSave.prediction_table(table, path)
+        table, cams = make_table(image, model)
+        cSave.prediction_table(table, cams, path)
