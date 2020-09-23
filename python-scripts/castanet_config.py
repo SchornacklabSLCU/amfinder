@@ -20,7 +20,7 @@ PAR = {
     'tile_edge': None,
     'model_input_size': 126, # was 62
     'input_files': None,
-    'batch_size': None,ky
+    'batch_size': None,
     'drop': None,
     'epochs': None,
     'vfrac': None,
