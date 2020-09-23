@@ -27,48 +27,48 @@ def core_model(input_shape):
 
     model = Sequential()
 
-    # Input size: 62 pixels; output_size: 60 pixels
+    # Input size: 62 pixels; output_size: 60 pixels        126->124
     model.add(Conv2D(32, kernel_size=3, name='C1', input_shape=input_shape,
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 60 pixels; output_size: 58 pixels
+    # Input size: 60 pixels; output_size: 58 pixels        124->122
     model.add(Conv2D(32, kernel_size=3, name='C2',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 58 pixels; output_size: 56 pixels
+    # Input size: 58 pixels; output_size: 56 pixels        122->120
     model.add(Conv2D(32, kernel_size=3, name='C3',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 56 pixels; output_size: 28 pixels
+    # Input size: 56 pixels; output_size: 28 pixels        120->60
     model.add(MaxPooling2D(pool_size=2, name='M1'))
 
-    # Input size: 28 pixels; output_size: 26 pixels
+    # Input size: 28 pixels; output_size: 26 pixels         60->58
     model.add(Conv2D(64, kernel_size=3, name='C4',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 26 pixels; output_size: 24 pixels
+    # Input size: 26 pixels; output_size: 24 pixels         58->56
     model.add(Conv2D(64, kernel_size=3, name='C5',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 24 pixels; output_size: 12 pixels
+    # Input size: 24 pixels; output_size: 12 pixels         56->28
     model.add(MaxPooling2D(pool_size=2, name='M2'))
 
-    # Input size: 12 pixels; output_size: 10 pixels
+    # Input size: 12 pixels; output_size: 10 pixels         28->26
     model.add(Conv2D(128, kernel_size=3, name='C6',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 10 pixels; output_size: 08 pixels
+    # Input size: 10 pixels; output_size: 08 pixels         26->24
     model.add(Conv2D(128, kernel_size=3, name='C7',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 08 pixels; output_size: 04 pixels
+    # Input size: 08 pixels; output_size: 04 pixels         24->12
     model.add(MaxPooling2D(pool_size=2, name='M3'))
 
-    # Input size: 04 pixels; output_size: 02 pixels
+    # Input size: 04 pixels; output_size: 02 pixels         12->10
     model.add(Conv2D(128, kernel_size=3, name='C8',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 02 pixels; output_size: 01 pixels
+    # Input size: 02 pixels; output_size: 01 pixels         10->5
     # TODO: replace with average pooling?
     model.add(MaxPooling2D(pool_size=2, name='M4'))
 
