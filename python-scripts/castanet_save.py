@@ -66,7 +66,8 @@ def prediction_table(results, cams, path):
 
         data = results.to_csv(sep='\t', encoding='utf-8', index=False)
         zipf = '{}.zip'.format(os.path.splitext(path)[0])
-        tsv = os.path.join('predictions', now() + '.tsv')
+        uniq = now()
+        tsv = os.path.join('predictions', uniq + '.tsv')
 
         if os.path.isfile(zipf):
 
@@ -80,7 +81,7 @@ def prediction_table(results, cams, path):
                     for label, image in zip(cConfig.get('header'), cams):
                         buf = io.BytesIO()
                         plt.image.imsave(buf, image)
-                        z.writestr(f'cams/map_{label}.png',  buf.getvalue())
+                        z.writestr(f'cams/{uniq}_{label}.png',  buf.getvalue())
     
             else:
 
@@ -96,5 +97,5 @@ def prediction_table(results, cams, path):
                 
                 for label, image in zip(cConfig.get('header'), cams):
                     buf = io.BytesIO()
-                    image.imsave(buf)
-                    z.writestr(f'cams/map_{label}.png',  buf.getvalue())
+                    plt.image.imsave(buf, image)
+                    z.writestr(f'cams/{uniq}_{label}.png',  buf.getvalue())
