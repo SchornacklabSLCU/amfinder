@@ -18,9 +18,9 @@ PAR = {
     'level': None,
     'model': None,
     'tile_edge': None,
-    'model_input_size': 62,
+    'model_input_size': 126, # was 62
     'input_files': None,
-    'batch_size': None,
+    'batch_size': None,ky
     'drop': None,
     'epochs': None,
     'vfrac': None,
@@ -122,8 +122,8 @@ def build_argument_parser():
   t_parser.add_argument('-f', '--fraction',
                         action='store', dest='vfrac', metavar='N%',
                         type=int, default=15,
-                        help='output directory for training files.'
-                             '\ndefaults to current directory.')
+                        help='Percentage of tiles used for validation.'
+                             '\ndefault value: 15%%')
 
   t_parser.add_argument('-o', '--output',
                         action='store', dest='outdir', metavar='DIR',
