@@ -1,12 +1,14 @@
 # CastANet - castanet_save.py
 
 import os
+import io
 import sys
 import h5py
 import pickle
 import datetime
 import numpy as np
 import zipfile as zf
+import matplotlib as plt
 
 import castanet_plot as cPlot
 import castanet_config as cConfig
@@ -56,7 +58,7 @@ def training_data(history, model):
 
 
 
-def prediction_table(results, path):
+def prediction_table(results, cams, path):
     """ Saves or append predictions to an archive. """
 
     # TODO: check whether None may happen.
@@ -75,6 +77,11 @@ def prediction_table(results, path):
                     z.comment = cConfig.get('level').encode('utf-8')
                     z.writestr(tsv, data)
 
+                    for label, image in zip(cConfig.get('header'), cams):
+                        buf = io.BytesIO()
+                        plt.image.imsave(buf, image)
+                        z.writestr(f'cams/map_{label}.png',  buf.getvalue())
+    
             else:
 
                 print(f'ERROR: Corrupted archive {zipf}')
@@ -86,3 +93,8 @@ def prediction_table(results, path):
             with zf.ZipFile(zipf, 'w') as z:
                 z.comment = cConfig.get('level').encode('utf-8')
                 z.writestr(tsv, data)
+                
+                for label, image in zip(cConfig.get('header'), cams):
+                    buf = io.BytesIO()
+                    image.imsave(buf)
+                    z.writestr(f'cams/map_{label}.png',  buf.getvalue())
