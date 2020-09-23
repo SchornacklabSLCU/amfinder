@@ -51,7 +51,7 @@ def make_table(image, model):
             # Predict mycorrhizal structures.
             prd = model.predict(row, batch_size=bs)
             # Retrieve class activation maps.
-            cMapping.generate(model, row, r, prd)
+            cMapping.generate(model, row, r)
             # Return prediction as Pandas data frame.
             return pd.DataFrame(prd)
 

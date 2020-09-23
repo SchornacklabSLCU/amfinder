@@ -116,7 +116,7 @@ def make_heatmap(cam, is_best_match, epsilon=1e-10):
 
 
 # Grad-CAM class activation visualization.
-def generate(model, row, r, prd):
+def generate(model, row, r):
     """ """
 
     print(f'DEBUG: Processing row {r}')
