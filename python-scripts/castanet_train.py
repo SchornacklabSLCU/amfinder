@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import zipfile as zf
 
-from functools import partial
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
 from keras.preprocessing.image import load_img
@@ -39,16 +38,22 @@ def get_data_generator(data_augmentation=False):
 
 
 
-def may_load_tile(level, drop, image, x):
-    """ Loads a tile under specific conditions. """
+def load_tile(image, drop, data):
+    """
+    Load a tile, and drop some background tiles.
+    PARAMETERS
+        drop    Percentage of background tiles to drop.
+        image   Source image (mosaic).
+        data    Tile coordinates (row/column) and annotations.
+    """
 
-    if x['X'] == 1 and drop > 0 and random.uniform(0, 100) < drop:
+    if data['X'] == 1 and drop > 0 and random.uniform(0, 100) < drop:
 
         return None
 
     else:
 
-        return cSegm.tile(image, x['row'], x['col'])
+        return cSegm.tile(image, data['row'], data['col'])
 
 
 
@@ -60,16 +65,16 @@ def print_statistics(labels):
     counts = list(hrange)
 
     for hot in labels:
-    
+
         for i in hrange:
-        
+
             if hot[i] == 1:
-            
+
                 counts[i] += 1
 
-    print('* Statistics')          
+    print('* Statistics')
     for i in hrange:
-    
+
         lbl = header[i]
         num = counts[i]
         pct = int(round(100.0 * num / sum(counts)))
@@ -81,12 +86,10 @@ def load_annotations(input_files):
     """ Builds the training dataset by extracting tiles from
         large images, removing some background images where
         appropriate. """
-    
+
+    drop = cConfig.get('drop')
     level = cConfig.get('level')
     headers = cConfig.get('header')
-
-    # Partial application to avoid using cConfig.get too often.
-    tile = partial(may_load_tile, level, cConfig.get('drop'))
 
     random.seed(42)
 
@@ -103,20 +106,20 @@ def load_annotations(input_files):
         print(f'    - {base}... ', end='', flush=True)
 
         if os.path.isfile(zipf) and zf.is_zipfile(zipf):
-        
+
             with zf.ZipFile(zipf, 'r') as z:
                 data = z.read(f'python/{level}.tsv').decode('utf-8')
                 data = pd.read_csv(io.StringIO(data), sep='\t')
 
         else: # No annotations or corrupted archive.
-        
+
             print(f'WARNING: Missing annotations for {base}')
             continue
 
         image = pyvips.Image.new_from_file(path, access='random')
 
         # Loads tiles (omitting some background tiles if requested).
-        data['tile'] = data.apply(lambda x: tile(image, x), axis=1)
+        data['tile'] = data.apply(lambda x: load_tile(image, drop, x), axis=1)
         data = data[data['tile'].notnull()]
 
         # Converts tile annotations to one-hot vectors.
