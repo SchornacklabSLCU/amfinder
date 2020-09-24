@@ -66,7 +66,7 @@ def set(id, value, create=False):
         create  Create a new pair should the identifier not exist.
     """
 
-    if x is None: break
+    if x is None: return
 
     id = id.lower()
 
