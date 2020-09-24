@@ -58,44 +58,49 @@ def training_data(history, model):
 
 
 
+def save_cams(uniq, z, cams):
+
+    for label, image in zip(cConfig.get('header'), cams):
+        buf = io.BytesIO()
+        plt.image.imsave(buf, image)
+        z.writestr(f'cams/{uniq}_{label}.png',  buf.getvalue())
+
+
+
 def prediction_table(results, cams, path):
     """ Saves or append predictions to an archive. """
 
     # TODO: check whether None may happen.
     if results is not None:
 
-        data = results.to_csv(sep='\t', encoding='utf-8', index=False)
         zipf = '{}.zip'.format(os.path.splitext(path)[0])
+        print(f'    - saving as {zipf}... ', end='')
+
         uniq = now()
+        data = results.to_csv(sep='\t', encoding='utf-8', index=False)
         tsv = os.path.join('predictions', uniq + '.tsv')
 
         if os.path.isfile(zipf):
 
             if zf.is_zipfile(zipf):
 
-                print('    -> saved as {}'.format(zipf))
                 with zf.ZipFile(zipf, 'a') as z:
                     z.comment = cConfig.get('level').encode('utf-8')
                     z.writestr(tsv, data)
-
-                    for label, image in zip(cConfig.get('header'), cams):
-                        buf = io.BytesIO()
-                        plt.image.imsave(buf, image)
-                        z.writestr(f'cams/{uniq}_{label}.png',  buf.getvalue())
-    
+                    if cams is not None:
+                        save_cams(uniq, z, cams)
+        
             else:
 
-                print(f'ERROR: Corrupted archive {zipf}')
+                print('FAILED')
                 sys.exit(CORRUPTED_ARCHIVE)
     
         else:
 
-            print('    -> saved as {}'.format(zipf))
             with zf.ZipFile(zipf, 'w') as z:
                 z.comment = cConfig.get('level').encode('utf-8')
                 z.writestr(tsv, data)
-                
-                for label, image in zip(cConfig.get('header'), cams):
-                    buf = io.BytesIO()
-                    plt.image.imsave(buf, image)
-                    z.writestr(f'cams/{uniq}_{label}.png',  buf.getvalue())
+                if cams is not None:
+                    save_cams(uniq, z, cams)
+
+        print('OK')
