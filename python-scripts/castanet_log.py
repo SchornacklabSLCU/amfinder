@@ -1,4 +1,4 @@
-# CastANet - castanet_errcodes.py
+# CastANet - castanet_log.py
 
 import sys
 import traceback
