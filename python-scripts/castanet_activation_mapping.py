@@ -35,9 +35,7 @@ def initialize(nrows, ncols):
         # Create an empty image, to be used as template.
         edge = cConfig.get('tile_edge')
         blank = np.zeros((nrows * edge, ncols * edge, 3), np.uint8)
-
-        global MAPS
-        
+       
         # Create copies of the template blank image for each class.
         return [blank.copy() for _ in cConfig.get('header')]
 
