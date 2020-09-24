@@ -24,12 +24,12 @@ MAPS = []
 
 
 def initialize(nrows, ncols):
-    """ Create blank images for all annotation classes.
-        PARAMETERS
-        nrows: int
-            Tile row count.
-        ncols: int
-            Tile column count.
+    """
+    Create blank images for all annotation classes.
+
+    PARAMETERS
+        nrows       Tile row count.
+        ncols       Tile column count.
     """
 
     if cConfig.get('generate_cams'):
@@ -46,13 +46,11 @@ def initialize(nrows, ncols):
 
 
 def get_last_conv_model(model):
-    """ Map the model input to its last convolutional layer.
-        PARAMETERS
-        model: Sequential (tensorflow)
-            Pre-trained model used for predictions.
-        RAISES
-        CastANetError
-            if the input model does not contain any convolutional layer.
+    """
+    Map the model input to its last convolutional layer.
+    
+    PARAMETER
+        model       Pre-trained model used for predictions.
     """
 
     # The last convolutional layer occurs first on the reversed layer list.
@@ -71,12 +69,12 @@ def get_last_conv_model(model):
 
 
 def get_classifier_model(model, last_conv):
-    """ Map the output of the last convolutional layer to model predictions.
-        PARAMETERS
-        model: Sequential (tensorflow)
-            Pre-trained model used for predictions.
-        last_conv: Conv2D (tensorflow)
-            Last convolutional layer of the given model.
+    """
+    Map the output of the last convolutional layer to model predictions.
+    
+    PARAMETERS
+        model       Pre-trained model used for predictions.
+        last_conv   Last convolutional layer of the given model.
     """
 
     classifier_input = Input(shape=last_conv.output.shape[1:])
@@ -93,17 +91,15 @@ def get_classifier_model(model, last_conv):
 
 
 
-def compute_cam(index, tile, last_conv_model, classifier_model):
-    """ Compute gradient and class activation map.
-        PARAMETERS
-        index: int
-            Class index.
-        tile: numpy.ndarray
-            Input tile to be processed.
-        last_conv_model: Functional (tensorflow)
-            Model to retrieve the output of the last Conv2D layer.
-        classifier_model: Functional (tensorflow)
-            Model to retrieve the gradients.
+def compute_cam(index, tile, conv_model, classifier):
+    """
+    Compute gradient and class activation map.
+    
+    PARAMETERS
+        index       Class index.
+        tile        Input tile to be processed.
+        conv_model  Model to retrieve the output of the last Conv2D layer.
+        classifier  Model to retrieve the gradients.
     """
 
     # Transform the tile array into a batch.
@@ -111,7 +107,7 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
     tile_batch = np.expand_dims(tile, axis=0)
 
     # Compute the output of the last convolutional layer.
-    last_conv_output = last_conv_model(tile_batch)
+    last_conv_output = conv_model(tile_batch)
 
     with tf.GradientTape(watch_accessed_variables=False) as tape:
 
@@ -119,7 +115,7 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
         tape.watch(last_conv_output)
 
         # Obtain the predictions.
-        predictions = classifier_model(last_conv_output)
+        predictions = classifier(last_conv_output)
 
         # Build a tensor for the given index
         class_index = tf.convert_to_tensor(index, dtype='int64') 
@@ -153,13 +149,13 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
 
 
 
-def make_heatmap(cam, is_best_match):
-    """ Generate a heatmap image from a heatmap tensor.
-        PARAMETERS
-        cam: EagerTensor (tensorflow)
-            Class activation map tensor.
-        is_best_match: int 
-            Tells whether the CAM corresponds to the best prediction.
+def make_heatmap(cam, top_pred):
+    """
+    Generate a heatmap image from a heatmap tensor.
+    
+    PARAMETERS
+        cam         Class activation map tensor.
+        best_match  Tells whether the CAM corresponds to the best prediction.
     """
 
     # Resize the heatmap to input tile size.
@@ -175,7 +171,7 @@ def make_heatmap(cam, is_best_match):
     heatmap = (heatmap * 255).astype('uint8')
 
     # Apply colormap.
-    colormap = cConfig.get('colormap') if is_best_match else cv2.COLORMAP_BONE
+    colormap = cConfig.get('colormap') if top_pred else cv2.COLORMAP_BONE
     color_heatmap = cv2.applyColorMap(heatmap, colormap)
 
     return color_heatmap
