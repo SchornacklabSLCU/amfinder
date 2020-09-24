@@ -1,6 +1,7 @@
 # CastANet - castanet_config.py
 
 import os
+import cv2
 import glob
 import mimetypes
 from argparse import ArgumentParser
@@ -27,6 +28,7 @@ PAR = {
     'header': HEADERS['colonization'],
     'outdir': None,
     'generate_cams': None,
+    'colormap': None,
     'monitors': {
         'csv_logger': None,
         'early_stopping': None,
@@ -174,6 +176,12 @@ def build_argument_parser():
                         help='Generate class activation maps (takes some time).'
                              '\ndefault value: True')
 
+  p_parser.add_argument('-c', '--colormap',
+                        action='store', dest='colormap', metavar='MAP',
+                        type=int, default=cv2.COLORMAP_JET,
+                        help='OpenCV colormap (see OpenCV documentation).'
+                             '\ndefault value: 2 (cv2.COLORMAP_JET)')
+
   p_parser.add_argument('model', action='store', metavar='H5',
                         type=str, default=None,
                         help='path to the pre-trained model.')
@@ -230,3 +238,4 @@ def initialize():
     else: # par.run_mode == 'predict'
         set('model', par.model)
         set('generate_cams', par.generate_cams)
+        set('colormap', par.colormap)

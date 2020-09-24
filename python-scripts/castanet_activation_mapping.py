@@ -153,15 +153,13 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
 
 
 
-def make_heatmap(cam, is_best_match, colormap=cv2.COLORMAP_JET):
+def make_heatmap(cam, is_best_match):
     """ Generate a heatmap image from a heatmap tensor.
         PARAMETERS
         cam: EagerTensor (tensorflow)
             Class activation map tensor.
         is_best_match: int 
             Tells whether the CAM corresponds to the best prediction.
-        colormap: int, optional
-            OpenCV colormap to use when <is_best_match> is true.
     """
 
     # Resize the heatmap to input tile size.
@@ -177,7 +175,7 @@ def make_heatmap(cam, is_best_match, colormap=cv2.COLORMAP_JET):
     heatmap = (heatmap * 255).astype('uint8')
 
     # Apply colormap.
-    colormap = colormap if is_best_match else cv2.COLORMAP_BONE
+    colormap = cConfig.get('colormap') if is_best_match else cv2.COLORMAP_BONE
     color_heatmap = cv2.applyColorMap(heatmap, colormap)
 
     return color_heatmap
