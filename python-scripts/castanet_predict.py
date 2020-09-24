@@ -1,5 +1,6 @@
 # CastANet - castanet_predict.py
 
+import os
 import pyvips
 import numpy as np
 import pandas as pd
@@ -10,6 +11,28 @@ import castanet_config as cConfig
 import castanet_segmentation as cSegm
 import castanet_activation_mapping as cMapping
 
+
+
+def printProgressBar(iteration, total, prefix = '- processing', suffix = '', decimals = 1, length = 60, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r    {prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
 
 
 def normalize(t):
@@ -52,10 +75,12 @@ def make_table(image, model):
             prd = model.predict(row, batch_size=bs)
             # Retrieve class activation maps.
             cMapping.generate(model, row, r)
+            printProgressBar(r+1, nrows)
             # Return prediction as Pandas data frame.
             return pd.DataFrame(prd)
 
         # Retrieve predictions for all rows within the image.
+        printProgressBar(0, nrows)
         results = [process_row(r) for r in range(nrows)]
 
         # Returns the class activation maps.
@@ -85,7 +110,8 @@ def run(input_images):
     model = cModel.load()
 
     for path in input_images:
-        print(f'* Processing {path}')
+        base = os.path.basename(path)
+        print(f'* Image {base}')
         image = pyvips.Image.new_from_file(path, access='random')
         table, cams = make_table(image, model)
         cSave.prediction_table(table, cams, path)
