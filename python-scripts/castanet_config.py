@@ -41,7 +41,6 @@ PAR = {
 def get(id):
     """
     Retrieve application settings by name.
-
     PARAMETER
         id      The identifier of the application setting to retrieve.
     """
@@ -59,7 +58,6 @@ def get(id):
 def set(id, value, create=False):
     """
     Update application settings.
-   
     PARAMETERS
         id      The identifier of the application setting to update.
         value   The value to be stored. 
@@ -73,7 +71,6 @@ def set(id, value, create=False):
     if id in PAR:
     
         PAR[id] = value
-
         # Automatically adjust header to annotation level.
         if id == 'level': PAR['header'] = HEADERS[value]
 
@@ -91,7 +88,7 @@ def set(id, value, create=False):
 
 
 
-def build_argument_parser():
+def build_argumentp():
   """ This function builds CastAnet command-line parser. The parser
       consists of two mutually exclusive sub-parsers: <train> and
       <predict>. The former defines arguments concerning the learning
@@ -108,102 +105,102 @@ def build_argument_parser():
                                    help='action to be performed.')
 
   # Subparser dedicated to network training using pre-annotated images.
-  t_parser = subparsers.add_parser('train',
-                                   help='learns how to identify AMF structures.',
-                                   formatter_class=RawTextHelpFormatter)
+  tp = subparsers.add_parser('train',
+                             help='learns how to identify AMF structures.',
+                             formatter_class=RawTextHelpFormatter)
 
-  t_parser.add_argument('-t', '--tile',
-                        action='store', dest='edge',
-                        type=int, default=40,
-                        help='tile edge (in pixels) used for image segmentation.'
-                             '\ndefault value: 40 pixels')
+  tp.add_argument('-t', '--tile',
+                  action='store', dest='edge',
+                  type=int, default=40,
+                  help='tile edge (in pixels) used for image segmentation.'
+                       '\ndefault value: 40 pixels')
 
-  t_parser.add_argument('-b', '--batch',
-                        action='store', dest='batch_size', metavar='NUM',
-                        type=int, default=32,
-                        help='training batch size.'
-                             '\ndefault value: 32')
+  tp.add_argument('-b', '--batch',
+                  action='store', dest='batch_size', metavar='NUM',
+                  type=int, default=32,
+                  help='training batch size.'
+                       '\ndefault value: 32')
 
-  t_parser.add_argument('-d', '--drop',
-                        action='store', dest='dfrac', metavar='N%',
-                        type=int, default=50,
-                        help='percentage of background tiles to be skipped.'
-                             '\ndefault value: 50%%')
+  tp.add_argument('-d', '--drop',
+                  action='store', dest='dfrac', metavar='N%',
+                  type=int, default=50,
+                  help='percentage of background tiles to be skipped.'
+                       '\ndefault value: 50%%')
 
-  t_parser.add_argument('-e', '--epochs',
-                        action='store', dest='epochs', metavar='NUM',
-                        type=int, default=100,
-                        help='number of epochs to run.'
-                             '\ndefault value: 100')
+  tp.add_argument('-e', '--epochs',
+                  action='store', dest='epochs', metavar='NUM',
+                  type=int, default=100,
+                  help='number of epochs to run.'
+                       '\ndefault value: 100')
 
-  t_parser.add_argument('-f', '--fraction',
-                        action='store', dest='vfrac', metavar='N%',
-                        type=int, default=15,
-                        help='Percentage of tiles used for validation.'
-                             '\ndefault value: 15%%')
+  tp.add_argument('-f', '--fraction',
+                  action='store', dest='vfrac', metavar='N%',
+                  type=int, default=15,
+                  help='Percentage of tiles used for validation.'
+                       '\ndefault value: 15%%')
 
-  t_parser.add_argument('-o', '--output',
-                        action='store', dest='outdir', metavar='DIR',
-                        type=str, default='.',
-                        help='output directory for training files.'
-                             '\ndefaults to current directory.')
+  tp.add_argument('-o', '--output',
+                  action='store', dest='outdir', metavar='DIR',
+                  type=str, default='.',
+                  help='output directory for training files.'
+                       '\ndefaults to current directory.')
 
-  t_source = t_parser.add_mutually_exclusive_group()
+  ts = tp.add_mutually_exclusive_group()
 
-  t_source.add_argument('-l', '--level',
-                        action='store', dest='level', metavar='ID',
-                        type=str, default='colonization',
-                        help='Annotation level identifier.'
-                             '\nchoices: {colonization, arb_vesicles, all_features}'
-                             '\ndefault value: colonization')
+  ts.add_argument('-l', '--level',
+                  action='store', dest='level', metavar='ID',
+                  type=str, default='colonization',
+                  help='Annotation level identifier.'
+                       '\nchoices: {colonization, arb_vesicles, all_features}'
+                       '\ndefault value: colonization')
 
-  t_source.add_argument('-m', '--model',
-                        action='store', dest='model', metavar='H5',
-                        type=str, default=None,
-                        help='path to the pre-trained model.'
-                             '\ndefault value: none')
+  ts.add_argument('-m', '--model',
+                  action='store', dest='model', metavar='H5',
+                  type=str, default=None,
+                  help='path to the pre-trained model.'
+                       '\ndefault value: none')
 
-  t_parser.add_argument('-v', '--validate',
-                        action='store', dest='vfrac', metavar='N%',
-                        type=int, default=30,
-                        help='percentage of tiles to be used for validation.'
-                             '\ndefault value: 30%%')
+  tp.add_argument('-v', '--validate',
+                  action='store', dest='vfrac', metavar='N%',
+                  type=int, default=30,
+                  help='percentage of tiles to be used for validation.'
+                       '\ndefault value: 30%%')
 
-  t_parser.add_argument('image', nargs='*',
-                        default=['*.jpg'],
-                        help='plant root scan to be processed.'
-                             '\ndefault value: *jpg')
+  tp.add_argument('image', nargs='*',
+                  default=['*.jpg'],
+                  help='plant root scan to be processed.'
+                       '\ndefault value: *jpg')
 
   # Subparser dedicated to prediction of mycorrhizal structures.
-  p_parser = subparsers.add_parser('predict',
-                                   help='predicts AMF structures.',
-                                   formatter_class=RawTextHelpFormatter)
+  pp = subparsers.add_parser('predict',
+                             help='predicts AMF structures.',
+                             formatter_class=RawTextHelpFormatter)
 
-  p_parser.add_argument('-t', '--tile',
-                        action='store', dest='edge',
-                        type=int, default=40,
-                        help='tile edge (in pixels) used for image segmentation.'
-                             '\ndefault value: 40 pixels')
+  pp.add_argument('-t', '--tile',
+                  action='store', dest='edge',
+                  type=int, default=40,
+                  help='tile edge (in pixels) used for image segmentation.'
+                       '\ndefault value: 40 pixels')
 
-  p_parser.add_argument('-a', '--activation_map', action='store_true',
-                        dest='generate_cams', default=False,
-                        help='Generate class activation map (takes some time).'
-                             '\ndefault value: False')
+  pp.add_argument('-a', '--activation_map', action='store_true',
+                  dest='generate_cams', default=False,
+                  help='Generate class activation map (takes some time).'
+                       '\ndefault value: False')
 
-  p_parser.add_argument('-c', '--colormap',
-                        action='store', dest='colormap', metavar='N',
-                        type=int, default=cv2.COLORMAP_JET,
-                        help='OpenCV colormap (see OpenCV documentation).'
-                             '\ndefault value: 2 (cv2.COLORMAP_JET)')
+  pp.add_argument('-c', '--colormap',
+                  action='store', dest='colormap', metavar='N',
+                  type=int, default=cv2.COLORMAP_JET,
+                  help='OpenCV colormap (see OpenCV documentation).'
+                       '\ndefault value: 2 (cv2.COLORMAP_JET)')
 
-  p_parser.add_argument('model', action='store', metavar='H5',
-                        type=str, default=None,
-                        help='path to the pre-trained model.')
+  pp.add_argument('model', action='store', metavar='H5',
+                  type=str, default=None,
+                  help='path to the pre-trained model.')
 
-  p_parser.add_argument('image', nargs='*',
-                        default=['*.jpg'],
-                        help='plant root scan to be processed.'
-                             '\ndefaults to JPEG files in the current directory.')
+  pp.add_argument('image', nargs='*',
+                  default=['*.jpg'],
+                  help='plant root scan to be processed.'
+                       '\ndefaults to JPEG files in the current directory.')
 
   return main
 
@@ -232,7 +229,7 @@ def initialize():
     """ Here is CastANet initialization function. It parses command-line
         arguments, performs type-checking, then updates internal settings
         accordingly. """
-    parser = build_argument_parser()
+    parser = build_argumentp()
     par = parser.parse_known_args()[0]
 
     # Main arguments.
