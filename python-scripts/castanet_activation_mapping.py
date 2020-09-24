@@ -45,7 +45,7 @@ def initialize(nrows, ncols):
 
 
 
-def get_last_conv_model(model):
+def get_conv_model(model):
     """
     Map the model input to its last convolutional layer.
     
@@ -59,9 +59,9 @@ def get_last_conv_model(model):
         if isinstance(layer, Conv2D):
 
             last_conv = layer
-            last_conv_model = Model(model.inputs, last_conv.output)
+            conv_model = Model(model.inputs, last_conv.output)
 
-            return (last_conv, last_conv_model)
+            return (last_conv, conv_model)
 
     # We could not find any convolutional layer in the input model.
     cLog.failwith(f'{model} has no Conv2D layer', cLog.ERR_INVALID_MODEL)
@@ -179,14 +179,13 @@ def make_heatmap(cam, top_pred):
 
 
 def generate(model, row, r):
-    """ Generate a mosaic of class activation maps for an array of tiles.
-        PARAMETERS
-        model: Sequential (tensorflow)
-            Pre-trained model used for predictions.
-        row: numpy.ndarray
-            Row of preprocessed tiles from the large input image.
-        r: int
-            Row index.
+    """
+    Generate a mosaic of class activation maps for an array of tiles.
+
+    PARAMETERS
+        model       Pre-trained model used for predictions.
+        row         Row of preprocessed tiles from the large input image.
+        r           Row index.
     """
 
     if cConfig.get('generate_cams'):
@@ -194,7 +193,7 @@ def generate(model, row, r):
         edge = cConfig.get('tile_edge')
 
         # Map the input tile to the activations of the last Conv2D layer.
-        last_conv, last_conv_model = get_last_conv_model(model)
+        last_conv, conv_model = get_conv_model(model)
 
         # Map the activations of <last_conv> to the final class predictions.
         classifier_model = get_classifier_model(model, last_conv)
@@ -204,7 +203,7 @@ def generate(model, row, r):
             # Generate class activation maps for all annotations classes
             # The function <compute_cam> returns a boolean which indicates
             # whether the given class is the best match.    
-            cams = [compute_cam(i, tile, last_conv_model, classifier_model)
+            cams = [compute_cam(i, tile, conv_model, classifier_model)
                     for i, _ in enumerate(cConfig.get('header'))]
         
 
