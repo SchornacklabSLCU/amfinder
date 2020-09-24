@@ -5,34 +5,13 @@ import pyvips
 import numpy as np
 import pandas as pd
 
+import castanet_log as cLog
 import castanet_save as cSave
 import castanet_model as cModel
 import castanet_config as cConfig
 import castanet_segmentation as cSegm
 import castanet_activation_mapping as cMapping
 
-
-
-def printProgressBar(iteration, total, prefix = '- processing', suffix = '', decimals = 1, length = 60, fill = '█', printEnd = "\r"):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r    {prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total: 
-        print()
 
 
 def normalize(t):
@@ -43,18 +22,20 @@ def normalize(t):
 
 
 def make_table(image, model):
-    """ Memory-efficient function to predict mycorrhizal structures
-        on a large image. Tiles are generated row by row and processed
-        on the fly to prevent memory overhead (this would not be a
-        problem on HPC. However, one should be able to predict
-        mycorrhizal structures on a desktop computer). """
+    """ Predict mycorrhizal structures on a large image. 
+        PARAMETERS
+        image: pyvips.vimage.Image
+            Large image (mosaic) from which tiles are extracted.
+        model: Sequential (tensorflow).
+            Model used to predict mycorrhizal structures.
+    """
 
     edge = cConfig.get('tile_edge')
     nrows = image.height // edge
     ncols = image.width // edge
 
     # Creates the images to save the class activation maps.
-    cMapping.initialize(model, nrows, ncols)
+    cMapping.initialize(nrows, ncols)
 
     if nrows == 0 or ncols == 0:
 
@@ -75,16 +56,19 @@ def make_table(image, model):
             prd = model.predict(row, batch_size=bs)
             # Retrieve class activation maps.
             cMapping.generate(model, row, r)
-            printProgressBar(r+1, nrows)
+            # Update the progress bar.
+            cLog.progress_bar(r + 1, nrows)
             # Return prediction as Pandas data frame.
             return pd.DataFrame(prd)
 
+        # Initialize the progress bar.
+        cLog.progress_bar(0, nrows)
+
         # Retrieve predictions for all rows within the image.
-        printProgressBar(0, nrows)
         results = [process_row(r) for r in range(nrows)]
 
         # Returns the class activation maps.
-        cams = cMapping.finalize()
+        cams = cMapping.retrieve()
 
         # Concat to a single Pandas dataframe and add header.
         table = pd.concat(results, ignore_index=True)
