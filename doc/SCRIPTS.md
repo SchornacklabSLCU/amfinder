@@ -14,19 +14,17 @@ structures in JPEG or TIFF images.
 
 
 ```
-usage: castanet.py [-h] [-t EDGE] {train,predict} ...
+usage: castanet.py [-h] {train,predict} ...
 
 CastANet command-line arguments.
 
 positional arguments:
-  {train,predict}       action to be performed.
-    train               learns how to identify AMF structures.
-    predict             predicts AMF structures.
+  {train,predict}  action to be performed.
+    train          learns how to identify AMF structures.
+    predict        predicts AMF structures.
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -t EDGE, --tile EDGE  tile edge (in pixels) used for image segmentation.
-                        default value: 40 pixels
+  -h, --help       show this help message and exit
 ```
 
 ### Training mode
@@ -38,8 +36,8 @@ model. Although low-resolution pictures allow running this script on a personal
 computer, using high-performance computing (HPC) is recommended.
 
 ```
-usage: castanet.py train [-h] [-b NUM] [-d N%] [-e NUM] [-l ID | -m H5]
-                         [-v N%]
+usage: castanet.py train [-h] [-t EDGE] [-b NUM] [-d N%] [-e NUM] [-f N%]
+                         [-o DIR] [-l ID | -m H5] [-v N%]
                          [image [image ...]]
 
 positional arguments:
@@ -48,12 +46,18 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  -t EDGE, --tile EDGE  tile edge (in pixels) used for image segmentation.
+                        default value: 40 pixels
   -b NUM, --batch NUM   training batch size.
                         default value: 32
   -d N%, --drop N%      percentage of background tiles to be skipped.
                         default value: 50%
   -e NUM, --epochs NUM  number of epochs to run.
                         default value: 100
+  -f N%, --fraction N%  Percentage of tiles used for validation.
+                        default value: 15%
+  -o DIR, --output DIR  output directory for training files.
+                        defaults to current directory.
   -l ID, --level ID     Annotation level identifier.
                         choices: {colonization, arb_vesicles, all_features}
                         default value: colonization
@@ -66,20 +70,24 @@ optional arguments:
 
 ### Prediction mode
 
-Run the Python script in prediction mode when you want to annotate root images
-automatically. Prediction relies on a pre-trained model (see training mode
-above). The results obtained through computer prediction are probabilities.
-Users should double-check results using the CastANet browser before calculating
-colonization levels..
+Run CastANet prediction mode to perform automatic annotations of root images. 
+Prediction relies on a pre-trained model that can be obtained here **(link)**
+or generated from a custom set of training images using the training mode (see above). 
 
 ```
-usage: castanet.py predict [-h] H5 [image [image ...]]
+usage: castanet.py predict [-h] [-t EDGE] [-a] [-c N] H5 [image [image ...]]
 
 positional arguments:
-  H5          path to the pre-trained model.
-  image       plant root scan to be processed.
-              default value: *jpg
+  H5                    path to the pre-trained model.
+  image                 plant root scan to be processed.
+                        defaults to JPEG files in the current directory.
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -t EDGE, --tile EDGE  tile edge (in pixels) used for image segmentation.
+                        default value: 40 pixels
+  -a, --activation_map  Generate class activation map (takes some time).
+                        default value: False
+  -c N, --colormap N    OpenCV colormap (see OpenCV documentation).
+                        default value: 2 (cv2.COLORMAP_JET)
 ```
