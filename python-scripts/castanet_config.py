@@ -75,7 +75,7 @@ def set(id, value, create=False):
         PAR[id] = value
 
         # Automatically adjust header to annotation level.
-        if id == 'level': PAR['header'] = HEADERS[id]
+        if id == 'level': PAR['header'] = HEADERS[value]
 
     elif id in PAR['monitors']:
 
