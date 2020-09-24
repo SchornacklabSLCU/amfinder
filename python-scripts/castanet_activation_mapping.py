@@ -98,7 +98,7 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
         PARAMETERS
         index: int
             Class index.
-        tile: numpy.ndarray
+        tile: <class 'numpy.ndarray'>
             Input tile to be processed.
         last_conv_model: <class 'tensorflow.python.keras.engine.functional.Functional'>
             Model to retrieve the output of the last Conv2D layer.
@@ -185,7 +185,15 @@ def make_heatmap(cam, is_best_match, colormap=cv2.COLORMAP_JET):
 
 
 def generate(model, row, r):
-    """ """
+    """ Generate a mosaic of class activation maps for an array of tiles.
+        PARAMETERS
+        model: <class 'tensorflow.python.keras.layers.convolutional.Conv2D'>
+            Pre-trained model used for predictions.
+        row: <class 'numpy.ndarray'>
+            Row of preprocessed tiles from the large input image.
+        r: int
+            Row index.
+    """
 
     if cConfig.get('generate_cams'):
 
@@ -211,10 +219,12 @@ def generate(model, row, r):
                 # Generats the heatmap.
                 heatmap = make_heatmap(cam, is_best_match)
 
-                # Resize the tile to its original size and desaturate.
+                # Resize the tile to its original size, desaturate
+                # and increase the contrast (better overlay rendition).
                 resized = np.uint8(cv2.resize(tile, (edge, edge)) * 255)
                 resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
                 resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+                resized = cv2.convertScaleAbs(resized, alpha=1.5, beta=0.8)
 
                 # Overlay the heatmap on top of the desaturated tile.
                 output = cv2.addWeighted(heatmap, 0.4, resized, 0.6, 0.0)
