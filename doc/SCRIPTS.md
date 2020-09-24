@@ -14,7 +14,7 @@ structures in JPEG or TIFF images.
 
 
 ```
-usage: castanet.py [-h] {train,predict} ...
+usage: castanet [-h] {train,predict} ...
 
 CastANet command-line arguments.
 
@@ -36,9 +36,9 @@ model. Although low-resolution pictures allow running this script on a personal
 computer, using high-performance computing (HPC) is recommended.
 
 ```
-usage: castanet.py train [-h] [-t EDGE] [-b NUM] [-d N%] [-e NUM] [-f N%]
-                         [-o DIR] [-l ID | -m H5] [-v N%]
-                         [image [image ...]]
+usage: castanet train [-h] [-t EDGE] [-b NUM] [-d N%] [-e NUM] [-f N%]
+                      [-o DIR] [-l ID | -m H5] [-v N%]
+                      [image [image ...]]
 
 positional arguments:
   image                 plant root scan to be processed.
@@ -75,7 +75,7 @@ Prediction relies on a pre-trained model that can be obtained here **(link)**
 or generated from a custom set of training images using the training mode (see above). 
 
 ```
-usage: castanet.py predict [-h] [-t EDGE] [-a] [-c N] H5 [image [image ...]]
+usage: castanet predict [-h] [-t EDGE] [-a] [-c N] H5 [image [image ...]]
 
 positional arguments:
   H5                    path to the pre-trained model.
