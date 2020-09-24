@@ -48,7 +48,7 @@ def initialize(nrows, ncols):
 def get_last_conv_model(model):
     """ Map the model input to its last convolutional layer.
         PARAMETERS
-        model: <class 'tensorflow.python.keras.engine.sequential.Sequential'>
+        model: Sequential (tensorflow)
             Pre-trained model used for predictions.
         RAISES
         CastANetError
@@ -73,9 +73,9 @@ def get_last_conv_model(model):
 def get_classifier_model(model, last_conv):
     """ Map the output of the last convolutional layer to model predictions.
         PARAMETERS
-        model: <class 'tensorflow.python.keras.layers.convolutional.Conv2D'>
+        model: Sequential (tensorflow)
             Pre-trained model used for predictions.
-        last_conv: <class 'tensorflow.python.keras.layers.convolutional.Conv2D'>
+        last_conv: Conv2D (tensorflow)
             Last convolutional layer of the given model.
     """
 
@@ -98,11 +98,11 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
         PARAMETERS
         index: int
             Class index.
-        tile: <class 'numpy.ndarray'>
+        tile: numpy.ndarray
             Input tile to be processed.
-        last_conv_model: <class 'tensorflow.python.keras.engine.functional.Functional'>
+        last_conv_model: Functional (tensorflow)
             Model to retrieve the output of the last Conv2D layer.
-        classifier_model: <class 'tensorflow.python.keras.engine.functional.Functional'>
+        classifier_model: Functional (tensorflow)
             Model to retrieve the gradients.
     """
 
@@ -156,7 +156,7 @@ def compute_cam(index, tile, last_conv_model, classifier_model):
 def make_heatmap(cam, is_best_match, colormap=cv2.COLORMAP_JET):
     """ Generate a heatmap image from a heatmap tensor.
         PARAMETERS
-        cam: <class 'tensorflow.python.framework.ops.EagerTensor'>
+        cam: EagerTensor (tensorflow)
             Class activation map tensor.
         is_best_match: int 
             Tells whether the CAM corresponds to the best prediction.
@@ -187,9 +187,9 @@ def make_heatmap(cam, is_best_match, colormap=cv2.COLORMAP_JET):
 def generate(model, row, r):
     """ Generate a mosaic of class activation maps for an array of tiles.
         PARAMETERS
-        model: <class 'tensorflow.python.keras.layers.convolutional.Conv2D'>
+        model: Sequential (tensorflow)
             Pre-trained model used for predictions.
-        row: <class 'numpy.ndarray'>
+        row: numpy.ndarray
             Row of preprocessed tiles from the large input image.
         r: int
             Row index.
