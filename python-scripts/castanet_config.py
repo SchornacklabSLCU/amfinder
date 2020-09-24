@@ -26,6 +26,7 @@ PAR = {
     'vfrac': None,
     'header': HEADERS['colonization'],
     'outdir': None,
+    'generate_cams': None,
     'monitors': {
         'csv_logger': None,
         'early_stopping': None,
@@ -168,6 +169,11 @@ def build_argument_parser():
                         help='tile edge (in pixels) used for image segmentation.'
                              '\ndefault value: 40 pixels')
 
+  p_parser.add_argument('-a', '--activation_maps', action='store_true', 
+                        dest='generate_cams', default=False,
+                        help='Generate class activation maps (takes some time).'
+                             '\ndefault value: True')
+
   p_parser.add_argument('model', action='store', metavar='H5',
                         type=str, default=None,
                         help='path to the pre-trained model.')
@@ -222,4 +228,5 @@ def initialize():
         set('outdir', par.outdir)
         set('vfrac', par.vfrac)
     else: # par.run_mode == 'predict'
-        set('model', par.model)    
+        set('model', par.model)
+        set('generate_cams', par.generate_cams)
