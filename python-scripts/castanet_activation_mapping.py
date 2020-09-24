@@ -237,7 +237,7 @@ def generate(model, row, r):
 
 
 
-def finalize():
+def retrieve():
     """ Return the class activation map mosaics.
         RETURNS
         CAMS
