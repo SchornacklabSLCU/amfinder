@@ -13,13 +13,12 @@ HEADERS = {
   'all_features': ['A', 'V', 'I', 'E', 'H', 'R', 'X']
 }
 
-# CastANet settings.
 PAR = {
     'run_mode': None,
     'level': None,
     'model': None,
     'tile_edge': None,
-    'model_input_size': 126, # was 62
+    'model_input_size': 126,
     'input_files': None,
     'batch_size': None,
     'drop': None,
@@ -41,51 +40,54 @@ PAR = {
 
 def get(id):
     """
-    Retrieve application settings by name. The given name is first searched
-    in general settings, then among Keras callback monitors. Search is
-    case insensitive.
+    Retrieve application settings by name.
 
     PARAMETER
-        id: str
-        The identifier of the application setting to retrieve.
+        id      The identifier of the application setting to retrieve.
     """
 
     id = id.lower()
 
-    if id in PAR:
+    if id in PAR: return PAR[id]
+    if id in PAR['monitors']: return PAR['monitors'][id]
 
-        return PAR[id]
+    cLog.warning(f'Unknown parameter {id}')
+    return None
+
+
+
+def set(id, value, create=False):
+    """
+    Update application settings.
+   
+    PARAMETERS
+        id      The identifier of the application setting to update.
+        value   The value to be stored. 
+        create  Create a new pair should the identifier not exist.
+    """
+
+    if x is None: break
+
+    id = id.lower()
+
+    if id in PAR:
+    
+        PAR[id] = value
+
+        # Automatically adjust header to annotation level.
+        if id == 'level': PAR['header'] = HEADERS[id]
 
     elif id in PAR['monitors']:
 
-        return PAR['monitors'][id]
+        PAR['monitors'][id] = value
+
+    elif create:
+
+        PAR[id] = value
 
     else:
 
         cLog.warning(f'Unknown parameter {id}')
-        return None
-
-
-
-def set(s, x, create=False):
-  """ This function updates the value associated with an identifier.
-      Identifiers get searched in general settings, then among Keras
-      callback monitors. Search is case-insensitive. If the identifier
-      does not exist, the function creates a new (id, value) pair if
-      the optional parameter <create> equals True, or prints a warning
-      message. No change occurs if the provided value is None. """
-  if x is not None:
-    s = s.lower()
-    if s in PAR:
-      PAR[s] = x
-      if s == 'level':
-        PAR['header'] = HEADERS[x]
-    elif s in PAR['monitors']:
-      PAR['monitors'][s] = x
-    elif create:
-      PAR[s] = x
-    else:
-      print('WARNING: Unknown parameter {}'.format(s))
 
 
 
