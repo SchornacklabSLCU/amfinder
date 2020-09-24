@@ -35,7 +35,7 @@ def row_wise_processing(image, nrows, ncols, model):
     """
 
     # Creates the images to save the class activation maps.
-    cMapping.initialize(nrows, ncols)
+    cams = cMapping.initialize(nrows, ncols)
 
     bs = cConfig.get('batch_size')
     c_range = range(ncols)
@@ -49,7 +49,7 @@ def row_wise_processing(image, nrows, ncols, model):
         # Predict mycorrhizal structures.
         prd = model.predict(row, batch_size=bs)
         # Retrieve class activation maps.
-        cMapping.generate(model, row, r)
+        cMapping.generate(cams, model, row, r)
         # Update the progress bar.
         cLog.progress_bar(r + 1, nrows)
         # Return prediction as Pandas data frame.
@@ -60,9 +60,6 @@ def row_wise_processing(image, nrows, ncols, model):
 
     # Retrieve predictions for all rows within the image.
     results = [process_row(r) for r in range(nrows)]
-
-    # Returns the class activation maps.
-    cams = cMapping.retrieve()
 
     # Concat to a single Pandas dataframe and add header.
     table = pd.concat(results, ignore_index=True)

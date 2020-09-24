@@ -19,8 +19,6 @@ from keras.layers import Dense
 import castanet_log as cLog
 import castanet_config as cConfig
 
-MAPS = []
-
 
 
 def initialize(nrows, ncols):
@@ -41,7 +39,7 @@ def initialize(nrows, ncols):
         global MAPS
         
         # Create copies of the template blank image for each class.
-        MAPS = [blank.copy() for _ in cConfig.get('header')]
+        return [blank.copy() for _ in cConfig.get('header')]
 
 
 
@@ -178,7 +176,7 @@ def make_heatmap(cam, top_pred):
 
 
 
-def generate(model, row, r):
+def generate(mosaics, model, row, r):
     """
     Generate a mosaic of class activation maps for an array of tiles.
 
@@ -207,7 +205,7 @@ def generate(model, row, r):
                     for i, _ in enumerate(cConfig.get('header'))]
         
 
-            for (cam, is_best_match), large_map in zip(cams, MAPS):
+            for (cam, is_best_match), mosaic in zip(cams, mosaics):
 
                 # Generats the heatmap.
                 heatmap = make_heatmap(cam, is_best_match)
@@ -226,17 +224,4 @@ def generate(model, row, r):
                 # Inserts the overlay on the large map.
                 rpos = r * edge
                 cpos = c * edge
-                large_map[rpos:rpos + edge, cpos:cpos + edge] = output           
-
-
-
-def retrieve():
-    """ Return the class activation map mosaics.
-        RETURNS
-        CAMS
-            if cConfig.get('generate_cams') is set to true.
-        None
-            otherwise.
-    """
-
-    return MAPS if cConfig.get('generate_cams') else None
+                mosaic[rpos:rpos + edge, cpos:cpos + edge] = output           
