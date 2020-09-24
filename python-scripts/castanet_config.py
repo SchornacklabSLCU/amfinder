@@ -171,10 +171,10 @@ def build_argument_parser():
                         help='tile edge (in pixels) used for image segmentation.'
                              '\ndefault value: 40 pixels')
 
-  p_parser.add_argument('-a', '--activation_maps', action='store_true', 
+  p_parser.add_argument('-a', '--activation_map', action='store_true', 
                         dest='generate_cams', default=False,
-                        help='Generate class activation maps (takes some time).'
-                             '\ndefault value: True')
+                        help='Generate class activation map (takes some time).'
+                             '\ndefault value: False')
 
   p_parser.add_argument('-c', '--colormap',
                         action='store', dest='colormap', metavar='MAP',
