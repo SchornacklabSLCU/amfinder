@@ -177,7 +177,7 @@ def build_argument_parser():
                              '\ndefault value: False')
 
   p_parser.add_argument('-c', '--colormap',
-                        action='store', dest='colormap', metavar='MAP',
+                        action='store', dest='colormap', metavar='N',
                         type=int, default=cv2.COLORMAP_JET,
                         help='OpenCV colormap (see OpenCV documentation).'
                              '\ndefault value: 2 (cv2.COLORMAP_JET)')
