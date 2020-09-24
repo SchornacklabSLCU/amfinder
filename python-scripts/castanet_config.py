@@ -39,19 +39,31 @@ PAR = {
 
 
 
-def get(s):
-  """ This function retrieves a value based on its identifier. Identifiers
-      get searched in general settings, then among Keras callback monitors.
-      Search is case-insensitive. The function returns None when the
-      identifier does not exist. """
-  s = s.lower()
-  if s in PAR:
-    return PAR[s]
-  elif s in PAR['monitors']:
-    return PAR['monitors'][s]
-  else:
-    print('WARNING: Unknown parameter {}'.format(s))
-    return None
+def get(id):
+    """
+    Retrieve application settings by name. The given name is first searched
+    in general settings, then among Keras callback monitors. Search is
+    case insensitive.
+
+    PARAMETER
+        id: str
+        The identifier of the application setting to retrieve.
+    """
+
+    id = id.lower()
+
+    if id in PAR:
+
+        return PAR[id]
+
+    elif id in PAR['monitors']:
+
+        return PAR['monitors'][id]
+
+    else:
+
+        cLog.warning(f'Unknown parameter {id}')
+        return None
 
 
 
@@ -171,7 +183,7 @@ def build_argument_parser():
                         help='tile edge (in pixels) used for image segmentation.'
                              '\ndefault value: 40 pixels')
 
-  p_parser.add_argument('-a', '--activation_map', action='store_true', 
+  p_parser.add_argument('-a', '--activation_map', action='store_true',
                         dest='generate_cams', default=False,
                         help='Generate class activation map (takes some time).'
                              '\ndefault value: False')
@@ -189,7 +201,7 @@ def build_argument_parser():
   p_parser.add_argument('image', nargs='*',
                         default=['*.jpg'],
                         help='plant root scan to be processed.'
-                             '\ndefault value: *jpg')
+                             '\ndefaults to JPEG files in the current directory.')
 
   return main
 
