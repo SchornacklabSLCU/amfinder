@@ -5,6 +5,8 @@ import io
 import random
 import pickle
 import pyvips
+import operator
+import functools
 import numpy as np
 import pandas as pd
 import zipfile as zf
@@ -16,6 +18,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from sklearn.model_selection import train_test_split
 
+import castanet_log as cLog
 import castanet_plot as cPlot
 import castanet_save as cSave
 import castanet_model as cModel
@@ -25,10 +28,14 @@ import castanet_segmentation as cSegm
 
 
 def get_data_generator(data_augmentation=False):
-    """ Creates a data generator which applies or not data augmentation.
-        Data augmentation is kept to a minimum (ie horizontal and vertical
-        flip) to avoid signal loss when mycorrhizal structures occur near
-        tile edges. """
+    """
+    Create an image data generator, including or not data augmentation.
+    
+    PARAMETER
+        - data_augmentation: activates data augmentation.
+    
+    Returns an image data generator.
+    """
 
     if data_augmentation:
         return ImageDataGenerator(horizontal_flip=True, vertical_flip=True)
@@ -41,10 +48,13 @@ def get_data_generator(data_augmentation=False):
 def load_tile(image, drop, data):
     """
     Load a tile, and drop some background tiles.
+
     PARAMETERS
-        drop    Percentage of background tiles to drop.
-        image   Source image (mosaic).
-        data    Tile coordinates (row/column) and annotations.
+        -drop: Percentage of background tiles to drop.
+        -image: Source image (mosaic).
+        -data: Tile coordinates (row/column) and annotations.
+    
+    Returns the loaded tile, or None if it was dropped.
     """
 
     if data['X'] == 1 and drop > 0 and random.uniform(0, 100) < drop:
@@ -82,43 +92,131 @@ def print_statistics(labels):
 
 
 
+def load_annotation_table(level, path):
+    """
+    Retrieve annotations from a ZIP archive.
+
+    PARAMETERS
+        - level: Annotation level.
+        - path: Path to the annotated input image.
+
+    RETURNS
+        - a Pandas DataFrame containing annotations, or
+        - `None` when annotations are not available.
+    """
+
+    zip_file = os.path.splitext(path)[0] + '.zip'
+
+    # File exists and is a valid archive.
+    if os.path.isfile(zip_file) and zf.is_zipfile(zip_file):
+
+        annot_file = f'python/{level}.tsv'
+
+        with zf.ZipFile(zip_file, 'r') as z:
+
+            # Check availability of the annotation table at the given level.
+            if annot_file in z.namelist():
+
+                annot_table = z.read(annot_file).decode('utf-8')
+                annot_table = io.StringIO(annot_table)
+                annot_table = pd.read_csv(annot_table, sep='\t')
+                
+                return annot_table
+
+            else:
+              
+                return None
+
+    else:
+    
+        return None
+
+
+
+def estimate_drop(counts):
+    """
+    Determine the percentage of background tiles to be dropped to avoid
+    overrepresentation compared to other annotation classes.
+
+    PARAMETERS
+        - counts (pandas.Series): Total number of tiles for each annotation
+          class, considering all input images.
+
+    RETURNS
+        - the percentage of background tiles to drop, or
+        - 0 if background tiles are not overrepresented compared to other
+          annotation classes.    
+    """
+
+    # Number of background tiles.
+    background_count = counts['X']
+
+    # Number of tiles with other annotation.
+    other_counts = counts.drop(['row', 'col', 'X'])
+
+    # Average tile count per annotation class.
+    average = round(sum(other_counts.values) / len(other_counts.index))
+    
+    # Excess background tiles compared to other classes.
+    overhead = background_counts - average
+    
+    if overhead <= 0:
+    
+        return 0
+    
+    else:
+    
+        return round(overhead * 100 / background_count)
+
+
+
 def load_annotations(input_files):
     """ Builds the training dataset by extracting tiles from
         large images, removing some background images where
         appropriate. """
 
-    drop = cConfig.get('drop')
-    level = cConfig.get('level')
-    headers = cConfig.get('header')
-
-    random.seed(42)
-
-    tiles = []
-    labels = []
 
     print('* Image segmentation.')
 
-    for path in input_files:
+    # Load annotation tables for all input images.
+    level = cConfig.get('level')
+    annot_tables = [load_annotation_table(level, x) for x in input_files]
+
+    drop = 0
+
+    if cConfig.get('drop'):
+
+        # Remove cases where no pandas.DataFrame was produced
+        filtered_tables = [x for x in annot_tables if x is not None]
+        
+        # Produces counts (pandas.Series) for each input file.
+        count_list = [x.sum() for x in filtered_tables]
+        
+        # Retrieve the grand total.
+        counts = functools.reduce(operator.add, count_list)
+        
+        # Estimate the percentage of background tiles to drop.
+        drop = estimate_drop(counts)
+        cLog.info(f'{drop}%% of background tiles will be dropped.', indent=1)
+
+    tiles = []
+    labels = []
+    random.seed(42)
+    headers = cConfig.get('header')
+
+    for path, data in zip(input_files, annot_tables):
 
         base = os.path.basename(path)
-        zipf = os.path.splitext(path)[0] + '.zip'
-
-        print(f'    - {base}... ', end='', flush=True)
-
-        if os.path.isfile(zipf) and zf.is_zipfile(zipf):
-
-            with zf.ZipFile(zipf, 'r') as z:
-                data = z.read(f'python/{level}.tsv').decode('utf-8')
-                data = pd.read_csv(io.StringIO(data), sep='\t')
-
-        else: # No annotations or corrupted archive.
-
-            print(f'WARNING: Missing annotations for {base}')
+        cLog.info(f'- {base}... ', indent=1, end='', flush=True)
+       
+        if data is None:
+            
+            print('Failed')
             continue
 
         image = pyvips.Image.new_from_file(path, access='random')
 
-        # Loads tiles (omitting some background tiles if requested).
+        # Loads tiles, omitting some background tiles if needed.
         data['tile'] = data.apply(lambda x: load_tile(image, drop, x), axis=1)
         data = data[data['tile'].notnull()]
 
@@ -146,8 +244,14 @@ def load_annotations(input_files):
 
 
 def get_callbacks():
-    """ Initializes Keras callbacks that control learning rate
-        and monitor validation loss. """
+    """
+    Configure Keras callbacks to enable early stopping and learning rate
+    reduction on plateau.
+
+    No parameter.
+
+    Returns a list of callback monitors.
+    """
 
     callbacks = []
 
@@ -161,10 +265,10 @@ def get_callbacks():
     callbacks.append(cb)
 
     cb = ReduceLROnPlateau(monitor='val_loss',
-           factor=0.2,
+           factor=0.1,
            patience=2,
            verbose=1,
-           min_lr=0.001)
+           min_lr=0.0005)
     cConfig.set('reduce_lr_on_plateau', cb)
     callbacks.append(cb)
 
@@ -173,8 +277,14 @@ def get_callbacks():
 
 
 def run(input_files):
-    """ Trains a model (see castanet_model.py) with a set of tiles
-        containing mycorrhizal structures. """
+    """
+    Train a model with a set of input images.
+    
+    PARAMETER
+        - input_files: list of input image paths.
+    
+    No returned value.
+    """
 
     model = cModel.load()
 
