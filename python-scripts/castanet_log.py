@@ -19,13 +19,29 @@ def progress_bar(iteration, total):
     """
 
     percent = ('{0:.1f}').format(100 * (iteration / float(total)))
-    filled_length = int(60 * iteration // total)
-    bar = '█' * filled_length + '-' * (60 - filled_length)
+    filled_length = int(50 * iteration // total)
+    bar = '█' * filled_length + '-' * (50 - filled_length)
 
     print(f'\r    - processing |{bar}| {percent}%', end = '\r')
 
     if iteration == total: 
         print()
+
+
+
+def info(message, indent=0, **kwargs):
+    """
+    Print an message on standard output.
+
+    PARAMETERS
+        - message: the information to print on standard output.
+        - indent: message indentation level (e.g. `1` means four white spaces).
+        - kwargs: any other argument to be passed to `print`.
+
+    No returned value.
+    """
+
+    print(' ' * 4 * indent + f'INFO: {message}.', kwargs)
 
 
 
