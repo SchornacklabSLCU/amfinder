@@ -44,9 +44,10 @@ def initialize(nrows, ncols):
 def get_conv_model(model):
     """
     Map the model input to its last convolutional layer.
-    
-    PARAMETER
-        model       Pre-trained model used for predictions.
+
+    :param model: Pre-trained model used for predictions.
+    :return: The last convolutional layer (`last_conv`) of the input model,
+        and a fresh model mapping `model` input to `last_conv` output.
     """
 
     # The last convolutional layer occurs first on the reversed layer list.
@@ -211,9 +212,9 @@ def generate(mosaics, model, row, r):
                 # Resize the tile to its original size, desaturate
                 # and increase the contrast (better overlay rendition).
                 resized = np.uint8(cv2.resize(tile, (edge, edge)) * 255)
-                resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
-                resized = cv2.convertScaleAbs(resized, alpha=1.5, beta=0.8)
+                #resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+                #resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+                #resized = cv2.convertScaleAbs(resized, alpha=1.5, beta=0.8)
 
                 # Overlay the heatmap on top of the desaturated tile.
                 output = cv2.addWeighted(heatmap, 0.4, resized, 0.6, 0.0)
