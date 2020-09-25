@@ -84,8 +84,6 @@ def run(input_images):
             Images on which to predict mycorrhizal structures.
     """
 
-    print(type(input_images))
-
     model = cModel.load()
     edge = cConfig.get('tile_edge')
 
