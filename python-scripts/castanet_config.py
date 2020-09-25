@@ -122,7 +122,7 @@ def build_argumentp():
                        '\ndefault value: 32')
 
   tp.add_argument('-k', '--keep',
-                  action='store_false', const='drop', default=True,
+                  action='store_false', dest='drop', default=True,
                   help='do not drop any background tile.'
                        '\nby default, drops background tiles in excess.')
 
