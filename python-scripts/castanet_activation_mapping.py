@@ -1,4 +1,4 @@
-# CastANet - castanet_activation_mapping.py
+# CastANet - castanet_grad_cam.py
 
 """ 
     Implements the Grad-CAM algorithm
@@ -25,9 +25,10 @@ def initialize(nrows, ncols):
     """
     Create blank images for all annotation classes.
 
-    PARAMETERS
-        nrows       Tile row count.
-        ncols       Tile column count.
+    :param nrows: tile row count.
+    :param ncols: tile column count.
+    :return: as many blank images (of size ``(nrows * edge, ncols * edge)``)
+    as classes at the current annotation level (``cConfig.get('header')``).
     """
 
     if cConfig.get('generate_cams'):
@@ -47,7 +48,7 @@ def get_conv_model(model):
 
     :param model: Pre-trained model used for predictions.
     :return: The last convolutional layer (`last_conv`) of the input model,
-        and a fresh model mapping `model` input to `last_conv` output.
+    and a fresh model mapping `model` input to `last_conv` output.
     """
 
     # The last convolutional layer occurs first on the reversed layer list.
@@ -68,10 +69,9 @@ def get_conv_model(model):
 def get_classifier_model(model, last_conv):
     """
     Map the output of the last convolutional layer to model predictions.
-    
-    PARAMETERS
-        model       Pre-trained model used for predictions.
-        last_conv   Last convolutional layer of the given model.
+
+    :param model: pre-trained model used for predictions.
+    :param last_conv: last convolutional layer of ``model``.
     """
 
     classifier_input = Input(shape=last_conv.output.shape[1:])
@@ -91,12 +91,13 @@ def get_classifier_model(model, last_conv):
 def compute_cam(index, tile, conv_model, classifier):
     """
     Compute gradient and class activation map.
-    
-    PARAMETERS
-        index       Class index.
-        tile        Input tile to be processed.
-        conv_model  Model to retrieve the output of the last Conv2D layer.
-        classifier  Model to retrieve the gradients.
+
+    :param index: class index.
+    :param tile: input tile to be processed.
+    :param conv_model:  model to retrieve the output of the last Conv2D layer.
+    :param classifier:  model to retrieve the gradients.
+    :return: the tile activation map for the given class, and a boolean which
+    indicates whether the class has highest support for the given tile.
     """
 
     # Transform the tile array into a batch.
@@ -149,10 +150,10 @@ def compute_cam(index, tile, conv_model, classifier):
 def make_heatmap(cam, top_pred):
     """
     Generate a heatmap image from a heatmap tensor.
-    
-    PARAMETERS
-        cam         Class activation map tensor.
-        best_match  Tells whether the CAM corresponds to the best prediction.
+
+    :param cam: class activation map tensor.
+    :param top_pred: tells whether the class has highest support for this tile.
+    :return: a false-colored heatmap (``cConfig.get('colormap')``).
     """
 
     # Resize the heatmap to input tile size.
@@ -179,10 +180,9 @@ def generate(mosaics, model, row, r):
     """
     Generate a mosaic of class activation maps for an array of tiles.
 
-    PARAMETERS
-        model       Pre-trained model used for predictions.
-        row         Row of preprocessed tiles from the large input image.
-        r           Row index.
+    :param model: pre-trained model used for predictions.
+    :param row: row of preprocessed tiles from the large input image.
+    :param r: row index.
     """
 
     if cConfig.get('generate_cams'):
