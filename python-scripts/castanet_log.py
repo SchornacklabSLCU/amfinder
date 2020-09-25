@@ -77,13 +77,14 @@ def error(message, exit_code, indent=0, **kwargs):
 
 
 
-def progress_bar(iteration, total):
+def progress_bar(iteration, total, indent=0):
     """
     Print a progress bar on standard output.
     
     PARAMETERS
         - iteration: the index of the current iteration.
         - total: the total number of iterations.
+        - indent: indentation level (e.g. `1` means four white spaces).
     
     No returned value.
     """
@@ -95,7 +96,7 @@ def progress_bar(iteration, total):
     filled_length = round(50.0 * iteration / total)
     bar = '█' * filled_length + '-' * (50 - filled_length)
 
-    info(f'- processing |{bar}| {percent:.1f}%', indent=1, end='\r')
+    print(' ' * 4 * indent + f'- processing |{bar}| {percent:.1f}%', end='\r')
 
     if iteration == total:
 
