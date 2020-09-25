@@ -121,11 +121,10 @@ def build_argumentp():
                   help='training batch size.'
                        '\ndefault value: 32')
 
-  tp.add_argument('-d', '--drop',
-                  action='store', dest='dfrac', metavar='N%',
-                  type=int, default=50,
-                  help='percentage of background tiles to be skipped.'
-                       '\ndefault value: 50%%')
+  tp.add_argument('-k', '--keep',
+                  action='store_false', const='drop', default=True,
+                  help='do not drop any background tile.'
+                       '\nby default, drops background tiles in excess.')
 
   tp.add_argument('-e', '--epochs',
                   action='store', dest='epochs', metavar='NUM',
@@ -239,7 +238,7 @@ def initialize():
     # Sub-parser specific arguments.
     if par.run_mode == 'train':
         set('batch_size', par.batch_size)
-        set('drop', par.dfrac)
+        set('drop', par.drop)
         set('epochs', par.epochs)
         set('fraction', par.vfrac)
         set('level', par.level)
