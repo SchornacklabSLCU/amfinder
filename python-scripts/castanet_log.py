@@ -36,7 +36,7 @@ def info(message, indent=0, **kwargs):
     No returned value.
     """
 
-    print(' ' * 4 * indent + f'INFO: {message}.', kwargs)
+    print(' ' * 4 * indent + f'INFO: {message}.', **kwargs)
 
 
 
@@ -52,7 +52,7 @@ def warning(message, indent=0, **kwargs):
     No returned value.
     """
 
-    print(' ' * 4 * indent + f'WARNING: {message}.', file=sys.stderr, kwargs)
+    print(' ' * 4 * indent + f'WARNING: {message}.', file=sys.stderr, **kwargs)
 
 
 
@@ -69,7 +69,7 @@ def error(message, exit_code, indent=0, **kwargs):
     No returned value.
     """
 
-    print(' ' * 4 * indent + f'ERROR: {message}.', file=sys.stderr, kwargs)
+    print(' ' * 4 * indent + f'ERROR: {message}.', file=sys.stderr, **kwargs)
 
     if exit_code is not None and exit_code != 0:
 
