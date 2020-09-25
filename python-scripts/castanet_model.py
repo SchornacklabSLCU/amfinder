@@ -14,8 +14,7 @@ from keras.initializers import he_uniform
 
 import castanet_config as cConfig
 
-NO_PRETRAINED_MODEL = 20
-INVALID_MODEL_SHAPE = 21
+
 
 
 
@@ -192,8 +191,8 @@ def pre_trained(path):
 
     if x != y:
     
-        print(f'ERROR: Input shape ({x}x{y} pixels) is rectangular.')
-        sys.exit(INVALID_MODEL_SHAPE)
+        cLog.error(f'Rectangular input shape ({x}x{y} pixels)',
+                   exit_code=cLog.ERR_INVALID_MODEL_SHAPE)
 
     else:
     
@@ -238,10 +237,8 @@ def load():
 
         else:
 
-            # Here we have no option but to raise an error and exit.
-            # A pre-trained model is required to perform predictions.
-            print('ERROR: Please provide a pre-trained model.')
-            sys.exit(NO_PRETRAINED_MODEL)
+            cLog.error('Please provide a pre-trained model',
+                       exit_code=cLog.ERR_NO_PRETRAINED_MODEL)
 
     else:
 
