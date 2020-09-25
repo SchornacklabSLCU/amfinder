@@ -1,4 +1,4 @@
-# CastANet - castanet_grad_cam.py
+# CastANet - castanet_activation_mapping.py
 
 """ 
     Implements the Grad-CAM algorithm
@@ -23,12 +23,14 @@ import castanet_config as cConfig
 
 def initialize(nrows, ncols):
     """
-    Create blank images for all annotation classes.
+    Create blank images to accommodate activation maps of each annotation class.
 
-    :param nrows: tile row count.
-    :param ncols: tile column count.
-    :return: as many blank images (of size ``(nrows * edge, ncols * edge)``)
-    as classes at the current annotation level (``cConfig.get('header')``).
+    PARAMETERS
+        - nrows: number of tiles on Y axis (image height).
+        - ncols: number of tiles on X axis (image width).
+
+    Returns a list containing as many blank images as annotation classes
+    at the current level (cf. `cConfig.get('header')`).
     """
 
     if cConfig.get('generate_cams'):
@@ -46,8 +48,10 @@ def get_conv_model(model):
     """
     Map the model input to its last convolutional layer.
 
-    :param model: Pre-trained model used for predictions.
-    :return: The last convolutional layer (`last_conv`) of the input model,
+    PARAMETER
+        - model: Pre-trained model used for predictions.
+    
+    Returns the last convolutional layer (`last_conv`) of the input model,
     and a fresh model mapping `model` input to `last_conv` output.
     """
 
