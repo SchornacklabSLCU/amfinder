@@ -19,8 +19,9 @@ val header : pytable -> char list
 val matrix : pytable -> float list Ext_Matrix.t
 (** Returns the prediction matrix. *)
 
-val from_string : string -> pytable
-(** Build a table from the given string. *)
+val from_string : path:string -> string -> pytable
+(** Build a table from the given string. The labelled argument [path] is used
+  * to generate a label for the given Python table. *)
 
 val to_string : pytable -> string
 (** Converts a Python table to string (for export purposes). *)
