@@ -4,7 +4,7 @@
 
 open CExt
 
-type pytable
+type python_table
 (** The type for Python tables. *)
 
 val label : pytable -> string
@@ -18,6 +18,9 @@ val header : pytable -> char list
 
 val matrix : pytable -> float list Ext_Matrix.t
 (** Returns the prediction matrix. *)
+
+val from_string : string -> pytable
+(** Build a table from the given string. *)
 
 val load : tsv:string -> pytable
 (** [load tsv] returns a matrix containing the computer-generated predictions
