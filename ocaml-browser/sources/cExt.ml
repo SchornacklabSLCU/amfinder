@@ -44,42 +44,79 @@ end
 
 external id : 'a -> 'a = "%identity"
 
+
+
 module Ext_Matrix = struct
-  type 'a t = 'a array array
-  let dim t =
-    let r = Array.length t in
-    if r = 0 then (0, 0) else r, Array.length t.(0)
-  let get t r c = t.(r).(c)
-  let get_opt t r c = try Some t.(r).(c) with _ -> None
-  let init nr nc f = Array.(init nr (fun r -> init nc (f r)))
-  let map f = Array.(map (map f))
-  let mapi f = Array.(mapi (fun r -> mapi (f r)))
-  let iter f = Array.(iter (iter f))
-  let iteri f = Array.(iteri (fun r -> iteri (fun c -> f ~r ~c)))
-  let fold f ini t = 
-    let res = ref ini in
-    Array.(iteri (fun r -> iteri (fun c x -> res := f ~r ~c !res x))) t;
-    !res
-  let copy ?(dat = id) mat = Array.(map (map dat)) mat
-  let to_string ~cast t =
-    Array.map (Array.map cast) t
-    |> Array.map Array.to_list
-    |> Array.map (String.concat "\t")
-    |> Array.to_list
-    |> String.concat "\n"
-  let of_string ~cast s =
-    String.split_on_char '\n' s
-    |> Array.of_list
-    |> Array.map (String.split_on_char '\t')
-    |> Array.map Array.of_list
-    |> Array.map (Array.map cast)
+
+    open Array
+
+    type 'a t = 'a array array
+
+    let dim t =
+        let r = length t in
+        if r = 0 then (0, 0) else r, length t.(0)
+
+    let get t r c = t.(r).(c)
+    let get_opt t r c = try Some t.(r).(c) with _ -> None
+
+    let set t r c x = t.(r).(c) <- x
+
+    let make nrows ncols x = init nrows (fun _ -> make ncols x)
+    let init nrows ncols f = init nrows (fun r -> init ncols (f r))
+
+    let map f = map (map f)
+    let mapi f = mapi (fun r -> mapi (f r))
+
+    let iter f = iter (iter f)
+    let iteri f = iteri (fun r -> iteri (fun c -> f ~r ~c))
+
+    let fold f ini t = 
+        let res = ref ini in
+        iteri (fun r -> iteri (fun c x -> res := f ~r ~c !res x)) t;
+        !res
+
+    let copy ?(dat = id) mat = Array.(map (map dat)) mat
+
+    let to_string ~cast t =
+        map (map cast) t
+        |> map to_list
+        |> map (String.concat "\t")
+        |> to_list
+        |> String.concat "\n"
+
+    let to_string_rc ~cast t =
+        mapi (fun r -> (mapi (fun c -> cast ~r ~c))) t
+        |> map to_list
+        |> map (String.concat "\t")
+        |> to_list
+        |> String.concat "\n"
+
+    let of_string ~cast s =
+        String.split_on_char '\n' s
+        |> of_list
+        |> map (String.split_on_char '\t')
+        |> map of_list
+        |> map (map cast)
+
+    let of_string_rc ~cast s =
+        String.split_on_char '\n' s
+        |> of_list
+        |> map (String.split_on_char '\t')
+        |> map of_list
+        |> mapi (fun r -> (mapi (fun c -> cast ~r ~c)))
+
 end
+
 
 
 module Ext_Text = struct
-  let explode s = String.(List.init (length s) (get s))
-  let implode t = String.concat "" (List.map (String.make 1) t)
+
+    open String
+    
+    let explode s = List.init (length s) (get s)
+    let implode t = concat "" (List.map (String.make 1) t)
 end
+
 
 
 let time f x =
@@ -88,6 +125,7 @@ let time f x =
   let t_2 = Unix.gettimeofday () in
   CLog.info "Elapsed time: %.1f s" (t_2 -. t_1);
   res
+
 
 
 (* Memoized values with possible reinitialization. *)

@@ -4,62 +4,75 @@
 
 (** String sets. *)
 module Ext_StringSet : sig
-  val union : string -> string -> string
-  (** [union s1 s2] returns a string containing one instance of all characters
-    * occurring in either [s1] or [s2], sorted in alphabetical order.  *)
+    val union : string -> string -> string
+    (** [union s1 s2] returns a string containing one instance of all characters
+      * occurring in either [s1] or [s2], sorted in alphabetical order.  *)
 
-  val inter : string -> string -> string
-  (** [union s1 s2] returns a string containing one instance of all characters
-    * occurring in both [s1] or [s2], sorted in alphabetical order.  *)
-  
-  val diff : string -> string -> string
-  (** [union s1 s2] returns a string containing one instance of all characters
-    * occurring in [s1] but not in [s2], sorted in alphabetical order.  *)
+    val inter : string -> string -> string
+    (** [union s1 s2] returns a string containing one instance of all characters
+      * occurring in both [s1] or [s2], sorted in alphabetical order.  *)
+
+    val diff : string -> string -> string
+    (** [union s1 s2] returns a string containing one instance of all characters
+      * occurring in [s1] but not in [s2], sorted in alphabetical order.  *)
 end
 
 
 (** Matrix iterators. *)
 module Ext_Matrix : sig
-  type 'a t = 'a array array
-  (** The type of matrices. *)
+    type 'a t = 'a array array
+    (** The type of matrices. *)
 
-  val dim : 'a t -> int * int
-  (** Returns the dimensions of the given matrix, i.e. the number of rows and
-    * columns. *)
+    val dim : 'a t -> int * int
+    (** Returns the the number of rows and columns of the given matrix. *)
 
-  val get : 'a t -> int -> int -> 'a
-  (** [get t r c] returns [t.(r).(c)] or raises an error. *)
-  
-  val get_opt : 'a t -> int -> int -> 'a option
-  (** Same as [get], but returns [None] if the indices are invalid. *)
+    val get : 'a t -> int -> int -> 'a
+    (** [get t r c] returns [t.(r).(c)] or raises an error if the given values
+      * are invalid (i.e. either negative or too large). *)
 
-  val init : int -> int -> (int -> int -> 'a) -> 'a t
-  (** [init r c f] builds a matrix of [r] rows and [c] columns and initializes
+    val set : 'a t -> int -> int -> 'a -> unit
+    (** [set t r c x] stores [x] at row [r] and column [c] of matrix [t]. *)
+
+    val get_opt : 'a t -> int -> int -> 'a option
+    (** Same as [get], but returns [None] if the indices are invalid. *)
+
+    val make : int -> int -> 'a -> 'a t
+    (** [make r c x] returns a matrix containing [r] rows and [c] columns,
+      * with all elements initialized with [x]. *)
+
+    val init : int -> int -> (int -> int -> 'a) -> 'a t
+    (** [init r c f] builds a matrix of [r] rows and [c] columns and initializes
     * values using the function [f]. *)
 
-  val map : ('a -> 'b) -> 'a t -> 'b t
-  (** [map f m] builds a new matrix by applying [f] to all members of [m]. *)
+    val map : ('a -> 'b) -> 'a t -> 'b t
+    (** [map f m] builds a new matrix by applying [f] to all members of [m]. *)
 
-  val mapi : (int -> int -> 'a -> 'b) -> 'a t -> 'b t
-  (** Same as [map], but [f] receives row and column indexes as parameters. *)
-  
-  val iter : ('a -> unit) -> 'a t -> unit
-  (** [iter f m] applies [f] to all members of the matrix [m]. *)
-  
-  val iteri : (r:int -> c:int -> 'a -> unit) -> 'a t -> unit
-  (** Same as [iter], but [f] receives row and column indexes as parameters. *)
-  
-  val fold : (r:int -> c:int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
-  (** Fold function. *)
+    val mapi : (int -> int -> 'a -> 'b) -> 'a t -> 'b t
+    (** Same as [map], but [f] receives row and column indexes as parameters. *)
 
-  val to_string : cast:('a -> string) -> 'a t -> string
-  (** Exports a matrix as string. *)
+    val iter : ('a -> unit) -> 'a t -> unit
+    (** [iter f m] applies [f] to all members of the matrix [m]. *)
 
-  val of_string : cast:(string -> 'a) -> string -> 'a t
-  (** Imports a matrix from a string. *)
-  
-  val copy : ?dat:('a -> 'a) -> 'a t -> 'a t
-  (** Returns a copy of a given matrix. *)
+    val iteri : (r:int -> c:int -> 'a -> unit) -> 'a t -> unit
+    (** Same as [iter], but oasses row and column indexes as parameters. *)
+
+    val fold : (r:int -> c:int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
+    (** Fold function. *)
+
+    val to_string : cast:('a -> string) -> 'a t -> string
+    (** Exports a matrix as string. *)
+
+    val to_string_rc : cast:(r:int -> c:int -> 'a -> string) -> 'a t -> string
+    (** Same as [to_string], but passes row and column indexes to [cast]. *)
+
+    val of_string : cast:(string -> 'a) -> string -> 'a t
+    (** Imports a matrix from a string. *)
+    
+    val of_string_rc : cast:(r:int -> c:int -> string -> 'a) -> string -> 'a t
+    (** Same as [of_string], but passes row and column indexes to [cast]. *)
+
+    val copy : ?dat:('a -> 'a) -> 'a t -> 'a t
+    (** Returns a copy of a given matrix. *)
 end
 
 
