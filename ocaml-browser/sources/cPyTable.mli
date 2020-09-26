@@ -22,21 +22,5 @@ val matrix : pytable -> float list Ext_Matrix.t
 val from_string : string -> pytable
 (** Build a table from the given string. *)
 
-val load : tsv:string -> pytable
-(** [load tsv] returns a matrix containing the computer-generated predictions
-  * saved by the Pyton script castanet.py. *)
-  
 val to_string : pytable -> string
 (** Converts a Python table to string (for export purposes). *)
-
-(* Convert a prediction to a set of annotations.
-
-type row = int
-type column = int
-
-val threshold : float -> pytable -> CMask.tile Ext_Matrix.t
-
-val best : pytable -> CMask.tile Ext_Matrix.t
-
-
-*)
