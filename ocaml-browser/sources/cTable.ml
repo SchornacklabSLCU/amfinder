@@ -84,7 +84,7 @@ class prediction_table source level name = object (self)
     method basename = base
     method set_basename x = base <- x
 
-    method filename = Printf.sprintf "predictions/%s.%s" self#basename 
+    method filename = sprintf "predictions/%s.%s" self#basename 
         (CLevel.to_string self#level)
 
     method to_string =
@@ -92,12 +92,12 @@ class prediction_table source level name = object (self)
         (* Writes header. *)
         List.map (String.make 1) self#header
         |> String.concat "\t"
-        |> Printf.bprintf buf "row\tcol\t%s\n";
+        |> bprintf buf "row\tcol\t%s\n";
         (* Writes contents. *)
         Ext_Matrix.iteri (fun ~r ~c t ->
             List.map Float.to_string t
             |> String.concat "\t"
-            |> Printf.bprintf buf "%d\t%d\t%s\n" r c
+            |> bprintf buf "%d\t%d\t%s\n" r c
         ) data;
         Buffer.contents buf
 
