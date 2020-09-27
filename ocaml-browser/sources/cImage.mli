@@ -2,40 +2,82 @@
 
 open CExt
 
-type image
-(** The type for CastANet images. *)
+(** System settings. *)
+class type sys = object
 
-val get_active : unit -> image option
+    method path : string
+    (** Path to the image. *)
+   
+    method archive : string
+    (** Name of the output archive. *)
+end
 
-val rem_active : unit -> unit
 
-val path : image -> string
-(** Path to the loaded image. *)
+(** Graphical settings. *)
+class type visual = object
 
-val basename : image -> string
+    method rows : int
+    (** Row count. *)
+    
+    method columns : int
+    (** Column count. *)
+    
+    method width : int
+    (** Image width, in pixels. *)
 
-val dirname : image -> string
+    method height : int
+    (** Image height, in pixels. *)
 
-val source : image -> [`W | `H] -> int
+    method ratio : int
+    (** Reduction factor. *)
 
-val origin : image -> [`X | `Y] -> int
+    method x_origin : int
+    (** X-axis position to center image horizontally, in pixels. *)
+    
+    method y_origin : int
+    (** Y-axis position to center image vertically, in pixels. *)
+end
 
-val dim : image -> [`R | `C] -> int
 
-val annotations : image -> CTable.table
+(** Tile matrices. *)
+class type tile_matrix = object
 
-val edge : image -> [`SMALL | `LARGE] -> int
+    method edge : int
+    (** Tile edge, in pixels. *)
+    
+    method contents : GdkPixbuf.pixbuf Ext_Matrix.t
+    (** Tile matrix. *)
 
-val tiles : image -> [`SMALL | `LARGE] -> GdkPixbuf.pixbuf Ext_Matrix.t
+end
 
-val tile : r:int -> c:int -> image -> [`SMALL | `LARGE] -> GdkPixbuf.pixbuf option
 
-val x : c:int -> image -> [`SMALL | `LARGE] -> int
+(** Images. *)
+class type image = object
 
-val y : r:int -> image -> [`SMALL | `LARGE] -> int
+    method sys : sys
+    (** File settings. *)
+    
+    method visual : visual
+    (** Graphical settings. *)
 
-val iter_tiles : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> image -> [`SMALL | `LARGE] -> unit
+    method small_tiles : Mosaic.tile_matrix
+    (** Small tiles to be used in the rightmost UI pane. *)
 
-val statistics : image -> CLevel.t -> (char * int) list
+    method large_tiles : Mosaic.tile_matrix
+    (** Large tiles to be used in the leftmost UI pane. *)
+  
+    method annotations : CTable.annotation_table list
+    (** Annotations. *)
 
-val create : ?edge:int -> string -> image
+    method predictions : CTable.prediction_table list
+    (** Predictions. *)
+
+end
+
+
+val load : edge:int -> string -> image
+(** [load ~edge:n img] loads image [img], using squares of [n]x[n] pixels 
+  * as tiles.
+  * @raise Invalid_argument if the file does not exist. *)
+
+

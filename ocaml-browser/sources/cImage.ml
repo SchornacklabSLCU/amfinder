@@ -1,116 +1,188 @@
 (* CastANet - cImage.ml *)
 
 open CExt
-open CGUI
 
-(* Images are represented as mosaics of square tiles. *)
-type tiles = {
-  edge : int;
-  matrix : GdkPixbuf.pixbuf Ext_Matrix.t;
-}
 
-(* Large tiles are used in the "zoomed in" area on the left side of the 
- * interface, while small tiles are drawn on the right side. *)
-type sizes = {
-  small : tiles;
-  large : tiles;
-}
 
-(* Graphical properties (number of rows and columns, width/height, etc.). *)
-type graph = {
-  rows : int; cols : int;
-  xini : int; yini : int;
-  imgw : int; imgh : int;
-}
+class type sys = object
 
-(* CastANet images consist of two mosaics of square tiles (to populate the two
- * sides of the interface), a set of multi-level annotations (defined by the
- * user or constrained by annotation rules), and graphical properties (to
- * ensure proper display on the main window). *)
-type image = {
-  fpath : string;
-  sizes : sizes;
-  table : CTable.table;
-  graph : graph;
-}
+    method path : string
+   
+    method archive : string
 
-let active_image = ref None
-
-let get_active () = !active_image
-
-let rem_active () = active_image := None
-
-let path t = t.fpath
-
-let basename t = Filename.basename (path t)
-
-let dirname t = Filename.dirname (path t)
-
-let source t = function `W -> t.graph.imgw | `H -> t.graph.imgh
-
-let origin t = function `X -> t.graph.xini | `Y -> t.graph.yini
-
-let dim t = function `R -> t.graph.rows | `C -> t.graph.cols
-
-let annotations {table; _} = table
-
-let edge t = function
-  | `SMALL -> t.sizes.small.edge 
-  | `LARGE -> t.sizes.large.edge
-  
-let tiles t = function
-  | `SMALL -> t.sizes.small.matrix
-  | `LARGE -> t.sizes.large.matrix
-  
-let tile ~r ~c t typ = Ext_Matrix.get_opt (tiles t typ) r c
-
-let x ~c t typ = (origin t `X) + c * (edge t typ)
-
-let y ~r t typ = (origin t `Y) + r * (edge t typ)
-
-let iter_tiles f t typ = Ext_Matrix.iteri f (tiles t typ)
-
-let statistics t = CTable.statistics (annotations t)
-
-module Create = struct
-  let large_tile_matrix nr nc edge src =
-    Ext_Matrix.init nr nc (fun r c ->
-      let src_x = c * edge and src_y = r * edge in
-      CPixbuf.crop ~src_x ~src_y ~edge src |> CPixbuf.resize ~edge:180
-    )
-    
-  let small_tile_matrix edge = Ext_Matrix.map (CPixbuf.resize ~edge)
-    
-  let annotations path tiles =
-    let zip = Filename.remove_extension path ^ ".zip" in
-    (* FIXME Remove this once everything has been converted! *)
-    let tsv = Filename.remove_extension path ^ ".tsv" in
-    if Sys.file_exists zip then CTable.load zip |> Option.get 
-    else if Sys.file_exists tsv then CTable.load_tsv tsv |> Option.get
-    else CTable.create (`MAT tiles) 
 end
 
-let create ?(edge = 236) fpath =
-  let uiw, uih = CGUI.Drawing.(width (), height ()) in
-  let pix = GdkPixbuf.from_file fpath in
-  let imgw, imgh = GdkPixbuf.(get_width pix, get_height pix) in
-  let rows = imgh / edge and cols = imgw / edge in
-  let large = Create.large_tile_matrix rows cols edge pix in
-  let sub = min (uiw / cols) (uih / rows) in
-  let small = Create.small_tile_matrix sub large in
-  let table = Create.annotations fpath small in
-  let graph = {
-    rows; cols;
-    imgw; imgh;
-    xini = (uiw - sub * cols) / 2;
-    yini = (uih - sub * rows) / 2;
-  } and sizes = {
-    small = {edge = sub; matrix = small};
-    large = {edge = 180; matrix = large};
-  } in
-  let img = { fpath; sizes; graph; table } in
-  CLog.info "source image: '%s'" fpath;
-  CLog.info "source image size: %d x %d pixels" imgw imgh;
-  CLog.info "tile matrix: %d x %d; edge: %d pixels" rows cols edge;
-  active_image := Some img;
-  img
+
+
+class sys path = object 
+
+    method path = path
+    
+    method archive = Filename.remove_extension path ^ ".zip"
+
+end
+
+
+
+class type visual = object
+
+    method rows : int
+    
+    method columns : int
+    
+    method width : int
+
+    method height : int
+
+    method ratio : int
+
+    method x_origin : int
+    
+    method y_origin : int
+
+end
+
+
+
+class visual edge (pixbuf : GdkPixbuf.pixbuf) =
+
+    let width = GdkPixbuf.get_width pixbuf
+    and height = GdkPixbuf.get_height pixbuf in
+
+    let rows = height / edge
+    and columns = width / edge in
+
+    let ui_width = CGUI.Drawing.width ()
+    and ui_height = CGUI.Drawing.height () in
+
+    let ratio = min (ui_width / columns) (ui_height / rows) in
+
+    let x_origin = (ui_width - ratio * columns) / 2
+    and y_origin = (ui_height - ratio * rows) / 2 in
+
+object
+
+    method rows = rows
+    method columns = columns
+    method width = width
+    method height = height
+    method ratio = ratio
+    method x_origin = x_origin
+    method y_origin = y_origin
+
+end
+
+
+
+class type tile_matrix = object
+
+    method edge : int
+    
+    method contents : GdkPixbuf.pixbuf Ext_Matrix.t
+
+end
+
+
+
+module Aux = struct
+
+    let crop ~src_x ~src_y ~edge pix =
+        let dest = GdkPixbuf.create
+            ~width:edge
+            ~height:edge () in
+        GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
+        dest
+        
+    let resize ?(interp = `NEAREST) e pix =
+        let open GdkPixbuf in
+        let scale_x = float e /. (float (get_width pix))
+        and scale_y = float e /. (float (get_height pix)) in
+        let dest = create ~width:e ~height:e () in
+        scale ~dest ~scale_x ~scale_y ~interp pix;
+        dest
+
+end
+
+
+
+class tile_matrix rows columns src_edge dst_edge = object
+
+    val data = Ext_Matrix.init rows columns
+        begin fun r c ->
+            let src_x = c * src_edge
+            and src_y = r * src_edge in
+            Aux.resize dst_edge (Aux.crop ~src_x ~src_y ~edge:src_edge pixbuf)
+        end
+
+    method edge = dst_edge
+    method contents = data
+
+end 
+
+
+class type image = object
+
+    method sys : sys
+    
+    method visual : visual
+
+    method small_tiles : Mosaic.tile_matrix
+
+    method large_tiles : Mosaic.tile_matrix
+  
+    method annotations : CTable.annotation_table list
+
+    method predictions : CTable.prediction_table list
+
+end
+
+
+
+class image path edge = 
+
+    let pixbuf = GdkPixbuf.from_file fpath in
+
+    let sys = new sys path
+    and visual = new visual edge pixbuf in
+
+    let annotations, predictions =
+        if Sys.file_exists sys#archive then (
+            let data = CTable.load sys#archive in
+            (** No annotation table. *)
+            if fst data = [] then
+                (CTable.create
+                    ~rows:visual#rows
+                    ~columns:visual#columns, pt)
+            else data
+        ) else (CTable.create ~rows:visual#rows ~columns:visual#columns, []) in
+
+    let small = new tile_matrix visual#rows visual#columns edge visual#ratio
+    and large = new tile_matrix visual#rows visual#columns edge 180 in
+
+object (self)
+
+    initializer
+        CLog.info "source image: '%s'\n\
+                   source image size: %d x %d pixels\n\
+                   tile matrix: %d x %d; edge: %d pixels"
+            path self#visual#width self#visual#height
+            self#visual#rows self#visual#columns edge
+
+    method sys = sys
+    method visual = visual
+    
+    method small_tiles = small
+    method large_tiles = large
+
+    method annotations = annotations
+    method predictions = predictions
+
+end
+
+
+
+let load ~edge path =
+    if Sys.file_exists path then new image path edge
+    else invalid_arg "CImage.load: File not found"
+
+
