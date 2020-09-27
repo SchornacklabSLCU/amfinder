@@ -3,18 +3,6 @@
 (** Multi-layered annotations and computer-generated predictions. *)
 
 
-type layer = [ `USER | `LOCK | `HOLD ]
-(** Mask layers, defined as follows:
-    - [`USER]: user-defined annotations.
-    - [`LOCK]: annotations switched off by other annotations.
-    - [`HOLD]: annotations switched on by other annotations. *)
-
-
-type annot = [ `CHAR of char | `TEXT of string ]
-(** Single ([`CHAR]) or multiple ([`TEXT]) annotations.
-    Both are treated in a case-insensitive way. *)
-
-
 (** Prediction mask. *)
 class type prediction_mask = object
 
@@ -48,6 +36,18 @@ class type prediction_mask = object
       * @raise Invalid_argument if a value is not in the range 0-1. *)
 
 end
+
+
+type layer = [ `USER | `LOCK | `HOLD ]
+(** Mask layers, defined as follows:
+    - [`USER]: user-defined annotations.
+    - [`LOCK]: annotations switched off by other annotations.
+    - [`HOLD]: annotations switched on by other annotations. *)
+
+
+type annot = [ `CHAR of char | `TEXT of string ]
+(** Single ([`CHAR]) or multiple ([`TEXT]) annotations.
+    Both are treated in a case-insensitive way. *)
 
 
 (** Multi-layered annotation mask. *)

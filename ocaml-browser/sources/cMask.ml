@@ -4,12 +4,6 @@ open CExt
 
 
 
-type layer = [ `USER | `HOLD | `LOCK ]
-
-type annot = [ `CHAR of char | `TEXT of string ]
-
-
-
 class type prediction_mask = object
 
     method get : char -> float
@@ -27,6 +21,12 @@ class type prediction_mask = object
     method of_list : (char * float) list -> unit
 
 end
+
+
+
+type layer = [ `USER | `HOLD | `LOCK ]
+
+type annot = [ `CHAR of char | `TEXT of string ]
 
 
 
