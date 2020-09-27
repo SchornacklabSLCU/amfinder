@@ -12,7 +12,7 @@ end
 
 module type S = sig
   val is_active : char -> bool option
-  val set_status : (CLevel.t * CMask.tile) list -> unit
+  val set_status : (CLevel.t * CMask.layered_mask) list -> unit
   val is_locked : unit -> bool
 end
 
@@ -126,11 +126,11 @@ module Make (P : PARAMS) : S = struct
 
   let set_status t =
     toggle_lock := true;
-    List.iter (fun (lvl, tile) ->
+    List.iter (fun (lvl, mask) ->
       revert_all lvl;
-      let user = CMask.get tile `USER
-      and hold = CMask.get tile `HOLD
-      and lock = CMask.get tile `LOCK in
+      let user = mask#get `USER
+      and hold = mask#get `HOLD
+      and lock = mask#get `LOCK in
       let toolbox = List.assoc lvl toolboxes in
       let module T = (val toolbox : TOGGLE) in
       let assoc_table = Array.to_list T.toggles in
