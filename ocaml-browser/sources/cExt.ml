@@ -1,7 +1,7 @@
-(* CastANet - cExt.ml *)
+(* CastANet - morelib.ml *)
 
 (* Operations on string sets. *)
-module Ext_StringSet = struct
+module StringSet = struct
 
     open Printf
 
@@ -40,7 +40,7 @@ end
 
 
 
-module Ext_File = struct
+module File = struct
     let read ?(binary = false) ?(trim = true) str = 
         let ich =
             match binary with
@@ -58,36 +58,38 @@ external id : 'a -> 'a = "%identity"
 
 
 
-module Ext_Matrix = struct
+module Matrix = struct
 
-    open Array
-
-    type 'a t = 'a array array
+    type 'a t = 'a Array.t Array.t
 
     let dim t =
         let r = length t in
         if r = 0 then (0, 0) else r, length t.(0)
 
-    let get t r c = t.(r).(c)
-    let get_opt t r c = try Some t.(r).(c) with _ -> None
+    let get_opt t ~r ~c = try Some t.(r).(c) with _ -> None
 
-    let set t r c x = t.(r).(c) <- x
+    let get t ~r ~c =
+        match get_opt t ~r ~c with
+        | None -> invalid_arg "CExt.Matrix.get: Out of range"
+        | Some x -> x
 
-    let make nrows ncols x = init nrows (fun _ -> make ncols x)
-    let init nrows ncols f = init nrows (fun r -> init ncols (f r))
+    let set t ~r ~c x = t.(r).(c) <- x
 
-    let map f = map (map f)
-    let mapi f = mapi (fun r -> mapi (f r))
+    let make ~r ~c x = Array.init r (fun _ -> Array.make c x)
+    let init ~r ~c f = Array.init r (fun r -> Array.init c (fun c -> f ~r ~c))
 
-    let iter f = iter (iter f)
-    let iteri f = iteri (fun r -> iteri (fun c -> f ~r ~c))
+    let map f = Array.map (Array.map f)
+    let mapi f = Array.mapi (fun r -> Array.mapi (fun c -> f ~r ~c))
+
+    let iter f = Array.iter (Array.iter f)
+    let iteri f = Array.iteri (fun r -> Array.iteri (fun c -> f ~r ~c))
 
     let fold f ini t = 
         let res = ref ini in
         Array.iteri (fun r -> Array.iteri (fun c x -> res := f ~r ~c !res x)) t;
         !res
 
-    let copy ?(dat = id) mat = Array.(map (map dat)) mat
+    let copy ?(dat = id) mat = Array.map (Array.map dat) mat
 
     let to_string ~cast t =
         Array.map (Array.map cast) t
@@ -121,7 +123,7 @@ end
 
 
 
-module Ext_Text = struct
+module Text = struct
 
     open String
     
@@ -130,18 +132,18 @@ module Ext_Text = struct
 end
 
 
-
+(*
 let time f x =
   let t_1 = Unix.gettimeofday () in
   let res = f x in
   let t_2 = Unix.gettimeofday () in
   CLog.info "Elapsed time: %.1f s" (t_2 -. t_1);
   res
-
+*)
 
 
 (* Memoized values with possible reinitialization. *)
-module Ext_Memoize = struct
+module Memoize = struct
   let flag = ref 0 (* Main flag. *)
 
   type 'a t = {
