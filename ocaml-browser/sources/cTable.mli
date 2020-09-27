@@ -1,100 +1,82 @@
 (* CastANet - cTable.mli *)
 
-open CExt
-
-(** Multi-level annotation tables. *)
-
-type table
-(** The type for annotation table. Annotation table consists of three matrices
-  * corresponding to the different annotation levels (basic, intermediate and
-  * complete). *)
+(** Implements annotation and prediction tables. *)
 
 
-(** {2 Creation and loading} *)
+(** Base tables. *)
+class type ['a] table = object
 
-val create :
-  ?main:CLevel.t -> 
-  [ `DIM of (int * int) | `MAT of 'a Ext_Matrix.t ] -> table
-(** Creates an empty matrix with either the given dimensions, or by mapping an
-  * existing matrix. The optional parameter [main] allows to define the main
-  * annotation layer (defaults to [`COLONIZATION]). *)
+    method rows : int
+    (** Row count. *)
 
-val load : string -> table option
-(** Imports tables from a ZIP archive. Returns [None] in case of error. *)
+    method columns : int
+    (** Column count. *)
 
-val load_tsv : string -> table option
-(** Imports table from a TSV file. This is there only during software 
-  * development, to deal with older file versions. *)
+    method level : CLevel.t
+    (** Annotation level. *)
+    
+    method header : char list
+    (** Annotation header. *)
 
+    method get : r:int -> c:int -> 'a
+    (** [get ~r ~c] returns data at row [r] and column [c].
+      * @raise Invalid_argument if [r] or [c] are out of range. *)
 
-(** {2 Saving and export} *)
+    method set : r:int -> c:int -> 'a -> unit
+    (** [set ~r ~c x] stores [x] at row [r] and column [c].
+      * @raise Invalid_argument if [r] or [c] are out of range. *)
 
-type export_flag = [
-  | `USER_ANNOT_ONLY            (** Exports user-defined annotations only. *)
-  | `AUTO_BACKGROUND            (** Sets unannotated tiles as background.  *)
-  | `MAIN_LEVEL_ONLY            (** Exports the main level only.           *)
-  | `LEVEL of CLevel.t          (** Exports a given level.                 *)
-  | `PREDICTION of string       (** Exports a given CNN prediction.        *)
-  | `PRED_THRESHOLD of float    (** Prediction threshold.                  *)
-  | `MIN_STDEV of float         (** Minimum dispersion value.              *)
-  | `BEST_PREDICTION            (** Keep the best predicted class only.    *)
-  | `EXPORT_STATISTICS          (** Exports statistics (for analysis).     *)
-]
-(** Table export options. These options can be combined. *)
+    method iter : (r:int -> c:int -> 'a -> unit) -> unit
+    (** [iter f] applies function [f] in turn to all data. *)
 
-val save : ?export:bool -> ?flags:export_flag list -> table -> string -> unit
-(** Saves the given table as ZIP archive. If the optional parameter [export]
-  * is set to [true], tables are produced for use with the CastANet Python
-  * tools. Use [flags] to control how those tables are generated. *)
+end
 
 
-(** {2 Edition} *)
+(** Prediction tables. *)
+class type prediction_table = object
 
-val is_valid : table -> r:int -> c:int -> bool
-(** Indicates whether the given coordinates are valid. *)
+    inherit [float list] table
 
-val get : table -> CLevel.t -> r:int -> c:int -> CMask.tile
-(** [get t lvl ~r ~c] returns the annotations at row [r] and column [c] in 
-  * layer [lvl] of table [t]. *)
+    method basename : string
+    (** Base name. *)
+    
+    method set_basename : string -> unit
+    (** Edits basename. *)
 
-val get_all : table -> r:int -> c:int -> (CLevel.t * CMask.tile) list
-(** Same as get, but gives information for all the annotation layers. *)
+    method filename
+    (** Output filename. *)
+   
+    method to_string : string
+    (** Returns the textual representation of the prediction table. *)
 
-val add :
-  table -> 
-  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CMask.tile) list
-(** [add t x ~r ~c chr] adds annotation [chr] at row [r] and column [c] in
-  * level [x]-matrix of table [t], and returns a changelog of altered 
-  * annotations in all other layers. These changes are to be reflected in the
-  * user interface. The function returns [None] if no change was made. *)
-
-val remove :
-  table -> 
-  CLevel.t -> r:int -> c:int -> char -> (CLevel.t * CMask.tile) list
-(** Same arguments as [add], but this function tries and remove a given 
-  * annotation from a given tile. Again the changelog indicates the triggered 
-  * modifications. *)
-
-val is_empty : table -> CLevel.t -> r:int -> c:int -> bool
-(** Indicates whether a given tile contains an annotation by looking into the
-  * user and hold layers.
-  * @raise Invalid_argument if the row or column number is invalid. *)
-
-val mem : 
-  table -> 
-  CLevel.t -> r:int -> c:int -> [ `CHR of char | `STR of string ] -> bool
-(** Indicates whether an annotation exists at the given coordinates.
-  * @raise Invalid_argument if the row or column number is invalid. *)
+end
 
 
-(** {2 Misc operations} *)
+(** Annotation tables. *)
+class type annotation_table = object
 
-val main_level : table -> CLevel.t
-(** Returns the main level of the given table. *)
+    inherit [CMask.layered_mask] table
 
-val statistics : table -> CLevel.t -> (char * int) list
-(** [statistics t lvl] returns the counts for each structure at level [lvl]
-  * in table [t]. *)
+    method filename : string
+    (** Output filename. *)
+    
+    method stats : (char * int) list
+    (** Returns tile count for each annotation class. *)
+    
+    method to_string : string
+    (** Returns the textual representation of the annotation table. *)
 
-val iter : (r:int -> c:int -> CMask.tile -> unit) -> table -> CLevel.t -> unit
-(** Table iterator. *)
+end
+
+
+val create : rows:int -> columns:int -> annotation_table list
+(** [create ~rows:r ~columns:c] create an empty set of annotation tables
+  * containing [r] rows and [c] columns. *)
+
+val load : string -> annotation_table list * prediction_table list
+(** [load ~zip] loads annotation and prediction tables from archive [zip]. *)
+
+val save : zip:string -> annotation_table list -> prediction_table list -> unit
+(** [save ~zip at pt] packs annotation ([at]) and prediction ([pt]) tables
+  * into a single archive file [zip]. *)
+
