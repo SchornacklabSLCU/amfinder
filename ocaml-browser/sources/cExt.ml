@@ -2,44 +2,56 @@
 
 (* Operations on string sets. *)
 module Ext_StringSet = struct
-  open Printf
-  let sort s = String.to_seq s
-    |> List.of_seq
-    |> List.sort Char.compare
-    |> List.to_seq
-    |> String.of_seq
-  let union s1 s2 =
-    let res = ref s2 in
-    String.iter (fun chr -> 
-      if not (String.contains s2 chr) then
-        res := sprintf "%s%c" !res chr
-    ) s1;
-    sort !res
-  let inter s1 s2 =
-    let res = ref "" in
-    String.iter (fun chr ->
-      if String.contains s2 chr then 
-        res := sprintf "%s%c" !res chr
-    ) s1;
-    sort !res
-  let diff s1 s2 =
-    let res = ref "" in 
-    String.iter (fun chr ->
-      if not (String.contains s2 chr) then
-        res := sprintf "%s%c" !res chr
-    ) s1;
-    sort !res
+
+    open Printf
+
+    let sort str =
+        String.to_seq str
+        |> List.of_seq
+        |> List.sort Char.compare
+        |> List.to_seq
+        |> String.of_seq
+
+    let union s1 s2 =
+        let res = ref s2 in
+        String.iter (fun chr -> 
+            if not (String.contains s2 chr) then
+                res := sprintf "%s%c" !res chr
+        ) s1;
+        sort !res
+
+    let inter s1 s2 =
+        let res = ref "" in
+        String.iter (fun chr ->
+            if String.contains s2 chr then 
+                res := sprintf "%s%c" !res chr
+        ) s1;
+        sort !res
+
+    let diff s1 s2 =
+        let res = ref "" in 
+        String.iter (fun chr ->
+            if not (String.contains s2 chr) then
+                res := sprintf "%s%c" !res chr
+        ) s1;
+        sort !res
+
 end
 
+
+
 module Ext_File = struct
-  let read ?(binary = false) ?(trim = true) str = 
-    let ich = (if binary then open_in_bin else open_in) str in
-    let len = in_channel_length ich in
-    let buf = Buffer.create len in
-    Buffer.add_channel buf ich len;
-    close_in ich;
-    let str = Buffer.contents buf in
-    if trim then String.trim str else str
+    let read ?(binary = false) ?(trim = true) str = 
+        let ich =
+            match binary with
+            | true -> open_in_bin str
+            | false -> open_in str in
+        let len = in_channel_length ich in
+        let buf = Buffer.create len in
+        Buffer.add_channel buf ich len;
+        close_in ich;
+        let str = Buffer.contents buf in
+        if trim then String.trim str else str
 end
 
 external id : 'a -> 'a = "%identity"
@@ -72,38 +84,38 @@ module Ext_Matrix = struct
 
     let fold f ini t = 
         let res = ref ini in
-        iteri (fun r -> iteri (fun c x -> res := f ~r ~c !res x)) t;
+        Array.iteri (fun r -> Array.iteri (fun c x -> res := f ~r ~c !res x)) t;
         !res
 
     let copy ?(dat = id) mat = Array.(map (map dat)) mat
 
     let to_string ~cast t =
-        map (map cast) t
-        |> map to_list
-        |> map (String.concat "\t")
-        |> to_list
+        Array.map (Array.map cast) t
+        |> Array.map to_list
+        |> Array.map (String.concat "\t")
+        |> Array.to_list
         |> String.concat "\n"
 
     let to_string_rc ~cast t =
-        mapi (fun r -> (mapi (fun c -> cast ~r ~c))) t
-        |> map to_list
-        |> map (String.concat "\t")
-        |> to_list
+        Array.mapi (fun r -> (Array.mapi (fun c -> cast ~r ~c))) t
+        |> Array.map to_list
+        |> Array.map (String.concat "\t")
+        |> Array.to_list
         |> String.concat "\n"
 
     let of_string ~cast s =
         String.split_on_char '\n' s
-        |> of_list
-        |> map (String.split_on_char '\t')
-        |> map of_list
-        |> map (map cast)
+        |> Array.of_list
+        |> Array.map (String.split_on_char '\t')
+        |> Array.map of_list
+        |> Array.map (Array.map cast)
 
     let of_string_rc ~cast s =
         String.split_on_char '\n' s
-        |> of_list
-        |> map (String.split_on_char '\t')
-        |> map of_list
-        |> mapi (fun r -> (mapi (fun c -> cast ~r ~c)))
+        |> Array.of_list
+        |> Array.map (String.split_on_char '\t')
+        |> Array.map of_list
+        |> Array.mapi (fun r -> (Array.mapi (fun c -> cast ~r ~c)))
 
 end
 
