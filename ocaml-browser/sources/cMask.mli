@@ -15,16 +15,17 @@ type annot = [ `CHAR of char | `TEXT of string ]
     Both are treated in a case-insensitive way. *)
 
 
+(** Multi-layered annotation mask. *)
 class type layered_mask = object
 
     method get : layer -> string
-    (** Return the active annotations at a given layer. *)
+    (** [get t] returns the active annotations of layer [t]. *)
 
     method is_empty : layer -> bool
-    (** Indicate whether the given layer has no annotation. *)
+    (** [is_empty t] indicates whether the layer [t] is unannotated. *)
 
     method mem : layer -> annot -> bool
-    (** [mem t x] indicates whether annotations [x] are active at layer [t]. *)
+    (** [mem t x] indicates whether annotation [x] is active at layer [t]. *)
 
     method set : layer -> annot -> unit
     (** [set t x] defines [x] as active annotations of layer [t]. *)
@@ -41,13 +42,13 @@ end
 
 
 val make : ?user:annot -> ?lock:annot -> ?hold:annot -> unit -> layered_mask
-(** Create a multi-layered mask and initialize with the given annotations. *)
+(** Create a multi-layered mask initialized with the given annotations. *)
 
 
 val from_string : string -> layered_mask
-(** Create a multi-layered mask from the given string. String must consists of
-    three space-separated character sets corresponding to user, lock and hold
-    layers, respectively (e.g. ["AEI X R"] is a valid string input).
+(** Create a multi-layered mask from the given string. The string must consist
+    of three space-separated character sets corresponding to the user, lock and
+    hold annotation layers, respectively (e.g. ["AEI X R"] is a valid input).
     @raise Invalid_argument if the input string has a different format. *)
 
 
