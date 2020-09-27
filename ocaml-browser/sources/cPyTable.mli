@@ -1,27 +1,35 @@
-(* CastANet - cPyTable.mli *)
+(* CastANet - cPTable.mli *)
 
-(** Import/export Python tables. *)
+(** Import/export Python prediction tables. *)
 
-open CExt
 
-type python_table
-(** The type for Python tables. *)
+class type prediction_table = object
 
-val label : pytable -> string
-(** Returns the Python table identifier (base name without extension). *)
+    method level : CLevel.t
+    (** Annotation level. *)
+    
+    method header : char list
+    (** Annotation header. *)
+    
+    method get : r:int -> c:int -> float list
+    (** [get ~r ~c] returns the predictions at row [r] and column [c].
+      * @raise Invalid_argument if [r] or [c] are out of range. *)
 
-val level : pytable -> CLevel.t
-(** Returns the Python table level. *)
+    method iter : (r:int -> c:int -> float list -> unit) -> unit
+    (** [iter f] applies function [f] in turn to all predictions. *)
 
-val header : pytable -> char list
-(** Returns the header of the Python table. *)
+    method rows : int
+    (** Row count. *)
+    
+    method columns : int
+    (** Column count. *)
 
-val matrix : pytable -> float list Ext_Matrix.t
-(** Returns the prediction matrix. *)
+    method to_string : string
+    (** Returns the textual representation of the given prediction table. *)
 
-val from_string : path:string -> string -> pytable
-(** Build a table from the given string. The labelled argument [path] is used
-  * to generate a label for the given Python table. *)
+end
 
-val to_string : pytable -> string
-(** Converts a Python table to string (for export purposes). *)
+
+val create : data:string -> prediction_table
+(** Build a table from the given string. *)
+

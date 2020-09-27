@@ -1,25 +1,33 @@
-(* CastANet - cPyTable.ml *)
+(* CastANet - cPTable.ml *)
 
 open CExt
-open Scanf
-open Printf
-
-type python_table = {
-    pt_label : string;                    (* Base name without extension.    *)
-    pt_level : CLevel.t;                  (* Annotation level (from header). *)
-    pt_header : char list;                (* Header character order.         *)
-    pt_matrix : float list Ext_Matrix.t;  (* Probabilities.                  *)
-}
-
-let label t = t.py_label
-let level t = t.py_level
-let header t = t.py_header
-let matrix t = t.py_matrix
 
 
 
-module OfString = struct
+class type prediction_table = object
 
+    method level : CLevel.t
+    
+    method header : char list
+    
+    method get : r:int -> c:int -> float list
+
+    method iter : (r:int -> c:int -> float list -> unit) -> unit
+
+    method rows : int
+    
+    method columns : int
+
+    method to_string : string
+
+end
+
+
+
+module Aux = struct
+
+    open Scanf
+    open Printf
     open String
 
     (* Example of header format: "row\tcol\tN\tV\tX" *)
@@ -41,13 +49,13 @@ module OfString = struct
         (* Make an association list of coordinates (r, c) and predictions. *)
         let assoc = List.map line (split_on_char '\n' str) in
         (* Creates an empty matrix. *)
-        let matrix = Ext_Matrix.make (nrows assoc) (ncols assoc) [||] in
+        let matrix = Ext_Matrix.make (nrows assoc) (ncols assoc) [] in
         (* Populate the matrix with predictions. *)
         List.iter (fun ((r, c), t) -> Ext_Matrix.set matrix r c t) assoc;
         matrix
 
     (* First line contains header, other lines contain data. *)
-    let table str =
+    let read_table str =
         match index_opt str '\n' with
         | None -> invalid_arg "(CastANet.CPyTable) Empty table"
         | Some i -> let len = length str in
@@ -58,39 +66,44 @@ end
 
 
 
-let from_string ~path str =
-    (* Retrieve table header and contents. *)
-    let pt_header, pt_matrix = OfString.table str in
-    (* Retrieve the corresponding annotation level. *)
-    let pt_level =
-        match List.length pt_header with
-        | 3 -> `COLONIZATION
-        | 4 -> `ARB_VESICLES
-        | 7 -> `ALL_FEATURES
-        | _ -> invalid_arg "(CastANet.CPyTable) Wrong header size"
-    in
-    (* Create Python table label (to be displayed) from its path. *)
-    let pt_label = Filename.(basename (remove_extension path)) in
-    (* Creates the final Python table *)
-    { pt_label; pt_level; pt_header; pt_matrix } 
+class prediction_table ~header ~contents = object (self)
 
+    val header = header
+    val matrix = contents
 
+    method level = CLevel.of_header header
+    method header = header
 
-module ToString = struct
+    method get ~r ~c = 
+        if r >= 0 && r < self#rows 
+        && c >= 0 && c < self#columns then matrix.(r).(c)
+        else invalid_arg "(CPyTable.prediction_table#get) Out of range"  
+    
+    method iter f = Ext_Matrix.iteri f matrix
 
-    let header labels =
-        List.map (String.make 1) labels
-        |> String.concat "\t"
-        |> sprintf "row\tcol\t%s"
+    method rows = Array.length matrix
 
-    let data ~r ~c probs =
-        List.map Float.to_string probs
+    method columns = if self#rows = 0 then 0 else Array.length matrix.(0)
+
+    method to_string =
+        let header_str = List.map (String.make 1) header
             |> String.concat "\t"
-            |> sprintf "%d\t%d\t%s" r c
+            |> Printf.sprintf "row\tcol\t%s"
+        and contents_str = 
+            Ext_Matrix.to_string_rc
+              ~cast:(fun ~r ~c t ->
+                List.map Float.to_string t
+                |> String.concat "\t"
+                |> Printf.sprintf "%d\t%d\t%s" r c
+              ) matrix
+        in Printf.sprintf "%s\n%s" header_str contents_str
 
 end
 
-let to_string {pt_header; pt_matrix; _} =
-    sprintf "%s\n%s"
-        (ToString.header pt_header)
-        (Ext_Matrix.to_string_rc ~cast:ToString.data pt_matrix)
+
+
+let create ~data = 
+    let header, contents = Aux.read_table data in
+    new prediction_table ~header ~contents
+
+
