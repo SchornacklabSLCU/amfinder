@@ -1,8 +1,6 @@
 (* CastANet - cMask.ml *)
 
 open CExt
-open Scanf
-open Printf
 
 
 
@@ -12,16 +10,21 @@ type annot = [ `CHAR of char | `TEXT of string ]
 
 
 
-module Aux = struct
+class type prediction_mask = object
 
-   let string_of_annot = function
-        | `CHAR chr -> String.make 1 (Char.uppercase_ascii chr)
-        | `TEXT str -> String.uppercase_ascii str
+    method get : char -> float
+    
+    method mem : char -> bool
+    
+    method set : char -> float -> unit
 
-    let mem str = function
-        | `CHAR chr -> String.contains str chr
-        | `TEXT txt -> let chars = Ext_Text.explode txt in
-            List.for_all (String.contains str) chars
+    method top : (char * float) option
+    
+    method threshold : th:float -> (char * float) list
+    
+    method to_list : (char * float) list
+
+    method of_list : (char * float) list -> unit
 
 end
 
@@ -43,6 +46,66 @@ class type layered_mask = object
 
     method to_string : string
 
+    method predictions : prediction_mask
+
+end
+
+
+
+module Aux = struct
+
+   let string_of_annot = function
+        | `CHAR chr -> String.make 1 (Char.uppercase_ascii chr)
+        | `TEXT str -> String.uppercase_ascii str
+
+    let mem str = function
+        | `CHAR chr -> String.contains str chr
+        | `TEXT txt -> let chars = Ext_Text.explode txt in
+            List.for_all (String.contains str) chars
+
+end
+
+
+
+class prediction_mask = object (self)
+
+    val mutable predictions = []
+    
+    method get key =
+        let key = Char.uppercase_ascii key in
+        match List.assoc_opt key predictions with
+        | None -> 0.0
+        | Some x -> x
+
+    method mem key =
+        let key = Char.uppercase_ascii key in
+        List.assoc_opt key predictions <> None
+
+    method set key x =
+        let key = Char.uppercase_ascii key in
+        match self#get key with
+        | None -> predictions <- (key, x) :: predictions
+        | Some y -> if x <> y then 
+            predictions <- (key, x) :: List.remove_assoc key predictions
+   
+    method top =
+        match predictions with
+        | [] -> None
+        | hdr :: rem -> let max x y = if snd y > snd x then y else x in
+            Some (List.fold_left max hdr rem)
+
+    method threshold ~th =
+        if th >= 0.0 && th <= 1.0 then List.filter (fun t -> snd t >= th)
+        else invalid_arg "(CMask.prediction_mask#threshold) Invalid threshold"
+
+    let to_list = predictions
+
+    method of_list t =
+        let curated = List.map (fun (chr, x) ->
+            if x >= 0.0 && x <= 1.0 then (Char.uppercase_ascii chr, x)
+            else invalid_arg "(CMask.prediction_mask#from_list) Invalid value"
+        ) t in predictions <- curated
+
 end
 
 
@@ -50,6 +113,7 @@ end
 class layered_mask = object (self)
 
     val masks = [|""; ""; ""|]
+    val predictions = new prediction_mask
 
     method private apply f = function
         | `USER -> (fun x -> f masks.(0) x)
@@ -82,6 +146,8 @@ class layered_mask = object (self)
         in self#alter diff
 
     method to_string = String.concat " " (Array.to_list masks) 
+
+    method predictions = predictions
 
 end
 

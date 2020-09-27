@@ -1,6 +1,6 @@
 (* CastANet - cMask.mli *)
 
-(** Multi-layered annotations. *)
+(** Multi-layered annotations and computer-generated predictions. *)
 
 
 type layer = [ `USER | `LOCK | `HOLD ]
@@ -13,6 +13,41 @@ type layer = [ `USER | `LOCK | `HOLD ]
 type annot = [ `CHAR of char | `TEXT of string ]
 (** Single ([`CHAR]) or multiple ([`TEXT]) annotations.
     Both are treated in a case-insensitive way. *)
+
+
+(** Prediction mask. *)
+class type prediction_mask = object
+
+    method get : char -> float
+    (** [get c] returns the probability associated with annotation [c].
+      * The function is case-insensitive. *)
+    
+    method mem : char -> bool
+    (** [mem c] indicates whether the annotation [c] exists.
+      * The function is case-insensitive. *)
+    
+    method set : char -> float -> unit
+    (** [set c] sets the probability associated with annotation [c].
+      * The function is case-insensitive. *)
+
+    method top : (char * float) option
+    (** [top] returns the annotation with highest probability, if any. *)
+    
+    method threshold : th:float -> (char * float) list
+    (** [threshold ~th] returns the annotation with probability higher than
+      * the threshold value [th].
+      * @raise Invalid_argument if threshold value is not in the range 0-1. *)
+
+    method to_list : (char * float) list
+    (** [to_list] returns the list of available predictions and their associated
+      * probabilities. *)
+
+    method of_list : (char * float) list -> unit
+    (** [of_list t] sets predictions from the association list [t].
+      * Characters (association keys) are converted to uppercase.
+      * @raise Invalid_argument if a value is not in the range 0-1. *)
+
+end
 
 
 (** Multi-layered annotation mask. *)
@@ -38,6 +73,10 @@ class type layered_mask = object
 
     method to_string : string
     (** Return the string representation of the multi-layered mask. *)
+
+    method predictions : prediction_mask
+    (** Return computer-generated predictions. *)
+
 end
 
 
