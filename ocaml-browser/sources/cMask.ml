@@ -1,61 +1,105 @@
-(* CastANet - cTile.ml *)
+(* CastANet - cMask.ml *)
 
 open CExt
 open Scanf
 open Printf
 
-type tile = {
-  mutable user : string;
-  mutable lock : string;
-  mutable hold : string;
-}
 
-let as_string = function
-  | `CHR chr -> String.make 1 (Char.uppercase_ascii chr)
-  | `STR str -> String.uppercase_ascii str
 
 type layer = [ `USER | `HOLD | `LOCK ]
 
-let create () = { user = ""; lock = ""; hold = "" }
-
-let make ?(user = `STR "") ?(lock = `STR "") ?(hold = `STR "") () = 
-  let user = as_string user
-  and lock = as_string lock
-  and hold = as_string hold in {user; lock; hold}
-
-let to_string t = sprintf "[%S %S %S]" t.user t.lock t.hold
-
-let of_string s = 
-  let import s = sscanf s "[%S %S %S]"
-    (fun x y z -> {user = x; lock = y; hold = z})
-  in try import s with _ -> invalid_arg s
-
-let get t = function
-  | `USER -> t.user
-  | `LOCK -> t.lock
-  | `HOLD -> t.hold
-
-let apply f t = function
-  | `USER -> (fun x -> t.user <- f t.user x)
-  | `LOCK -> (fun x -> t.lock <- f t.lock x)
-  | `HOLD -> (fun x -> t.hold <- f t.hold x)
+type annot = [ `CHAR of char | `TEXT of string ]
 
 
 
-let set = apply (fun _ -> as_string)
-let add = apply (fun x y -> Ext_StringSet.union x (as_string y))
-let remove = apply (fun x y -> Ext_StringSet.diff x (as_string y))
+module Aux = struct
 
-let exists src = function
-  | `CHR chr -> String.contains src chr
-  | `STR str -> List.for_all (String.contains src) (Ext_Text.explode str)
+   let string_of_annot = function
+        | `CHAR chr -> String.make 1 (Char.uppercase_ascii chr)
+        | `TEXT str -> String.uppercase_ascii str
 
-let is_empty t = function
-  | `USER -> t.user = ""
-  | `LOCK -> t.lock = ""
-  | `HOLD -> t.hold = ""
+    let mem str = function
+        | `CHAR chr -> String.contains str chr
+        | `TEXT txt -> let chars = Ext_Text.explode txt in
+            List.for_all (String.contains str) chars
 
-let mem t = function
-  | `USER -> exists t.user
-  | `LOCK -> exists t.lock
-  | `HOLD -> exists t.hold
+end
+
+
+
+class type layered_mask = object
+
+    method get : layer -> string
+
+    method is_empty : layer -> bool
+
+    method mem : layer -> annot -> bool
+
+    method set : layer -> annot -> unit
+
+    method add : layer -> annot -> unit
+
+    method remove : layer -> annot -> unit
+
+    method to_string : string
+
+end
+
+
+
+class layered_mask = object (self)
+
+    val masks = [|""; ""; ""|]
+
+    method private apply f = function
+        | `USER -> (fun x -> f masks.(0) x)
+        | `LOCK -> (fun x -> f masks.(1) x)
+        | `HOLD -> (fun x -> f masks.(2) x)
+
+    method private alter f = function
+        | `USER -> (fun x -> masks.(0) <- f masks.(0) x)
+        | `LOCK -> (fun x -> masks.(1) <- f masks.(1) x)
+        | `HOLD -> (fun x -> masks.(2) <- f masks.(2) x)
+
+    method get elt = self#apply (fun m _ -> m) elt ()
+
+    method is_empty elt = self#apply (fun m _ -> m = "") elt ()
+
+    method mem = self#apply Aux.mem
+
+    method set = self#alter (fun _ -> Aux.string_of_annot)
+
+    method add = 
+        let union m x =
+            let s = Aux.string_of_annot x in
+            Ext_StringSet.union m s 
+        in self#alter union
+
+    method remove =
+        let diff m x =
+            let s = Aux.string_of_annot x in
+            Ext_StringSet.diff m s
+        in self#alter diff
+
+    method to_string = String.concat " " (Array.to_list masks) 
+
+end
+
+
+
+let make ?(user = `TEXT "") ?(lock = `TEXT "") ?(hold = `TEXT "") () =
+    let masks = new layered_mask in
+    masks#set `USER user;
+    masks#set `LOCK lock;
+    masks#set `HOLD hold;
+    masks
+
+
+
+let from_string str =
+    let raw = Array.of_list (String.split_on_char ' ') in
+    if Array.length raw = 3 then
+        let user = `TEXT raw.(0)
+        and lock = `TEXT raw.(1)
+        and hold = `TEXT raw.(2) in make ~user ~lock ~hold ()
+    else invalid_arg "(CMask.from_string) Wrong string format"
