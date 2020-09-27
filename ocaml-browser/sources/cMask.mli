@@ -56,6 +56,9 @@ class type layered_mask = object
     method get : layer -> string
     (** [get t] returns the active annotations of layer [t]. *)
 
+    method all : string
+    (** Same as [get], but returns the active annotations of all layers. *)
+
     method is_empty : layer -> bool
     (** [is_empty t] indicates whether the layer [t] is unannotated. *)
 
@@ -84,7 +87,7 @@ val make : ?user:annot -> ?lock:annot -> ?hold:annot -> unit -> layered_mask
 (** Create a multi-layered mask initialized with the given annotations. *)
 
 
-val from_string : string -> layered_mask
+val of_string : string -> layered_mask
 (** Create a multi-layered mask from the given string. The string must consist
     of three space-separated character sets corresponding to the user, lock and
     hold annotation layers, respectively (e.g. ["AEI X R"] is a valid input).

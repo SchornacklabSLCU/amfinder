@@ -34,6 +34,8 @@ class type layered_mask = object
 
     method get : layer -> string
 
+    method all : string
+
     method is_empty : layer -> bool
 
     method mem : layer -> annot -> bool
@@ -127,6 +129,8 @@ class layered_mask = object (self)
 
     method get elt = self#apply (fun m _ -> m) elt ()
 
+    method all = Ext_StringSet.union (self#get `USER) (self#get `HOLD)
+
     method is_empty elt = self#apply (fun m _ -> m = "") elt ()
 
     method mem = self#apply Aux.mem
@@ -162,7 +166,7 @@ let make ?(user = `TEXT "") ?(lock = `TEXT "") ?(hold = `TEXT "") () =
 
 
 
-let from_string str =
+let of_string str =
     let raw = Array.of_list (String.split_on_char ' ') in
     if Array.length raw = 3 then
         let user = `TEXT raw.(0)
