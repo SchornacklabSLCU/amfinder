@@ -29,11 +29,7 @@ class type t = object
     (** Draws a white background on the right image area.
       * @param sync defaults to [true]. *)
 
-    method mosaic : ?sync:bool -> unit -> unit
-    (** Draws all tiles from the given image.
-      * @param sync defaults to [true]. *)
-
-    method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method tile : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
     (** [tile ?sync ~r ~c] draws the tile at row [r] and column [c].
       * @param sync defaults to [false]. *)
 
@@ -52,5 +48,5 @@ class type t = object
 end
 
 
-val create : ImgSource.t -> ImgTileMatrix.t -> t
+val create : ImgSource.t -> t
 (** Creates drawing functions. *)

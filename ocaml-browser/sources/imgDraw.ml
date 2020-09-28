@@ -9,8 +9,7 @@ class type t = object
     method backcolor : string
     method set_backcolor : string -> unit
     method background : ?sync:bool -> unit -> unit
-    method mosaic : ?sync:bool -> unit -> unit
-    method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method tile : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
     method cursor : ?sync:bool -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> CLevel.t -> char -> unit
@@ -68,15 +67,15 @@ end
 
 
 
-class drawing (source : ImgSource.t) (small : ImgTileMatrix.t) =
+class drawing (source : ImgSource.t) =
 
     let ui_width = CGUI.Drawing.width ()
     and ui_height = CGUI.Drawing.height () in
 
-    let edge = min (ui_width / columns) (ui_height / rows) in
+    let edge = min (ui_width / source#columns) (ui_height / source#rows) in
 
-    let x_origin = (ui_width - edge * columns) / 2
-    and y_origin = (ui_height - edge * rows) / 2 in
+    let x_origin = (ui_width - edge * source#columns) / 2
+    and y_origin = (ui_height - edge * source#rows) / 2 in
 
 object (self)
 
@@ -107,20 +106,13 @@ object (self)
         Cairo.stroke t;
         if sync then CGUI.Drawing.synchronize ()
 
-    method mosaic ?(sync = true) () =
-        let pixmap = CGUI.Drawing.pixmap () in
-        small#iter (fun ~r ~c pixbuf ->
-            pixmap#put_pixbuf
-                ~x:(self#x ~c) ~y:(self#y ~r)
-                ~width:edge ~height:edge
-                pixbuf);
-        if sync then CGUI.Drawing.synchronize ()
-
-    method tile ?(sync = false) ~r ~c () =
+    method tile ?(sync = false) ~r ~c pixbuf =
+        assert (GdkPixbuf.get_width pixbuf = edge);
+        assert (GdkPixbuf.get_height pixbuf = edge);
         let pixmap = CGUI.Drawing.pixmap () in
         pixmap#put_pixbuf
             ~x:(self#x ~c)
-            ~y:(self#y ~r) (small#get ~r ~c);
+            ~y:(self#y ~r) pixbuf;
         if sync then CGUI.Drawing.synchronize ()
 
     method private surface ?(sync = false) ~r ~c surface =
@@ -148,4 +140,4 @@ end
 
 
 
-let create source small = new drawing source small 
+let create source = new drawing source 
