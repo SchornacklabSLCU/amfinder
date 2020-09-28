@@ -1,6 +1,6 @@
 (* CastANet - cImage.ml *)
 
-class type image = object
+class type t = object
     method file : ImgFile.t
     method source : ImgSource.t
     method draw : ImgDraw.t

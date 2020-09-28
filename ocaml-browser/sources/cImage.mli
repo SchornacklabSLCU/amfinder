@@ -2,7 +2,8 @@
 
 (** Image management. *)
 
-class type image = object
+class type t = object
+
     method file : ImgFile.t
     (** File settings. *)
 
@@ -23,8 +24,9 @@ class type image = object
 
     method predictions : CTable.prediction_table list
     (** Computer-generated predictions (probabilities). *)
+
 end
 
-val load : edge:int -> string -> image
+val load : edge:int -> string -> t
 (** [load ~edge:n img] loads image [img], using [n]x[n] squares as tiles.
   * @raise Invalid_argument if the file does not exist. *)
