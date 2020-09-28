@@ -80,7 +80,6 @@ class drawing (source : ImgSource.t) =
 object (self)
 
     val mutable backcolor = "#ffffffff"
-    val mutable cursor_pos = (0, 0)
 
     method edge = edge
     method x_origin = x_origin
@@ -91,9 +90,6 @@ object (self)
 
     method backcolor = backcolor
     method set_backcolor x = backcolor <- x
-
-    method cursor_pos = cursor_pos
-    method set_cursor_pos x = cursor_pos <- x
 
     method background ?(sync = true) () =
         let t = CGUI.Drawing.cairo () in
@@ -123,8 +119,7 @@ object (self)
         Cairo.paint t;
         if sync then CGUI.Drawing.synchronize ()    
 
-    method cursor ?sync () =
-        let r, c = cursor_pos in
+    method cursor ?sync ~r ~c () =
         self#tile ~r ~c ();
         self#surface ?sync ~r ~c (Surface.cursor edge)
 

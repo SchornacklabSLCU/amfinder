@@ -33,7 +33,7 @@ class type t = object
     (** [tile ?sync ~r ~c] draws the tile at row [r] and column [c].
       * @param sync defaults to [false]. *)
 
-    method cursor : ?sync:bool -> unit -> unit
+    method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Draws the cursor.
       * @param sync defaults to [false]. *)
 

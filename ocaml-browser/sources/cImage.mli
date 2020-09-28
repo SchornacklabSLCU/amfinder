@@ -13,6 +13,9 @@ class type t = object
     method draw : ImgDraw.t
     (** Drawing toolbox. *)
 
+    method cursor : ImgCursor.t
+    (** Cursor position manager. *)
+
     method small_tiles : ImgTileMatrix.t
     (** Small-sized tiles to be used in the right pane. *)
 

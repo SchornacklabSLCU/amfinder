@@ -4,6 +4,7 @@ class type t = object
     method file : ImgFile.t
     method source : ImgSource.t
     method draw : ImgDraw.t
+    method cursor : ImgCursor.t
     method small_tiles : ImgTileMatrix.t
     method large_tiles : ImgTileMatrix.t
     method annotations : CTable.annotation_table list
@@ -22,7 +23,8 @@ class image path edge =
     let source = ImgSource.create pixbuf edge in
     
     (* Drawing parameters. *)   
-    let draw = ImgDraw.create source in
+    let draw = ImgDraw.create source
+    and cursor = ImgCursor.create source in
 
     (* Image segmentation. *)   
     let small_tiles = ImgTileMatrix.create pixbuf source draw#edge
@@ -48,6 +50,7 @@ object (self)
 
     method file = file
     method draw = draw
+    method cursor = cursor
     method small_tiles = small_tiles
     method large_tiles = large_tiles
     method annotations = annotations
