@@ -26,6 +26,5 @@ class type image = object
 end
 
 val load : edge:int -> string -> image
-(** [load ~edge:n img] loads image [img], using squares of [n]x[n] pixels 
-  * as tiles.
+(** [load ~edge:n img] loads image [img], using [n]x[n] squares as tiles.
   * @raise Invalid_argument if the file does not exist. *)
