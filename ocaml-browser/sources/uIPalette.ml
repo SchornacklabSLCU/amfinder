@@ -99,8 +99,8 @@ module Make (P : PARAMS) : S = struct
 
   let packing = toolbar#insert
 
-  let _ = UI_Helper.separator packing
-  let _ = UI_Helper.label packing "Predictions"
+  let _ = UIHelper.separator packing
+  let _ = UIHelper.label packing "Predictions"
 
   let palette_icon, palette =
     let button = GButton.tool_button ~packing () in
@@ -108,7 +108,7 @@ module Make (P : PARAMS) : S = struct
       ~packing:button#set_icon_widget () in
     image, button
 
-  let _ = UI_Helper.morespace packing
+  let _ = UIHelper.morespace packing
 
   let all =
     let btn = GButton.radio_tool_button ~active:true ~packing () in

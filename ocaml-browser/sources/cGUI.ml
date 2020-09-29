@@ -36,7 +36,7 @@ module Box = struct
     ~packing:v#add ()
 end
 
-module Levels = UI_Levels.Make (
+module Levels = UILevels.Make (
   struct
     let init_level = CLevel.lowest (* TODO: replace with highest *)
     let packing = Box.b#add
@@ -54,14 +54,14 @@ let framed_pane ~label ~r ~c =
 let left_pane = framed_pane ~label:"Magnified view" ~r:2 ~c:1
 let right_pane = framed_pane ~label:"Whole image" ~r:1 ~c:2
 
-module Toggles = UI_ToggleBar.Make (
+module Toggles = UIToggleBar.Make (
   struct
     include Levels
     let packing x = left_pane#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE x
     let remove = left_pane#remove  
   end )
 
-module Magnifier = UI_Magnifier.Make (
+module Magnifier = UIMagnifier.Make (
   struct
     let rows = 3
     let columns = 3
@@ -69,7 +69,7 @@ module Magnifier = UI_Magnifier.Make (
     let packing obj = left_pane#attach ~top:1 ~left:0 obj
   end )
 
-module Drawing = UI_Drawing.Make (
+module Drawing = UIDrawing.Make (
   struct
     let packing obj = right_pane#attach ~left:0 ~top:0 obj
   end )
@@ -79,12 +79,12 @@ let container = GPack.table
   ~row_spacings:spacing
   ~packing:(right_pane#attach ~left:1 ~top:0) ()
 
-module CursorPos = UI_CursorPos.Make (
+module CursorPos = UICursorPos.Make (
   struct
     let packing ~top obj = container#attach ~left:0 ~top obj
   end )
 
-module Palette = UI_Palette.Make (
+module Palette = UIPalette.Make (
   struct
     let parent = window
     let border_width = border_width
@@ -92,7 +92,7 @@ module Palette = UI_Palette.Make (
     let tooltips = tooltips
   end )
 
-module Layers = UI_Layers.Make (
+module Layers = UILayers.Make (
   struct
     include Levels
     let packing obj = container#attach
@@ -107,7 +107,7 @@ let status =
   lbl#set_use_markup true;
   lbl
 
-module TileSet = UI_TileSet.Make (
+module TileSet = UITileSet.Make (
   struct
     let parent = window
     let spacing = spacing
@@ -117,7 +117,7 @@ module TileSet = UI_TileSet.Make (
     let window_title = "Tile Set"
   end )
 
-module FileChooser = UI_FileChooser.Make (
+module FileChooser = UIFileChooser.Make (
   struct
     let parent = window
     let title = "CastANet Image Chooser"
