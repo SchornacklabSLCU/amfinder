@@ -39,7 +39,7 @@ module Make (P : PARAMS) : S = struct
       let radio = make_radio !group lbl lvl in
       if !group = None then group := Some radio#group;
       lvl, radio
-    ) CLevel.flags CLevel.strings
+    ) CLevel.all_flags ["Colonization"; "Arbuscules/vesicles"; "All features"]
     
   let set_callback f =
     List.iter (fun (lvl, radio) ->

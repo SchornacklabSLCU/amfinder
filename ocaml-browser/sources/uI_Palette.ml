@@ -1,8 +1,8 @@
 (* uI_Palette.ml *)
 
-open CExt
 open Scanf
 open Printf
+open Morelib
 
 module type PARAMS = sig
   val parent : GWindow.window
@@ -32,7 +32,7 @@ let load () =
     let path = Filename.concat folder elt in
     if Filename.check_suffix path ".palette" then (
       let base = Filename.remove_extension elt in
-        let colors = Ext_File.read path
+        let colors = File.read path
           |> String.split_on_char '\n'
           |> List.map validate_color
           |> Array.of_list
@@ -94,7 +94,7 @@ module Make (P : PARAMS) : S = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:78 ~height:195
+    ~width:78 ~height:200
     ~packing:P.packing ()
 
   let packing = toolbar#insert
@@ -107,6 +107,36 @@ module Make (P : PARAMS) : S = struct
     let image = GMisc.image ~width:55 ~height:24
       ~packing:button#set_icon_widget () in
     image, button
+
+  let _ = UI_Helper.morespace packing
+
+  let all =
+    let btn = GButton.radio_tool_button ~active:true ~packing () in
+    GMisc.label ~markup:"<small>All</small>" ~packing:btn#set_icon_widget ();
+    btn
+    
+  let best =
+    let btn = GButton.radio_tool_button ~group:all ~packing () in
+    GMisc.label
+      ~markup:"<small>Best</small>"
+      ~packing:btn#set_icon_widget ();
+    btn
+    
+  let threshold =
+    let btn = GButton.radio_tool_button ~group:all ~packing () in
+    GEdit.entry ~text:"95" ~max_length:2 
+      ~packing:btn#set_icon_widget ();
+    btn
+
+
+  let methods = GButton.tool_button ~label:"Method" ~packing ()  
+
+  let transfer = 
+    let btn = GButton.tool_button ~packing () in
+    GMisc.label 
+      ~markup:"<b>Transfer</b>"
+      ~packing:btn#set_icon_widget ();
+    btn
 
   let set_tooltip s =
     let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
@@ -161,7 +191,7 @@ module Make (P : PARAMS) : S = struct
         set_tooltip id;
         view#selection#select_iter row
       ) !sel
-    in Ext_Memoize.create ~label:"UI_Palette.Make" aux
+    in Memoize.create ~label:"UI_Palette.Make" aux
 
   let get_selected_iter () =
     view#selection#get_selected_rows

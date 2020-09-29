@@ -59,7 +59,7 @@ module Make (P : PARAMS) : S = struct
         List.mapi (add_item packing active group) code_list
     end in (module T : RADIO)
     
-  let toolboxes = List.map (fun typ -> typ, make_toolbox typ) CLevel.flags
+  let toolboxes = List.map (fun typ -> typ, make_toolbox typ) CLevel.all_flags
 
   let current_widget = ref None
 

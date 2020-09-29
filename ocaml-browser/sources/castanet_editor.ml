@@ -53,27 +53,26 @@ let load_image () =
     (* Displays the main window in order to retrieve drawing parameters. *)
     CGUI.window#show ();
     (* Loads the image, creates tiles and populates the main window. *)
-    let image = CImage.create ~edge:!Par.edge path in
+    let image = CImage.create ~edge:!Par.edge image_path in
     (* Connect GtkWindow events. *)
     let connect = CGUI.window#event#connect in
     let id = connect#key_press ~callback:image#cursor#key_press in
-    image#at_exit (fun () -> GtkSignal.disconnect CGUI.window id);
+    image#at_exit (fun () -> GtkSignal.disconnect CGUI.window#as_widget id);
     (* Connect GtkDrawingArea events. *)
     let connect = CGUI.Drawing.area#event#connect in
     let id = connect#button_press ~callback:image#cursor#mouse_click in
-    image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area id);
-    let id = connect#motion_notify ~callback:image#pointer#track
-    image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area id);
-    let id = connect#leave_notify ~callback:image#pointer#leave
-    image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area id);
+    image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area#as_widget id);
+    let id = connect#motion_notify ~callback:image#pointer#track in
+    image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area#as_widget id);
+    let id = connect#leave_notify ~callback:image#pointer#leave in
+    image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area#as_widget id);
     (* Sets as main image. *)       
-    curr_image := Some image;
+    Par.image := Some image;
     (* Draws background, tiles and active layer. No need to sync here. *)
-    image#show ()
+    image#show ();
     (* Displays cursor and the corresponding magnified view. *)
     CGUI.status#set_label (digest image)
-    (* FIXME this may not be the ideal situation!
-    at_exit save*)
+
 
 let main () =
     Printexc.record_backtrace true;

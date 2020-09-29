@@ -1,6 +1,6 @@
 (* CastANet - cLevel.ml *)
 
-open CExt
+open Morelib
 
 
 
@@ -58,10 +58,10 @@ let others = function
 
 
 let colors = function
-    | `COLONIZATION -> ["#80b3ff"; "#bec8b7"; "#ffaaaa"]
-    | `ARB_VESICLES -> ["#80b3ff"; "#afe9c6"; "#bec8b7"; "#ffaaaa"]
-    | `ALL_FEATURES -> ["#80b3ff"; "#afe9c6"; "#ffeeaa"; "#eeaaff";
-                        "#ffb380"; "#bec8b7"; "#ffaaaa" ]
+    | `COLONIZATION -> ["#80b3ff99"; "#bec8b799"; "#ffaaaa99"]
+    | `ARB_VESICLES -> ["#80b3ff99"; "#afe9c699"; "#bec8b7"; "#ffaaaa99"]
+    | `ALL_FEATURES -> ["#80b3ff99"; "#afe9c699"; "#ffeeaa99"; "#eeaaff99";
+                        "#ffb38099"; "#bec8b799"; "#ffaaaa99" ]
 
 
 (* let strings = ["Colonization"; "Arbuscules/Vesicles"; "All features"] *)

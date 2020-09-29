@@ -1,17 +1,5 @@
 (* CastANet - cImage.ml *)
 
-class type t = object
-    method file : ImgFile.t
-    method source : ImgSource.t
-    method draw : ImgDraw.t
-    method cursor : ImgCursor.t
-    method small_tiles : ImgTileMatrix.t
-    method large_tiles : ImgTileMatrix.t
-    method annotations : CTable.annotation_table list
-    method predictions : CTable.prediction_table list
-end
-
-
 
 class image path edge = 
 
@@ -23,44 +11,82 @@ class image path edge =
     let source = ImgSource.create pixbuf edge in
     
     (* Drawing parameters. *)   
-    let draw = ImgDraw.create source
-    and cursor = ImgCursor.create source in
-
+    let paint = ImgPaint.create source in
+    let cursor = ImgCursor.create source paint
+    and pointer = ImgPointer.create source paint in
+    
     (* Image segmentation. *)   
-    let small_tiles = ImgTileMatrix.create pixbuf source draw#edge
+    let small_tiles = ImgTileMatrix.create pixbuf source paint#edge
     and large_tiles = ImgTileMatrix.create pixbuf source 180 in
 
     (* Annotations and predictions. *)
-    let annotations, predictions =
-        let rows = source#rows and columns = source#columns in
-        match Sys.file_exists file#archive with
-        | false -> CTable.create ~rows ~columns, []
-        | _     -> match CTable.load file#archive with
-            | [], pt -> CTable.create ~rows ~columns, pt
-            | others -> others 
-    in
+    let annotations, predictions = ImgDataset.create source file#archive in
 
 object (self)
 
     initializer
-        CLog.info "source image: '%s'\n\
-                   source image size: %d x %d pixels\n\
-                   tile matrix: %d x %d; edge: %d pixels"
-            path source#width source#height source#rows source#columns edge
+        (* Cursor drawing functions. *)
+        cursor#set_paint self#draw_cursor;
+        cursor#set_erase self#draw_tile;
+        (* Pointer drawing functions. *)
+        pointer#set_paint self#draw_pointer;
+        pointer#set_erase self#draw_tile
+
+    val mutable exit_funcs = []
+    method at_exit f = exit_funcs <- f :: exit_funcs
 
     method file = file
-    method draw = draw
+    method paint = paint
     method cursor = cursor
+    method source = source
+    method pointer = pointer
     method small_tiles = small_tiles
     method large_tiles = large_tiles
     method annotations = annotations
     method predictions = predictions
 
+    method private draw_cursor ~r ~c () =
+        paint#pixbuf ~r ~c (small_tiles#get ~r ~c);
+        (* Magnified view *)
+        (* Toggle buttons *)
+        paint#cursor ~sync:true ~r ~c ()
+
+    method private draw_pointer ~r ~c () =
+        paint#pixbuf ~r ~c (small_tiles#get ~r ~c);
+        paint#pointer ~sync:true ~r ~c ()
+
+    method private draw_tile ~r ~c () =
+        paint#pixbuf ~r ~c (small_tiles#get ~r ~c);
+        let level = CGUI.Levels.current ()
+        and layer = CGUI.Layers.get_active () in
+        paint#annotation ~sync:true ~r ~c level layer
+        (* Magnified view *)
+        (* Toggle buttons *)
+
+    method show () =
+        paint#background ~sync:false ();
+        let level = CGUI.Levels.current ()
+        and layer = CGUI.Layers.get_active () in
+        small_tiles#iter (fun ~r ~c pixbuf ->
+            paint#pixbuf ~r ~c pixbuf;
+            let mask = annotations#get level ~r ~c in
+            if mask#mem `USER (`CHAR layer) 
+            || mask#mem `HOLD (`CHAR layer) then 
+                paint#annotation ~r ~c level layer
+        );
+        let r, c = cursor#get in
+        paint#cursor ~sync:true ~r ~c ()
+
+    method save () =
+        let zip = file#archive in
+        List.iter (fun f -> f ()) exit_funcs
+        (* CTable.save ~zip annotations predictions *)
+
 end
 
 
 
-let load ~edge path =
+let create ~edge path =
     if Sys.file_exists path then new image path edge
     else invalid_arg "CImage.load: File not found"
 

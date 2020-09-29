@@ -26,7 +26,7 @@ end
 class tile_matrix pixbuf (source : ImgSource.t) edge = object
 
     val data =
-        let extract r c =
+        let extract ~r ~c =
             let crop = Aux.crop
                 ~src_x:(c * source#edge)
                 ~src_y:(r * source#edge)
@@ -34,7 +34,7 @@ class tile_matrix pixbuf (source : ImgSource.t) edge = object
             in Aux.resize edge crop
         in Morelib.Matrix.init ~r:source#rows ~c:source#columns extract
 
-    method get ~r ~c = Morelib.Matrix.get ~r ~c
+    method get ~r ~c = Morelib.Matrix.get data ~r ~c
     method iter f = Morelib.Matrix.iteri f data
 end
 

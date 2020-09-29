@@ -13,12 +13,6 @@ class type t = object
     method y_origin : int
     (** Returns drawing origin on Y axis. *)
 
-    method cursor_pos : int * int
-    (** Returns cursor position. *)
-
-    method set_cursor_pos : (int * int) -> unit
-    (** Defines cursor position. *)
-
     method backcolor : string
     (** Returns image background color. *)
 

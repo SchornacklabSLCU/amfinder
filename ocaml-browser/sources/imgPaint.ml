@@ -1,23 +1,5 @@
 (* CastANet Browser - imgPaint.ml *)
 
-class type t = object
-    method edge : int
-    method x_origin : int   
-    method y_origin : int
-    method cursor_pos : int * int
-    method set_cursor_pos : (int * int) -> unit
-    method backcolor : string
-    method set_backcolor : string -> unit
-    method background : ?sync:bool -> unit -> unit
-    method pixbuf : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
-    method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
-    method cursor : ?sync:bool -> unit -> unit
-    method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method annotation : ?sync:bool -> r:int -> c:int -> CLevel.t -> char -> unit
-end
-
-
-
 module Aux = struct
     open Scanf
 
@@ -45,7 +27,7 @@ module Surface = struct
     let memo color =
         let rec get = ref (
             fun edge ->
-                let res = ref (Aux.square color edge) in
+                let res = Aux.square color edge in
                 get := (fun _ -> res);
                 res
         ) in
@@ -68,7 +50,7 @@ end
 
 
 
-class drawing (source : ImgSource.t) =
+class t (source : ImgSource.t) =
 
     let ui_width = CGUI.Drawing.width ()
     and ui_height = CGUI.Drawing.height () in
@@ -86,8 +68,8 @@ object (self)
     method x_origin = x_origin
     method y_origin = y_origin
 
-    method x ~c = x_origin + c * edge
-    method y ~r = y_origin + r * edge
+    method private x ~c = x_origin + c * edge
+    method private y ~r = y_origin + r * edge
 
     method backcolor = backcolor
     method set_backcolor x = backcolor <- x
@@ -121,19 +103,16 @@ object (self)
         if sync then CGUI.Drawing.synchronize ()    
 
     method cursor ?sync ~r ~c () =
-        self#tile ~r ~c ();
         self#surface ?sync ~r ~c (Surface.cursor edge)
 
     method pointer ?sync ~r ~c () =
-        self#tile ~r ~c ();
-        self#surface ?sync ~r ~c (Surface.pointer edge);
+        self#surface ?sync ~r ~c (Surface.pointer edge)
 
     method annotation ?sync ~r ~c level chr =
-        self#tile ~r ~c ();
-        self#surface ?sync ~r ~c (Surface.layer level chr)
+        self#surface ?sync ~r ~c (Surface.layer level chr edge)
 
 end
 
 
 
-let create source = new drawing source 
+let create source = new t source 

@@ -1,6 +1,6 @@
 (* CastANet - cAnnot.ml *)
 
-open CExt
+open Morelib
 
 type lock = string
 type hold = string
@@ -12,7 +12,7 @@ end
 
 let generator ~col ~arb ~all str =
   let module M = struct
-    let diff s = if s = "" then str else Ext_StringSet.diff str s
+    let diff s = if s = "" then str else StringSet.diff str s
     let get = function
       | `COLONIZATION -> col
       | `ARB_VESICLES -> arb
@@ -75,23 +75,23 @@ let get = function
 
 let chars lvl = let open (val (get lvl) : S) in diff ""
 
-let char_list lvl = Ext_Text.explode (chars lvl)
+let char_list lvl = Text.explode (chars lvl)
 
 (* Not hardcoded, should the list change in the future. *)
 let all_chars =
   let col = chars `COLONIZATION
   and arb = chars `ARB_VESICLES
   and all = chars `ALL_FEATURES in
-  Ext_StringSet.(union (union col arb) all)
+  StringSet.(union (union col arb) all)
 
-let all_chars_list = Ext_Text.explode all_chars
+let all_chars_list = Text.explode all_chars
 
 let rule_of_char lvl = let open (val (get lvl) : S) in get
 
 let rule_of_string lv1 lv2 str =
   Seq.fold_left (fun (x1, y1) chr ->
     let x2, y2 = rule_of_char lv1 lv2 chr in
-    Ext_StringSet.(union x1 x2, union y1 y2)
+    StringSet.(union x1 x2, union y1 y2)
   ) ("", "") (String.to_seq str)
 
 let rule lv1 lv2 = function
@@ -107,5 +107,5 @@ let others elt lvl =
 let rec mem elt lvl = 
   match elt with
   | `CHR chr -> String.contains (chars lvl) (Char.uppercase_ascii chr)
-  | `STR str -> List.for_all (fun c -> mem (`CHR c) lvl) (Ext_Text.explode str)
+  | `STR str -> List.for_all (fun c -> mem (`CHR c) lvl) (Text.explode str)
 

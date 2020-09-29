@@ -1,6 +1,6 @@
 (* CastANet - uI_Magnifier.ml *)
 
-open CExt
+open Morelib
 
 module type PARAMS = sig
   val rows : int
@@ -20,7 +20,7 @@ module Make (P : PARAMS) : S = struct
     ~columns:P.columns
     ~packing:P.packing ()
 
-  let tile_image top left =
+  let tile_image ~r:top ~c:left =
     let event = GBin.event_box
       ~width:(P.tile_edge + 2)
       ~height:(P.tile_edge + 2) 
@@ -33,7 +33,7 @@ module Make (P : PARAMS) : S = struct
       ~height:P.tile_edge ()
     in GMisc.pixmap pixmap ~packing:event#add ()
 
-  let tiles = Ext_Matrix.init P.rows P.columns tile_image
+  let tiles = Matrix.init P.rows P.columns tile_image
   
   let set_pixbuf ~r ~c buf =
     try

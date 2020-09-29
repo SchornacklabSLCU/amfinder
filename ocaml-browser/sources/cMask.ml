@@ -1,6 +1,6 @@
 (* CastANet - cMask.ml *)
 
-open CExt
+open Morelib
 
 
 
@@ -62,14 +62,14 @@ module Aux = struct
 
     let mem str = function
         | `CHAR chr -> String.contains str chr
-        | `TEXT txt -> let chars = Ext_Text.explode txt in
+        | `TEXT txt -> let chars = Text.explode txt in
             List.for_all (String.contains str) chars
 
 end
 
 
 
-class prediction_mask = object (self)
+class prediction = object (self)
 
     val mutable predictions = []
     
@@ -86,8 +86,8 @@ class prediction_mask = object (self)
     method set key x =
         let key = Char.uppercase_ascii key in
         match self#get key with
-        | None -> predictions <- (key, x) :: predictions
-        | Some y -> if x <> y then 
+        | 0.0 -> predictions <- (key, x) :: predictions
+        |  y  -> if x <> y then 
             predictions <- (key, x) :: List.remove_assoc key predictions
    
     method top =
@@ -97,10 +97,11 @@ class prediction_mask = object (self)
             Some (List.fold_left max hdr rem)
 
     method threshold ~th =
-        if th >= 0.0 && th <= 1.0 then List.filter (fun t -> snd t >= th)
+        if th >= 0.0 && th <= 1.0 then
+            List.filter (fun t -> snd t >= th) predictions
         else invalid_arg "(CMask.prediction_mask#threshold) Invalid threshold"
 
-    let to_list = predictions
+    method to_list = predictions
 
     method of_list t =
         let curated = List.map (fun (chr, x) ->
@@ -112,42 +113,46 @@ end
 
 
 
-class layered_mask = object (self)
+class layered = object (self)
 
     val masks = [|""; ""; ""|]
-    val predictions = new prediction_mask
+    val predictions = new prediction
 
-    method private apply f = function
-        | `USER -> (fun x -> f masks.(0) x)
-        | `LOCK -> (fun x -> f masks.(1) x)
-        | `HOLD -> (fun x -> f masks.(2) x)
+    method private apply : 'a 'b. (string -> 'a -> 'b) -> layer -> 'a -> 'b 
+        = fun f layer x -> 
+            match layer with
+            | `USER -> f masks.(0) x
+            | `LOCK -> f masks.(1) x
+            | `HOLD -> f masks.(2) x
 
-    method private alter f = function
-        | `USER -> (fun x -> masks.(0) <- f masks.(0) x)
-        | `LOCK -> (fun x -> masks.(1) <- f masks.(1) x)
-        | `HOLD -> (fun x -> masks.(2) <- f masks.(2) x)
+    method private alter : 'a. (string -> 'a -> string) -> layer -> 'a -> unit
+        = fun f layer x ->
+            match layer with
+            | `USER -> masks.(0) <- f masks.(0) x
+            | `LOCK -> masks.(1) <- f masks.(1) x
+            | `HOLD -> masks.(2) <- f masks.(2) x
 
-    method get elt = self#apply (fun m _ -> m) elt ()
+    method get elt = self#apply (fun m _ -> m) elt ""
 
-    method all = Ext_StringSet.union (self#get `USER) (self#get `HOLD)
+    method all = StringSet.union (self#get `USER) (self#get `HOLD)
 
-    method is_empty elt = self#apply (fun m _ -> m = "") elt ()
+    method is_empty elt = self#apply (fun m _ -> m = "") elt true
 
-    method mem = self#apply Aux.mem
+    method mem x (y : annot) = self#apply Aux.mem x y
 
-    method set = self#alter (fun _ -> Aux.string_of_annot)
+    method set x (y : annot) = self#alter (fun _ -> Aux.string_of_annot) x y
 
-    method add = 
-        let union m x =
+    method add layer = 
+        let union m (x : annot) =
             let s = Aux.string_of_annot x in
-            Ext_StringSet.union m s 
-        in self#alter union
+            StringSet.union m s 
+        in self#alter union layer
 
-    method remove =
-        let diff m x =
+    method remove layer =
+        let diff m (x : annot) =
             let s = Aux.string_of_annot x in
-            Ext_StringSet.diff m s
-        in self#alter diff
+            StringSet.diff m s
+        in self#alter diff layer
 
     method to_string = String.concat " " (Array.to_list masks) 
 
@@ -158,7 +163,7 @@ end
 
 
 let make ?(user = `TEXT "") ?(lock = `TEXT "") ?(hold = `TEXT "") () =
-    let masks = new layered_mask in
+    let masks = new layered in
     masks#set `USER user;
     masks#set `LOCK lock;
     masks#set `HOLD hold;
@@ -167,7 +172,7 @@ let make ?(user = `TEXT "") ?(lock = `TEXT "") ?(hold = `TEXT "") () =
 
 
 let of_string str =
-    let raw = Array.of_list (String.split_on_char ' ') in
+    let raw = Array.of_list (String.split_on_char ' ' str) in
     if Array.length raw = 3 then
         let user = `TEXT raw.(0)
         and lock = `TEXT raw.(1)

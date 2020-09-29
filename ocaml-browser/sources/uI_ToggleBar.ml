@@ -58,7 +58,7 @@ module Make (P : PARAMS) : S = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CLevel.flags
+    ) CLevel.all_flags
 
   let iter f =
     List.iter (fun (typ, mdl) ->

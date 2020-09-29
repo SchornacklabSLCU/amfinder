@@ -3,8 +3,6 @@
 (** GUI auxiliary module. Implements a magnified view of the 3x3 tile square
   * surrounding the cursor position. *)
 
-open CExt
-
 (** Module parameters. *)
 module type PARAMS = sig
   val rows : int
@@ -22,7 +20,7 @@ end
 
 (** Output module. *)
 module type S = sig
-  val tiles : GMisc.image Ext_Matrix.t
+  val tiles : GMisc.image Morelib.Matrix.t
   (** Matrix of GtkImage widgets used to display a magnified view of the tile
     * square surrounding the cursor position. Square size is determined by
     * [rows] and [columns] (see [PARAMS]). *)

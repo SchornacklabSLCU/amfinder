@@ -1,8 +1,22 @@
 (* CastANet - cIcon.ml *)
 
-type style = [`RGBA | `RGBA_LOCKED | `GREY | `GREY_LOCKED]
-type size = [`SMALL | `LARGE]
-type palette = [`CIVIDIS | `VIRIDIS | `PLASMA]
+type style = [
+    | `RGBA
+    | `RGBA_LOCKED
+    | `GREY
+    | `GREY_LOCKED
+]
+
+type size = [
+    | `SMALL
+    | `LARGE
+]
+
+type palette = [
+    | `CIVIDIS 
+    | `VIRIDIS 
+    | `PLASMA
+]
 
 (* Icon sources. Load icons as pixbufs of 24 (small) or 48 (large) pixels. *)
 module Source = struct
@@ -76,16 +90,24 @@ let get_joker sty sz =
   | `GREY -> select Joker.grey
   |   _   -> invalid_arg "CIcon.get_joker" 
 
+
+
 let get_standard chr sty sz =
-  let set = match sty with
-    | `RGBA -> m_rgba
-    | `RGBA_LOCKED -> m_rgba_lock
-    | `GREY -> m_grey
-    | `GREY_LOCKED -> m_grey_lock in
-  let open (val set : IconSet) in
-  List.assoc chr (match sz with
-    | `SMALL -> small 
-    | `LARGE -> large)
+
+    let set = match sty with
+        | `RGBA -> m_rgba
+        | `GREY -> m_grey
+        | `RGBA_LOCKED -> m_rgba_lock
+        | `GREY_LOCKED -> m_grey_lock
+    in
+
+    let open (val set : IconSet) in
+
+    match sz with
+    | `SMALL -> List.assoc chr small 
+    | `LARGE -> List.assoc chr large
+
+
 
 let get = function
   | '*' -> get_joker

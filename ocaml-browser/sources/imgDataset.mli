@@ -14,5 +14,5 @@ class type ['a] t = object
 
 end
 
-val create : ImgSource.t -> string -> CMask.t t * float list t
+val create : ImgSource.t -> string -> CMask.layered_mask t * float list t
 (** Builder. *)
