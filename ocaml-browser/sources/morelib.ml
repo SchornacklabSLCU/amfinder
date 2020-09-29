@@ -63,8 +63,8 @@ module Matrix = struct
     type 'a t = 'a Array.t Array.t
 
     let dim t =
-        let r = length t in
-        if r = 0 then (0, 0) else r, length t.(0)
+        let r = Array.length t in
+        if r = 0 then (0, 0) else r, Array.length t.(0)
 
     let get_opt t ~r ~c = try Some t.(r).(c) with _ -> None
 
@@ -93,14 +93,14 @@ module Matrix = struct
 
     let to_string ~cast t =
         Array.map (Array.map cast) t
-        |> Array.map to_list
+        |> Array.map Array.to_list
         |> Array.map (String.concat "\t")
         |> Array.to_list
         |> String.concat "\n"
 
     let to_string_rc ~cast t =
         Array.mapi (fun r -> (Array.mapi (fun c -> cast ~r ~c))) t
-        |> Array.map to_list
+        |> Array.map Array.to_list
         |> Array.map (String.concat "\t")
         |> Array.to_list
         |> String.concat "\n"
@@ -109,14 +109,14 @@ module Matrix = struct
         String.split_on_char '\n' s
         |> Array.of_list
         |> Array.map (String.split_on_char '\t')
-        |> Array.map of_list
+        |> Array.map Array.of_list
         |> Array.map (Array.map cast)
 
     let of_string_rc ~cast s =
         String.split_on_char '\n' s
         |> Array.of_list
         |> Array.map (String.split_on_char '\t')
-        |> Array.map of_list
+        |> Array.map Array.of_list
         |> Array.mapi (fun r -> (Array.mapi (fun c -> cast ~r ~c)))
 
 end

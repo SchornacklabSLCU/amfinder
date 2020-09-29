@@ -95,9 +95,6 @@ module File : sig
 end
 
 
-val time : ('a -> 'b) -> 'a -> 'b
-(** Benchmark function. *)
-
 (** Memoized values with possible reinitialization. Such values are computed 
   * only once within a given session. However, they can recomputed when a new 
   * session starts, for instance to take into account the modification of 
