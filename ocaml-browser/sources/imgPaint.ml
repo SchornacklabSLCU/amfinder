@@ -1,4 +1,4 @@
-(* CastANet Browser - imgDraw.ml *)
+(* CastANet Browser - imgPaint.ml *)
 
 class type t = object
     method edge : int

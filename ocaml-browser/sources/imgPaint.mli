@@ -1,4 +1,4 @@
-(* CastANet Browser - imgDraw.mli *)
+(* CastANet Browser - imgPaint.mli *)
 
 (** Image drawing functions. *)
 
