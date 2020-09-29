@@ -3,25 +3,23 @@
 (** Cursor management. *)
 
 class type t = object
-    method cursor_pos : int * int
+
+    method get : int * int
     (** Returns the current cursor position. *)
 
-    method set_cursor_pos : int * int -> unit
-    (** Changes the current cursor position. *)
+    method key_press : GdkEvent.Key.t -> bool
+    (** Monitors key press. *)
 
-    method move_left : ?jump:int -> unit -> unit
-    (** Moves the cursor to the left. *)
+    method mouse_click : GdkEvent.Button.t -> bool
+    (** Monitors mouse click. *)
 
-    method move_right : ?jump:int -> unit -> unit
-    (** Moves the cursor to the right. *)
+    method set_erase : (r:int -> c:int -> unit -> unit) -> unit
+    (** Sets the function used to repaint tiles below cursor. *)
 
-    method move_up : ?jump:int -> unit -> unit
-    (** Moves the cursor to the top. *)
-
-    method move_down : ?jump:int -> unit -> unit
-    (** Moves the cursor to the bottom. *)
+    method set_paint : (r:int -> c:int -> unit -> unit) -> unit
+    (** Sets the function used to paint the cursor. *)
 
 end
 
-val create : ImgSource.t -> t
+val create : ImgSource.t -> ImgPaint.t -> t
 (** Builder. *)
