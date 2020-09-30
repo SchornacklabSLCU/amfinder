@@ -88,8 +88,8 @@ object (self)
             for j = 0 to 2 do
                 let ri = r + i - 1 and cj = c + j - 1 in
                 let pixbuf = match large_tiles#get ~r:ri ~c:cj with
-                | None -> Aux.blank
-                | Some x -> x
+                    | None -> Aux.blank
+                    | Some x -> x
                 in CGUI.Magnifier.set_pixbuf ~r:i ~c:j pixbuf
             done
         done
