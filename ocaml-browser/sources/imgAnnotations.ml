@@ -28,7 +28,18 @@ object (self)
 
     method private level x = List.assoc x assoc
     method get x ~r ~c = Matrix.get_opt (self#level x) ~r ~c
+
     method iter x f = Matrix.iteri f (self#level x)
+
+    method iter_layer x layer f =
+        let has_layer = match layer with
+            | '*' -> (fun mask -> String.length mask#all > 0)
+            | chr -> (fun mask -> String.contains mask#all chr)
+        in
+        Matrix.iteri (fun ~r ~c mask ->
+            if has_layer mask then f ~r ~c mask
+        ) (self#level x)
+
     method to_string x = Aux.to_string (self#level x)
 
 end

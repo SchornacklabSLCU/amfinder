@@ -8,7 +8,10 @@ class type annotations = object
 
     method iter : CLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
-    
+
+    method iter_layer : CLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    (** Iterates over items at the given coordinates and annotation level. *)
+
     method to_string : CLevel.t -> string
     (** Return the string representation of the table at the given level. *)
 end
