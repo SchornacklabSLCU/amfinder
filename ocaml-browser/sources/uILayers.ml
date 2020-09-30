@@ -38,7 +38,7 @@ module Make (P : PARAMS) : S = struct
     let packing = hbox#add in
     let r_image = GMisc.image ~width:24 ~packing () in
     let r_label = GMisc.label
-      ~markup:"<small><tt>0000</tt></small>" ~packing () in
+      ~markup:"<small><tt>000000</tt></small>" ~packing () in
     let style = if chr = '*' then `RGBA else `GREY in
     r_image#set_pixbuf (CIcon.get chr style `SMALL);
     chr, {r_radio; r_label; r_image}
@@ -49,7 +49,7 @@ module Make (P : PARAMS) : S = struct
       let table = GButton.toolbar
         ~orientation:`VERTICAL
         ~style:`ICONS
-        ~width:78 ~height:330 ()
+        ~width:92 ~height:330 ()
       let active = ref true
       let group = ref None
       let packing = table#insert
@@ -102,7 +102,7 @@ module Make (P : PARAMS) : S = struct
 
   let set_label chr num =
     let ext = if chr = '*' then get_joker () else get_layer chr in
-    ksprintf ext.r_label#set_label "<small><tt>%04d</tt></small>" num
+    ksprintf ext.r_label#set_label "<small><tt>%06d</tt></small>" num
   
   let set_callback f =
     List.iter (fun (_, toolbox) ->

@@ -88,7 +88,14 @@ object (self)
                 (* Toggle buttons *)
                 match CGUI.Layers.get_active () with
                 | '*' -> ()
-                | chr -> paint#annotation ~sync:true ~r ~c level chr
+                | chr -> match CGUI.Palette.show_predictions#get_active with 
+                    | true  -> Option.iter 
+                        (paint#annotation ~sync:true ~r ~c level)
+                        (predictions#max_layer ~r ~c)
+                    | false -> Option.iter (fun mask -> 
+                        if String.contains mask#all chr then
+                            paint#annotation ~sync:true ~r ~c level chr
+                        ) (annotations#get level ~r ~c)
             end
 
     method magnified_view () =
@@ -115,15 +122,25 @@ object (self)
             done
         done
 
-    (*
-    method update_counters () =
+    method private update_counters () =
+        let source =
+            match CGUI.Palette.show_predictions#get_active with
+            | true  -> predictions#statistics
+            | false -> annotations#statistics (CGUI.Levels.current ())
+        in List.iter (fun (c, n) -> CGUI.Layers.set_label c n) source
 
-      List.iter (fun (chr, num) ->
-        CGUI.Layers.set_label chr num
-      ) (CImage.statistics img (CGUI.Levels.current ()))
-    *)
+    method active_layer ?(sync = false) () =
+        let level = CGUI.Levels.current ()
+        and layer = CGUI.Layers.get_active () in
+        let f ~r ~c _ = paint#annotation ~r ~c level layer in
+        begin
+            match CGUI.Palette.show_predictions#get_active with
+            | true  -> predictions#iter_layer layer f
+            | false -> annotations#iter_layer level layer f
+        end;
+        if sync then CGUI.Drawing.synchronize ()
 
-    method show () =
+    method mosaic ?(sync = false) () =
         paint#background ~sync:false ();
         let level = CGUI.Levels.current ()
         and layer = CGUI.Layers.get_active () in
@@ -131,14 +148,18 @@ object (self)
             paint#pixbuf ~r ~c pixbuf;
             match annotations#get level ~r ~c with
             | None -> invalid_arg "CImage.image#show: Out of bound"
-            | Some mask ->
-                if mask#mem `USER (`CHAR layer) 
-                || mask#mem `HOLD (`CHAR layer) then 
-                    paint#annotation ~r ~c level layer
+            | Some mask -> if String.contains mask#all layer then 
+                paint#annotation ~r ~c level layer
         );
+        if sync then CGUI.Drawing.synchronize ()
+
+    method show () =
+        self#mosaic ();
+        self#active_layer ();
         let r, c = cursor#get in
         paint#cursor ~sync:true ~r ~c ();
-        self#magnified_view ()
+        self#magnified_view ();
+        self#update_counters ()
 
     method save () =
         let zip = file#archive in

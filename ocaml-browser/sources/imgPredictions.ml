@@ -71,6 +71,31 @@ class predictions input = object (self)
         | None -> ()
         | Some matrix -> Matrix.iteri f matrix
 
+    method iter_layer chr f =
+        match self#level with
+        | None -> ()
+        | Some level -> let header = CLevel.to_header level in
+            self#iter (fun ~r ~c t ->
+                let elt, dat = 
+                    List.fold_left2 (fun ((_, x) as o) chr y ->
+                        if y > x then (chr, y) else o
+                    ) ('0', 0.0) header t in
+                if elt = chr then f ~r ~c dat)
+
+    method statistics =
+        match self#level with
+        | None -> []
+        | Some level -> let header = CLevel.to_header level in
+            let counters = List.map (fun c -> c, ref 0) header in
+            self#iter (fun ~r ~c t ->
+                let chr, _ = 
+                    List.fold_left2 (fun ((_, x) as o) chr y ->
+                        if y > x then (chr, y) else o
+                    ) ('0', 0.0) header t
+                in incr (List.assoc chr counters)
+            );
+            List.map (fun (c, r) -> c, !r) counters
+
     method to_string () = 
         match self#current_data with
         | None -> "" (* TODO: Find a better solution to this! *)

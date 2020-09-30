@@ -34,6 +34,12 @@ class type image = object
     method show : unit -> unit
     (** Displays background, tiles as well as the activate annotation layer. *)
 
+    method active_layer : ?sync:bool -> unit -> unit
+    (** Displays the active annotation layer. *)
+
+    method mosaic : ?sync:bool -> unit -> unit
+    (** Displays the tile matrix. *)
+
     method magnified_view : unit -> unit
     (** Updates the magnified view. *)
 
@@ -46,5 +52,5 @@ class type image = object
 end
 
 val create : edge:int -> string -> image
-(** [load ~edge:n img] loads image [img], using [n]x[n] squares as tiles.
+(** [load ~edge:n path] loads image [path], using [n]x[n] squares as tiles.
   * @raise Invalid_argument if the file does not exist. *)

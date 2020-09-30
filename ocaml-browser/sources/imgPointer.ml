@@ -17,11 +17,11 @@ object
         and y = truncate (GdkEvent.Motion.y ev) - img_paint#y_origin in
         let r = y / img_paint#edge and c = x / img_paint#edge in
         if r >= 0 && r < source#rows 
-        && c >= 0 && c < source#columns then begin
+        && c >= 0 && c < source#columns then (
             Option.iter (fun (r, c) -> erase ~r ~c ()) pos;
             pos <- Some (r, c);
             paint ~r ~c ()
-        end;
+        ) else Option.iter (fun (r, c) -> erase ~r ~c ()) pos;
         false
 
     method leave (_ : GdkEvent.Crossing.t)  =

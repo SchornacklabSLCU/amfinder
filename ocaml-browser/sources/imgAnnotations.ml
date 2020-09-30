@@ -40,6 +40,13 @@ object (self)
             if has_layer mask then f ~r ~c mask
         ) (self#level x)
 
+    method statistics level =
+        let counters = List.map (fun c -> c, ref 0) (CLevel.to_header level) in
+        self#iter level (fun ~r ~c mask ->
+            String.iter (fun chr -> incr (List.assoc chr counters)) mask#all
+        );
+        List.map (fun (c, r) -> c, !r) counters
+
     method to_string x = Aux.to_string (self#level x)
 
 end

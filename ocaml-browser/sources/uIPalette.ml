@@ -96,7 +96,7 @@ module Make (P : PARAMS) : S = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:78 ~height:200
+    ~width:92 ~height:200
     ~packing:P.packing ()
 
   let packing = toolbar#insert
@@ -112,8 +112,13 @@ module Make (P : PARAMS) : S = struct
 
   let _ = UIHelper.morespace packing
 
-  let show_predictions = GButton.toggle_tool_button ~stock:`ADD ~packing ()
-  let show_activations = GButton.toggle_tool_button ~label:"CAM" ~packing ()
+  let show_predictions = GButton.toggle_tool_button ~label:"Show" ~packing ()
+  let show_activations = 
+    let btn = GButton.toggle_tool_button ~label:"Maps" ~packing () in
+    show_predictions#connect#toggled (fun () ->
+        btn#misc#set_sensitive show_predictions#get_active);
+    btn#misc#set_sensitive false;
+    btn
 
   let set_tooltip s =
     let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in

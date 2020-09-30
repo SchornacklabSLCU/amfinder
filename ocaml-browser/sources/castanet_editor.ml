@@ -70,6 +70,9 @@ let load_image () =
     Par.image := Some image;
     (* Draws background, tiles and active layer. No need to sync here. *)
     image#show ();
+    (* TODO: improve this! *)
+    CGUI.Layers.set_callback (fun _ _ _ _ -> image#show ());
+        image#active_layer ();
     (* Displays cursor and the corresponding magnified view. *)
     CGUI.status#set_label (digest image)
 
