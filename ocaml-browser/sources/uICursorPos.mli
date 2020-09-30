@@ -20,9 +20,6 @@ module type S = sig
   val column : GMisc.label
   (** GtkLabel that displays the current column index. *)
 
-  val get : unit -> int * int
-  (** Returns the current cursor position. *)
-
   val set : r:int -> c:int -> unit
   (** [set ~r ~c] defines [(r, c)] as the new cursor position. Both [r] and [c]
     * must not be negative (please note: this function has no access to the

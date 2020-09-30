@@ -35,13 +35,8 @@ module Make (P : PARAMS) : S = struct
 
   let row = UIHelper.label ~vspace:false packing (pango `ROW 0)
   let column = UIHelper.label ~vspace:false packing (pango `COL 0)
-   
-  let cursor_pos = ref (0, 0)
-  let get () = !cursor_pos
-  
+    
   let set ~r ~c =
-    assert (r >= 0 && c >= 0);
-    cursor_pos := r, c;
     row#set_label (pango `ROW r);
     column#set_label (pango `COL c)
 end
