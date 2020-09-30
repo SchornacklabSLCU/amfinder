@@ -1,16 +1,7 @@
 (* CastANet - imgCursor.ml *)
 
-class type t = object
-    method get : int * int
-    method key_press : GdkEvent.Key.t -> bool
-    method mouse_click : GdkEvent.Button.t -> bool
-    method set_erase : (r:int -> c:int -> unit -> unit) -> unit
-    method set_paint : (r:int -> c:int -> unit -> unit) -> unit
-end
 
-
-
-class cursor (source : ImgSource.t) (img_paint : ImgPaint.t) = 
+class cursor (source : ImgSource.source) (img_paint : ImgPaint.paint) = 
 
 object (self)
 
@@ -19,6 +10,7 @@ object (self)
     val mutable paint = (fun ~r:_ ~c:_ () -> ())
 
     method get = cursor_pos
+    method at ~r ~c = cursor_pos = (r, c)
     method set_erase f = erase <- f
     method set_paint f = paint <- f
 
@@ -67,9 +59,11 @@ object (self)
             | 65364 -> self#move_down ~jump ()
             | _     -> cursor_pos in
         if new_pos = cursor_pos then false else (
-            let r, c = cursor_pos in erase ~r ~c ();
+            let r, c = cursor_pos in
             cursor_pos <- new_pos;
-            let r, c = cursor_pos in paint ~r ~c ();
+            erase ~r ~c ();
+            let r, c = cursor_pos in
+            paint ~r ~c ();
             true
         )
 

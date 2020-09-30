@@ -1,11 +1,5 @@
 (* CastANet Browser - imgTileMatrix.ml *)
 
-class type t = object
-    method get : r:int -> c:int -> GdkPixbuf.pixbuf
-    method iter : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> unit
-end
-
-
 module Aux = struct
     let crop ~src_x ~src_y ~edge pix =
         let dest = GdkPixbuf.create ~width:edge ~height:edge () in
@@ -23,7 +17,7 @@ module Aux = struct
 end
 
 
-class tile_matrix pixbuf (source : ImgSource.t) edge = object
+class tile_matrix pixbuf (source : ImgSource.source) edge = object
 
     val data =
         let extract ~r ~c =

@@ -2,10 +2,13 @@
 
 (** Cursor management. *)
 
-class type t = object
+class type cursor = object
 
     method get : int * int
     (** Returns the current cursor position. *)
+
+    method at : r:int -> c:int -> bool
+    (** Indicates whether the cursor is at the given coordinates. *)
 
     method key_press : GdkEvent.Key.t -> bool
     (** Monitors key press. *)
@@ -21,5 +24,5 @@ class type t = object
 
 end
 
-val create : ImgSource.t -> ImgPaint.t -> t
+val create : ImgSource.source -> ImgPaint.paint -> cursor
 (** Builder. *)

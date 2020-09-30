@@ -1,6 +1,6 @@
 (* CastANet Browser - imgPointer.ml *)
 
-class t (source : ImgSource.t) (img_paint : ImgPaint.t) = 
+class pointer (source : ImgSource.source) (img_paint : ImgPaint.paint) = 
 
 object
 
@@ -30,4 +30,4 @@ object
         false
 end
 
-let create source paint = new t source paint
+let create source paint = new pointer source paint

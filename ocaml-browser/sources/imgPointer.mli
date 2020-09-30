@@ -2,7 +2,7 @@
 
 (** Mouse pointer events. *)
 
-class type t = object
+class type pointer = object
     method get : (int * int) option
     (** Returns the current pointer position, if any. *)
 
@@ -20,5 +20,5 @@ class type t = object
 end
 
 
-val create : ImgSource.t -> ImgPaint.t -> t
+val create : ImgSource.source -> ImgPaint.paint -> pointer
 (** Builder. *)

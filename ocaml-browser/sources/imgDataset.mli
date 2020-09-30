@@ -2,7 +2,7 @@
 
 (** Datasets. *)
 
-class type ['a] t = object
+class type ['a] dataset = object
     method get : CLevel.t -> r:int -> c:int -> 'a
     (** Returns the item at the given coordinates and annotation level. *)
 
@@ -14,5 +14,7 @@ class type ['a] t = object
 
 end
 
-val create : ImgSource.t -> string -> CMask.layered_mask t * float list t
+val create :
+    ImgSource.source ->
+    string -> CMask.layered_mask dataset * float list dataset
 (** Builder. *)

@@ -2,7 +2,7 @@
 
 (** Source image settings. *)
 
-class type t = object
+class type source = object
     method width : int
     (** Image width, in pixels. *)
 
@@ -21,6 +21,6 @@ class type t = object
 end
 
 
-val create : GdkPixbuf.pixbuf -> int -> t
+val create : GdkPixbuf.pixbuf -> int -> source
 (** Builder. *)
 

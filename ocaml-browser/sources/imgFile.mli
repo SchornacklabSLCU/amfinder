@@ -2,7 +2,7 @@
 
 (** File settings. *)
 
-class type t = object
+class type file = object
     method path : string
     (** Path to the input image. *)
 
@@ -13,5 +13,5 @@ class type t = object
     (** Name of the output archive. *)
 end
 
-val create : string -> t
+val create : string -> file
 (** Builder. *)

@@ -2,7 +2,7 @@
 
 (** Image drawing functions. *)
 
-class type t = object
+class type paint = object
 
     method edge : int
     (** Returns tile size. *)
@@ -46,5 +46,5 @@ class type t = object
 end
 
 
-val create : ImgSource.t -> t
+val create : ImgSource.source -> paint
 (** Creates drawing functions. *)

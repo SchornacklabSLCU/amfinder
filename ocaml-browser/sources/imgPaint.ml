@@ -33,7 +33,7 @@ module Surface = struct
         ) in
         fun edge -> !get edge
 
-    let joker = memo "#cc0000cc"
+    let joker = memo "#00dd0099"
     let cursor = memo "#cc0000cc"    
     let pointer = memo "#cc000066"
 
@@ -45,12 +45,14 @@ module Surface = struct
             in level, surfaces
         ) CLevel.all_flags
 
-    let layer level chr = List.(assoc chr (assoc level layers))
+    let layer level = function
+        | '*' -> joker
+        | chr -> List.(assoc chr (assoc level layers))
 end
 
 
 
-class t (source : ImgSource.t) =
+class paint (source : ImgSource.source) =
 
     let ui_width = CGUI.Drawing.width ()
     and ui_height = CGUI.Drawing.height () in
@@ -115,4 +117,4 @@ end
 
 
 
-let create source = new t source 
+let create source = new paint source 
