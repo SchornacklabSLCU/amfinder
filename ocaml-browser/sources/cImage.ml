@@ -28,8 +28,16 @@ class image path edge =
     let small_tiles = ImgTileMatrix.create pixbuf source paint#edge
     and large_tiles = ImgTileMatrix.create pixbuf source 180 in
 
-    (* Annotations and predictions. *)
-    let annotations, predictions = ImgDataset.create source file#archive in
+    (* Annotations, predictions and activations. *)
+    let annotations, predictions, activations = 
+        let zip = match Sys.file_exists file#archive with
+            | true  -> Some (Zip.open_in file#archive)
+            | false -> None in
+        let annotations = ImgAnnotations.create ?zip source
+        and predictions = ImgPredictions.create ?zip source
+        and activations = ImgActivations.create ?zip source in
+        Option.iter Zip.close_in zip;
+        (annotations, predictions, activations) in
 
 object (self)
 
@@ -40,6 +48,7 @@ object (self)
         (* Pointer drawing functions. *)
         pointer#set_paint self#draw_pointer;
         pointer#set_erase self#draw_tile
+        (* TODO: insert predictions to palette if more than 1. *)
 
     val mutable exit_funcs = []
     method at_exit f = exit_funcs <- f :: exit_funcs
@@ -71,7 +80,7 @@ object (self)
     method private draw_tile ~r ~c () =
         match small_tiles#get ~r ~c with
         | None -> invalid_arg "CImage.image#draw_tile: Out of bound"
-        |Some pixbuf -> paint#pixbuf ~r ~c pixbuf;
+        | Some pixbuf -> paint#pixbuf ~r ~c pixbuf;
             if cursor#at ~r ~c then paint#cursor ~sync:true ~r ~c () else
             begin
                 let level = CGUI.Levels.current () in
@@ -87,12 +96,32 @@ object (self)
         for i = 0 to 2 do
             for j = 0 to 2 do
                 let ri = r + i - 1 and cj = c + j - 1 in
-                let pixbuf = match large_tiles#get ~r:ri ~c:cj with
+                let get = match CGUI.Palette.show_activations#get_active with
+                    | true when i = 1 && j = 1 -> 
+                        begin match predictions#current with
+                        | None -> large_tiles#get
+                        | Some id -> match CGUI.Layers.get_active () with
+                            | '*' -> 
+                                (match predictions#max_layer ~r:ri ~c:cj with
+                                | None -> large_tiles#get
+                                | Some max -> activations#get id max)
+                            | chr -> activations#get id chr
+                        end
+                     | _ -> large_tiles#get in               
+                let pixbuf = match get ~r:ri ~c:cj with
                     | None -> Aux.blank
                     | Some x -> x
                 in CGUI.Magnifier.set_pixbuf ~r:i ~c:j pixbuf
             done
         done
+
+    (*
+    method update_counters () =
+
+      List.iter (fun (chr, num) ->
+        CGUI.Layers.set_label chr num
+      ) (CImage.statistics img (CGUI.Levels.current ()))
+    *)
 
     method show () =
         paint#background ~sync:false ();

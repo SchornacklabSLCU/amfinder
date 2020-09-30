@@ -75,6 +75,7 @@ let load_image () =
 
 
 let main () =
+    print_endline "castanet-browser 2.0";
     Printexc.record_backtrace true;
     load_image ();
     GMain.main ()
