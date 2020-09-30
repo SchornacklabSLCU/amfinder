@@ -16,6 +16,8 @@ module type S = sig
   val palette : GButton.tool_button
   val set_icon : string array -> unit
   val get_colors : unit -> string array
+  val show_predictions : GButton.toggle_tool_button
+  val show_activations : GButton.toggle_tool_button
 end
 
 type palette = string array
@@ -100,7 +102,7 @@ module Make (P : PARAMS) : S = struct
   let packing = toolbar#insert
 
   let _ = UIHelper.separator packing
-  let _ = UIHelper.label packing "Predictions"
+  let _ = UIHelper.label packing "<small>Predictions</small>"
 
   let palette_icon, palette =
     let button = GButton.tool_button ~packing () in
@@ -110,33 +112,8 @@ module Make (P : PARAMS) : S = struct
 
   let _ = UIHelper.morespace packing
 
-  let all =
-    let btn = GButton.radio_tool_button ~active:true ~packing () in
-    GMisc.label ~markup:"<small>All</small>" ~packing:btn#set_icon_widget ();
-    btn
-    
-  let best =
-    let btn = GButton.radio_tool_button ~group:all ~packing () in
-    GMisc.label
-      ~markup:"<small>Best</small>"
-      ~packing:btn#set_icon_widget ();
-    btn
-    
-  let threshold =
-    let btn = GButton.radio_tool_button ~group:all ~packing () in
-    GEdit.entry ~text:"95" ~max_length:2 
-      ~packing:btn#set_icon_widget ();
-    btn
-
-
-  let methods = GButton.tool_button ~label:"Method" ~packing ()  
-
-  let transfer = 
-    let btn = GButton.tool_button ~packing () in
-    GMisc.label 
-      ~markup:"<b>Transfer</b>"
-      ~packing:btn#set_icon_widget ();
-    btn
+  let show_predictions = GButton.toggle_tool_button ~stock:`ADD ~packing ()
+  let show_activations = GButton.toggle_tool_button ~label:"CAM" ~packing ()
 
   let set_tooltip s =
     let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in

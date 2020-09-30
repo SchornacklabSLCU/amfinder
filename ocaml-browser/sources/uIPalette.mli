@@ -21,6 +21,12 @@ module type S = sig
 
   val get_colors : unit -> string array
   (** Returns the colors associated with the current palette. *)
+
+  val show_predictions : GButton.toggle_tool_button
+  (** Display predictions. *)
+  
+  val show_activations : GButton.toggle_tool_button
+  (** Display activation maps. *)
 end
 
 module Make : PARAMS -> S

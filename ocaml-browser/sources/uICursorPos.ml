@@ -10,7 +10,6 @@ module type S = sig
   val toolbar : GButton.toolbar
   val row : GMisc.label
   val column : GMisc.label
-  val get : unit -> int * int
   val set : r:int -> c:int -> unit
 end
 
@@ -31,7 +30,7 @@ module Make (P : PARAMS) : S = struct
 
   let _ =
     UIHelper.separator packing;
-    UIHelper.label packing "<span foreground='#cc0000'>Coordinates</span>"
+    UIHelper.label packing "<small>Coordinates</small>"
 
   let row = UIHelper.label ~vspace:false packing (pango `ROW 0)
   let column = UIHelper.label ~vspace:false packing (pango `COL 0)

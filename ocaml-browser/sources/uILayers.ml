@@ -55,7 +55,7 @@ module Make (P : PARAMS) : S = struct
       let packing = table#insert
       let radios = 
         UIHelper.separator packing;
-        UIHelper.label packing "Layer";
+        UIHelper.label packing "<small>Layer</small>";
         List.mapi (add_item packing active group) code_list
     end in (module T : RADIO)
     
