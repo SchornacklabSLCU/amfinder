@@ -1,5 +1,7 @@
 (* CastANet Browser - imgTileMatrix.ml *)
 
+open Morelib
+
 module Aux = struct
     let crop ~src_x ~src_y ~edge pix =
         let dest = GdkPixbuf.create ~width:edge ~height:edge () in
@@ -17,7 +19,9 @@ module Aux = struct
 end
 
 
-class tile_matrix pixbuf (source : ImgSource.source) edge = object
+class tile_matrix pixbuf (source : ImgSource.source) edge =
+
+object
 
     val data =
         let extract ~r ~c =
@@ -28,9 +32,12 @@ class tile_matrix pixbuf (source : ImgSource.source) edge = object
             in Aux.resize edge crop
         in Morelib.Matrix.init ~r:source#rows ~c:source#columns extract
 
-    method get ~r ~c = Morelib.Matrix.get data ~r ~c
-    method iter f = Morelib.Matrix.iteri f data
+    method get ~r ~c = Matrix.get_opt data ~r ~c
+    
+    method iter f = Matrix.iteri f data
+
 end
 
 
-let create pixbuf source edge = new tile_matrix pixbuf source edge
+let create pixbuf source edge =
+    new tile_matrix pixbuf source edge

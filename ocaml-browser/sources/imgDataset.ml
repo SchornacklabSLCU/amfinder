@@ -57,19 +57,12 @@ end
 
 
 
-class ['a] table matrix (to_string : 'a array array -> string) = object
-    method get ~r ~c = (matrix.(r).(c) : 'a)
+class ['a] table (matrix : 'a array array) (to_string : 'a array array -> string) = 
+object
+    method get ~r ~c = try Some matrix.(r).(c) with _ -> None
     method set ~r ~c x = matrix.(r).(c) <- x
     method iter f = Array.(iteri (fun r -> iteri (fun c -> f ~r ~c))) matrix
     method to_string = to_string matrix
-end
-
-
-
-class type ['a] t = object
-    method get : CLevel.t -> r:int -> c:int -> 'a
-    method set : CLevel.t -> r:int -> c:int -> 'a -> unit
-    method iter : CLevel.t -> (r:int -> c:int -> 'a -> unit) -> unit
 end
 
 

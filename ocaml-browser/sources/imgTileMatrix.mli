@@ -3,7 +3,7 @@
 (** Tile matrices. *)
 
 class type tile_matrix = object
-    method get : r:int -> c:int -> GdkPixbuf.pixbuf
+    method get : r:int -> c:int -> GdkPixbuf.pixbuf option
     (** Retrieves a specific tile. *)
 
     method iter : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> unit

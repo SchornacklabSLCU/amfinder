@@ -4,35 +4,38 @@
 
 class type image = object
 
-    method file : ImgFile.t
+    method file : ImgFile.file
     (** File settings. *)
 
-    method source : ImgSource.t
+    method source : ImgSource.source
     (** Source image settings. *)
 
-    method paint : ImgPaint.t
+    method paint : ImgPaint.paint
     (** Drawing toolbox. *)
 
-    method cursor : ImgCursor.t
+    method cursor : ImgCursor.cursor
     (** Cursor position manager. *)
 
-    method pointer : ImgPointer.t
+    method pointer : ImgPointer.pointer
     (** Mouse pointer tracker. *)
 
-    method small_tiles : ImgTileMatrix.t
+    method small_tiles : ImgTileMatrix.tile_matrix
     (** Small-sized tiles to be used in the right pane. *)
 
-    method large_tiles : ImgTileMatrix.t
+    method large_tiles : ImgTileMatrix.tile_matrix
     (** Large-sized tiles to be used in the left pane. *)
 
-    method annotations : CMask.layered_mask ImgDataset.t
+    method annotations : CMask.layered_mask ImgDataset.dataset
     (** User-defined annotations. *)
 
-    method predictions : float list ImgDataset.t
+    method predictions : float list ImgDataset.dataset
     (** Computer-generated predictions (probabilities). *)
 
     method show : unit -> unit
     (** Displays background, tiles as well as the activate annotation layer. *)
+
+    method magnified_view : unit -> unit
+    (** Updates the magnified view. *)
 
     method at_exit : (unit -> unit) -> unit
     (** Registers a function to be run before the image gets destroyed. *)

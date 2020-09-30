@@ -3,7 +3,7 @@
 (** Datasets. *)
 
 class type ['a] dataset = object
-    method get : CLevel.t -> r:int -> c:int -> 'a
+    method get : CLevel.t -> r:int -> c:int -> 'a option
     (** Returns the item at the given coordinates and annotation level. *)
 
     method set : CLevel.t -> r:int -> c:int -> 'a -> unit
