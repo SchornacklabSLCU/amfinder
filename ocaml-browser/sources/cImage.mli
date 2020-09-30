@@ -25,10 +25,10 @@ class type image = object
     method large_tiles : ImgTileMatrix.tile_matrix
     (** Large-sized tiles to be used in the left pane. *)
 
-    method annotations : CMask.layered_mask ImgDataset.dataset
+    method annotations : ImgAnnotations.annotations
     (** User-defined annotations. *)
 
-    method predictions : float list ImgDataset.dataset
+    method predictions : ImgPredictions.predictions
     (** Computer-generated predictions (probabilities). *)
 
     method show : unit -> unit
