@@ -46,39 +46,39 @@ object (self)
             else if r' >= nr then r' mod nr else r'
         in (r', c)
 
+    method private update_cursor_pos ~r ~c =
+        if r >= 0 && r < source#rows
+        && c >= 0 && c < source#columns
+        && (r, c) <> cursor_pos then (
+            let old_r, old_c = cursor_pos in
+            cursor_pos <- (r, c);
+            erase ~r:old_r ~c:old_c ();
+            CGUI.CursorPos.update_coordinates ~r ~c;
+            paint ~r ~c ();
+            true
+        ) else false
+
     method key_press ev =
         let modi = GdkEvent.Key.state ev in
         let jump =
             if List.mem `CONTROL modi then 25 else
             if List.mem `SHIFT   modi then 10 else 1 in
-        let new_pos =
+        let r, c =
             match GdkEvent.Key.keyval ev with
             | 65361 -> self#move_left ~jump ()
             | 65362 -> self#move_up ~jump ()
             | 65363 -> self#move_right ~jump ()
             | 65364 -> self#move_down ~jump ()
-            | _     -> cursor_pos in
-        if new_pos = cursor_pos then false else (
-            let r, c = cursor_pos in
-            cursor_pos <- new_pos;
-            erase ~r ~c ();
-            let r, c = cursor_pos in
-            CGUI.CursorPos.update_coordinates ~r ~c;
-            paint ~r ~c ();
-            true
-        )
+            | _     -> cursor_pos
+        in self#update_cursor_pos ~r ~c
+
 
     method mouse_click ev =
         let x = truncate (GdkEvent.Button.x ev) - img_paint#x_origin
         and y = truncate (GdkEvent.Button.y ev) - img_paint#y_origin in
-        let r = y / img_paint#edge and c = x / img_paint#edge in
-        if r >= 0 && r < source#rows 
-           && c >= 0 && c < source#columns
-           && (r, c) <> cursor_pos then begin
-            let rc, cc = cursor_pos in erase ~r:rc ~c:cc ();
-            cursor_pos <- (r, c);
-            paint ~r ~c ()
-        end;
+        let r = y / img_paint#edge 
+        and c = x / img_paint#edge in
+        ignore (self#update_cursor_pos ~r ~c);
         false
 
 end
