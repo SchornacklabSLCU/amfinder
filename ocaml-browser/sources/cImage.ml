@@ -99,23 +99,25 @@ object (self)
                         ) (annotations#get level ~r ~c)
             end
 
+    method private may_overlay_cam ~i ~j ~r ~c =
+        if i = 1 && j = 1 && CGUI.Predictions.show_activations#get_active then (
+             match predictions#current with
+             | None -> large_tiles#get (* No active prediction set. *)
+             | Some id -> match CGUI.Layers.get_active () with
+                | '*' -> (* let's find the top layer. *)
+                    begin match predictions#max_layer ~r ~c with
+                        | None -> large_tiles#get
+                        | Some max -> activations#get id max
+                    end
+                | chr -> activations#get id chr
+        ) else large_tiles#get
+
     method magnified_view () =
         let r, c = cursor#get in
         for i = 0 to 2 do
             for j = 0 to 2 do
                 let ri = r + i - 1 and cj = c + j - 1 in
-                let get = match CGUI.Predictions.show_activations#get_active with
-                    | true when i = 1 && j = 1 -> 
-                        begin match predictions#current with
-                        | None -> large_tiles#get
-                        | Some id -> match CGUI.Layers.get_active () with
-                            | '*' -> 
-                                (match predictions#max_layer ~r:ri ~c:cj with
-                                | None -> large_tiles#get
-                                | Some max -> activations#get id max)
-                            | chr -> activations#get id chr
-                        end
-                     | _ -> large_tiles#get in               
+                let get = self#may_overlay_cam ~i ~j ~r:ri ~c:cj in            
                 let pixbuf = match get ~r:ri ~c:cj with
                     | None -> Aux.blank
                     | Some x -> x
