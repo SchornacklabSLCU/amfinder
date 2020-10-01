@@ -6,6 +6,9 @@ class type pointer = object
     method get : (int * int) option
     (** Returns the current pointer position, if any. *)
 
+    method at : r:int -> c:int -> bool
+    (** Tells whether the pointer is at a given coordinate. *)
+
     method track : GdkEvent.Motion.t -> bool
     (** Tracks pointer position. *)
 

@@ -80,8 +80,9 @@ object (self)
     method private draw_tile ~r ~c () =
         match small_tiles#get ~r ~c with
         | None -> invalid_arg "CImage.image#draw_tile: Out of bound"
-        | Some pixbuf -> paint#pixbuf ~r ~c pixbuf;
+        | Some pixbuf -> paint#pixbuf ~sync:true ~r ~c pixbuf;
             if cursor#at ~r ~c then paint#cursor ~sync:true ~r ~c () else
+            if pointer#at ~r ~c then paint#pointer ~sync:true ~r ~c () else
             begin
                 let level = CGUI.Levels.current () in
                 (* Magnified view *)

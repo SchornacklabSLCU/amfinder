@@ -14,12 +14,22 @@ class pointer
     method set_erase f = erase <- f
     method set_paint f = paint <- f
 
+    method at ~r ~c =
+        match pos with
+        | None -> false
+        | Some (cr, cc) -> r = cr && c = cc
+
     method private update_pointer_pos ~r ~c =
         if r >= 0 && r < img_source#rows 
         && c >= 0 && c < img_source#columns then
-            begin match pos with
+            begin 
+                match pos with
                 | Some old when old = (r, c) -> () (* same position *)
-                | _ -> Option.iter (fun (r, c) -> erase ~r ~c ()) pos;
+                | _ -> 
+                    Option.iter (fun (r, c) ->
+                        pos <- None;
+                        erase ~r ~c ()
+                    ) pos;
                     pos <- Some (r, c);
                     paint ~r ~c ();
             end
