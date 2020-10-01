@@ -10,7 +10,7 @@ module type S = sig
   val toolbar : GButton.toolbar
   val row : GMisc.label
   val column : GMisc.label
-  val set : r:int -> c:int -> unit
+  val update_coordinates : r:int -> c:int -> unit
 end
 
 let pango typ =
@@ -35,7 +35,7 @@ module Make (P : PARAMS) : S = struct
   let row = UIHelper.label ~vspace:false packing (pango `ROW 0)
   let column = UIHelper.label ~vspace:false packing (pango `COL 0)
     
-  let set ~r ~c =
+  let update_coordinates ~r ~c =
     row#set_label (pango `ROW r);
     column#set_label (pango `COL c)
 end

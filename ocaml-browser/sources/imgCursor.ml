@@ -63,7 +63,7 @@ object (self)
             cursor_pos <- new_pos;
             erase ~r ~c ();
             let r, c = cursor_pos in
-            CGUI.CursorPos.set ~r ~c;
+            CGUI.CursorPos.update_coordinates ~r ~c;
             paint ~r ~c ();
             true
         )

@@ -20,10 +20,10 @@ module type S = sig
   val column : GMisc.label
   (** GtkLabel that displays the current column index. *)
 
-  val set : r:int -> c:int -> unit
-  (** [set ~r ~c] defines [(r, c)] as the new cursor position. Both [r] and [c]
-    * must not be negative (please note: this function has no access to the
-    * internal matrix and therefore cannot check the upper limit). *)
+  val update_coordinates : r:int -> c:int -> unit
+  (** [update_coordinates ~r ~c] defines [(r, c)] as the new cursor position.
+    * Both [r] and [c] must not be negative (please note: this function has no
+    * access to the internal matrix and does not check the upper limit). *)
 end
 
 module Make : PARAMS -> S
