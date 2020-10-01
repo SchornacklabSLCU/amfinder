@@ -1,9 +1,11 @@
 (* CastANet - imgCursor.ml *)
 
 
-class cursor (source : ImgSource.source) (img_paint : ImgPaint.paint) = 
+class cursor 
+  (img_source : ImgSource.source) 
+  (img_paint : ImgPaint.paint)
 
-object (self)
+= object (self)
 
     val mutable cursor_pos = (0, 0)
     val mutable erase = (fun ~r:_ ~c:_ () -> ())
@@ -16,7 +18,7 @@ object (self)
 
     method private move_left ?(jump = 1) () =
         let r, c = cursor_pos in
-        let c' = c - jump and nc = source#columns in
+        let c' = c - jump and nc = img_source#columns in
         let c' = 
             if c' < 0 then (c' + (max 1 (1 + jump / nc)) * nc) mod nc 
             else if c' >= nc then c' mod nc else c'
@@ -24,7 +26,7 @@ object (self)
 
     method private move_right ?(jump = 1) () =
         let r, c = cursor_pos in
-        let c' = c + jump and nc = source#columns in
+        let c' = c + jump and nc = img_source#columns in
         let c' =
             if c' < 0 then (c' + nc) mod nc 
             else if c' >= nc then c' mod nc else c'
@@ -32,7 +34,7 @@ object (self)
     
     method private move_up ?(jump = 1) () =
         let r, c = cursor_pos in
-        let r' = r - jump and nr = source#rows in
+        let r' = r - jump and nr = img_source#rows in
         let r' =
             if r' < 0 then (r' + (max 1 (jump / nr)) * nr) mod nr
             else if r' >= nr then r' mod nr else r'
@@ -40,15 +42,15 @@ object (self)
 
     method private move_down ?(jump = 1) () =
         let r, c = cursor_pos in
-        let r' = r + jump and nr = source#rows in
+        let r' = r + jump and nr = img_source#rows in
         let r' =
             if r' < 0 then (r' + nr) mod nr
             else if r' >= nr then r' mod nr else r'
         in (r', c)
 
     method private update_cursor_pos ~r ~c =
-        if r >= 0 && r < source#rows
-        && c >= 0 && c < source#columns
+        if r >= 0 && r < img_source#rows
+        && c >= 0 && c < img_source#columns
         && (r, c) <> cursor_pos then (
             let old_r, old_c = cursor_pos in
             cursor_pos <- (r, c);
@@ -84,4 +86,4 @@ object (self)
 end
 
 
-let create source paint = new cursor source paint
+let create img_source paint = new cursor img_source paint
