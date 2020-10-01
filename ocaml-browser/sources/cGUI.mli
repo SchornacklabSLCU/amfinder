@@ -27,7 +27,7 @@ module Layers : UILayers.S
 module CursorPos : UICursorPos.S
 (** Vertical toolbar to display cursor position (row/column). *)
 
-module Palette : UIPalette.S
+module Predictions : UIPredictions.S
 (** Prediction manager. *)
 
 val status : GMisc.label

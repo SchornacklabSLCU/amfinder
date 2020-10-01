@@ -84,7 +84,7 @@ module CursorPos = UICursorPos.Make (
     let packing ~top obj = container#attach ~left:0 ~top obj
   end )
 
-module Palette = UIPalette.Make (
+module Predictions = UIPredictions.Make (
   struct
     let parent = window
     let border_width = border_width
