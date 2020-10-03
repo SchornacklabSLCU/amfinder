@@ -114,12 +114,6 @@ let filter entries =
         Filename.dirname filename = "predictions"
     ) entries
 
-let level_of_filename s =
-    String.split_on_char '.' s
-    |> List.rev
-    |> List.hd
-    |> CLevel.of_string
-
 
 let create ?zip source =
     match zip with
