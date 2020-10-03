@@ -33,6 +33,8 @@ class activations (source : ImgSource.source)
         ) assoc_table;
         hash
 
+    method active = CGUI.Predictions.cams#get_active
+
     method get id chr ~r ~c =
         try
             let pixbuf = List.assoc chr (Hashtbl.find hash id) in
@@ -60,7 +62,7 @@ let create ?zip source =
         let table = 
             List.map (fun ({Zip.filename; comment; _} as entry) ->
                 let chr = Scanf.sscanf comment "%c" Char.uppercase_ascii
-                and id = Filename.(basename (chop_extension filename)) in
+                and id = Filename.(basename (chop_extension (chop_extension filename))) in
                 let tmp, och = Filename.open_temp_file
                     ~mode:[Open_binary] 
                     "castanet" ".jpg" in
