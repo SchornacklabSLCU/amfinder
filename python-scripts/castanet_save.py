@@ -58,14 +58,26 @@ def training_data(history, model):
 
 
 
+def get_zip_info(path, comment):
+    a = datetime.datetime.today()
+    now = (a.year, a.month, a.day, a.hour, a.minute, a.second)
+    zi = zf.ZipInfo(filename=path, date_time=now)
+    zi.external_attr = (0o644 & 0xFFFF) << 16  # Unix attributes
+    zi.comment = f'{comment}'.encode()
+    zi.compress_type = zf.ZIP_DEFLATED
+    return zi
+
+
+
 def save_cams(uniq, z, cams):
 
+    level = cConfig.get('level')
     for label, image in zip(cConfig.get('header'), cams):
         buf = io.BytesIO()
-        plt.image.imsave(buf, image)
-        level = cConfig.get('level')
-        z.comment = label.encode('utf-8')
-        z.writestr(f'cams/{uniq}.jpg',  buf.getvalue())
+        plt.image.imsave(buf, image, format='jpg')
+        zi = get_zip_info(f'activations/{uniq}.{label}.jpg', label)
+        z.writestr(zi, buf.getvalue())
+        z.comment = f'{label}'.encode()
 
 
 
@@ -87,8 +99,9 @@ def prediction_table(results, cams, path):
             if zf.is_zipfile(zipf):
 
                 with zf.ZipFile(zipf, 'a') as z:
-                    z.comment = cConfig.get('level').encode('utf-8')
-                    z.writestr(tsv, data)
+                    zi = get_zip_info(tsv, cConfig.get('level'))
+                    z.writestr(zi, data)
+                    z.comment = b'{level}'
                     if cams is not None:
                         save_cams(uniq, z, cams)
         
@@ -100,8 +113,8 @@ def prediction_table(results, cams, path):
         else:
 
             with zf.ZipFile(zipf, 'w') as z:
-                z.comment = cConfig.get('level').encode('utf-8')
-                z.writestr(tsv, data)
+                zi = get_zip_info(tsv, cConfig.get('level'))
+                z.writestr(zi, data)
                 if cams is not None:
                     save_cams(uniq, z, cams)
 
