@@ -63,7 +63,9 @@ def save_cams(uniq, z, cams):
     for label, image in zip(cConfig.get('header'), cams):
         buf = io.BytesIO()
         plt.image.imsave(buf, image)
-        z.writestr(f'cams/{uniq}_{label}.png',  buf.getvalue())
+        level = cConfig.get('level')
+        z.comment = label.encode('utf-8')
+        z.writestr(f'cams/{uniq}.jpg',  buf.getvalue())
 
 
 
@@ -78,7 +80,7 @@ def prediction_table(results, cams, path):
 
         uniq = now()
         data = results.to_csv(sep='\t', encoding='utf-8', index=False)
-        tsv = os.path.join('predictions', uniq + '.tsv')
+        tsv = os.path.join('predictions', f'{uniq}.tsv')
 
         if os.path.isfile(zipf):
 
