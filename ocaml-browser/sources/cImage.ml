@@ -1,13 +1,13 @@
 (* CastANet - cImage.ml *)
 
+open Printf
+
 module Aux = struct
     let blank =
         let pix = GdkPixbuf.create ~width:180 ~height:180 () in
         GdkPixbuf.fill pix 0l;
         pix
 end
-
-
 
 
 class image path edge = 
@@ -47,8 +47,10 @@ object (self)
         cursor#set_erase self#draw_tile;
         (* Pointer drawing functions. *)
         pointer#set_paint self#draw_pointer;
-        pointer#set_erase self#draw_tile
-        (* TODO: insert predictions to palette if more than 1. *)
+        pointer#set_erase self#draw_tile;
+        CGUI.Levels.current ()
+        |> predictions#ids
+        |> CGUI.Predictions.set_choices
 
     val mutable exit_funcs = []
     method at_exit f = exit_funcs <- f :: exit_funcs
@@ -62,6 +64,13 @@ object (self)
     method large_tiles = large_tiles
     method annotations = annotations
     method predictions = predictions
+
+    method screenshot () =
+        let screenshot = CGUI.Magnifier.screenshot () in
+        let r, c = cursor#get in
+        let filename = sprintf "AMF_screenshot_R%d_C%d.jpg" r c in
+        CLog.info "Saving screenshot as %S" filename;
+        GdkPixbuf.save ~filename ~typ:"jpeg" screenshot
 
     method private draw_cursor ~r ~c () =
         match small_tiles#get ~r ~c with
@@ -89,7 +98,7 @@ object (self)
                 (* Toggle buttons *)
                 match CGUI.Layers.get_active () with
                 | '*' -> ()
-                | chr -> match CGUI.Predictions.show_predictions#get_active with 
+                | chr -> match false (* CGUI.Predictions.show_predictions#get_active *) with 
                     | true  -> Option.iter 
                         (paint#annotation ~sync:true ~r ~c level)
                         (predictions#max_layer ~r ~c)
@@ -100,7 +109,7 @@ object (self)
             end
 
     method private may_overlay_cam ~i ~j ~r ~c =
-        if i = 1 && j = 1 && CGUI.Predictions.show_activations#get_active then (
+        if i = 1 && j = 1 && false (* CGUI.Predictions.show_activations#get_active*) then (
              match predictions#current with
              | None -> large_tiles#get (* No active prediction set. *)
              | Some id -> match CGUI.Layers.get_active () with
@@ -127,7 +136,7 @@ object (self)
 
     method private update_counters () =
         let source =
-            match CGUI.Predictions.show_predictions#get_active with
+            match false (* CGUI.Predictions.show_predictions#get_active*) with
             | true  -> predictions#statistics
             | false -> annotations#statistics (CGUI.Levels.current ())
         in List.iter (fun (c, n) -> CGUI.Layers.set_label c n) source
@@ -137,7 +146,7 @@ object (self)
         and layer = CGUI.Layers.get_active () in
         let f ~r ~c _ = paint#annotation ~r ~c level layer in
         begin
-            match CGUI.Predictions.show_predictions#get_active with
+            match false (* CGUI.Predictions.show_predictions#get_active*) with
             | true  -> predictions#iter_layer layer f
             | false -> annotations#iter_layer level layer f
         end;

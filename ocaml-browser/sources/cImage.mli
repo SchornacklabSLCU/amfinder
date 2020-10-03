@@ -48,6 +48,9 @@ class type image = object
 
     method save : unit -> unit
     (** Saves the current image. *)
+    
+    method screenshot : unit -> unit
+    (** Saves a screenshot of the current magnified view. *)
 
 end
 
