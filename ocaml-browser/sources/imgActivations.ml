@@ -58,14 +58,9 @@ let create ?zip source =
     | None -> new activations source [] 180
     | Some ich -> let entries = Zip.entries ich in
         let table = 
-            List.map (fun ({Zip.filename; _} as entry) ->
-                let level, chr, id = Filename.basename filename
-                    |> String.split_on_char '.'
-                    |> List.rev
-                    |> (function 
-                        | x :: y :: z -> x, y.[0], String.concat "." (List.rev z)
-                        | _ -> invalid_arg "ImgActivations.create: Invalid file name.")
-                in
+            List.map (fun ({Zip.filename; comment; _} as entry) ->
+                let chr = Scanf.sscanf comment "%c" Char.uppercase_ascii
+                and id = Filename.(basename (chop_extension filename)) in
                 let tmp, och = Filename.open_temp_file
                     ~mode:[Open_binary] 
                     "castanet" ".jpg" in

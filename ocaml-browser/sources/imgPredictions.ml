@@ -47,6 +47,11 @@ class predictions input = object (self)
     method current = curr
     method set_current x = curr <- Some x
 
+    method ids level = 
+        List.filter (fun (_, (x, _)) -> x = level) input
+        |> List.split
+        |> fst
+
     method private current_data = Option.map (fun x -> List.assoc x input) curr
     method private table = Option.map (fun (_, y) -> y) self#current_data
     method private level = Option.map (fun (x, _) -> x) self#current_data
@@ -121,9 +126,9 @@ let create ?zip source =
     | None -> new predictions []
     | Some ich -> let entries = Zip.entries ich in
         let assoc =
-            List.map (fun ({Zip.filename; _} as entry) ->
-                let level = level_of_filename filename in
-                let matrix = Aux.of_string (Zip.read_entry ich entry)
+            List.map (fun ({Zip.filename; comment; _} as entry) ->
+                let level = CLevel.of_string comment
+                and matrix = Aux.of_string (Zip.read_entry ich entry)
                 and id = Filename.(basename (chop_extension filename)) in
                 id, (level, matrix)
             ) (filter entries)
