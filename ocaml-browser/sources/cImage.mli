@@ -31,11 +31,11 @@ class type image = object
     method predictions : ImgPredictions.predictions
     (** Computer-generated predictions (probabilities). *)
 
+    method show_predictions : unit -> unit
+    (** Displays the active prediction layer. *)
+
     method show : unit -> unit
     (** Displays background, tiles as well as the activate annotation layer. *)
-
-    method active_layer : ?sync:bool -> unit -> unit
-    (** Displays the active annotation layer. *)
 
     method mosaic : ?sync:bool -> unit -> unit
     (** Displays the tile matrix. *)

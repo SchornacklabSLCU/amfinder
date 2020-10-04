@@ -10,6 +10,58 @@ module Aux = struct
 end
 
 
+
+class draw 
+  (small_tiles : ImgTileMatrix.tile_matrix)
+  (paint : ImgPaint.paint)
+  (annotations : ImgAnnotations.annotations)
+  (predictions : ImgPredictions.predictions) 
+  
+= object (self)
+
+    method tile ?(sync = true) ~r ~c () =
+        match small_tiles#get ~r ~c with
+        | None -> CLog.error ~code:Err.out_of_bounds "CImage.image#draw#tile: \
+            Index out of bounds (r = %d, c = %d)" r c
+        | Some pixbuf -> paint#pixbuf ~sync ~r ~c pixbuf
+
+    method cursor ?(sync = true) ~r ~c () =
+        self#tile ~sync:false ~r ~c ();
+        paint#cursor ~sync ~r ~c ()
+
+    method pointer ?(sync = true) ~r ~c () =
+        self#tile ~sync:false ~r ~c ();
+        paint#pointer ~sync ~r ~c ()    
+
+    method annotation ?sync ~r ~c mask =
+        let level = annotations#current_level in
+        match annotations#current_layer with
+        | '*' -> paint#annotation ?sync ~r ~c level '*'
+        | chr -> match mask#active (`CHAR chr) with
+            | true  -> paint#annotation ?sync ~r ~c level chr
+            | false -> () (* no annotation in this layer. *)
+
+    method prediction ?sync ~r ~c () =
+        if predictions#active then
+            match predictions#max_layer ~r ~c with
+            | None -> () (* is that possible? *)
+            | Some chr -> let level = annotations#current_level in
+                match annotations#current_layer with
+                | '*' -> paint#annotation ?sync ~r ~c level chr
+                | cur when chr = cur -> paint#annotation ?sync ~r ~c level chr
+                | _ -> () (* Not to be displayed. *)
+
+    method overlay ?(sync = true) ~r ~c () =
+        let level = annotations#current_level in
+        let mask = annotations#get ~level ~r ~c () in
+        (* Gives priority to annotations over predictions. *)
+        if mask#is_empty () then self#prediction ~sync ~r ~c ()
+        else self#annotation ~sync ~r ~c mask
+
+end
+
+
+
 class image path edge = 
 
     (* File settings. *)
@@ -41,18 +93,20 @@ class image path edge =
 
 object (self)
 
+    val draw = new draw small_tiles paint annotations predictions
+    val mutable exit_funcs = []
+
     initializer
         (* Cursor drawing functions. *)
-        cursor#set_paint self#draw_cursor;
-        cursor#set_erase self#draw_tile;
+        cursor#set_paint draw#cursor;
+        cursor#set_erase self#draw_annotated_tile;
         (* Pointer drawing functions. *)
-        pointer#set_paint self#draw_pointer;
-        pointer#set_erase self#draw_tile;
-        CGUI.Levels.current ()
+        pointer#set_paint draw#pointer;
+        pointer#set_erase self#draw_annotated_tile;
+        annotations#current_level
         |> predictions#ids
         |> CGUI.Predictions.set_choices
 
-    val mutable exit_funcs = []
     method at_exit f = exit_funcs <- f :: exit_funcs
 
     method file = file
@@ -65,6 +119,12 @@ object (self)
     method annotations = annotations
     method predictions = predictions
 
+    method show_predictions () =
+        let preds = CGUI.Predictions.get_active () in
+        predictions#set_current preds;
+        self#mosaic ()    
+
+    (* TODO: it should be possible to choose the folder! *)
     method screenshot () =
         let screenshot = CGUI.Magnifier.screenshot () in
         let r, c = cursor#get in
@@ -72,47 +132,20 @@ object (self)
         CLog.info "Saving screenshot as %S" filename;
         GdkPixbuf.save ~filename ~typ:"jpeg" screenshot
 
-    method private draw_cursor ~r ~c () =
-        match small_tiles#get ~r ~c with
-        | None -> invalid_arg "CImage.image#draw_cursor: Out of bound"
-        | Some pixbuf -> paint#pixbuf ~r ~c pixbuf;
-            self#magnified_view ();
-            (* Toggle buttons *)
-            paint#cursor ~sync:true ~r ~c ()
-
-    method private draw_pointer ~r ~c () =
-        match small_tiles#get ~r ~c with
-        | None -> invalid_arg "CImage.image#draw_pointer: Out of bound"
-        | Some pixbuf -> paint#pixbuf ~r ~c pixbuf;
-            paint#pointer ~sync:true ~r ~c ()
-
-    method private draw_tile ~r ~c () =
-        match small_tiles#get ~r ~c with
-        | None -> invalid_arg "CImage.image#draw_tile: Out of bound"
-        | Some pixbuf -> paint#pixbuf ~sync:true ~r ~c pixbuf;
-            if cursor#at ~r ~c then paint#cursor ~sync:true ~r ~c () else
-            if pointer#at ~r ~c then paint#pointer ~sync:true ~r ~c () else
-            begin
-                let level = CGUI.Levels.current () in
-                (* Magnified view *)
-                (* Toggle buttons *)
-                match CGUI.Layers.get_active () with
-                | '*' -> ()
-                | chr -> match false (* CGUI.Predictions.show_predictions#get_active *) with 
-                    | true  -> Option.iter 
-                        (paint#annotation ~sync:true ~r ~c level)
-                        (predictions#max_layer ~r ~c)
-                    | false -> Option.iter (fun mask -> 
-                        if String.contains mask#all chr then
-                            paint#annotation ~sync:true ~r ~c level chr
-                        ) (annotations#get level ~r ~c)
-            end
+    (* + self#magnified_view () and toggle buttons *)
+    method private draw_annotated_tile ?(sync = false) ~r ~c () =
+        let sync = false in
+        draw#tile ~sync ~r ~c ();
+        if cursor#at ~r ~c then paint#cursor ~sync ~r ~c ()
+        else if pointer#at ~r ~c then paint#pointer ~sync ~r ~c ()
+        else draw#overlay ~sync ~r ~c ();
+        if sync then paint#sync ()
 
     method private may_overlay_cam ~i ~j ~r ~c =
-        if i = 1 && j = 1 && false (* CGUI.Predictions.show_activations#get_active*) then (
+        if i = 1 && j = 1 && predictions#active && activations#active then (
              match predictions#current with
              | None -> large_tiles#get (* No active prediction set. *)
-             | Some id -> match CGUI.Layers.get_active () with
+             | Some id -> match annotations#current_layer with
                 | '*' -> (* let's find the top layer. *)
                     begin match predictions#max_layer ~r ~c with
                         | None -> large_tiles#get
@@ -136,38 +169,21 @@ object (self)
 
     method private update_counters () =
         let source =
-            match false (* CGUI.Predictions.show_predictions#get_active*) with
+            match predictions#active with
             | true  -> predictions#statistics
-            | false -> annotations#statistics (CGUI.Levels.current ())
+            | false -> annotations#statistics (annotations#current_level)
         in List.iter (fun (c, n) -> CGUI.Layers.set_label c n) source
-
-    method active_layer ?(sync = false) () =
-        let level = CGUI.Levels.current ()
-        and layer = CGUI.Layers.get_active () in
-        let f ~r ~c _ = paint#annotation ~r ~c level layer in
-        begin
-            match false (* CGUI.Predictions.show_predictions#get_active*) with
-            | true  -> predictions#iter_layer layer f
-            | false -> annotations#iter_layer level layer f
-        end;
-        if sync then CGUI.Drawing.synchronize ()
 
     method mosaic ?(sync = false) () =
         paint#background ~sync:false ();
-        let level = CGUI.Levels.current ()
-        and layer = CGUI.Layers.get_active () in
         small_tiles#iter (fun ~r ~c pixbuf ->
-            paint#pixbuf ~r ~c pixbuf;
-            match annotations#get level ~r ~c with
-            | None -> invalid_arg "CImage.image#show: Out of bound"
-            | Some mask -> if String.contains mask#all layer then 
-                paint#annotation ~r ~c level layer
+            paint#pixbuf ~sync:false ~r ~c pixbuf;
+            self#draw_annotated_tile ~sync:false ~r ~c ()
         );
-        if sync then CGUI.Drawing.synchronize ()
+        if sync then paint#sync ()
 
     method show () =
         self#mosaic ();
-        self#active_layer ();
         let r, c = cursor#get in
         paint#cursor ~sync:true ~r ~c ();
         self#magnified_view ();
