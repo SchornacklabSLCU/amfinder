@@ -8,8 +8,8 @@ class cursor
 = object (self)
 
     val mutable cursor_pos = (0, 0)
-    val mutable erase = (fun ~r:_ ~c:_ () -> ())
-    val mutable paint = (fun ~r:_ ~c:_ () -> ())
+    val mutable erase = (fun ?sync:_ ~r:_ ~c:_ () -> ())
+    val mutable paint = (fun ?sync:_ ~r:_ ~c:_ () -> ())
 
     method get = cursor_pos
     method at ~r ~c = cursor_pos = (r, c)
@@ -54,9 +54,9 @@ class cursor
         && (r, c) <> cursor_pos then (
             let old_r, old_c = cursor_pos in
             cursor_pos <- (r, c);
-            erase ~r:old_r ~c:old_c ();
+            erase ~sync:false ~r:old_r ~c:old_c ();
             CGUI.CursorPos.update_coordinates ~r ~c;
-            paint ~r ~c ();
+            paint ~sync:true ~r ~c ();
             true
         ) else false
 

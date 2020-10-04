@@ -16,10 +16,10 @@ class type cursor = object
     method mouse_click : GdkEvent.Button.t -> bool
     (** Monitors mouse click. *)
 
-    method set_erase : (r:int -> c:int -> unit -> unit) -> unit
+    method set_erase : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
     (** Sets the function used to repaint tiles below cursor. *)
 
-    method set_paint : (r:int -> c:int -> unit -> unit) -> unit
+    method set_paint : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
     (** Sets the function used to paint the cursor. *)
 
 end

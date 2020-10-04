@@ -15,10 +15,10 @@ class type pointer = object
     method leave : GdkEvent.Crossing.t -> bool
     (** Detects pointer leaving. *)
 
-    method set_erase : (r:int -> c:int -> unit -> unit) -> unit
+    method set_erase : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
     (** Sets the function used to repaint tiles below pointer. *)
 
-    method set_paint : (r:int -> c:int -> unit -> unit) -> unit
+    method set_paint : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
     (** Sets the function used to paint the pointer. *)
 end
 

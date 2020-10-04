@@ -7,8 +7,8 @@ class pointer
 = object (self)
 
     val mutable pos = None
-    val mutable erase = (fun ~r:_ ~c:_ () -> ())
-    val mutable paint = (fun ~r:_ ~c:_ () -> ())
+    val mutable erase = (fun ?sync:_ ~r:_ ~c:_ () -> ())
+    val mutable paint = (fun ?sync:_ ~r:_ ~c:_ () -> ())
 
     method get = pos
     method set_erase f = erase <- f
@@ -28,12 +28,12 @@ class pointer
                 | _ -> 
                     Option.iter (fun (r, c) ->
                         pos <- None;
-                        erase ~r ~c ()
+                        erase ~sync:false ~r ~c ()
                     ) pos;
                     pos <- Some (r, c);
-                    paint ~r ~c ();
+                    paint ~sync:true ~r ~c ();
             end
-        else Option.iter (fun (r, c) -> pos <- None; erase ~r ~c ()) pos
+        else Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos
 
     method track ev =
         let x = truncate (GdkEvent.Motion.x ev) - img_paint#x_origin
@@ -42,7 +42,7 @@ class pointer
         false
 
     method leave (_ : GdkEvent.Crossing.t)  =
-        Option.iter (fun (r, c) -> pos <- None; erase ~r ~c ()) pos;
+        Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos;
         false
 
 end
