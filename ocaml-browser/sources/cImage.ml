@@ -99,6 +99,7 @@ object (self)
     initializer
         (* Cursor drawing functions. *)
         cursor#set_paint draw#cursor;
+        cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
         cursor#set_erase self#draw_annotated_tile;
         (* Pointer drawing functions. *)
         pointer#set_paint draw#pointer;

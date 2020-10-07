@@ -66,6 +66,7 @@ module Magnifier = UIMagnifier.Make (
     let rows = 3
     let columns = 3
     let tile_edge = 180
+    let window = window
     let packing obj = left_pane#attach ~top:1 ~left:0 obj
   end )
 
@@ -88,7 +89,7 @@ module Predictions = UIPredictions.Make (
   struct
     let parent = window
     let border_width = border_width
-    let packing obj = container#attach ~left:0 ~top:2 obj
+    let packing obj = container#attach ~left:0 ~top:1 obj
     let tooltips = tooltips
   end )
 
@@ -96,7 +97,7 @@ module Layers = UILayers.Make (
   struct
     include Levels
     let packing obj = container#attach
-      ~left:0 ~top:1 
+      ~left:0 ~top:2 
       ~expand:`NONE ~fill:`Y obj
     let remove = container#remove
   end )

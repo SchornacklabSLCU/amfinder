@@ -23,14 +23,14 @@ module Make (P : PARAMS) : S = struct
   let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:78 ~height:75
+    ~width:98 ~height:75
     ~packing:(P.packing ~top:0) ()
 
   let packing = toolbar#insert
 
   let _ =
     UIHelper.separator packing;
-    UIHelper.label packing "<small>Coordinates</small>"
+    UIHelper.label packing "<b><small>Coordinates</small></b>"
 
   let row = UIHelper.label ~vspace:false packing (pango `ROW 0)
   let column = UIHelper.label ~vspace:false packing (pango `COL 0)

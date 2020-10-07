@@ -10,23 +10,30 @@ module type PARAMS = sig
 end
 
 module type S = sig
-  val toolbar : GButton.toolbar
-  (** Main container. *)
+    val toolbar : GButton.toolbar
+    (** Main container. *)
 
-  val palette : GButton.tool_button
-  (** Displays a small utility window to select a palette. *)
+    val palette : GButton.tool_button
+    (** Displays a small utility window to select a palette. *)
 
-  val set_icon : string array -> unit
-  (** Updates the palette icon. *)
+    val set_icon : string array -> unit
+    (** Updates the palette icon. *)
 
-  val get_colors : unit -> string array
-  (** Returns the colors associated with the current palette. *)
+    val get_colors : unit -> string array
+    (** Returns the colors associated with the current palette. *)
 
-  val show_predictions : GButton.toggle_tool_button
-  (** Display predictions. *)
-  
-  val show_activations : GButton.toggle_tool_button
-  (** Display activation maps. *)
+    val set_choices : string list -> unit
+    (** Sets prediction list. *)
+    
+    val get_active : unit -> string option
+    (** Tells which prediction is active. *)
+
+    val overlay : GButton.button
+    (** Button that allows to select the predictions to display. *)
+
+    val cams : GButton.toggle_tool_button
+    (** Indicates whether CAMs are to be displayed or not. *)
+
 end
 
 module Make : PARAMS -> S

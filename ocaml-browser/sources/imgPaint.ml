@@ -76,6 +76,8 @@ object (self)
     method backcolor = backcolor
     method set_backcolor x = backcolor <- x
 
+    method sync () = CGUI.Drawing.synchronize ()
+
     method background ?(sync = true) () =
         let t = CGUI.Drawing.cairo () in
         let r, g, b, a = Aux.parse_html_color backcolor in
@@ -85,7 +87,7 @@ object (self)
         Cairo.rectangle t 0.0 0.0 ~w ~h;
         Cairo.fill t;
         Cairo.stroke t;
-        if sync then CGUI.Drawing.synchronize ()
+        if sync then self#sync ()
 
     method pixbuf ?(sync = false) ~r ~c pixbuf =
         assert (GdkPixbuf.get_width pixbuf = edge);
@@ -94,7 +96,7 @@ object (self)
         pixmap#put_pixbuf
             ~x:(self#x ~c)
             ~y:(self#y ~r) pixbuf;
-        if sync then CGUI.Drawing.synchronize ()
+        if sync then self#sync ()
 
     method surface ?(sync = false) ~r ~c surface =
         let t = CGUI.Drawing.cairo ()
@@ -102,7 +104,7 @@ object (self)
         and y = float (self#y ~r) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
-        if sync then CGUI.Drawing.synchronize ()    
+        if sync then self#sync ()    
 
     method cursor ?sync ~r ~c () =
         self#surface ?sync ~r ~c (Surface.cursor edge)

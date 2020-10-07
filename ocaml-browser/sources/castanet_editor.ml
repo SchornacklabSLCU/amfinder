@@ -15,6 +15,15 @@ module Par = struct
   let initialize () = parse specs set_image_path usage
 end
 
+
+
+let connect_callbacks () =
+    AmfCallback.Magnifier.capture_screenshot Par.image;
+    AmfCallback.Predictions.update_list Par.image;
+    AmfCallback.Predictions.select_list_item Par.image
+
+
+
 (*let initialize () =
 
   (* Callback functions for keyboard events. *)
@@ -68,11 +77,11 @@ let load_image () =
     image#at_exit (fun () -> GtkSignal.disconnect CGUI.Drawing.area#as_widget id);
     (* Sets as main image. *)       
     Par.image := Some image;
-    (* Draws background, tiles and active layer. No need to sync here. *)
     image#show ();
-    (* TODO: improve this! *)
-    CGUI.Layers.set_callback (fun _ _ _ _ -> image#show ());
-        image#active_layer ();
+    CGUI.Layers.set_callback (fun _ radio _ _ -> 
+        if radio#get_active then
+            image#mosaic ~sync:true ()
+    );
     (* Displays cursor and the corresponding magnified view. *)
     CGUI.status#set_label (digest image)
 
@@ -80,6 +89,7 @@ let load_image () =
 let main () =
     print_endline "castanet-browser 2.0";
     Printexc.record_backtrace true;
+    connect_callbacks ();
     load_image ();
     GMain.main ()
 

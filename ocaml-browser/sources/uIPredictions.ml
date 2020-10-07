@@ -5,19 +5,21 @@ open Printf
 open Morelib
 
 module type PARAMS = sig
-  val parent : GWindow.window
-  val packing : GObj.widget -> unit
-  val border_width : int
-  val tooltips : GData.tooltips
+    val parent : GWindow.window
+    val packing : GObj.widget -> unit
+    val border_width : int
+    val tooltips : GData.tooltips
 end
 
 module type S = sig
-  val toolbar : GButton.toolbar
-  val palette : GButton.tool_button
-  val set_icon : string array -> unit
-  val get_colors : unit -> string array
-  val show_predictions : GButton.toggle_tool_button
-  val show_activations : GButton.toggle_tool_button
+    val toolbar : GButton.toolbar
+    val palette : GButton.tool_button
+    val set_icon : string array -> unit
+    val get_colors : unit -> string array
+    val set_choices : string list -> unit
+    val get_active : unit -> string option
+    val overlay : GButton.button
+    val cams : GButton.toggle_tool_button
 end
 
 type palette = string array
@@ -43,11 +45,11 @@ let load () =
   ) [] (Sys.readdir folder)
 
 let parse_html_color =
-  let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
-  fun s -> sscanf s "#%02x%02x%02x%02x" (fun r g b a -> f r, f g, f b, f a)
+    let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
+    fun s -> sscanf s "#%02x%02x%02x%02x" (fun r g b a -> f r, f g, f b, f a)
 
 let draw_icon ?(digest = false) colors =
-  let mul = if digest then 2 else 6 and h = 24 in
+  let mul = if digest then 2 else 6 and h = 16 in
   let len = Array.length colors * mul in
   let surface = Cairo.Image.(create ARGB32 ~w:len ~h) in 
   let t = Cairo.create surface in
@@ -71,59 +73,161 @@ let draw_icon ?(digest = false) colors =
 
 
 module TreeView = struct
-  module Data = struct
-    let cols = new GTree.column_list
-    let name = cols#add Gobject.Data.string
-    let colors = cols#add Gobject.Data.caml
-    let pixbuf = cols#add Gobject.Data.gobject
-    let store = GTree.list_store cols
-  end
-  module Cell = struct
-    let name = GTree.cell_renderer_text [`WEIGHT `BOLD]
-    let pixbuf = GTree.cell_renderer_pixbuf [`XALIGN 0.0; `YALIGN 0.5]
-  end
-  module VCol = struct
-    let markup = GTree.view_column ~title:"Name"
-      ~renderer:(Cell.name, ["text", Data.name]) ()
-    let pixbuf = GTree.view_column ~title:"Palette"
-      ~renderer:(Cell.pixbuf, ["pixbuf", Data.pixbuf]) ()
-  end
+
+    module Data = struct
+        let cols = new GTree.column_list
+        let name = cols#add Gobject.Data.string
+        let colors = cols#add Gobject.Data.caml
+        let pixbuf = cols#add Gobject.Data.gobject
+        let store = GTree.list_store cols
+    end
+
+    module Cell = struct
+        let name = GTree.cell_renderer_text [`WEIGHT `BOLD]
+        let pixbuf = GTree.cell_renderer_pixbuf [`XALIGN 0.0; `YALIGN 0.5]
+    end
+
+    module VCol = struct
+        let markup = GTree.view_column ~title:"Name"
+            ~renderer:(Cell.name, ["text", Data.name]) ()
+        let pixbuf = GTree.view_column ~title:"Palette"
+            ~renderer:(Cell.pixbuf, ["pixbuf", Data.pixbuf]) ()
+    end
+
 end
+
+
+
+module Aux = struct
+
+    let markup_tool_button ~stock ~label ~packing () =
+        let btn = GButton.tool_button ~packing () in
+        btn#misc#set_sensitive false;
+        let box = GPack.hbox ~spacing:2 ~packing:btn#set_label_widget () in
+        ignore (GMisc.image ~width:25 ~stock ~packing:(box#pack ~expand:false) ());
+        let markup = Printf.sprintf "<small>%s</small>" label in
+        ignore (GMisc.label ~markup ~xalign:0.0 ~packing:box#add ());
+        btn
+
+end
+
 
 
 module Make (P : PARAMS) : S = struct
 
-  let toolbar = GButton.toolbar
-    ~orientation:`VERTICAL
-    ~style:`ICONS
-    ~width:92 ~height:200
-    ~packing:P.packing ()
+    let toolbar = GButton.toolbar
+        ~orientation:`VERTICAL
+        ~style:`ICONS
+        ~width:98 ~height:180
+        ~packing:P.packing ()
 
-  let packing = toolbar#insert
+    let packing = toolbar#insert
 
-  let _ = UIHelper.separator packing
-  let _ = UIHelper.label packing "<small>Predictions</small>"
 
-  let palette_icon, palette =
-    let button = GButton.tool_button ~packing () in
-    let image = GMisc.image ~width:55 ~height:24
-      ~packing:button#set_icon_widget () in
-    image, button
 
-  let _ = UIHelper.morespace packing
+    module Activate = struct
+        let dialog = 
+            let dlg = GWindow.dialog
+                ~parent:P.parent
+                ~width:300
+                ~height:100
+                ~deletable:false
+                ~resizable:false
+                ~title:"Predictions"
+                ~type_hint:`UTILITY
+                ~destroy_with_parent:true
+                ~position:`CENTER_ON_PARENT () in
+            dlg#add_button_stock `CANCEL `CANCEL;
+            dlg#add_button_stock `OK `OK;
+            dlg#set_border_width P.border_width;
+            dlg
 
-  let show_predictions = GButton.toggle_tool_button ~label:"Show" ~packing ()
-  let show_activations = 
-    let btn = GButton.toggle_tool_button ~label:"Maps" ~packing () in
-    show_predictions#connect#toggled (fun () ->
-        btn#misc#set_sensitive show_predictions#get_active);
-    btn#misc#set_sensitive false;
-    btn
+        let combo, (store, data) = GEdit.combo_box_text 
+            ~packing:dialog#vbox#add ()
+    end
+
+    let _ = UIHelper.separator packing
+
+    let activate = 
+        let item = GButton.tool_item ~packing () in
+        let check = GButton.check_button ~packing:item#add () in
+        check#misc#set_sensitive false;
+        check#misc#set_can_focus false;
+        ignore (GMisc.label
+            ~markup:"<b><small>Prediction</small></b>"
+            ~xalign:0.0 ~yalign:0.5
+            ~packing:check#set_image ());
+        check
+
+    let container =
+        let item = GButton.tool_item ~packing () in
+        GPack.hbox ~spacing:2 ~packing:item#add ()
+
+    let overlay =
+        let btn = GButton.button ~packing:container#add () in
+        btn#set_relief `NONE;
+        btn#misc#set_sensitive false;
+        GMisc.image ~stock:`OPEN ~packing:btn#set_image ();
+        let callback () = btn#misc#set_sensitive activate#active in
+        ignore (activate#connect#toggled ~callback);
+        btn
+
+    let remove =
+        let btn = GButton.button ~packing:container#add () in
+        btn#set_relief `NONE;        
+        btn#misc#set_sensitive false;        
+        GMisc.image ~stock:`CLOSE ~packing:btn#set_image ();        
+        btn
+
+    let palette, pal_icon =
+        let btn = GButton.tool_button ~packing () in
+        btn#misc#set_sensitive false;
+        let box = GPack.hbox ~spacing:2 ~packing:btn#set_label_widget () in
+        let packing = box#pack ~expand:false in
+        let pal_icon = GMisc.image ~width:25 ~height:16 ~packing () in
+        ignore (GMisc.label
+            ~markup:"<small>Palette</small>"
+            ~xalign:0.0 ~yalign:0.5
+            ~packing:box#add ());
+        btn, pal_icon
+
+    let cams = 
+        let btn = GButton.toggle_tool_button ~packing () in
+        btn#misc#set_sensitive false;
+        let markup = "<small>CAMs</small>" in
+        ignore (GMisc.label ~markup ~packing:btn#set_label_widget ());
+        btn
+
+    let apply = Aux.markup_tool_button
+        ~stock:`APPLY
+        ~label:"Apply" ~packing ()
+
+    let set_choices t =
+        Activate.store#clear ();
+        activate#misc#set_sensitive (t <> []);
+        List.iter (fun x ->
+            let row = Activate.store#append () in
+            Activate.store#set ~row ~column:Activate.data x;     
+        ) t;
+        Activate.combo#set_active 0
+
+    let get_active () =
+        let result = Activate.dialog#run () in
+        Activate.dialog#misc#hide ();
+        if result = `OK then (
+            Option.map (fun row ->
+                let res = Activate.store#get ~row ~column:Activate.data in
+                cams#misc#set_sensitive true;
+                remove#misc#set_sensitive true;
+                palette#misc#set_sensitive true;
+                res
+            ) Activate.combo#active_iter
+        ) else None
 
   let set_tooltip s =
     let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
     P.tooltips#set_tip ~text palette#coerce
-  let set_icon t = palette_icon#set_pixbuf (draw_icon ~digest:true t)
+  let set_icon t = pal_icon#set_pixbuf (draw_icon ~digest:true t)
 
   let dialog = 
     let dlg = GWindow.dialog

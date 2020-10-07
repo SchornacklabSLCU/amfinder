@@ -1,5 +1,6 @@
 (* CastANet - cLevel.ml *)
 
+open Printf
 open Morelib
 
 
@@ -24,7 +25,7 @@ let of_string str =
     | "colonization" -> `COLONIZATION
     | "arb_vesicles" -> `ARB_VESICLES
     | "all_features" -> `ALL_FEATURES
-    | _               -> invalid_arg "(CLevel.of_string) Wrong annotation level" 
+    | unknown_string -> CLog.error ~code:17 "(CLevel.of_string) Wrong annotation level %S" unknown_string
 
 
 

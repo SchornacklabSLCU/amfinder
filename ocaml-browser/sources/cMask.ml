@@ -2,56 +2,11 @@
 
 open Morelib
 
+type field = [ `USER | `HOLD | `LOCK ]
 
-
-class type prediction_mask = object
-
-    method get : char -> float
-    
-    method mem : char -> bool
-    
-    method set : char -> float -> unit
-
-    method top : (char * float) option
-    
-    method threshold : th:float -> (char * float) list
-    
-    method to_list : (char * float) list
-
-    method of_list : (char * float) list -> unit
-
-end
-
-
-
-type layer = [ `USER | `HOLD | `LOCK ]
+let fields = [`USER; `HOLD; `LOCK]
 
 type annot = [ `CHAR of char | `TEXT of string ]
-
-
-
-class type layered_mask = object
-
-    method get : layer -> string
-
-    method all : string
-
-    method is_empty : layer -> bool
-
-    method mem : layer -> annot -> bool
-
-    method set : layer -> annot -> unit
-
-    method add : layer -> annot -> unit
-
-    method remove : layer -> annot -> unit
-
-    method to_string : string
-
-    method predictions : prediction_mask
-
-end
-
 
 
 module Aux = struct
@@ -69,7 +24,7 @@ end
 
 
 
-class prediction = object (self)
+class prediction_mask = object (self)
 
     val mutable predictions = []
     
@@ -113,19 +68,19 @@ end
 
 
 
-class layered = object (self)
+class layered_mask = object (self)
 
     val masks = [|""; ""; ""|]
-    val predictions = new prediction
+    val predictions = new prediction_mask
 
-    method private apply : 'a 'b. (string -> 'a -> 'b) -> layer -> 'a -> 'b 
+    method private apply : 'a 'b. (string -> 'a -> 'b) -> field -> 'a -> 'b 
         = fun f layer x -> 
             match layer with
             | `USER -> f masks.(0) x
             | `LOCK -> f masks.(1) x
             | `HOLD -> f masks.(2) x
 
-    method private alter : 'a. (string -> 'a -> string) -> layer -> 'a -> unit
+    method private alter : 'a. (string -> 'a -> string) -> field -> 'a -> unit
         = fun f layer x ->
             match layer with
             | `USER -> masks.(0) <- f masks.(0) x
@@ -136,9 +91,19 @@ class layered = object (self)
 
     method all = StringSet.union (self#get `USER) (self#get `HOLD)
 
-    method is_empty elt = self#apply (fun m _ -> m = "") elt true
+    method is_empty ?field () = 
+        let t = match field with
+            | None -> fields
+            | Some f -> [f] in
+        List.for_all (fun field -> self#apply (fun m _ -> m = "") field true) t
+    
+    method has_annot = not (self#is_empty ~field:`USER () 
+                         && self#is_empty ~field:`HOLD ()) 
 
     method mem x (y : annot) = self#apply Aux.mem x y
+
+    method active x = self#mem `USER x || self#mem `HOLD x
+    method locked x = self#mem `LOCK x
 
     method set x (y : annot) = self#alter (fun _ -> Aux.string_of_annot) x y
 
@@ -163,7 +128,7 @@ end
 
 
 let make ?(user = `TEXT "") ?(lock = `TEXT "") ?(hold = `TEXT "") () =
-    let masks = new layered in
+    let masks = new layered_mask in
     masks#set `USER user;
     masks#set `LOCK lock;
     masks#set `HOLD hold;

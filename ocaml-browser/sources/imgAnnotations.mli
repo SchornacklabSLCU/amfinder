@@ -3,7 +3,13 @@
 (** Datasets. *)
 
 class type annotations = object
-    method get : CLevel.t -> r:int -> c:int -> CMask.layered_mask option
+    method current_level : CLevel.t
+    (** Returns the current level. *)
+    
+    method current_layer : char
+    (** Returns the current layer (uses ['*'] for the main layer). *)
+
+    method get : ?level:CLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
     (** Returns the item at the given coordinates and annotation level. *)
 
     method iter : CLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
@@ -17,6 +23,11 @@ class type annotations = object
 
     method to_string : CLevel.t -> string
     (** Return the string representation of the table at the given level. *)
+    
+    method has_annot : ?level:CLevel.t -> r:int -> c:int -> unit -> bool
+    (** Indicates whether the given tile has annotation. By default, checks the
+      * current annotation layer. *)
+    
 end
 
 val create : ?zip:Zip.in_file -> ImgSource.source -> annotations

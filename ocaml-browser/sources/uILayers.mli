@@ -8,7 +8,7 @@ module type PARAMS = sig
 end
 
 module type S = sig
-  val get_active : unit -> char
+  val current : unit -> char
   (** Indicates which layer is currently active. *)
 
   val set_label : char -> int -> unit

@@ -26,10 +26,22 @@ class annotations (assoc : (CLevel.t * CMask.layered_mask Matrix.t) list) =
 
 object (self)
 
-    method private level x = List.assoc x assoc
-    method get x ~r ~c = Matrix.get_opt (self#level x) ~r ~c
+    method current_level = CGUI.Levels.current ()
+    method current_layer = CGUI.Layers.current ()
 
-    method iter x f = Matrix.iteri f (self#level x)
+    method private get_matrix_by_level x = List.assoc x assoc
+
+    method get ?level ~r ~c () =
+        let level = Option.value level ~default:self#current_level in
+        match Matrix.get_opt (self#get_matrix_by_level level) ~r ~c with
+        | None -> CLog.error ~code:Err.out_of_bounds 
+            "ImgAnnotations.annotations#get: Index \
+             out of bounds (r = %d, c = %d)" r c
+        | Some mask -> mask
+
+    method has_annot ?level ~r ~c () = (self#get ?level ~r ~c ())#has_annot
+
+    method iter x f = Matrix.iteri f (self#get_matrix_by_level x)
 
     method iter_layer x layer f =
         let has_layer = match layer with
@@ -38,7 +50,7 @@ object (self)
         in
         Matrix.iteri (fun ~r ~c mask ->
             if has_layer mask then f ~r ~c mask
-        ) (self#level x)
+        ) (self#get_matrix_by_level x)
 
     method statistics level =
         let counters = List.map (fun c -> c, ref 0) (CLevel.to_header level) in
@@ -47,7 +59,7 @@ object (self)
         );
         List.map (fun (c, r) -> c, !r) counters
 
-    method to_string x = Aux.to_string (self#level x)
+    method to_string x = Aux.to_string (self#get_matrix_by_level x)
 
 end
 

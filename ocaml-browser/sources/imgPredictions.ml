@@ -39,13 +39,11 @@ end
 
 class predictions input = object (self)
 
-    val mutable curr : string option = 
-        match input with
-        | [] -> None (* TODO: Find a better solution to this! *)
-        | (id, _) :: _ -> Some id
+    val mutable curr : string option = None
 
     method current = curr
-    method set_current x = curr <- Some x
+    method set_current x = curr <- x
+    method active = curr <> None
 
     method ids level = 
         List.filter (fun (_, (x, _)) -> x = level) input
@@ -60,6 +58,8 @@ class predictions input = object (self)
         match self#table with
         | None -> None
         | Some t -> Matrix.get_opt t ~r ~c
+
+    method exists ~r ~c = (self#get ~r ~c) <> None
 
     method max_layer ~r ~c =
         match self#current_data with

@@ -15,21 +15,19 @@ end
 module Predictions = struct
 
     let update_list image_ref =
-        CGUI.Levels.set_callback (fun level radio ->
+        let callback level radio =
             if radio#active then
                 Option.iter (fun image ->
                     image#predictions#ids level
                     |> CGUI.Predictions.set_choices
                 ) !image_ref
-        )
+        in CGUI.Levels.set_callback callback
 
     let select_list_item image_ref =
-        CGUI.Predictions.overlay#connect#clicked (fun () ->
+        let callback () =
             Option.iter (fun image ->
-                match CGUI.Predictions.get_active () with
-                | None -> ()
-                | Some id -> image#predictions#set_current id
+                image#show_predictions ()
             ) !image_ref
-        ); ()
+        in ignore (CGUI.Predictions.overlay#connect#clicked ~callback)
 
 end

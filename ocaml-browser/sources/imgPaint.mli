@@ -43,6 +43,9 @@ class type paint = object
     (** Draws a tile annotation.
       * @param sync defaults to [false]. *)
 
+    method sync : unit -> unit
+    (** Synchronize drawings between the back pixmap and the drawing area. *)
+
 end
 
 

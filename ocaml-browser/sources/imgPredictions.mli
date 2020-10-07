@@ -3,11 +3,17 @@
 (** Prediction tables. *)
 
 class type predictions = object
+    method ids : CLevel.t -> string list
+    (** Returns the list of predictions at the given annotation level. *)
+
     method current : string option
     (** Return the identifier of the active prediction table. *)
 
-    method set_current : string -> unit
+    method set_current : string option -> unit
     (** Define the active prediction table. *)
+
+    method active : bool
+    (** Tells whether predictions are being displayed. *)
 
     method get : r:int -> c:int -> float list option
     (** Return the probabilities at the given coordinates. *)
@@ -26,6 +32,9 @@ class type predictions = object
     
     method to_string : unit -> string
     (** Return the string representation of the active prediction table. *)
+    
+    method exists : r:int -> c:int -> bool
+    (** Indicates whether the given tile has predictions. *)
 end
 
 val create : ?zip:Zip.in_file -> ImgSource.source -> predictions

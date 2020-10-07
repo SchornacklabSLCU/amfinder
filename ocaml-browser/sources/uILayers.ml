@@ -2,16 +2,19 @@
 
 open Printf
 
+
 type radio_ext = {
   r_radio : GButton.radio_tool_button;
   r_label : GMisc.label;
   r_image : GMisc.image;
 }
 
+
 module type RADIO = sig
-  val table : GButton.toolbar
+  val toolbar : GButton.toolbar
   val radios : (char * radio_ext) list
 end 
+
 
 module type PARAMS = sig
   val packing : GObj.widget -> unit
@@ -20,8 +23,9 @@ module type PARAMS = sig
   val radios : (CLevel.t * GButton.radio_button) list
 end
 
+
 module type S = sig
-  val get_active : unit -> char
+  val current : unit -> char
   val set_label : char -> int -> unit
   val set_callback : 
     (char -> 
@@ -29,108 +33,108 @@ module type S = sig
 end
 
 
-module Make (P : PARAMS) : S = struct
-  let add_item packing a_ref g_ref i chr =
-    let active = !a_ref and group = !g_ref in
-    let r_radio = GButton.radio_tool_button ~active ?group ~packing () in
-    if active then (a_ref := false; g_ref := Some r_radio);
-    let hbox = GPack.hbox ~spacing:2 ~packing:r_radio#set_icon_widget () in
-    let packing = hbox#add in
-    let r_image = GMisc.image ~width:24 ~packing () in
-    let r_label = GMisc.label
-      ~markup:"<small><tt>000000</tt></small>" ~packing () in
-    let style = if chr = '*' then `RGBA else `GREY in
-    r_image#set_pixbuf (CIcon.get chr style `SMALL);
-    chr, {r_radio; r_label; r_image}
 
-  let make_toolbox typ =
-    let code_list = '*' :: CAnnot.char_list typ in
-    let module T = struct
-      let table = GButton.toolbar
-        ~orientation:`VERTICAL
-        ~style:`ICONS
-        ~width:92 ~height:330 ()
-      let active = ref true
-      let group = ref None
-      let packing = table#insert
-      let radios = 
-        UIHelper.separator packing;
-        UIHelper.label packing "<small>Layer</small>";
-        List.mapi (add_item packing active group) code_list
-    end in (module T : RADIO)
+module Toolbox = struct
+
+    let add_item packing a_ref g_ref i chr =
+        let active = !a_ref and group = !g_ref in
+        let r_radio = GButton.radio_tool_button ~active ?group ~packing () in
+        if active then (a_ref := false; g_ref := Some r_radio);
+        let hbox = GPack.hbox ~spacing:2 ~packing:r_radio#set_icon_widget () in
+        let r_image = GMisc.image ~width:24 ~packing:hbox#add ()
+        and r_label = GMisc.label
+            ~markup:"<small><tt>000000</tt></small>" 
+            ~packing:hbox#add () in
+        let style = if chr = '*' then `RGBA else `GREY in
+        r_image#set_pixbuf (CIcon.get chr style `SMALL);
+        chr, {r_radio; r_label; r_image}
+
+    let make level =
+        let code_list = '*' :: CLevel.to_header level in
+        let module T = struct
+            let toolbar = GButton.toolbar
+                ~orientation:`VERTICAL
+                ~style:`ICONS
+                ~width:98 ~height:350 ()
+            let active = ref true
+            let group = ref None
+            let packing = toolbar#insert
+            let radios = 
+                UIHelper.separator packing;
+                UIHelper.label packing "<b><small>Layer</small></b>";
+                List.mapi (add_item packing active group) code_list
+        end in (module T : RADIO)
+
+end
+
+
+
+module Make (P : PARAMS) : S = struct
     
-  let toolboxes = List.map (fun typ -> typ, make_toolbox typ) CLevel.all_flags
+    let toolboxes = 
+        let make level = level, Toolbox.make level in
+        List.map make CLevel.all_flags
 
   let current_widget = ref None
 
-  let detach () =
-    match !current_widget with
-    | None -> ()
-    | Some widget -> P.remove widget 
+  let detach () = Option.iter (fun widget -> P.remove widget) !current_widget
 
-  let attach typ =
-    detach ();
-    let mdl = List.assoc typ toolboxes in
-    let module T = (val mdl : RADIO) in
-    let widget = T.table#coerce in
-    P.packing widget;
-    current_widget := Some widget
+    let attach level =
+        detach ();
+        let radio = List.assoc level toolboxes in
+        let module T = (val radio : RADIO) in
+        let widget = T.toolbar#coerce in
+        P.packing widget;
+        current_widget := Some widget
  
-  let current_radios () =
-    let toolbox = List.assoc (P.current ()) toolboxes in
-    let open (val toolbox : RADIO) in radios
+    (* Returns radio buttons active at the current level. *)
+    let current_level_radios () =
+        let level = P.current () in
+        let open (val (List.assoc level toolboxes) : RADIO) in
+        radios
 
-  let get_joker () = current_radios ()
-    |> List.hd
-    |> snd
+    (* Extracts a radio button from an association list. *)
+    let get_radio_ext x = current_level_radios ()
+        |> List.find (fun (y, _) -> x = y)
+        |> snd
+
+    (* Returns the "joker" radio button. *)
+    let get_joker () = get_radio_ext '*'
+
+    let current () = current_level_radios ()
+        |> List.find (fun x -> (snd x).r_radio#get_active)
+        |> fst
   
-  let get_layer c1 = current_radios ()
-    |> List.find (fun (c2, _) -> c1 = c2)
-    |> snd
+    let is_active chr = (get_radio_ext chr).r_radio#get_active
 
-  let get_active () = current_radios ()
-    |> List.find (fun (_, t) -> t.r_radio#get_active)
-    |> fst
+    let set_image chr = (get_radio_ext chr).r_image#set_pixbuf
+
+    let set_label chr num =
+    ksprintf (get_radio_ext chr).r_label#set_label 
+        "<small><tt>%06d</tt></small>" num
   
-  let is_active chr =
-    let ext = if chr = '*' then get_joker () else get_layer chr in
-    ext.r_radio#get_active
-
-  let set_image chr =
-    let ext = if chr = '*' then get_joker () else get_layer chr in
-    ext.r_image#set_pixbuf
-
-  let set_label chr num =
-    let ext = if chr = '*' then get_joker () else get_layer chr in
-    ksprintf ext.r_label#set_label "<small><tt>%06d</tt></small>" num
-  
-  let set_callback f =
-    List.iter (fun (_, toolbox) ->
-      let module T = (val toolbox : RADIO) in
-      List.iter (fun (chr, ext) ->
-        let callback () = f chr ext.r_radio ext.r_label ext.r_image in
-        ignore (ext.r_radio#connect#toggled ~callback)
-      ) T.radios
+    let set_callback f =
+        List.iter (fun (level, radio) ->
+            let module T = (val radio : RADIO) in
+            List.iter (fun (chr, {r_radio; r_label; r_image}) ->
+                let callback () = f chr r_radio r_label r_image in
+                ignore (r_radio#connect#after#toggled ~callback)
+            ) T.radios
     ) toolboxes  
  
-  let iter f =
-    List.iter (fun (chr, r) -> 
-      f chr r.r_radio r.r_label r.r_image) 
-    (current_radios ()) 
+    let iter f =
+        List.iter (fun (chr, r) -> 
+            f chr r.r_radio r.r_label r.r_image
+        ) (current_level_radios ()) 
 
-  let _ =
-    (* Initializes the annotation toolbar using the lightweight annotation style
-     * `COLONIZATION, and initiates the callback function that updates the UI
-     * according to the active radio button. *)
-    attach `COLONIZATION;
-    List.iter (fun (typ, radio) ->
-      radio#connect#toggled ~callback:(fun () ->
-        if radio#active then attach typ
-      ); ()
-    ) P.radios;
-    (* Update the icon style when a GtkRadioToolButton is toggled. *)
-    let callback chr radio _ icon =
-      let style = if radio#get_active then `RGBA else `GREY in
-      icon#set_pixbuf (CIcon.get chr style `SMALL)
-    in set_callback callback
+    let _ =
+        attach `COLONIZATION;
+        List.iter (fun (level, radio) ->
+            let callback () = if radio#active then attach level in
+            ignore (radio#connect#toggled ~callback)
+        ) P.radios;
+        let callback chr radio _ icon =
+            let style = if radio#get_active then `RGBA else `GREY in
+            icon#set_pixbuf (CIcon.get chr style `SMALL)
+        in set_callback callback
 end
