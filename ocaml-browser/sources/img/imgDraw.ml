@@ -1,10 +1,10 @@
 (** amf - imgDraw.ml *)
 
 class draw 
-  (tiles : ImgTileMatrix.tile_matrix)
-  (brush : ImgBrush.brush)
-  (annot : ImgAnnotations.annotations)
-  (preds : ImgPredictions.predictions) 
+  (tiles : ImgTypes.tile_matrix)
+  (brush : ImgTypes.brush)
+  (annot : ImgTypes.annotations)
+  (preds : ImgTypes.predictions) 
 
 = object (self)
 
@@ -50,5 +50,4 @@ class draw
 end
 
 
-let create ~tiles ~brush ~annotations ~predictions () =
-    new draw tiles brush annotations predictions
+let create a b c d = new draw a b c d

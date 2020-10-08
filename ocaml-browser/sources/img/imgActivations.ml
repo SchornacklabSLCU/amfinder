@@ -21,8 +21,11 @@ end
 
 
 
-class activations (source : ImgSource.source) 
-    (assoc_table : (string * (char * GdkPixbuf.pixbuf)) list) edge = object
+class activations
+    (source : ImgTypes.source) 
+    (assoc_table : (string * (char * GdkPixbuf.pixbuf)) list) edge 
+
+= object
 
     val hash =
         let hash = Hashtbl.create 11 in

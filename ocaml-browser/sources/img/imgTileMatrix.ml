@@ -19,7 +19,7 @@ module Aux = struct
 end
 
 
-class tile_matrix pixbuf (source : ImgSource.source) edge =
+class tile_matrix pixbuf (source : ImgTypes.source) edge =
 
 object
 
@@ -39,5 +39,4 @@ object
 end
 
 
-let create pixbuf source edge =
-    new tile_matrix pixbuf source edge
+let create a b c = new tile_matrix a b c
