@@ -4,31 +4,31 @@
 
 class type image = object
 
-    method file : ImgFile.file
+    method file : ImgTypes.file
     (** File settings. *)
 
-    method source : ImgSource.source
+    method source : ImgTypes.source
     (** Source image settings. *)
 
-    method brush : ImgBrush.brush
+    method brush : ImgTypes.brush
     (** Drawing toolbox. *)
 
-    method cursor : ImgCursor.cursor
+    method cursor : ImgTypes.cursor
     (** Cursor position manager. *)
 
-    method pointer : ImgPointer.pointer
+    method pointer : ImgTypes.pointer
     (** Mouse pointer tracker. *)
 
-    method small_tiles : ImgTileMatrix.tile_matrix
+    method small_tiles : ImgTypes.tile_matrix
     (** Small-sized tiles to be used in the right pane. *)
 
-    method large_tiles : ImgTileMatrix.tile_matrix
+    method large_tiles : ImgTypes.tile_matrix
     (** Large-sized tiles to be used in the left pane. *)
 
-    method annotations : ImgAnnotations.annotations
+    method annotations : ImgTypes.annotations
     (** User-defined annotations. *)
 
-    method predictions : ImgPredictions.predictions
+    method predictions : ImgTypes.predictions
     (** Computer-generated predictions (probabilities). *)
 
     method show_predictions : unit -> unit

@@ -43,10 +43,15 @@ class image path edge =
 object (self)
 
     val draw = ImgDraw.create 
-        ~tiles:small_tiles
-        ~brush
-        ~annotations
-        ~predictions ()
+        small_tiles
+        brush
+        annotations
+        predictions
+
+    val ui = ImgUI.create
+        cursor
+        annotations
+        predictions
 
     val mutable exit_funcs = []
 
