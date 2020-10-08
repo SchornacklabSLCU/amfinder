@@ -23,5 +23,5 @@ class type pointer = object
 end
 
 
-val create : ImgSource.source -> ImgPaint.paint -> pointer
+val create : ImgSource.source -> ImgBrush.brush -> pointer
 (** Builder. *)

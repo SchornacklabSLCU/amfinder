@@ -24,5 +24,5 @@ class type cursor = object
 
 end
 
-val create : ImgSource.source -> ImgPaint.paint -> cursor
+val create : ImgSource.source -> ImgBrush.brush -> cursor
 (** Builder. *)

@@ -3,7 +3,7 @@
 
 class cursor 
   (img_source : ImgSource.source) 
-  (img_paint : ImgPaint.paint)
+  (img_brush : ImgBrush.brush)
 
 = object (self)
 
@@ -76,10 +76,10 @@ class cursor
 
 
     method mouse_click ev =
-        let x = truncate (GdkEvent.Button.x ev) - img_paint#x_origin
-        and y = truncate (GdkEvent.Button.y ev) - img_paint#y_origin in
-        let r = y / img_paint#edge 
-        and c = x / img_paint#edge in
+        let x = truncate (GdkEvent.Button.x ev) - img_brush#x_origin
+        and y = truncate (GdkEvent.Button.y ev) - img_brush#y_origin in
+        let r = y / img_brush#edge 
+        and c = x / img_brush#edge in
         ignore (self#update_cursor_pos ~r ~c);
         false
 

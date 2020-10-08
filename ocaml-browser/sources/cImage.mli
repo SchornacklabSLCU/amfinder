@@ -10,7 +10,7 @@ class type image = object
     method source : ImgSource.source
     (** Source image settings. *)
 
-    method paint : ImgPaint.paint
+    method brush : ImgBrush.brush
     (** Drawing toolbox. *)
 
     method cursor : ImgCursor.cursor

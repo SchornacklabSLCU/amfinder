@@ -2,7 +2,7 @@
 
 class pointer 
 (  img_source : ImgSource.source)
-  (img_paint : ImgPaint.paint)
+  (img_brush : ImgBrush.brush)
 
 = object (self)
 
@@ -36,9 +36,9 @@ class pointer
         else Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos
 
     method track ev =
-        let x = truncate (GdkEvent.Motion.x ev) - img_paint#x_origin
-        and y = truncate (GdkEvent.Motion.y ev) - img_paint#y_origin in
-        self#update_pointer_pos ~r:(y / img_paint#edge) ~c:(x / img_paint#edge);
+        let x = truncate (GdkEvent.Motion.x ev) - img_brush#x_origin
+        and y = truncate (GdkEvent.Motion.y ev) - img_brush#y_origin in
+        self#update_pointer_pos ~r:(y / img_brush#edge) ~c:(x / img_brush#edge);
         false
 
     method leave (_ : GdkEvent.Crossing.t)  =

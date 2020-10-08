@@ -13,32 +13,32 @@ end
 
 class draw 
   (small_tiles : ImgTileMatrix.tile_matrix)
-  (paint : ImgPaint.paint)
+  (brush : ImgBrush.brush)
   (annotations : ImgAnnotations.annotations)
   (predictions : ImgPredictions.predictions) 
-  
+
 = object (self)
 
     method tile ?(sync = true) ~r ~c () =
         match small_tiles#get ~r ~c with
         | None -> CLog.error ~code:Err.out_of_bounds "CImage.image#draw#tile: \
             Index out of bounds (r = %d, c = %d)" r c
-        | Some pixbuf -> paint#pixbuf ~sync ~r ~c pixbuf
+        | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
 
     method cursor ?(sync = true) ~r ~c () =
         self#tile ~sync:false ~r ~c ();
-        paint#cursor ~sync ~r ~c ()
+        brush#cursor ~sync ~r ~c ()
 
     method pointer ?(sync = true) ~r ~c () =
         self#tile ~sync:false ~r ~c ();
-        paint#pointer ~sync ~r ~c ()    
+        brush#pointer ~sync ~r ~c ()    
 
     method annotation ?sync ~r ~c mask =
         let level = annotations#current_level in
         match annotations#current_layer with
-        | '*' -> paint#annotation ?sync ~r ~c level '*'
+        | '*' -> brush#annotation ?sync ~r ~c level '*'
         | chr -> match mask#active (`CHAR chr) with
-            | true  -> paint#annotation ?sync ~r ~c level chr
+            | true  -> brush#annotation ?sync ~r ~c level chr
             | false -> () (* no annotation in this layer. *)
 
     method prediction ?sync ~r ~c () =
@@ -47,8 +47,8 @@ class draw
             | None -> () (* is that possible? *)
             | Some chr -> let level = annotations#current_level in
                 match annotations#current_layer with
-                | '*' -> paint#annotation ?sync ~r ~c level chr
-                | cur when chr = cur -> paint#annotation ?sync ~r ~c level chr
+                | '*' -> brush#annotation ?sync ~r ~c level chr
+                | cur when chr = cur -> brush#annotation ?sync ~r ~c level chr
                 | _ -> () (* Not to be displayed. *)
 
     method overlay ?(sync = true) ~r ~c () =
@@ -72,12 +72,12 @@ class image path edge =
     let source = ImgSource.create pixbuf edge in
     
     (* Drawing parameters. *)   
-    let paint = ImgPaint.create source in
-    let cursor = ImgCursor.create source paint
-    and pointer = ImgPointer.create source paint in
+    let brush = ImgBrush.create source in
+    let cursor = ImgCursor.create source brush
+    and pointer = ImgPointer.create source brush in
     
     (* Image segmentation. *)   
-    let small_tiles = ImgTileMatrix.create pixbuf source paint#edge
+    let small_tiles = ImgTileMatrix.create pixbuf source brush#edge
     and large_tiles = ImgTileMatrix.create pixbuf source 180 in
 
     (* Annotations, predictions and activations. *)
@@ -93,7 +93,7 @@ class image path edge =
 
 object (self)
 
-    val draw = new draw small_tiles paint annotations predictions
+    val draw = new draw small_tiles brush annotations predictions
     val mutable exit_funcs = []
 
     initializer
@@ -111,7 +111,7 @@ object (self)
     method at_exit f = exit_funcs <- f :: exit_funcs
 
     method file = file
-    method paint = paint
+    method brush = brush
     method cursor = cursor
     method source = source
     method pointer = pointer
@@ -137,10 +137,10 @@ object (self)
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
         let sync = false in
         draw#tile ~sync ~r ~c ();
-        if cursor#at ~r ~c then paint#cursor ~sync ~r ~c ()
-        else if pointer#at ~r ~c then paint#pointer ~sync ~r ~c ()
+        if cursor#at ~r ~c then brush#cursor ~sync ~r ~c ()
+        else if pointer#at ~r ~c then brush#pointer ~sync ~r ~c ()
         else draw#overlay ~sync ~r ~c ();
-        if sync then paint#sync ()
+        if sync then brush#sync ()
 
     method private may_overlay_cam ~i ~j ~r ~c =
         if i = 1 && j = 1 && predictions#active && activations#active then (
@@ -176,17 +176,17 @@ object (self)
         in List.iter (fun (c, n) -> CGUI.Layers.set_label c n) source
 
     method mosaic ?(sync = false) () =
-        paint#background ~sync:false ();
+        brush#background ~sync:false ();
         small_tiles#iter (fun ~r ~c pixbuf ->
-            paint#pixbuf ~sync:false ~r ~c pixbuf;
+            brush#pixbuf ~sync:false ~r ~c pixbuf;
             self#draw_annotated_tile ~sync:false ~r ~c ()
         );
-        if sync then paint#sync ()
+        if sync then brush#sync ()
 
     method show () =
         self#mosaic ();
         let r, c = cursor#get in
-        paint#cursor ~sync:true ~r ~c ();
+        brush#cursor ~sync:true ~r ~c ();
         self#magnified_view ();
         self#update_counters ()
 
