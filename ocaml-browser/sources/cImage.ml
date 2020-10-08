@@ -11,57 +11,6 @@ end
 
 
 
-class draw 
-  (small_tiles : ImgTileMatrix.tile_matrix)
-  (brush : ImgBrush.brush)
-  (annotations : ImgAnnotations.annotations)
-  (predictions : ImgPredictions.predictions) 
-
-= object (self)
-
-    method tile ?(sync = true) ~r ~c () =
-        match small_tiles#get ~r ~c with
-        | None -> CLog.error ~code:Err.out_of_bounds "CImage.image#draw#tile: \
-            Index out of bounds (r = %d, c = %d)" r c
-        | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
-
-    method cursor ?(sync = true) ~r ~c () =
-        self#tile ~sync:false ~r ~c ();
-        brush#cursor ~sync ~r ~c ()
-
-    method pointer ?(sync = true) ~r ~c () =
-        self#tile ~sync:false ~r ~c ();
-        brush#pointer ~sync ~r ~c ()    
-
-    method annotation ?sync ~r ~c mask =
-        let level = annotations#current_level in
-        match annotations#current_layer with
-        | '*' -> brush#annotation ?sync ~r ~c level '*'
-        | chr -> match mask#active (`CHAR chr) with
-            | true  -> brush#annotation ?sync ~r ~c level chr
-            | false -> () (* no annotation in this layer. *)
-
-    method prediction ?sync ~r ~c () =
-        if predictions#active then
-            match predictions#max_layer ~r ~c with
-            | None -> () (* is that possible? *)
-            | Some chr -> let level = annotations#current_level in
-                match annotations#current_layer with
-                | '*' -> brush#annotation ?sync ~r ~c level chr
-                | cur when chr = cur -> brush#annotation ?sync ~r ~c level chr
-                | _ -> () (* Not to be displayed. *)
-
-    method overlay ?(sync = true) ~r ~c () =
-        let level = annotations#current_level in
-        let mask = annotations#get ~level ~r ~c () in
-        (* Gives priority to annotations over predictions. *)
-        if mask#is_empty () then self#prediction ~sync ~r ~c ()
-        else self#annotation ~sync ~r ~c mask
-
-end
-
-
-
 class image path edge = 
 
     (* File settings. *)
@@ -93,7 +42,12 @@ class image path edge =
 
 object (self)
 
-    val draw = new draw small_tiles brush annotations predictions
+    val draw = ImgDraw.create 
+        ~tiles:small_tiles
+        ~brush
+        ~annotations
+        ~predictions ()
+
     val mutable exit_funcs = []
 
     initializer
