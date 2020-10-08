@@ -2,7 +2,25 @@
 
 (** Source image settings. *)
 
+class type source = object
+    method width : int
+    (** Image width, in pixels. *)
 
-val create : GdkPixbuf.pixbuf -> int -> ImgTypes.source
+    method height : int
+    (** Image height, in pixels. *) 
+ 
+    method edge : int
+    (** Tile size (in pixels) used to segment the source image. *)
+
+    method rows : int
+    (** Row count. *)
+
+    method columns : int
+    (** Column count. *)
+
+end
+
+
+val create : GdkPixbuf.pixbuf -> int -> source
 (** Builder. *)
 

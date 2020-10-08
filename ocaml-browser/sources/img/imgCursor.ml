@@ -2,8 +2,8 @@
 
 
 class cursor 
-  (img_source : ImgTypes.source) 
-  (img_brush : ImgTypes.brush)
+  (img_source : ImgSource.source) 
+  (img_brush : ImgBrush.brush)
 
 = object (self)
 

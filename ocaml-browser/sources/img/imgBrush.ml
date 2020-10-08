@@ -52,7 +52,7 @@ end
 
 
 
-class brush (source : ImgTypes.source) =
+class brush (source : ImgSource.source) =
 
     let ui_width = CGUI.Drawing.width ()
     and ui_height = CGUI.Drawing.height () in
@@ -119,4 +119,4 @@ end
 
 
 
-let create x = new brush x 
+let create source = new brush source 
