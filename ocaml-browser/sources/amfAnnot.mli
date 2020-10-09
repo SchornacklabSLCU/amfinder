@@ -12,6 +12,8 @@ class type annot = object
     method remove : char -> unit
 
     method mem : char -> bool
+
+    method off : char -> bool
     
     method has_annot : bool
     

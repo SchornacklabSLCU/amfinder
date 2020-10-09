@@ -23,8 +23,9 @@ object (self)
     method level = level
 
     method get = CSet.to_seq annot |> String.of_seq
-
+    
     method mem chr = CSet.mem chr annot
+    method off chr = CSet.mem chr (CSet.diff valid annot)
 
     method is_empty = CSet.is_empty annot
     method has_annot = not (self#is_empty)
