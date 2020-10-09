@@ -10,7 +10,7 @@ class draw
 
     method tile ?(sync = true) ~r ~c () =
         match tiles#get ~r ~c with
-        | None -> CLog.error ~code:Err.out_of_bounds "ImgDraw.draw#tile: \
+        | None -> AmfLog.error ~code:Err.out_of_bounds "ImgDraw.draw#tile: \
             Index out of bounds (r = %d, c = %d)" r c
         | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
 

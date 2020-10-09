@@ -7,7 +7,7 @@ type hold = string
 
 module type S = sig
   val diff : string -> string
-  val get : CLevel.t -> char -> hold * lock
+  val get : AmfLevel.t -> char -> hold * lock
 end
 
 let generator ~col ~arb ~all str =

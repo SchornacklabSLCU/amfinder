@@ -24,7 +24,7 @@ module Aux = struct
     let to_string level table =
         let buf = Buffer.create 100 in
         (* TODO: improve this! *)
-        let header = CLevel.to_header level
+        let header = AmfLevel.to_header level
             |> List.map (String.make 1)
             |> String.concat "\t" in
         bprintf buf "row\tcol\t%s\n" header;
@@ -68,7 +68,7 @@ class predictions input = object (self)
             Option.map (fun preds ->
                 fst @@ List.fold_left2 (fun ((_, x) as z) y chr ->
                     if y > x then (chr, y) else z
-                ) ('0', 0.0) preds (CLevel.to_header level)
+                ) ('0', 0.0) preds (AmfLevel.to_header level)
             ) (Matrix.get_opt table ~r ~c)
 
     method iter f =
@@ -79,7 +79,7 @@ class predictions input = object (self)
     method iter_layer chr f =
         match self#level with
         | None -> ()
-        | Some level -> let header = CLevel.to_header level in
+        | Some level -> let header = AmfLevel.to_header level in
             self#iter (fun ~r ~c t ->
                 let elt, dat = 
                     List.fold_left2 (fun ((_, x) as o) chr y ->
@@ -90,7 +90,7 @@ class predictions input = object (self)
     method statistics =
         match self#level with
         | None -> []
-        | Some level -> let header = CLevel.to_header level in
+        | Some level -> let header = AmfLevel.to_header level in
             let counters = List.map (fun c -> c, ref 0) header in
             self#iter (fun ~r ~c t ->
                 let chr, _ = 
@@ -121,7 +121,7 @@ let create ?zip source =
     | Some ich -> let entries = Zip.entries ich in
         let assoc =
             List.map (fun ({Zip.filename; comment; _} as entry) ->
-                let level = CLevel.of_string comment
+                let level = AmfLevel.of_string comment
                 and matrix = Aux.of_string (Zip.read_entry ich entry)
                 and id = Filename.(basename (chop_extension filename)) in
                 id, (level, matrix)

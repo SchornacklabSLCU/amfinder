@@ -7,11 +7,11 @@ module type PARAMS = sig
   
   val remove : GObj.widget -> unit
   
-  val current : unit -> CLevel.t
+  val current : unit -> AmfLevel.t
   
-  val set_current : CLevel.t -> unit
+  val set_current : AmfLevel.t -> unit
   
-  val radios : (CLevel.t * GButton.radio_button) list
+  val radios : (AmfLevel.t * GButton.radio_button) list
 end
 
 
@@ -19,7 +19,7 @@ module type S = sig
   val is_active : char -> bool option
   (** Indicates whether the given annotation is active at the current level. *)
 
-  val set_status : (CLevel.t * CMask.layered_mask) list -> unit
+  val set_status : (AmfLevel.t * CMask.layered_mask) list -> unit
   (** Updates all toggle buttons. *)
 
   val is_locked : unit -> bool

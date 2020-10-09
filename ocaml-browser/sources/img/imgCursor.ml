@@ -55,7 +55,7 @@ class cursor
             let old_r, old_c = cursor_pos in
             cursor_pos <- (r, c);
             List.iter (fun f -> f ?sync:(Some false) ~r:old_r ~c:old_c ()) erase;
-            CGUI.CursorPos.update_coordinates ~r ~c;
+            AmfUI.CursorPos.update_coordinates ~r ~c;
             List.iter (fun f -> f ?sync:(Some true) ~r ~c ()) paint;
             true
         ) else false

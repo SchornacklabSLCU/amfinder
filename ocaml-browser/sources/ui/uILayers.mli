@@ -3,8 +3,8 @@
 module type PARAMS = sig
   val packing : GObj.widget -> unit
   val remove : GObj.widget -> unit
-  val current : unit -> CLevel.t
-  val radios : (CLevel.t * GButton.radio_button) list
+  val current : unit -> AmfLevel.t
+  val radios : (AmfLevel.t * GButton.radio_button) list
 end
 
 module type S = sig

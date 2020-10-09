@@ -27,7 +27,7 @@ class type brush = object
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method annotation : ?sync:bool -> r:int -> c:int -> CLevel.t -> char -> unit
+    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
     method sync : unit -> unit
 end
 
@@ -59,19 +59,19 @@ end
 
 
 class type annotations = object
-    method current_level : CLevel.t
+    method current_level : AmfLevel.t
     method current_layer : char
-    method get : ?level:CLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
-    method iter : CLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
-    method iter_layer : CLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
-    method statistics : CLevel.t -> (char * int) list
-    method to_string : CLevel.t -> string
-    method has_annot : ?level:CLevel.t -> r:int -> c:int -> unit -> bool
+    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
+    method iter : AmfLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method statistics : AmfLevel.t -> (char * int) list
+    method to_string : AmfLevel.t -> string
+    method has_annot : ?level:AmfLevel.t -> r:int -> c:int -> unit -> bool
 end
 
 
 class type predictions = object
-    method ids : CLevel.t -> string list
+    method ids : AmfLevel.t -> string list
     method current : string option
     method set_current : string option -> unit
     method active : bool

@@ -36,7 +36,7 @@ class activations
         ) assoc_table;
         hash
 
-    method active = CGUI.Predictions.cams#get_active
+    method active = AmfUI.Predictions.cams#get_active
 
     method get id chr ~r ~c =
         try
@@ -47,7 +47,7 @@ class activations
             |> Aux.resize edge
             |> Option.some
         with exn -> 
-            CLog.warning "ImgTileMatrix.activations#get \
+            AmfLog.warning "ImgTileMatrix.activations#get \
             %S %C ~r=%d ~c=%d triggered exception %S" id chr r c 
             (Printexc.to_string exn);
             None
@@ -71,7 +71,7 @@ let create ?zip source =
                     "castanet" ".jpg" in
                 Zip.copy_entry_to_channel ich entry och;
                 close_out och;
-                CLog.info "Loading activation map %S" tmp;
+                AmfLog.info "Loading activation map %S" tmp;
                 let pixbuf = GdkPixbuf.from_file tmp in
                 Sys.remove tmp;
                 id, (chr, pixbuf) 

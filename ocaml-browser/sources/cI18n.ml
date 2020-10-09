@@ -25,6 +25,6 @@ let current = ref "english"
 let set ~lang:s =
   let id = String.lowercase_ascii s in
   if List.mem_assoc id languages then current := id
-  else CLog.warning "Unknown language %s" s
+  else AmfLog.warning "Unknown language %s" s
 
 let get elt = List.assoc elt (List.assoc !current languages)

@@ -137,7 +137,7 @@ let time f x =
   let t_1 = Unix.gettimeofday () in
   let res = f x in
   let t_2 = Unix.gettimeofday () in
-  CLog.info "Elapsed time: %.1f s" (t_2 -. t_1);
+  AmfLog.info "Elapsed time: %.1f s" (t_2 -. t_1);
   res
 *)
 
@@ -160,7 +160,7 @@ module Memoize = struct
       | `R x -> 
         if mem.flag >= 0 && !flag > mem.flag then (
           (* The main flag has changed: recompute, store and return result. *)
-          Gaux.may (CLog.info "Recomputing data for '%s'") label;
+          Gaux.may (AmfLog.info "Recomputing data for '%s'") label;
           let x = exec f mem in 
           mem.flag <- mem.flag + 1;
           x

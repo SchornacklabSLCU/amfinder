@@ -12,7 +12,7 @@ end
 
 module type S = sig
   val is_active : char -> bool option
-  val set_status : (CLevel.t * CMask.layered_mask) list -> unit
+  val set_status : (AmfLevel.t * CMask.layered_mask) list -> unit
   val is_locked : unit -> bool
 end
 
@@ -20,9 +20,9 @@ end
 module type PARAMS = sig
   val packing : GObj.widget -> unit
   val remove : GObj.widget -> unit
-  val current : unit -> CLevel.t
-  val set_current : CLevel.t -> unit
-  val radios : (CLevel.t * GButton.radio_button) list
+  val current : unit -> AmfLevel.t
+  val set_current : AmfLevel.t -> unit
+  val radios : (AmfLevel.t * GButton.radio_button) list
 end
 
 
@@ -42,7 +42,7 @@ module Make (P : PARAMS) : S = struct
     let packing = table#attach ~left:i ~top:0 in
     let t_toggle = GButton.toggle_button ~relief:`NONE ~packing () in
     let t_image = GMisc.image ~width:48 ~packing:t_toggle#set_image () in
-    t_image#set_pixbuf (CIcon.get chr `GREY `LARGE);
+    t_image#set_pixbuf (AmfIcon.get chr `GREY `LARGE);
     chr, {t_toggle; t_image}
 
   let make_toolbox typ =
@@ -58,7 +58,7 @@ module Make (P : PARAMS) : S = struct
   let toolboxes =
     List.map (fun typ ->
       typ, make_toolbox typ
-    ) CLevel.all_flags
+    ) AmfLevel.all_flags
 
   let iter f =
     List.iter (fun (typ, mdl) ->
@@ -121,7 +121,7 @@ module Make (P : PARAMS) : S = struct
     let module T = (val toolbox : TOGGLE) in  
     Array.iter (fun (chr, ext) ->
       ext.t_toggle#set_active false;
-      ext.t_image#set_pixbuf (CIcon.get chr `GREY `LARGE);
+      ext.t_image#set_pixbuf (AmfIcon.get chr `GREY `LARGE);
     ) T.toggles
 
   let set_status t =
@@ -141,7 +141,7 @@ module Make (P : PARAMS) : S = struct
           let style = match lvl = P.current () with
             | true -> style
             | false -> Option.value alt_style ~default:style in
-          ext.t_image#set_pixbuf (CIcon.get chr style `LARGE);
+          ext.t_image#set_pixbuf (AmfIcon.get chr style `LARGE);
         ) layer in
       apply_settings ~layer:user ~status:true ~style:`RGBA ();
       apply_settings ~layer:hold ~status:true ~style:`RGBA_LOCKED ();

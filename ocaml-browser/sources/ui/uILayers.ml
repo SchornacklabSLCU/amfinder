@@ -19,8 +19,8 @@ end
 module type PARAMS = sig
   val packing : GObj.widget -> unit
   val remove : GObj.widget -> unit
-  val current : unit -> CLevel.t
-  val radios : (CLevel.t * GButton.radio_button) list
+  val current : unit -> AmfLevel.t
+  val radios : (AmfLevel.t * GButton.radio_button) list
 end
 
 
@@ -46,11 +46,11 @@ module Toolbox = struct
             ~markup:"<small><tt>000000</tt></small>" 
             ~packing:hbox#add () in
         let style = if chr = '*' then `RGBA else `GREY in
-        r_image#set_pixbuf (CIcon.get chr style `SMALL);
+        r_image#set_pixbuf (AmfIcon.get chr style `SMALL);
         chr, {r_radio; r_label; r_image}
 
     let make level =
-        let code_list = '*' :: CLevel.to_header level in
+        let code_list = '*' :: AmfLevel.to_header level in
         let module T = struct
             let toolbar = GButton.toolbar
                 ~orientation:`VERTICAL
@@ -73,7 +73,7 @@ module Make (P : PARAMS) : S = struct
     
     let toolboxes = 
         let make level = level, Toolbox.make level in
-        List.map make CLevel.all_flags
+        List.map make AmfLevel.all_flags
 
   let current_widget = ref None
 
@@ -135,6 +135,6 @@ module Make (P : PARAMS) : S = struct
         ) P.radios;
         let callback chr radio _ icon =
             let style = if radio#get_active then `RGBA else `GREY in
-            icon#set_pixbuf (CIcon.get chr style `SMALL)
+            icon#set_pixbuf (AmfIcon.get chr style `SMALL)
         in set_callback callback
 end

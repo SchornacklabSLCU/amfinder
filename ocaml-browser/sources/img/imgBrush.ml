@@ -40,10 +40,10 @@ module Surface = struct
     let layers =
         List.map (fun level ->
             let surfaces = List.map2 (fun x y -> x, memo y)
-                (CLevel.to_header level)
-                (CLevel.colors level)
+                (AmfLevel.to_header level)
+                (AmfLevel.colors level)
             in level, surfaces
-        ) CLevel.all_flags
+        ) AmfLevel.all_flags
 
     let layer level = function
         | '*' -> joker
@@ -54,8 +54,8 @@ end
 
 class brush (source : ImgTypes.source) =
 
-    let ui_width = CGUI.Drawing.width ()
-    and ui_height = CGUI.Drawing.height () in
+    let ui_width = AmfUI.Drawing.width ()
+    and ui_height = AmfUI.Drawing.height () in
 
     let edge = min (ui_width / source#columns) (ui_height / source#rows) in
 
@@ -76,14 +76,14 @@ object (self)
     method backcolor = backcolor
     method set_backcolor x = backcolor <- x
 
-    method sync () = CGUI.Drawing.synchronize ()
+    method sync () = AmfUI.Drawing.synchronize ()
 
     method background ?(sync = true) () =
-        let t = CGUI.Drawing.cairo () in
+        let t = AmfUI.Drawing.cairo () in
         let r, g, b, a = Aux.parse_html_color backcolor in
         Cairo.set_source_rgba t r g b a;
-        let w = float @@ CGUI.Drawing.width () 
-        and h = float @@ CGUI.Drawing.height () in
+        let w = float @@ AmfUI.Drawing.width () 
+        and h = float @@ AmfUI.Drawing.height () in
         Cairo.rectangle t 0.0 0.0 ~w ~h;
         Cairo.fill t;
         Cairo.stroke t;
@@ -92,14 +92,14 @@ object (self)
     method pixbuf ?(sync = false) ~r ~c pixbuf =
         assert (GdkPixbuf.get_width pixbuf = edge);
         assert (GdkPixbuf.get_height pixbuf = edge);
-        let pixmap = CGUI.Drawing.pixmap () in
+        let pixmap = AmfUI.Drawing.pixmap () in
         pixmap#put_pixbuf
             ~x:(self#x ~c)
             ~y:(self#y ~r) pixbuf;
         if sync then self#sync ()
 
     method surface ?(sync = false) ~r ~c surface =
-        let t = CGUI.Drawing.cairo ()
+        let t = AmfUI.Drawing.cairo ()
         and x = float (self#x ~c)
         and y = float (self#y ~r) in
         Cairo.set_source_surface t surface x y;

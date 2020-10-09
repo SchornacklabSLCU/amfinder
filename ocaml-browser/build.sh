@@ -1,6 +1,6 @@
 #! /bin/bash
 
-OUT="castanet_editor.exe"
+OUT="amf_explorer.exe"
 
 rm -f "$OUT" 2> /dev/null && \
 cd "sources" && \

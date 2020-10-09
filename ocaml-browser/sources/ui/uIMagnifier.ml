@@ -46,7 +46,7 @@ module Make (P : PARAMS) : S = struct
       assert (r >= 0 && r < P.rows);
       assert (c >= 0 && c < P.columns);
       tiles.(r).(c)#set_pixbuf buf
-    with Assert_failure _ -> CLog.error "UI_Magnifier.Make.set_pixbuf was \
+    with Assert_failure _ -> AmfLog.error "UI_Magnifier.Make.set_pixbuf was \
       given incorrect values (r = %d, c = %d)" r c
       
     let screenshot () =

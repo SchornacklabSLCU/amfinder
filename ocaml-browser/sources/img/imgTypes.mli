@@ -134,7 +134,7 @@ class type brush = object
     (** Draws the cursor at mouse pointer.
       * @param sync defaults to [false]. *)
 
-    method annotation : ?sync:bool -> r:int -> c:int -> CLevel.t -> char -> unit
+    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
     (** Draws a tile annotation.
       * @param sync defaults to [false]. *)
 
@@ -163,28 +163,28 @@ end
 
 class type annotations = object
 
-    method current_level : CLevel.t
+    method current_level : AmfLevel.t
     (** Returns the current level. *)
     
     method current_layer : char
     (** Returns the current layer (uses ['*'] for the main layer). *)
 
-    method get : ?level:CLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
+    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
     (** Returns the item at the given coordinates and annotation level. *)
 
-    method iter : CLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method iter : AmfLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method iter_layer : CLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method statistics : CLevel.t -> (char * int) list
+    method statistics : AmfLevel.t -> (char * int) list
     (** Returns the current statistics. *)
 
-    method to_string : CLevel.t -> string
+    method to_string : AmfLevel.t -> string
     (** Return the string representation of the table at the given level. *)
     
-    method has_annot : ?level:CLevel.t -> r:int -> c:int -> unit -> bool
+    method has_annot : ?level:AmfLevel.t -> r:int -> c:int -> unit -> bool
     (** Indicates whether the given tile has annotation. By default, checks the
       * current annotation layer. *)
     
@@ -196,7 +196,7 @@ end
 
 class type predictions = object
 
-    method ids : CLevel.t -> string list
+    method ids : AmfLevel.t -> string list
     (** Returns the list of predictions at the given annotation level. *)
 
     method current : string option

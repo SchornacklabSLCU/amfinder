@@ -22,19 +22,19 @@ end
 
 
 
-class annotations (assoc : (CLevel.t * CMask.layered_mask Matrix.t) list) = 
+class annotations (assoc : (AmfLevel.t * CMask.layered_mask Matrix.t) list) = 
 
 object (self)
 
-    method current_level = CGUI.Levels.current ()
-    method current_layer = CGUI.Layers.current ()
+    method current_level = AmfUI.Levels.current ()
+    method current_layer = AmfUI.Layers.current ()
 
     method private get_matrix_by_level x = List.assoc x assoc
 
     method get ?level ~r ~c () =
         let level = Option.value level ~default:self#current_level in
         match Matrix.get_opt (self#get_matrix_by_level level) ~r ~c with
-        | None -> CLog.error ~code:Err.out_of_bounds 
+        | None -> AmfLog.error ~code:Err.out_of_bounds 
             "ImgAnnotations.annotations#get: Index \
              out of bounds (r = %d, c = %d)" r c
         | Some mask -> mask
@@ -53,7 +53,7 @@ object (self)
         ) (self#get_matrix_by_level x)
 
     method statistics level =
-        let counters = List.map (fun c -> c, ref 0) (CLevel.to_header level) in
+        let counters = List.map (fun c -> c, ref 0) (AmfLevel.to_header level) in
         self#iter level (fun ~r ~c mask ->
             String.iter (fun chr -> incr (List.assoc chr counters)) mask#all
         );
@@ -74,7 +74,7 @@ let empty_tables source =
     let r = source#rows and c = source#columns in
     List.map (fun level ->
         level, Matrix.init ~r ~c (fun ~r:_ ~c:_ -> CMask.make ())
-    ) CLevel.all_flags
+    ) AmfLevel.all_flags
 
 
 let create ?zip source =
@@ -87,7 +87,7 @@ let create ?zip source =
             let tables = 
                 List.map (fun ({Zip.filename; _} as entry) ->
                     let table = Aux.of_string (Zip.read_entry ich entry)
-                    and level = CLevel.of_string (Filename.extension filename) in
+                    and level = AmfLevel.of_string (Filename.extension filename) in
                     level, table
                 ) entries
             in new annotations tables

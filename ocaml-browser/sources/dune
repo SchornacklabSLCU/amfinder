@@ -1,5 +1,5 @@
 (include_subdirs unqualified)
 (executable
-  (name castanet_editor)
+  (name amf_explorer)
   (libraries lablgtk2 cairo2 cairo2-gtk camlzip magic-mime)
 )
