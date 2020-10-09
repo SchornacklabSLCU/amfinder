@@ -2,6 +2,8 @@
 
 (** Lightweight extension of the OCaml standard library. *)
 
+module CSet : Set.S with type elt = char
+
 (** String sets. *)
 module StringSet : sig
     val union : string -> string -> string

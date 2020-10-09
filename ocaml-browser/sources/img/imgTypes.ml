@@ -61,9 +61,9 @@ end
 class type annotations = object
     method current_level : AmfLevel.t
     method current_layer : char
-    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
-    method iter : AmfLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
-    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> AmfAnnot.annot
+    method iter : AmfLevel.t -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     method statistics : AmfLevel.t -> (char * int) list
     method to_string : AmfLevel.t -> string
     method has_annot : ?level:AmfLevel.t -> r:int -> c:int -> unit -> bool

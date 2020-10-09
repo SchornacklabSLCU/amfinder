@@ -169,13 +169,13 @@ class type annotations = object
     method current_layer : char
     (** Returns the current layer (uses ['*'] for the main layer). *)
 
-    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> CMask.layered_mask
+    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> AmfAnnot.annot
     (** Returns the item at the given coordinates and annotation level. *)
 
-    method iter : AmfLevel.t -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method iter : AmfLevel.t -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> CMask.layered_mask -> unit) -> unit
+    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
     method statistics : AmfLevel.t -> (char * int) list

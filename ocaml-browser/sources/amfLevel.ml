@@ -35,6 +35,15 @@ let to_header = function
     | `ALL_FEATURES -> ['A'; 'V'; 'E'; 'I'; 'H'; 'R'; 'X']
 
 
+let chars lvl = CSet.of_list (to_header lvl)
+
+
+let all_chars_list =
+    chars `COLONIZATION
+    |> CSet.union (chars `ARB_VESICLES)
+    |> CSet.union (chars `ALL_FEATURES)
+    |> CSet.elements
+
 
 let of_header t =
     match List.map Char.uppercase_ascii t with
@@ -68,3 +77,61 @@ let colors = function
 (* let strings = ["Colonization"; "Arbuscules/Vesicles"; "All features"] *)
 
 
+
+module type ANNOTATION_RULES = sig
+    val add_add : char -> Morelib.CSet.t
+    val add_rem : char -> Morelib.CSet.t
+    val rem_add : char -> Morelib.CSet.t
+    val rem_rem : char -> Morelib.CSet.t
+end
+
+let cset_of_string str = CSet.of_seq (String.to_seq str)
+
+module Colonization = struct
+    let add_add _ = Morelib.CSet.empty
+    let add_rem = function
+        | 'Y' -> cset_of_string "NX"
+        | 'N' -> cset_of_string "YX"
+        | 'X' -> cset_of_string "YN"
+        | chr -> AmfLog.error ~code:Err.invalid_argument 
+            "AmfLevel.Colonization.add_rem: Invalid argument %C" chr
+    let rem_add _ = Morelib.CSet.empty
+    let rem_rem _ = Morelib.CSet.empty
+end
+
+module Arb_vesicles = struct
+    let add_add _ = Morelib.CSet.empty
+    let add_rem = function
+        | 'A' | 'V' -> cset_of_string "NX"
+        | 'N' -> cset_of_string "AVX"
+        | 'X' -> cset_of_string "AVN"
+        | chr -> AmfLog.error ~code:Err.invalid_argument 
+            "AmfLevel.Arb_vesicles.add_rem: Invalid argument %C" chr
+    let rem_add _ = Morelib.CSet.empty
+    let rem_rem _ = Morelib.CSet.empty
+end
+
+module All_features = struct
+    let add_add = function
+        | 'A' | 'V' | 'I' | 'H' -> Morelib.CSet.singleton 'R'
+        | 'E' | 'R' | 'X' -> Morelib.CSet.empty
+        | chr -> AmfLog.error ~code:Err.invalid_argument 
+            "AmfLevel.All_features.add_add: Invalid argument %C" chr
+    let add_rem = function
+        | 'A' | 'V' | 'I' | 'H' | 'E' | 'R' -> Morelib.CSet.singleton 'X'
+        | 'X' -> cset_of_string "AVEIHR"
+        | chr -> AmfLog.error ~code:Err.invalid_argument 
+            "AmfLevel.Arb_vesicles.add_rem: Invalid argument %C" chr
+    let rem_add _ = Morelib.CSet.empty
+    let rem_rem = function
+        | 'R' -> cset_of_string "AVIH"
+        | 'A' | 'V' | 'I' | 'H' | 'E' | 'X' -> Morelib.CSet.empty
+        | chr -> AmfLog.error ~code:Err.invalid_argument 
+            "AmfLevel.Arb_vesicles.add_rem: Invalid argument %C" chr
+end
+
+
+let rules = function
+    | `COLONIZATION -> (module Colonization : ANNOTATION_RULES)
+    | `ARB_VESICLES -> (module Arb_vesicles : ANNOTATION_RULES)
+    | `ALL_FEATURES -> (module All_features : ANNOTATION_RULES)

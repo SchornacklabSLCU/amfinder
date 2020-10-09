@@ -3,4 +3,4 @@
 
 val out_of_bounds : int
 
-
+val invalid_argument : int

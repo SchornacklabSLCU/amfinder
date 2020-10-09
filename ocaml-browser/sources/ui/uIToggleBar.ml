@@ -12,7 +12,7 @@ end
 
 module type S = sig
   val is_active : char -> bool option
-  val set_status : (AmfLevel.t * CMask.layered_mask) list -> unit
+  val set_status : (AmfLevel.t * AmfAnnot.annot) list -> unit
   val is_locked : unit -> bool
 end
 
@@ -46,7 +46,7 @@ module Make (P : PARAMS) : S = struct
     chr, {t_toggle; t_image}
 
   let make_toolbox typ =
-    let code_list = CAnnot.char_list typ in
+    let code_list = AmfLevel.to_header typ in
     let module T = struct
       let table = GPack.table
         ~rows:1 ~columns:(List.length code_list)
@@ -126,27 +126,6 @@ module Make (P : PARAMS) : S = struct
 
   let set_status t =
     toggle_lock := true;
-    List.iter (fun (lvl, mask) ->
-      revert_all lvl;
-      let user = mask#get `USER
-      and hold = mask#get `HOLD
-      and lock = mask#get `LOCK in
-      let toolbox = List.assoc lvl toolboxes in
-      let module T = (val toolbox : TOGGLE) in
-      let assoc_table = Array.to_list T.toggles in
-      let apply_settings ~layer ~status ~style ?alt_style () =
-        String.iter (fun chr ->
-          let ext = List.assoc chr assoc_table in
-          ext.t_toggle#set_active status;
-          let style = match lvl = P.current () with
-            | true -> style
-            | false -> Option.value alt_style ~default:style in
-          ext.t_image#set_pixbuf (AmfIcon.get chr style `LARGE);
-        ) layer in
-      apply_settings ~layer:user ~status:true ~style:`RGBA ();
-      apply_settings ~layer:hold ~status:true ~style:`RGBA_LOCKED ();
-      apply_settings ~layer:lock ~status:false ~style:`GREY ~alt_style:`GREY_LOCKED ()
-    ) t;
     toggle_lock := false
 
   let _ = (* initialization. *)

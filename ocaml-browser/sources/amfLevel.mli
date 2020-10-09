@@ -25,9 +25,16 @@ val to_header : t -> char list
 val of_header : char list -> t
 (** [of_header t] returns the annotation level associated with header [t]. *)
 
+val chars : t -> Morelib.CSet.t
+(** Returns the string set containing all available chars at a given level. *)
+
 
 val all_flags : t list
 (** List of available annotation levels, sorted from lowest to highest. *)
+
+
+val all_chars_list : char list
+(** All available annotations. *)
 
 
 val lowest : t
@@ -46,4 +53,25 @@ val colors : t -> string list
 (** [colors t] returns the list of RGB colors to use to display annotations at
   * level [t]. *)
 
+
+(** Annotation rules. *)
+module type ANNOTATION_RULES = sig
+
+    val add_add : char -> Morelib.CSet.t
+    (** Returns the annotations to add when a given annotation is added. *)
+
+    val add_rem : char -> Morelib.CSet.t
+    (** Returns the annotations to remove when a given annotation is added. *)
+
+    val rem_add : char -> Morelib.CSet.t
+    (** Returns the annotations to add when a given annotation is removed. *)
+
+    val rem_rem : char -> Morelib.CSet.t
+    (** Returns the annotations to remove when a given annotation is removed. *)
+
+end
+
+
+val rules : t -> (module ANNOTATION_RULES)
+(** Returns the rules associated with a given annotation level. *)
 

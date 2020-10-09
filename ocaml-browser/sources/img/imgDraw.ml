@@ -26,7 +26,7 @@ class draw
         let level = annot#current_level in
         match annot#current_layer with
         | '*' -> brush#annotation ?sync ~r ~c level '*'
-        | chr -> match mask#active (`CHAR chr) with
+        | chr -> match mask#mem chr with
             | true  -> brush#annotation ?sync ~r ~c level chr
             | false -> () (* no annotation in this layer. *)
 
@@ -44,7 +44,7 @@ class draw
         let level = annot#current_level in
         let mask = annot#get ~level ~r ~c () in
         (* Gives priority to annot over preds. *)
-        if mask#is_empty () then self#prediction ~sync ~r ~c ()
+        if mask#is_empty then self#prediction ~sync ~r ~c ()
         else self#annotation ~sync ~r ~c mask
 
 end

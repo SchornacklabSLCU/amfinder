@@ -1,6 +1,7 @@
 (* CastANet - morelib.ml *)
 
-(* Operations on string sets. *)
+module CSet = Set.Make(Char)
+
 module StringSet = struct
 
     open Printf

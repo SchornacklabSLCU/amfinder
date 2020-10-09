@@ -19,7 +19,7 @@ module type S = sig
   val is_active : char -> bool option
   (** Indicates whether the given annotation is active at the current level. *)
 
-  val set_status : (AmfLevel.t * CMask.layered_mask) list -> unit
+  val set_status : (AmfLevel.t * AmfAnnot.annot) list -> unit
   (** Updates all toggle buttons. *)
 
   val is_locked : unit -> bool
