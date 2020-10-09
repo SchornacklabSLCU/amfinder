@@ -2,7 +2,7 @@
 
 cd ../../ocaml-browser/sources
 
-ocamldep -one-line *.ml *.mli \
+ocamldep -one-line -I img -I ui *.ml *.mli \
   | grep -v "cmx" \
   | ../../doc/graph/mkgraph.py \
   | tee ../../doc/graph/dep_graph.dot \
