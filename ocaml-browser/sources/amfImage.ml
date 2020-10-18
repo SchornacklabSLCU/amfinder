@@ -69,6 +69,7 @@ object (self)
 
     method at_exit f = exit_funcs <- f :: exit_funcs
 
+    method ui = ui
     method file = file
     method brush = brush
     method cursor = cursor
@@ -150,8 +151,8 @@ object (self)
         self#update_counters ()
 
     method save () =
-        let zip = file#archive in
-        List.iter (fun f -> f (ignore zip)) exit_funcs
+        let _ = file#archive in
+        List.iter (fun f -> f ()) exit_funcs
         (* CTable.save ~zip annotations predictions *)
 
 end
@@ -161,4 +162,3 @@ end
 let create ~edge path =
     if Sys.file_exists path then new image path edge
     else invalid_arg "AmfImage.load: File not found"
-

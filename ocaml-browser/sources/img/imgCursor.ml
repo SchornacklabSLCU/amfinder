@@ -51,14 +51,14 @@ class cursor
     method private update_cursor_pos ~r ~c =
         if r >= 0 && r < img_source#rows
         && c >= 0 && c < img_source#columns
-        && (r, c) <> cursor_pos then (
+        && (r, c) <> cursor_pos then begin
             let old_r, old_c = cursor_pos in
             cursor_pos <- (r, c);
             List.iter (fun f -> f ?sync:(Some false) ~r:old_r ~c:old_c ()) erase;
             AmfUI.CursorPos.update_coordinates ~r ~c;
             List.iter (fun f -> f ?sync:(Some true) ~r ~c ()) paint;
-            true
-        ) else false
+        end;
+        false
 
     method key_press ev =
         let modi = GdkEvent.Key.state ev in

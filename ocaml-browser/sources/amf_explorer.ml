@@ -63,18 +63,14 @@ let load_image () =
     AmfUI.window#show ();
     (* Loads the image, creates tiles and populates the main window. *)
     let image = AmfImage.create ~edge:!Par.edge image_path in
-    (* Connect GtkWindow events. *)
-    let connect = AmfUI.window#event#connect in
-    let id = connect#key_press ~callback:image#cursor#key_press in
-    image#at_exit (fun () -> GtkSignal.disconnect AmfUI.window#as_widget id);
-    (* Connect GtkDrawingArea events. *)
-    let connect = AmfUI.Drawing.area#event#connect in
-    let id = connect#button_press ~callback:image#cursor#mouse_click in
-    image#at_exit (fun () -> GtkSignal.disconnect AmfUI.Drawing.area#as_widget id);
-    let id = connect#motion_notify ~callback:image#pointer#track in
-    image#at_exit (fun () -> GtkSignal.disconnect AmfUI.Drawing.area#as_widget id);
-    let id = connect#leave_notify ~callback:image#pointer#leave in
-    image#at_exit (fun () -> GtkSignal.disconnect AmfUI.Drawing.area#as_widget id);
+    (* GtkWindow events. *)
+    AmfCallback.Window.cursor image;
+    AmfCallback.Window.annotate image;
+    (* GtkDrawingArea events. *)
+    AmfCallback.DrawingArea.cursor image;
+    AmfCallback.DrawingArea.annotate image;
+    (* GtkToggleButtons. *)
+    AmfCallback.ToggleBar.annotate image;
     (* Sets as main image. *)       
     Par.image := Some image;
     image#show ();

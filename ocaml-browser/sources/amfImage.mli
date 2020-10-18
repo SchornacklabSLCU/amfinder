@@ -4,6 +4,9 @@
 
 class type image = object
 
+    method ui : ImgTypes.ui
+    (** User interface. *)
+
     method file : ImgTypes.file
     (** File settings. *)
 

@@ -269,4 +269,16 @@ end
 
 class type ui = object
 
+    method update : unit -> unit
+    (** Update annotations at the current cursor position. *)
+
+    method toggle : GButton.toggle_button -> char -> GdkEvent.Button.t -> bool
+    (** Update annotations when a toggle button is toggled. *)
+
+    method key_press : GdkEvent.Key.t -> bool
+    (** Update annotations based on key press. *)
+
+    method mouse_click : GdkEvent.Button.t -> bool
+    (** Update annotations based on mouse click. *)
+
 end

@@ -1,4 +1,4 @@
-(* The Automated Mycorrhiza Finder version 2.0 - amfCallback.ml  *)
+(* amf - amfCallback.ml  *)
 
 module Magnifier = struct
 
@@ -29,5 +29,57 @@ module Predictions = struct
                 image#show_predictions ()
             ) !image_ref
         in ignore (AmfUI.Predictions.overlay#connect#clicked ~callback)
+
+end
+
+
+module Window = struct
+
+    let widget = AmfUI.window#as_widget
+
+    let cursor image =
+        let callback = image#cursor#key_press in
+        let id = AmfUI.window#event#connect#key_press ~callback in
+        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+
+    let annotate image =
+        let callback = image#ui#key_press in
+        let id = AmfUI.window#event#connect#key_press ~callback in
+        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+
+end
+
+
+module DrawingArea = struct
+
+    let widget = AmfUI.Drawing.area#as_widget
+
+    let cursor image =
+        let callback = image#cursor#mouse_click in
+        let id = AmfUI.Drawing.area#event#connect#button_press ~callback in
+        image#at_exit (fun () -> GtkSignal.disconnect widget id);
+        let callback = image#pointer#track in
+        let id = AmfUI.Drawing.area#event#connect#motion_notify ~callback in
+        image#at_exit (fun () -> GtkSignal.disconnect widget id);
+        let callback = image#pointer#leave in
+        let id = AmfUI.Drawing.area#event#connect#leave_notify ~callback in
+        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+
+    let annotate image =
+        let callback = image#ui#mouse_click in
+        let id = AmfUI.Drawing.area#event#connect#button_press ~callback in
+        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+
+end
+
+
+module ToggleBar = struct
+
+    let annotate image =
+        AmfUI.Toggles.iter_all (fun _ chr toggle _ ->
+            let callback = image#ui#toggle toggle chr in
+            let id = toggle#event#connect#button_press ~callback in
+            image#at_exit (fun () -> GtkSignal.disconnect toggle#as_widget id)
+        )
 
 end

@@ -71,7 +71,8 @@ module Matrix = struct
 
     let get t ~r ~c =
         match get_opt t ~r ~c with
-        | None -> invalid_arg "CExt.Matrix.get: Out of range"
+        | None -> AmfLog.error ~code:Err.out_of_bounds 
+            "Morelib.Matrix.get: Out of range (r=%d c=%d)" r c
         | Some x -> x
 
     let set t ~r ~c x = t.(r).(c) <- x

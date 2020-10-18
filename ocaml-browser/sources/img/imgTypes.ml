@@ -100,5 +100,8 @@ end
 
 
 class type ui = object
-
+    method update : unit -> unit
+    method key_press : GdkEvent.Key.t -> bool
+    method mouse_click : GdkEvent.Button.t -> bool
+    method toggle : GButton.toggle_button -> char -> GdkEvent.Button.t -> bool
 end

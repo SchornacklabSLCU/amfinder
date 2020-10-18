@@ -16,14 +16,14 @@ end
 
 
 module type S = sig
-  val is_active : char -> bool option
-  (** Indicates whether the given annotation is active at the current level. *)
+    val is_active : char -> bool option
+    (** Indicate whether the given annotation is active at the current level. *)
 
-  val set_status : (AmfLevel.t * AmfAnnot.annot) list -> unit
-  (** Updates all toggle buttons. *)
+    val iter_all : (AmfLevel.t -> char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
+    (** Iterate over all toggle buttons. *)
 
-  val is_locked : unit -> bool
-  (** Indicates whether a toggle is locked and callbacks should not apply. *)
+    val iter_current : (char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
+    (** Iterate over toggle buttons at the current level. *)
 end
 
 
