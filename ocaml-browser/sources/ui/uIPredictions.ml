@@ -17,8 +17,10 @@ module type S = sig
     val get_colors : unit -> string array
     val set_choices : string list -> unit
     val get_active : unit -> string option
-    val overlay : GButton.button
+    val overlay : GButton.toggle_tool_button
+    val palette : GButton.tool_button
     val cams : GButton.toggle_tool_button
+    val apply : GButton.tool_button
 end
 
 type palette = string array
@@ -108,6 +110,37 @@ module Aux = struct
         ignore (GMisc.label ~markup ~xalign:0.0 ~packing:box#add ());
         btn
 
+    let markup_button ~icon ~label ~packing () =
+        let btn = GButton.tool_button ~packing () in
+        btn#misc#set_sensitive false;
+        let box = GPack.hbox ~spacing:2 ~packing:btn#set_label_widget () in
+        ignore (GMisc.image
+            ~width:25 ~pixbuf:icon
+            ~packing:(box#pack ~expand:false) ());
+        let markup = Printf.sprintf "<small>%s</small>" label in
+        ignore (GMisc.label ~markup ~xalign:0.0 ~packing:box#add ());
+        btn
+
+    let small_text = Printf.sprintf "<small>%s</small>"
+
+    let markup_toggle_button ?inactive_label ~pixbuf ~label ~packing () =
+        let btn = GButton.toggle_tool_button ~packing () in
+        btn#misc#set_sensitive false;
+        let box = GPack.hbox
+            ~spacing:2
+            ~packing:btn#set_label_widget () in
+        let ico = GMisc.image
+            ~width:25
+            ~pixbuf
+            ~packing:(box#pack ~expand:false) ()
+        and lbl = GMisc.label
+            ~markup:(small_text label)
+            ~xalign:0.0
+            ~packing:box#add ()
+        in btn, lbl, ico
+
+
+
 end
 
 
@@ -154,44 +187,50 @@ module Make (P : PARAMS) : S = struct
         let item = GButton.tool_item ~packing () in
         GPack.hbox ~spacing:2 ~packing:item#add ()
 
-    let overlay =
-        let btn = GButton.button ~packing:container#add () in
-        btn#set_relief `NONE;
-        btn#misc#set_sensitive false;
-        GMisc.image ~stock:`OPEN ~packing:btn#set_image ();
-        let callback () = btn#misc#set_sensitive activate#active in
-        ignore (activate#connect#toggled ~callback);
+    let overlay = 
+        let btn, lbl, ico = Aux.markup_toggle_button
+            ~pixbuf:AmfIcon.Misc.show_preds
+            ~label:"Add" 
+            ~packing () in
+        btn#connect#toggled (fun () ->
+            if btn#get_active then ico#set_pixbuf AmfIcon.Misc.show_preds
+            else ico#set_pixbuf AmfIcon.Misc.hide_preds;
+            let text = Aux.small_text (if btn#get_active then "Hide" else "Show") in
+            lbl#set_label text
+        );
         btn
 
-    let remove =
-        let btn = GButton.button ~packing:container#add () in
-        btn#set_relief `NONE;        
-        btn#misc#set_sensitive false;        
-        GMisc.image ~stock:`CLOSE ~packing:btn#set_image ();        
-        btn
-
-    let palette, pal_icon =
+    let palette, palette_icon =
         let btn = GButton.tool_button ~packing () in
         btn#misc#set_sensitive false;
-        let box = GPack.hbox ~spacing:2 ~packing:btn#set_label_widget () in
-        let packing = box#pack ~expand:false in
-        let pal_icon = GMisc.image ~width:25 ~height:16 ~packing () in
+        let box = GPack.hbox
+            ~spacing:2
+            ~packing:btn#set_label_widget () in
+        let ico = GMisc.image 
+            ~width:25 
+            ~pixbuf:AmfIcon.Misc.palette
+            ~packing:(box#pack ~expand:false) () in
         ignore (GMisc.label
-            ~markup:"<small>Palette</small>"
-            ~xalign:0.0 ~yalign:0.5
+            ~markup:(Aux.small_text "Palette")
+            ~xalign:0.0
+            ~yalign:0.5
             ~packing:box#add ());
-        btn, pal_icon
+        btn, ico
 
-    let cams = 
-        let btn = GButton.toggle_tool_button ~packing () in
-        btn#misc#set_sensitive false;
-        let markup = "<small>CAMs</small>" in
-        ignore (GMisc.label ~markup ~packing:btn#set_label_widget ());
+    let cams =
+        let btn, lbl, ico = Aux.markup_toggle_button
+            ~pixbuf:(AmfIcon.Misc.cam `GREY)
+            ~label:"CAMs" ~packing () in 
+        btn#connect#toggled (fun () ->
+            match btn#get_active with
+            | true  -> ico#set_pixbuf (AmfIcon.Misc.cam `RGBA)
+            | false -> ico#set_pixbuf (AmfIcon.Misc.cam `GREY)
+        );
         btn
 
-    let apply = Aux.markup_tool_button
-        ~stock:`APPLY
-        ~label:"Apply" ~packing ()
+    let apply = Aux.markup_button
+        ~icon:AmfIcon.Misc.conv
+        ~label:"Convert" ~packing ()
 
     let set_choices t =
         Activate.store#clear ();
@@ -209,8 +248,8 @@ module Make (P : PARAMS) : S = struct
             Option.map (fun row ->
                 let res = Activate.store#get ~row ~column:Activate.data in
                 cams#misc#set_sensitive true;
-                remove#misc#set_sensitive true;
                 palette#misc#set_sensitive true;
+                apply#misc#set_sensitive true;
                 res
             ) Activate.combo#active_iter
         ) else None
@@ -218,7 +257,7 @@ module Make (P : PARAMS) : S = struct
   let set_tooltip s =
     let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
     P.tooltips#set_tip ~text palette#coerce
-  let set_icon t = pal_icon#set_pixbuf (draw_icon ~digest:true t)
+  let set_icon t = () (* palette_icon#set_pixbuf (draw_icon ~digest:true t)*)
 
   let dialog = 
     let dlg = GWindow.dialog
@@ -285,6 +324,13 @@ module Make (P : PARAMS) : S = struct
 
   let _ =
     initialize ();
+    activate#connect#toggled (fun () ->
+        let active = activate#active in
+        overlay#misc#set_sensitive active;
+        palette#misc#set_sensitive active;
+        cams#misc#set_sensitive active;
+        apply#misc#set_sensitive active
+    );
     let callback () =
       if dialog#run () = `OK then (
         set_icon (get_colors ());

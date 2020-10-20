@@ -26,11 +26,17 @@ module type S = sig
     val get_active : unit -> string option
     (** Tells which prediction is active. *)
 
-    val overlay : GButton.button
+    val overlay : GButton.toggle_tool_button
     (** Button that allows to select the predictions to display. *)
+
+    val palette : GButton.tool_button
+    (** Color palette selector. *)
 
     val cams : GButton.toggle_tool_button
     (** Indicates whether CAMs are to be displayed or not. *)
+
+    val apply : GButton.tool_button
+    (** Converts predictions to annotations. *)
 
 end
 
