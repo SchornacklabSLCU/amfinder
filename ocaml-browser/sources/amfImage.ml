@@ -83,7 +83,7 @@ object (self)
     method show_predictions () =
         let preds = AmfUI.Predictions.get_active () in
         predictions#set_current preds;
-        self#mosaic ()    
+        self#mosaic ~sync:true ()    
 
     (* TODO: it should be possible to choose the folder! *)
     method screenshot () =

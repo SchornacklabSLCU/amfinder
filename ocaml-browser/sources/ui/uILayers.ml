@@ -55,7 +55,7 @@ module Toolbox = struct
             let toolbar = GButton.toolbar
                 ~orientation:`VERTICAL
                 ~style:`ICONS
-                ~width:98 ~height:350 ()
+                ~width:98 ~height:340 ()
             let active = ref true
             let group = ref None
             let packing = toolbar#insert

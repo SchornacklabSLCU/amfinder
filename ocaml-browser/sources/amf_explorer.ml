@@ -20,6 +20,7 @@ end
 let connect_callbacks () =
     AmfCallback.Magnifier.capture_screenshot Par.image;
     AmfCallback.Predictions.update_list Par.image;
+    AmfCallback.Predictions.update_cam Par.image;
     AmfCallback.Predictions.select_list_item Par.image
 
 

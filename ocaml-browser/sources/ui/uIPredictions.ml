@@ -123,9 +123,9 @@ module Aux = struct
 
     let small_text = Printf.sprintf "<small>%s</small>"
 
-    let markup_toggle_button ?inactive_label ~pixbuf ~label ~packing () =
+    let markup_toggle_button ?(sensitive = false) ~pixbuf ~label ~packing () =
         let btn = GButton.toggle_tool_button ~packing () in
-        btn#misc#set_sensitive false;
+        btn#misc#set_sensitive sensitive;
         let box = GPack.hbox
             ~spacing:2
             ~packing:btn#set_label_widget () in
@@ -172,33 +172,18 @@ module Make (P : PARAMS) : S = struct
 
     let _ = UIHelper.separator packing
 
-    let activate = 
-        let item = GButton.tool_item ~packing () in
-        let check = GButton.check_button ~packing:item#add () in
-        check#misc#set_sensitive false;
-        check#misc#set_can_focus false;
-        ignore (GMisc.label
-            ~markup:"<b><small>Prediction</small></b>"
-            ~xalign:0.0 ~yalign:0.5
-            ~packing:check#set_image ());
-        check
+    let _ = UIHelper.label packing "<b><small>Predictions</small></b>"
 
     let container =
         let item = GButton.tool_item ~packing () in
         GPack.hbox ~spacing:2 ~packing:item#add ()
 
-    let overlay = 
-        let btn, lbl, ico = Aux.markup_toggle_button
+    let overlay, overlay_label, overlay_icon = 
+        Aux.markup_toggle_button
+            ~sensitive:true
             ~pixbuf:AmfIcon.Misc.show_preds
             ~label:"Add" 
-            ~packing () in
-        btn#connect#toggled (fun () ->
-            if btn#get_active then ico#set_pixbuf AmfIcon.Misc.show_preds
-            else ico#set_pixbuf AmfIcon.Misc.hide_preds;
-            let text = Aux.small_text (if btn#get_active then "Hide" else "Show") in
-            lbl#set_label text
-        );
-        btn
+            ~packing ()
 
     let palette, palette_icon =
         let btn = GButton.tool_button ~packing () in
@@ -234,61 +219,59 @@ module Make (P : PARAMS) : S = struct
 
     let set_choices t =
         Activate.store#clear ();
-        activate#misc#set_sensitive (t <> []);
-        List.iter (fun x ->
-            let row = Activate.store#append () in
-            Activate.store#set ~row ~column:Activate.data x;     
-        ) t;
-        Activate.combo#set_active 0
+        match t with
+        | [] -> overlay#misc#set_sensitive false
+        | _  ->
+            List.iter (fun x ->
+                let row = Activate.store#append () in
+                Activate.store#set ~row ~column:Activate.data x;     
+            ) t;
+            Activate.combo#set_active 0
 
     let get_active () =
-        let result = Activate.dialog#run () in
-        Activate.dialog#misc#hide ();
-        if result = `OK then (
-            Option.map (fun row ->
-                let res = Activate.store#get ~row ~column:Activate.data in
-                cams#misc#set_sensitive true;
-                palette#misc#set_sensitive true;
-                apply#misc#set_sensitive true;
-                res
-            ) Activate.combo#active_iter
+        if overlay#get_active then (
+            match Activate.combo#active_iter with
+            | None -> None
+            | Some row -> Some (Activate.store#get ~row ~column:Activate.data)
         ) else None
+        
 
-  let set_tooltip s =
-    let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
-    P.tooltips#set_tip ~text palette#coerce
-  let set_icon t = () (* palette_icon#set_pixbuf (draw_icon ~digest:true t)*)
+    let set_tooltip s =
+        let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
+        P.tooltips#set_tip ~text palette#coerce
+ 
+    let set_icon t = () (* palette_icon#set_pixbuf (draw_icon ~digest:true t)*)
 
-  let dialog = 
-    let dlg = GWindow.dialog
-      ~parent:P.parent
-      ~width:250
-      ~height:200
-      ~deletable:false
-      ~resizable:false
-      ~title:"Color Palettes"
-      ~type_hint:`UTILITY
-      ~destroy_with_parent:true
-      ~position:`CENTER_ON_PARENT () in
-    dlg#add_button_stock `OK `OK;
-    dlg#vbox#set_border_width P.border_width;
-    dlg
+    let dialog = 
+        let dlg = GWindow.dialog
+            ~parent:P.parent
+            ~width:250
+            ~height:200
+            ~deletable:false
+            ~resizable:false
+            ~title:"Color Palettes"
+            ~type_hint:`UTILITY
+            ~destroy_with_parent:true
+            ~position:`CENTER_ON_PARENT () in
+        dlg#add_button_stock `OK `OK;
+        dlg#vbox#set_border_width P.border_width;
+        dlg
 
-  let scroll = GBin.scrolled_window
-    ~hpolicy:`NEVER
-    ~vpolicy:`ALWAYS
-    ~border_width:P.border_width
-    ~packing:dialog#vbox#add ()
+    let scroll = GBin.scrolled_window
+        ~hpolicy:`NEVER
+        ~vpolicy:`ALWAYS
+        ~border_width:P.border_width
+        ~packing:dialog#vbox#add ()
 
-  let view =
-    let tv = GTree.view
-      ~model:TreeView.Data.store
-      ~headers_visible:false
-      ~packing:scroll#add () in
-    tv#selection#set_mode `SINGLE;
-    ignore (tv#append_column TreeView.VCol.markup);
-    ignore (tv#append_column TreeView.VCol.pixbuf);
-    tv
+    let view =
+        let tv = GTree.view
+            ~model:TreeView.Data.store
+            ~headers_visible:false
+            ~packing:scroll#add () in
+        tv#selection#set_mode `SINGLE;
+        ignore (tv#append_column TreeView.VCol.markup);
+        ignore (tv#append_column TreeView.VCol.pixbuf);
+        tv
 
   let initialize =
     let aux () =
@@ -307,7 +290,7 @@ module Make (P : PARAMS) : S = struct
         set_tooltip id;
         view#selection#select_iter row
       ) !sel
-    in Memoize.create ~label:"UI_Palette.Make" aux
+    in Memoize.create ~label:"UIPredictions.Make" aux
 
   let get_selected_iter () =
     view#selection#get_selected_rows
@@ -318,24 +301,44 @@ module Make (P : PARAMS) : S = struct
     let row = get_selected_iter () in
     TreeView.Data.store#get ~row ~column:TreeView.Data.colors
 
-  let get_name () =
-    let row = get_selected_iter () in
-    TreeView.Data.store#get ~row ~column:TreeView.Data.name
+    let get_name () =
+        let row = get_selected_iter () in
+        TreeView.Data.store#get ~row ~column:TreeView.Data.name
 
-  let _ =
-    initialize ();
-    activate#connect#toggled (fun () ->
-        let active = activate#active in
-        overlay#misc#set_sensitive active;
-        palette#misc#set_sensitive active;
-        cams#misc#set_sensitive active;
-        apply#misc#set_sensitive active
-    );
-    let callback () =
-      if dialog#run () = `OK then (
-        set_icon (get_colors ());
-        set_tooltip (get_name ());
-        dialog#misc#hide ()
-      )
-    in palette#connect#clicked ~callback
+    module Toolbox = struct
+        let enable () =
+            (* What if there is only one choice available? *)
+            let result = Activate.dialog#run () in
+            Activate.dialog#misc#hide ();
+            if result = `OK then
+                let enable row =
+                    overlay_icon#set_pixbuf AmfIcon.Misc.hide_preds;
+                    overlay_label#set_label (Aux.small_text "Remove");
+                    cams#misc#set_sensitive true;
+                    palette#misc#set_sensitive true;
+                    apply#misc#set_sensitive true
+                in Option.iter enable Activate.combo#active_iter
+            else overlay#set_active false
+
+        let disable () =
+            cams#misc#set_sensitive false;
+            palette#misc#set_sensitive false;
+            apply#misc#set_sensitive false;
+            overlay_icon#set_pixbuf AmfIcon.Misc.show_preds;
+            overlay_label#set_label (Aux.small_text "Add")
+    end
+
+    let _ =
+        initialize ();
+        let callback () =
+            if overlay#get_active then Toolbox.enable ()
+            else Toolbox.disable ()
+        in ignore (overlay#connect#toggled ~callback);
+        let callback () =
+            if dialog#run () = `OK then (
+                set_icon (get_colors ());
+                set_tooltip (get_name ());
+                dialog#misc#hide ()
+            )
+        in palette#connect#clicked ~callback
 end

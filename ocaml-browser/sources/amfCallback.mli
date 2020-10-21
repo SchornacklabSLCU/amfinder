@@ -15,6 +15,8 @@ module Predictions : sig
 
     val update_list : AmfImage.image option ref -> unit
 
+    val update_cam: AmfImage.image option ref -> unit
+
     val select_list_item : AmfImage.image option ref -> unit
 
 end

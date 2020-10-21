@@ -23,12 +23,17 @@ module Predictions = struct
                 ) !image_ref
         in AmfUI.Levels.set_callback callback
 
+    let update_cam image_ref =
+        let callback () =
+            Option.iter (fun image -> image#magnified_view ()) !image_ref
+        in ignore (AmfUI.Predictions.cams#connect#toggled ~callback)
+
     let select_list_item image_ref =
         let callback () =
             Option.iter (fun image ->
                 image#show_predictions ()
             ) !image_ref
-        in ignore (AmfUI.Predictions.overlay#connect#clicked ~callback)
+        in ignore (AmfUI.Predictions.overlay#connect#after#clicked ~callback)
 
 end
 

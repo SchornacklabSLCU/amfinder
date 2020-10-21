@@ -108,7 +108,41 @@ let get_standard chr sty sz =
     | `LARGE -> List.assoc chr large
 
 
-
 let get = function
   | '*' -> get_joker
   | chr -> get_standard chr
+
+
+
+module Misc = struct
+
+    let cam_rgba =
+        let path = "data/icons/CAMs_rgba.png" and size = 24 in
+        GdkPixbuf.from_file_at_size ~width:size ~height:size path
+
+    let cam_grey =
+        let path = "data/icons/CAMs_grey.png" and size = 24 in
+        GdkPixbuf.from_file_at_size ~width:size ~height:size path
+
+    let cam = function
+        | `RGBA  -> cam_rgba
+        | `GREY  -> cam_grey
+        | #style -> assert false (* does not happen. *) 
+
+    let conv =
+        let path = "data/icons/convert.png" in
+        GdkPixbuf.from_file_at_size ~width:24 ~height:24 path
+
+    let palette =
+        let path = "data/icons/palette.png" and size = 24 in
+        GdkPixbuf.from_file_at_size ~width:size ~height:size path
+
+    let show_preds =
+        let path = "data/icons/show_preds.png" and size = 24 in
+        GdkPixbuf.from_file_at_size ~width:size ~height:size path
+
+    let hide_preds =
+        let path = "data/icons/hide_preds.png" and size = 24 in
+        GdkPixbuf.from_file_at_size ~width:size ~height:size path
+
+end

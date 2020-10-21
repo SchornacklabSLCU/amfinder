@@ -64,7 +64,7 @@ let container = GPack.table
 let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:98 ~height:255
+    ~width:98 ~height:265
     ~packing:(container#attach ~left:0 ~top:0) ()
 
 let status = 
