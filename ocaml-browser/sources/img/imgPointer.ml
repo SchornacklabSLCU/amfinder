@@ -38,7 +38,10 @@ class pointer
     method track ev =
         let x = truncate (GdkEvent.Motion.x ev) - img_brush#x_origin
         and y = truncate (GdkEvent.Motion.y ev) - img_brush#y_origin in
-        self#update_pointer_pos ~r:(y / img_brush#edge) ~c:(x / img_brush#edge);
+        let r, c =
+            if x < 0 || y < 0 then (-1, -1)
+            else (y / img_brush#edge, x / img_brush#edge)
+        in self#update_pointer_pos ~r ~c;
         false
 
     method leave (_ : GdkEvent.Crossing.t)  =
