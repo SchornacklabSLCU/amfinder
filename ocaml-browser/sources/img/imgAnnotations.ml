@@ -18,6 +18,25 @@ module Aux = struct
         |> Array.map (String.concat "\t")
         |> Array.to_list
         |> String.concat "\n"
+        
+        
+    let to_python level data =
+        let rows = Array.length data
+        and columns = Array.length data.(0) in
+        let buf = Buffer.create 100 in
+        for i = 0 to rows * columns - 1 do
+            let r = i / columns and c = i mod columns in
+            let mask = data.(r).(c) in
+            if mask#has_annot then bprintf buf "%d\t%d\t%s\n" r c
+                (mask#hot |> List.map string_of_int |> String.concat "\t")
+        done;
+        let res = Buffer.contents buf in
+        if String.length res = 0 then None else
+            let header = sprintf "row\tcol\t%s\n" (
+                AmfLevel.to_header level 
+                |> List.map (String.make 1) 
+                |> String.concat "\t"
+            ) in Some (String.trim (header ^ res))      
 end
 
 
@@ -61,7 +80,12 @@ object (self)
         List.iter (fun (level, matrix) ->
             let file = AmfLevel.to_string level
                 |> sprintf "annotations/%s.caml" in
-            Zip.add_entry (Aux.to_string matrix) och file
+            Zip.add_entry (Aux.to_string matrix) och file;
+            (* Create Python table for use with Python amf scripts. *)
+            match Aux.to_python level matrix with
+            | None -> ()
+            | Some data -> let lvl_string = AmfLevel.to_string level in
+                Zip.add_entry data och (sprintf "%s.tsv" lvl_string)
         ) input
 
 end
