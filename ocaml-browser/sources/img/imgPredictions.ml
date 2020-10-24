@@ -50,9 +50,13 @@ class predictions input = object (self)
         |> List.split
         |> fst
 
-    method tables level =
-        List.filter (fun (_, (x, _)) -> x = level) input
-        |> List.map (fun (s, (_, m)) -> s, Aux.to_string level m)
+    method dump och =
+        List.iter (fun (id, (level, matrix)) ->
+            Zip.add_entry
+                ~comment:(AmfLevel.to_string level)
+                (Aux.to_string level matrix) och 
+                (sprintf "predictions/%s.tsv" id)
+        ) input
 
     method private current_data = Option.map (fun x -> List.assoc x input) curr
     method private current_table = Option.map (fun (_, y) -> y) self#current_data

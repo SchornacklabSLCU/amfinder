@@ -50,6 +50,7 @@ class type image = object
     (** Updates the magnified view. *)
 
     method update_statistics : unit -> unit
+    (** Updates statistics (for layers). *)
 
     method at_exit : (unit -> unit) -> unit
     (** Registers a function to be run before the image gets destroyed. *)

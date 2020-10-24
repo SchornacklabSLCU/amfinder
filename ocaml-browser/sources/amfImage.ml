@@ -166,27 +166,10 @@ object (self)
         List.iter (fun f -> f ()) exit_funcs;
         let zip = file#archive in
         let och = Zip.open_out zip in
-        (* Saves annotation tables. Level is indicated as extension. *)
-        List.iter (fun level ->
-            let file = sprintf "annotations/%s.caml" (AmfLevel.to_string level)
-            and data = annotations#to_string level in
-            Zip.add_entry data och file
-        ) AmfLevel.all_flags;
-        (* Saves prediction tables. Level is indicated in comments. *)
-        List.iter (fun level ->
-            let comment = AmfLevel.to_string level in
-            List.iter (fun (id, dat) ->
-                let file = sprintf "predictions/%s.tsv" id in
-                Zip.add_entry ~comment dat och file;
-            ) (predictions#tables level)
-        ) AmfLevel.all_flags;
-        (* Saves activation maps, if any. *)
-        List.iter (fun (id, chr, buf) ->
-            let comment = String.make 1 chr
-            and file = sprintf "activations/%s.%c.jpg" id chr in
-            Zip.add_entry ~comment (Buffer.contents buf) och file;
-        ) activations#dump;
-    Zip.close_out och
+        annotations#dump och;
+        predictions#dump och;
+        activations#dump och;
+        Zip.close_out och
 
 end
 

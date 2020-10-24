@@ -180,13 +180,13 @@ class type annotations = object
 
     method statistics : AmfLevel.t -> (char * int) list
     (** Returns the current statistics. *)
-
-    method to_string : AmfLevel.t -> string
-    (** Return the string representation of the table at the given level. *)
-    
+   
     method has_annot : ?level:AmfLevel.t -> r:int -> c:int -> unit -> bool
     (** Indicates whether the given tile has annotation. By default, checks the
       * current annotation layer. *)
+
+    method dump : Zip.out_file -> unit
+    (** Saves annotations. *)
     
 end
 
@@ -198,9 +198,6 @@ class type predictions = object
 
     method ids : AmfLevel.t -> string list
     (** Returns the list of predictions at the given annotation level. *)
-
-    method tables : AmfLevel.t -> (string * string) list
-    (** Returns identifiers and associated tables as strings for saving. *)
 
     method current : string option
     (** Return the identifier of the active prediction table. *)
@@ -234,6 +231,9 @@ class type predictions = object
     method exists : r:int -> c:int -> bool
     (** Indicates whether the given tile has predictions. *)
 
+    method dump : Zip.out_file -> unit
+    (** Saves predictions. *)
+
 end
 
 
@@ -247,8 +247,8 @@ class type activations = object
     method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option
     (** Return the CAM associated with a given tile. *)
     
-    method dump : (string * char * Buffer.t) list
-    (** Returns the string representation for saving purposes. *)
+    method dump : Zip.out_file -> unit
+    (** Saves activations. *)
 end
 
 

@@ -22,7 +22,7 @@ end
 
 
 
-class annotations (assoc : (AmfLevel.t * AmfAnnot.annot Matrix.t) list) = 
+class annotations (input : (AmfLevel.t * AmfAnnot.annot Matrix.t) list) = 
 
 object (self)
 
@@ -31,7 +31,7 @@ object (self)
 
     method get ?level ~r ~c () =
         let level = Option.value level ~default:self#current_level in
-        match Matrix.get_opt (List.assoc level assoc) ~r ~c with
+        match Matrix.get_opt (List.assoc level input) ~r ~c with
         | None -> AmfLog.error ~code:Err.out_of_bounds 
             "ImgAnnotations.annotations#get: Index \
              out of bounds (r = %d, c = %d)" r c
@@ -39,7 +39,7 @@ object (self)
 
     method has_annot ?level ~r ~c () = (self#get ?level ~r ~c ())#has_annot
 
-    method iter level f = Matrix.iteri f (List.assoc level assoc)
+    method iter level f = Matrix.iteri f (List.assoc level input)
 
     method iter_layer level layer f =
         let has_layer = match layer with
@@ -48,7 +48,7 @@ object (self)
         in
         Matrix.iteri (fun ~r ~c mask ->
             if has_layer mask then f ~r ~c mask
-        ) (List.assoc level assoc)
+        ) (List.assoc level input)
 
     method statistics level =
         let counters = List.map (fun c -> c, ref 0) (AmfLevel.to_header level) in
@@ -57,7 +57,12 @@ object (self)
         );
         List.map (fun (c, r) -> c, !r) counters
 
-    method to_string level = Aux.to_string (List.assoc level assoc)
+    method dump och =
+        List.iter (fun (level, matrix) ->
+            let file = AmfLevel.to_string level
+                |> sprintf "annotations/%s.caml" in
+            Zip.add_entry (Aux.to_string matrix) och file
+        ) input
 
 end
 

@@ -1,5 +1,6 @@
 (* CastANet browser - imgActivations.ml *)
 
+open Printf
 open Morelib
 
 (* FIXME: The very same code is in ImgTileMatrix. *)
@@ -23,7 +24,7 @@ end
 
 class activations
     (source : ImgTypes.source) 
-    (assoc_table : (string * (char * GdkPixbuf.pixbuf)) list) edge 
+    (input : (string * (char * GdkPixbuf.pixbuf)) list) edge 
 
 = object
 
@@ -33,7 +34,7 @@ class activations
             match Hashtbl.find_opt hash id with
             | None -> Hashtbl.add hash id [data]
             | Some old -> Hashtbl.replace hash id (data :: old)
-        ) assoc_table;
+        ) input;
         hash
 
     method active = AmfUI.Predictions.cams#get_active
@@ -52,14 +53,15 @@ class activations
             (Printexc.to_string exn);
             None
 
-    method dump =
-        Hashtbl.fold (fun id t res ->
-            List.map (fun (chr, pixbuf) -> 
-                let buf = Buffer.create 100 in
-                GdkPixbuf.save_to_buffer pixbuf ~typ:"jpeg" buf;
-                (id, chr, buf)
-            ) t @ res
-        ) hash []
+    method dump och =
+        List.iter (fun (id, (chr, pixbuf)) ->
+            let buf = Buffer.create 100 in
+            GdkPixbuf.save_to_buffer pixbuf ~typ:"jpeg" buf;
+            Zip.add_entry
+                ~comment:(String.make 1 chr)
+                (Buffer.contents buf) och
+                (sprintf "activations/%s.%c.jpg" id chr)
+        ) input
 
 end
 
