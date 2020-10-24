@@ -18,31 +18,24 @@ end
 
 
 let connect_callbacks () =
+    AmfCallback.Window.save Par.image;
+    (* Magnifier events. *)
     AmfCallback.Magnifier.capture_screenshot Par.image;
+    (* Prediction events. *)
+    AmfCallback.Predictions.convert Par.image;
     AmfCallback.Predictions.update_list Par.image;
     AmfCallback.Predictions.update_cam Par.image;
     AmfCallback.Predictions.select_list_item Par.image
 
-
-
-(*let initialize () =
-
-  (* Callback functions for keyboard events. *)
-  let connect = AmfUI.window#event#connect in
-  ignore (connect#key_press Img_Trigger.arrow_keys);
-  ignore (connect#key_press (fun x -> Img_Trigger.annotation_keys (`GDK x)));
-  (* Callback functions for mouse events. *)
-  let connect = AmfUI.Drawing.area#event#connect in
-  ignore (connect#button_press Img_Trigger.mouse_click);
-  ignore (connect#motion_notify Img_Trigger.mouse_move);
-  ignore (connect#leave_notify Img_Trigger.mouse_leave);
-  (* Repaints the tiles when the active layer changes. *)
-  AmfUI.Layers.set_callback (fun _ r _ _ -> 
-    if r#get_active then CPaint.active_layer ());
-  (* Repaints the tiles when the annotation level changes. *)
-  AmfUI.Levels.set_callback (fun _ r ->
-    if r#active then CPaint.active_layer ())
-*)
+let connect_image image =
+    (* GtkWindow events. *)
+    AmfCallback.Window.cursor image;
+    AmfCallback.Window.annotate image;
+    (* GtkDrawingArea events. *)
+    AmfCallback.DrawingArea.cursor image;
+    AmfCallback.DrawingArea.annotate image;
+    (* GtkToggleButtons. *)
+    AmfCallback.ToggleBar.annotate image
 
 let digest image =
   sprintf "<small><tt> \
@@ -52,6 +45,7 @@ let digest image =
     image#file#base
     image#source#width image#source#height
     image#source#rows image#source#columns
+
 
 
 let load_image () =
@@ -64,16 +58,9 @@ let load_image () =
     AmfUI.window#show ();
     (* Loads the image, creates tiles and populates the main window. *)
     let image = AmfImage.create ~edge:!Par.edge image_path in
-    (* GtkWindow events. *)
-    AmfCallback.Window.cursor image;
-    AmfCallback.Window.annotate image;
-    (* GtkDrawingArea events. *)
-    AmfCallback.DrawingArea.cursor image;
-    AmfCallback.DrawingArea.annotate image;
-    (* GtkToggleButtons. *)
-    AmfCallback.ToggleBar.annotate image;
     (* Sets as main image. *)       
     Par.image := Some image;
+    connect_image image;
     image#show ();
     AmfUI.Layers.set_callback (fun _ radio _ _ -> 
         if radio#get_active then

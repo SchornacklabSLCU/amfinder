@@ -34,6 +34,9 @@ class type image = object
     method predictions : ImgTypes.predictions
     (** Computer-generated predictions (probabilities). *)
 
+    method predictions_to_annotations : ?erase:bool -> unit -> unit
+    (** Converts predictions to annotations. *)
+
     method show_predictions : unit -> unit
     (** Displays the active prediction layer. *)
 
@@ -45,6 +48,8 @@ class type image = object
 
     method magnified_view : unit -> unit
     (** Updates the magnified view. *)
+
+    method update_statistics : unit -> unit
 
     method at_exit : (unit -> unit) -> unit
     (** Registers a function to be run before the image gets destroyed. *)

@@ -30,6 +30,10 @@ object (self)
     method is_empty = CSet.is_empty annot
     method has_annot = not (self#is_empty)
 
+    method set chr =
+        annot <- CSet.empty;
+        self#add chr
+
     method add chr =
         let chr = self#validate chr in
         let module Rules = (val rules : AmfLevel.ANNOTATION_RULES) in

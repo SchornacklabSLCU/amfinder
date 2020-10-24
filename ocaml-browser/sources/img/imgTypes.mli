@@ -199,6 +199,9 @@ class type predictions = object
     method ids : AmfLevel.t -> string list
     (** Returns the list of predictions at the given annotation level. *)
 
+    method tables : AmfLevel.t -> (string * string) list
+    (** Returns identifiers and associated tables as strings for saving. *)
+
     method current : string option
     (** Return the identifier of the active prediction table. *)
 
@@ -214,7 +217,9 @@ class type predictions = object
     method max_layer : r:int -> c:int -> char option
     (** Return the layer with maximum probability at the given coordinates. *)
     
-    method iter : (r:int -> c:int -> float list -> unit) -> unit
+    method iter : 
+        [ `ALL of (r:int -> c:int -> float list -> unit)
+        | `MAX of (r:int -> c:int -> char * float -> unit) ] -> unit
     (** Iterate over all predictions. *)
     
     method iter_layer : char -> (r:int -> c:int -> float -> unit) -> unit
@@ -241,6 +246,9 @@ class type activations = object
     
     method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option
     (** Return the CAM associated with a given tile. *)
+    
+    method dump : (string * char * Buffer.t) list
+    (** Returns the string representation for saving purposes. *)
 end
 
 

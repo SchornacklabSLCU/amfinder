@@ -85,6 +85,19 @@ object (self)
         predictions#set_current preds;
         self#mosaic ~sync:true ()    
 
+    method predictions_to_annotations ?(erase = false) () =
+        assert predictions#active;
+        let set_annot ~r ~c (chr, _) =
+            let annot = annotations#get ~r ~c () in
+            if annot#is_empty then annot#add chr
+            else if erase then annot#set chr
+        in predictions#iter (`MAX set_annot);
+        (* Things below should be part of ui. *)
+        AmfUI.Predictions.overlay#set_active false
+    
+    method update_statistics () = self#update_counters ()
+
+
     (* TODO: it should be possible to choose the folder! *)
     method screenshot () =
         let screenshot = AmfUI.Magnifier.screenshot () in
@@ -95,11 +108,10 @@ object (self)
 
     (* + self#magnified_view () and toggle buttons *)
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
-        let sync = false in
-        draw#tile ~sync ~r ~c ();
-        if cursor#at ~r ~c then brush#cursor ~sync ~r ~c ()
-        else if pointer#at ~r ~c then brush#pointer ~sync ~r ~c ()
-        else draw#overlay ~sync ~r ~c ();
+        draw#tile ~sync:false ~r ~c ();
+        if cursor#at ~r ~c then brush#cursor ~sync:false ~r ~c ()
+        else if pointer#at ~r ~c then brush#pointer ~sync:false ~r ~c ()
+        else draw#overlay ~sync:false ~r ~c ();
         if sync then brush#sync ()
 
     method private may_overlay_cam ~i ~j ~r ~c =
@@ -138,7 +150,7 @@ object (self)
     method mosaic ?(sync = false) () =
         brush#background ~sync:false ();
         small_tiles#iter (fun ~r ~c pixbuf ->
-            brush#pixbuf ~sync:false ~r ~c pixbuf;
+            (*brush#pixbuf ~sync:false ~r ~c pixbuf; *)
             self#draw_annotated_tile ~sync:false ~r ~c ()
         );
         if sync then brush#sync ()
@@ -151,9 +163,30 @@ object (self)
         self#update_counters ()
 
     method save () =
-        let _ = file#archive in
-        List.iter (fun f -> f ()) exit_funcs
-        (* CTable.save ~zip annotations predictions *)
+        List.iter (fun f -> f ()) exit_funcs;
+        let zip = file#archive in
+        let och = Zip.open_out zip in
+        (* Saves annotation tables. Level is indicated as extension. *)
+        List.iter (fun level ->
+            let file = sprintf "annotations/%s.caml" (AmfLevel.to_string level)
+            and data = annotations#to_string level in
+            Zip.add_entry data och file
+        ) AmfLevel.all_flags;
+        (* Saves prediction tables. Level is indicated in comments. *)
+        List.iter (fun level ->
+            let comment = AmfLevel.to_string level in
+            List.iter (fun (id, dat) ->
+                let file = sprintf "predictions/%s.tsv" id in
+                Zip.add_entry ~comment dat och file;
+            ) (predictions#tables level)
+        ) AmfLevel.all_flags;
+        (* Saves activation maps, if any. *)
+        List.iter (fun (id, chr, buf) ->
+            let comment = String.make 1 chr
+            and file = sprintf "activations/%s.%c.jpg" id chr in
+            Zip.add_entry ~comment (Buffer.contents buf) och file;
+        ) activations#dump;
+    Zip.close_out och
 
 end
 

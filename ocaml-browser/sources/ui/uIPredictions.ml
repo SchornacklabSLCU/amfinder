@@ -20,7 +20,7 @@ module type S = sig
     val overlay : GButton.toggle_tool_button
     val palette : GButton.tool_button
     val cams : GButton.toggle_tool_button
-    val apply : GButton.tool_button
+    val convert : GButton.tool_button
 end
 
 type palette = string array
@@ -213,7 +213,7 @@ module Make (P : PARAMS) : S = struct
         );
         btn
 
-    let apply = Aux.markup_button
+    let convert = Aux.markup_button
         ~icon:AmfIcon.Misc.conv
         ~label:"Convert" ~packing ()
 
@@ -316,14 +316,14 @@ module Make (P : PARAMS) : S = struct
                     overlay_label#set_label (Aux.small_text "Remove");
                     cams#misc#set_sensitive true;
                     palette#misc#set_sensitive true;
-                    apply#misc#set_sensitive true
+                    convert#misc#set_sensitive true
                 in Option.iter enable Activate.combo#active_iter
             else overlay#set_active false
 
         let disable () =
             cams#misc#set_sensitive false;
             palette#misc#set_sensitive false;
-            apply#misc#set_sensitive false;
+            convert#misc#set_sensitive false;
             overlay_icon#set_pixbuf AmfIcon.Misc.show_preds;
             overlay_label#set_label (Aux.small_text "Add")
     end

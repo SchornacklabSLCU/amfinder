@@ -35,7 +35,7 @@ module type S = sig
     val cams : GButton.toggle_tool_button
     (** Indicates whether CAMs are to be displayed or not. *)
 
-    val apply : GButton.tool_button
+    val convert : GButton.tool_button
     (** Converts predictions to annotations. *)
 
 end

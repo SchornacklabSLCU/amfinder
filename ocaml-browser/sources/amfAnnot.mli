@@ -9,6 +9,8 @@ class type annot = object
 
     method add : char -> unit
 
+    method set : char -> unit
+
     method remove : char -> unit
 
     method mem : char -> bool

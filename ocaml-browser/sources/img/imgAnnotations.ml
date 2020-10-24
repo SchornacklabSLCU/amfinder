@@ -29,11 +29,9 @@ object (self)
     method current_level = AmfUI.Levels.current ()
     method current_layer = AmfUI.Layers.current ()
 
-    method private get_matrix_by_level x = List.assoc x assoc
-
     method get ?level ~r ~c () =
         let level = Option.value level ~default:self#current_level in
-        match Matrix.get_opt (self#get_matrix_by_level level) ~r ~c with
+        match Matrix.get_opt (List.assoc level assoc) ~r ~c with
         | None -> AmfLog.error ~code:Err.out_of_bounds 
             "ImgAnnotations.annotations#get: Index \
              out of bounds (r = %d, c = %d)" r c
@@ -41,16 +39,16 @@ object (self)
 
     method has_annot ?level ~r ~c () = (self#get ?level ~r ~c ())#has_annot
 
-    method iter x f = Matrix.iteri f (self#get_matrix_by_level x)
+    method iter level f = Matrix.iteri f (List.assoc level assoc)
 
-    method iter_layer x layer f =
+    method iter_layer level layer f =
         let has_layer = match layer with
             | '*' -> (fun mask -> String.length mask#get > 0)
             | chr -> (fun mask -> String.contains mask#get chr)
         in
         Matrix.iteri (fun ~r ~c mask ->
             if has_layer mask then f ~r ~c mask
-        ) (self#get_matrix_by_level x)
+        ) (List.assoc level assoc)
 
     method statistics level =
         let counters = List.map (fun c -> c, ref 0) (AmfLevel.to_header level) in
@@ -59,7 +57,7 @@ object (self)
         );
         List.map (fun (c, r) -> c, !r) counters
 
-    method to_string x = Aux.to_string (self#get_matrix_by_level x)
+    method to_string level = Aux.to_string (List.assoc level assoc)
 
 end
 
@@ -86,8 +84,11 @@ let create ?zip source =
         | entries ->
             let tables = 
                 List.map (fun ({Zip.filename; _} as entry) ->
-                    let level = AmfLevel.of_string (Filename.extension filename) in
-                    let table = Aux.of_string level (Zip.read_entry ich entry) in
+                    let level = Filename.chop_extension filename
+                        |> Filename.basename
+                        |> AmfLevel.of_string in
+                    let table = Zip.read_entry ich entry
+                        |> Aux.of_string level in
                     level, table
                 ) entries
             in new annotations tables

@@ -28,10 +28,19 @@ module Predictions = struct
             Option.iter (fun image -> image#magnified_view ()) !image_ref
         in ignore (AmfUI.Predictions.cams#connect#toggled ~callback)
 
+    let convert image_ref =
+        let callback () =
+            Option.iter (fun image ->
+                image#predictions_to_annotations ?erase:None ()
+            ) !image_ref
+        in ignore (AmfUI.Predictions.convert#connect#clicked ~callback)
+
     let select_list_item image_ref =
         let callback () =
             Option.iter (fun image ->
-                image#show_predictions ()
+                image#show_predictions ();
+                image#update_statistics ();
+                image#ui#update ()
             ) !image_ref
         in ignore (AmfUI.Predictions.overlay#connect#after#clicked ~callback)
 
@@ -52,6 +61,12 @@ module Window = struct
         let id = AmfUI.window#event#connect#key_press ~callback in
         image#at_exit (fun () -> GtkSignal.disconnect widget id)
 
+    let save image_ref =
+        let callback _ =
+            Option.iter (fun image -> image#save ()) !image_ref;
+            false
+        in ignore (AmfUI.window#event#connect#delete ~callback)
+        
 end
 
 

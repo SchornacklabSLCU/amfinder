@@ -17,6 +17,8 @@ module Predictions : sig
 
     val update_cam: AmfImage.image option ref -> unit
 
+    val convert : AmfImage.image option ref -> unit
+
     val select_list_item : AmfImage.image option ref -> unit
 
 end
@@ -31,6 +33,9 @@ module Window : sig
 
     val annotate : AmfImage.image -> unit
     (** Letter change annotations. *)
+
+    val save : AmfImage.image option ref -> unit
+    (** Saves current image. *)
 
 end
 

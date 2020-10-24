@@ -51,6 +51,16 @@ class activations
             %S %C ~r=%d ~c=%d triggered exception %S" id chr r c 
             (Printexc.to_string exn);
             None
+
+    method dump =
+        Hashtbl.fold (fun id t res ->
+            List.map (fun (chr, pixbuf) -> 
+                let buf = Buffer.create 100 in
+                GdkPixbuf.save_to_buffer pixbuf ~typ:"jpeg" buf;
+                (id, chr, buf)
+            ) t @ res
+        ) hash []
+
 end
 
 let filter entries =

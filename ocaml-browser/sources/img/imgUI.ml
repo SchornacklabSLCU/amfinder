@@ -10,18 +10,36 @@ class ui
 
     method update () =
         let r, c = cursor#get in
-        let annot = annotations#get ~r ~c () in
-        AmfUI.Toggles.iter_current (fun chr tog img ->
-            (* Annotation is there, but toggle is inactive. *)
-            if annot#mem chr && not tog#active then (
-                tog#set_active true;
-                img#set_pixbuf (AmfIcon.get chr `RGBA `LARGE)
-            (* Annotation is missing, but toggle is active. *)
-            ) else if annot#off chr && tog#active then (
-                tog#set_active false;
-                img#set_pixbuf (AmfIcon.get chr `GREY `LARGE)
+        if predictions#active then begin
+            let toggle chr key tog img =
+                if chr = key && not tog#active then
+                begin
+                    tog#set_active true;
+                    img#set_pixbuf (AmfIcon.get key `RGBA `LARGE)
+                end
+                else if chr <> key && tog#active then
+                begin
+                    tog#set_active false;
+                    img#set_pixbuf (AmfIcon.get key `GREY `LARGE)
+                end
+            in 
+            predictions#max_layer ~r ~c
+            |> Option.map toggle
+            |> Option.iter AmfUI.Toggles.iter_current
+        end else begin
+            let annot = annotations#get ~r ~c () in
+            AmfUI.Toggles.iter_current (fun chr tog img ->
+                (* Annotation is there, but toggle is inactive. *)
+                if annot#mem chr && not tog#active then (
+                    tog#set_active true;
+                    img#set_pixbuf (AmfIcon.get chr `RGBA `LARGE)
+                (* Annotation is missing, but toggle is active. *)
+                ) else if annot#off chr && tog#active then (
+                    tog#set_active false;
+                    img#set_pixbuf (AmfIcon.get chr `GREY `LARGE)
+                )
             )
-        )
+        end
     
     method private add_annot ?level chr =
         let r, c = cursor#get in

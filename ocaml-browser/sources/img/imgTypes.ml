@@ -72,12 +72,15 @@ end
 
 class type predictions = object
     method ids : AmfLevel.t -> string list
+    method tables : AmfLevel.t -> (string * string) list
     method current : string option
     method set_current : string option -> unit
     method active : bool
     method get : r:int -> c:int -> float list option
     method max_layer : r:int -> c:int -> char option
-    method iter : (r:int -> c:int -> float list -> unit) -> unit
+    method iter : 
+        [ `ALL of (r:int -> c:int -> float list -> unit)
+        | `MAX of (r:int -> c:int -> char * float -> unit) ] -> unit
     method iter_layer : char -> (r:int -> c:int -> float -> unit) -> unit
     method statistics : (char * int) list
     method to_string : unit -> string
@@ -88,6 +91,7 @@ end
 class type activations = object
     method active : bool
     method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option
+    method dump : (string * char * Buffer.t) list
 end
 
 

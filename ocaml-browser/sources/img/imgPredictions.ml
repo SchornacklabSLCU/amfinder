@@ -50,55 +50,64 @@ class predictions input = object (self)
         |> List.split
         |> fst
 
+    method tables level =
+        List.filter (fun (_, (x, _)) -> x = level) input
+        |> List.map (fun (s, (_, m)) -> s, Aux.to_string level m)
+
     method private current_data = Option.map (fun x -> List.assoc x input) curr
-    method private table = Option.map (fun (_, y) -> y) self#current_data
-    method private level = Option.map (fun (x, _) -> x) self#current_data
+    method private current_table = Option.map (fun (_, y) -> y) self#current_data
+    method private current_level = Option.map (fun (x, _) -> x) self#current_data
 
     method get ~r ~c = 
-        match self#table with
+        match self#current_table with
         | None -> None
         | Some t -> Matrix.get_opt t ~r ~c
 
     method exists ~r ~c = (self#get ~r ~c) <> None
 
+    method private max level preds =
+        List.fold_left2 (fun ((_, x) as z) y chr ->
+            if y > x then (chr, y) else z
+        ) ('0', 0.0) preds (AmfLevel.to_header level)
+
     method max_layer ~r ~c =
         match self#current_data with
         | None -> None
-        | Some (level, table) ->
-            Option.map (fun preds ->
-                fst @@ List.fold_left2 (fun ((_, x) as z) y chr ->
-                    if y > x then (chr, y) else z
-                ) ('0', 0.0) preds (AmfLevel.to_header level)
-            ) (Matrix.get_opt table ~r ~c)
+        | Some (level, table) -> let opt = Matrix.get_opt table ~r ~c in
+            Option.map (fun t -> fst (self#max level t)) opt
 
-    method iter f =
-        match self#table with
-        | None -> ()
-        | Some matrix -> Matrix.iteri f matrix
+    method iter (typ : [ `ALL of (r:int -> c:int -> float list -> unit)
+        | `MAX of (r:int -> c:int -> char * float -> unit) ]) =
+        Option.iter (fun (level, table) ->
+            match typ with
+            | `ALL f -> Matrix.iteri f table
+            | `MAX f -> Matrix.iteri f (Matrix.map (self#max level) table)
+        ) self#current_data
 
     method iter_layer chr f =
-        match self#level with
+        match self#current_level with
         | None -> ()
         | Some level -> let header = AmfLevel.to_header level in
-            self#iter (fun ~r ~c t ->
+            let f = (fun ~r ~c t ->
                 let elt, dat = 
                     List.fold_left2 (fun ((_, x) as o) chr y ->
                         if y > x then (chr, y) else o
                     ) ('0', 0.0) header t in
                 if elt = chr then f ~r ~c dat)
+            in self#iter (`ALL f)
 
     method statistics =
-        match self#level with
+        match self#current_level with
         | None -> []
         | Some level -> let header = AmfLevel.to_header level in
             let counters = List.map (fun c -> c, ref 0) header in
-            self#iter (fun ~r ~c t ->
+            let f = (fun ~r ~c t ->
                 let chr, _ = 
                     List.fold_left2 (fun ((_, x) as o) chr y ->
                         if y > x then (chr, y) else o
                     ) ('0', 0.0) header t
-                in incr (List.assoc chr counters)
-            );
+                in incr (List.assoc chr counters))
+            in self#iter (`ALL f);
             List.map (fun (c, r) -> c, !r) counters
 
     method to_string () = 
