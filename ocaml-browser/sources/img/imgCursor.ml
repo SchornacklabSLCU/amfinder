@@ -58,7 +58,7 @@ class cursor
             AmfUI.CursorPos.update_coordinates ~r ~c;
             List.iter (fun f -> f ?sync:(Some true) ~r ~c ()) paint;
         end;
-        false
+        true (* otherwise GUI focus is moving. *)
 
     method key_press ev =
         let modi = GdkEvent.Key.state ev in
