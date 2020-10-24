@@ -138,7 +138,8 @@ object (self)
                     | Some x -> x
                 in AmfUI.Magnifier.set_pixbuf ~r:i ~c:j pixbuf
             done
-        done
+        done;
+        ui#update ()
 
     method private update_counters () =
         let source =
@@ -150,7 +151,6 @@ object (self)
     method mosaic ?(sync = false) () =
         brush#background ~sync:false ();
         small_tiles#iter (fun ~r ~c pixbuf ->
-            (*brush#pixbuf ~sync:false ~r ~c pixbuf; *)
             self#draw_annotated_tile ~sync:false ~r ~c ()
         );
         if sync then brush#sync ()

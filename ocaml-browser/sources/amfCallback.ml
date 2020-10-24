@@ -40,7 +40,7 @@ module Predictions = struct
             Option.iter (fun image ->
                 image#show_predictions ();
                 image#update_statistics ();
-                image#ui#update ()
+                (*image#ui#update ()*)
             ) !image_ref
         in ignore (AmfUI.Predictions.overlay#connect#after#clicked ~callback)
 
