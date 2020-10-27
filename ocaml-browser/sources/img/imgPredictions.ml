@@ -78,7 +78,7 @@ class predictions input = object (self)
         match self#current_data with
         | None -> None
         | Some (level, table) -> let opt = Matrix.get_opt table ~r ~c in
-            Option.map (fun t -> fst (self#max level t)) opt
+            Option.map (self#max level) opt
 
     method iter (typ : [ `ALL of (r:int -> c:int -> float list -> unit)
         | `MAX of (r:int -> c:int -> char * float -> unit) ]) =

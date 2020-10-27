@@ -60,6 +60,7 @@ object (self)
         cursor#set_paint draw#cursor;
         cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
         cursor#set_erase self#draw_annotated_tile;
+        cursor#set_erase brush#clear_margin;
         (* Pointer drawing functions. *)
         pointer#set_paint draw#pointer;
         pointer#set_erase self#draw_annotated_tile;
@@ -122,7 +123,7 @@ object (self)
                 | '*' -> (* let's find the top layer. *)
                     begin match predictions#max_layer ~r ~c with
                         | None -> large_tiles#get
-                        | Some max -> activations#get id max
+                        | Some (max, _) -> activations#get id max
                     end
                 | chr -> activations#get id chr
         ) else large_tiles#get

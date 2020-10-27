@@ -24,6 +24,7 @@ class ui
                 end
             in 
             predictions#max_layer ~r ~c
+            |> Option.map fst
             |> Option.map toggle
             |> Option.iter AmfUI.Toggles.iter_current
         end else begin

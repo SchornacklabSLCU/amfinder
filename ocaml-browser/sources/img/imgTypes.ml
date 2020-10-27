@@ -27,7 +27,9 @@ class type brush = object
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method clear_margin : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
+    method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     method sync : unit -> unit
 end
 
@@ -76,7 +78,7 @@ class type predictions = object
     method set_current : string option -> unit
     method active : bool
     method get : r:int -> c:int -> float list option
-    method max_layer : r:int -> c:int -> char option
+    method max_layer : r:int -> c:int -> (char * float) option
     method iter : 
         [ `ALL of (r:int -> c:int -> float list -> unit)
         | `MAX of (r:int -> c:int -> char * float -> unit) ] -> unit

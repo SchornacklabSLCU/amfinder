@@ -138,6 +138,13 @@ class type brush = object
     (** Draws a tile annotation.
       * @param sync defaults to [false]. *)
 
+    method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
+    (** Draws a tile prediction.
+      * @param sync defaults to [false]. *)
+
+    method clear_margin : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Remove margin annotations at the given coordinates. *)
+
     method sync : unit -> unit
     (** Synchronize drawings between the back pixmap and the drawing area. *)
 
@@ -211,7 +218,7 @@ class type predictions = object
     method get : r:int -> c:int -> float list option
     (** Return the probabilities at the given coordinates. *)
     
-    method max_layer : r:int -> c:int -> char option
+    method max_layer : r:int -> c:int -> (char * float) option
     (** Return the layer with maximum probability at the given coordinates. *)
     
     method iter : 

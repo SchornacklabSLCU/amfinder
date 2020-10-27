@@ -2,7 +2,7 @@
 
 class source pixbuf edge =
 
-object
+object (self)
 
     val width = GdkPixbuf.get_width pixbuf
 
@@ -12,7 +12,7 @@ object
 
     method width = width
 
-    method height = height 
+    method height = height
 
     method rows = height / edge
 

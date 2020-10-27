@@ -30,6 +30,12 @@ object (self)
     method is_empty = CSet.is_empty annot
     method has_annot = not (self#is_empty)
 
+    method hot = 
+        List.fold_left (fun res chr ->
+            (if self#mem chr then 1 else 0) :: res
+        ) [] (AmfLevel.to_header level) 
+        |> List.rev
+
     method set chr =
         annot <- CSet.empty;
         self#add chr

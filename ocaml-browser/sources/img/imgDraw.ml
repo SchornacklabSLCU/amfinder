@@ -34,10 +34,10 @@ class draw
         if preds#active then
             match preds#max_layer ~r ~c with
             | None -> () (* is that possible? *)
-            | Some chr -> let level = annot#current_level in
+            | Some (chr, flo) -> let level = annot#current_level in
                 match annot#current_layer with
                 | '*' -> brush#annotation ?sync ~r ~c level chr
-                | cur when chr = cur -> brush#annotation ?sync ~r ~c level chr
+                | cur when chr = cur -> brush#prediction ?sync ~r ~c chr flo
                 | _ -> () (* Not to be displayed. *)
 
     method overlay ?(sync = true) ~r ~c () =

@@ -15,6 +15,8 @@ class type annot = object
 
     method mem : char -> bool
 
+    method hot : int list
+
     method off : char -> bool
     
     method has_annot : bool
