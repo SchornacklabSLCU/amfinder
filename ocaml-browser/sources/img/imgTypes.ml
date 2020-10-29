@@ -30,8 +30,10 @@ class type brush = object
     method clear_margin : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
+    method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
     method palette : ?sync:bool -> unit -> unit
-    method probability : ?sync:bool -> float -> unit
+    method show_probability : ?sync:bool -> float -> unit
+    method hide_probability : ?sync:bool -> unit -> unit
     method sync : unit -> unit
 end
 

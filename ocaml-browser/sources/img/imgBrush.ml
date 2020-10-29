@@ -3,111 +3,7 @@
 open Scanf
 open Printf
 
-module Aux = struct
-
-    let parse_html_color =
-      let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
-      fun s -> sscanf s "#%02x%02x%02x%02x" (fun r g b a -> f r, f g, f b, f a)
-
-    let pi = acos (-1.0)
-
-    let initialize color edge =
-        assert (edge > 0); 
-        let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
-        let t = Cairo.create surface in
-        Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        let r, g, b, a = parse_html_color color in
-        Cairo.set_source_rgba t r g b a;
-        t, surface
-
-    let up_arrowhead color edge =
-        let t, surface = initialize color edge in
-        let edge = float edge in
-        let frac = 0.1 *. edge in
-        let yini = frac and xini = edge /. 2.0 in
-        let size =  0.48 *. xini in
-        Cairo.move_to t xini yini;
-        Cairo.line_to t (xini -. size) (edge -. frac);
-        Cairo.line_to t (xini +. size) (edge -. frac);
-        Cairo.fill t;
-        Cairo.stroke t;
-        
-        surface
-
-
-    let varrow color edge =
-        let t, surface = initialize color edge in
-        let edge = float edge in
-        let frac = 0.4 *. edge in
-        let yini = edge -. frac and xini = edge /. 2.0 in
-        let size =  0.3 *. xini in 
-        Cairo.move_to t xini yini;
-        Cairo.line_to t (xini -. size) frac;
-        Cairo.line_to t (xini +. size) frac;
-        Cairo.fill t;
-        Cairo.stroke t;
-        surface
-
-    let harrow color edge =
-        let t, surface = initialize color edge in
-        let edge = float edge in
-        let frac = 0.4 *. edge in
-        let xini = edge -. frac and yini = edge /. 2.0 in
-        let size =  0.3 *. yini in 
-        Cairo.move_to t xini yini;
-        Cairo.line_to t frac (yini -. size);
-        Cairo.line_to t frac (yini +. size);
-        Cairo.fill t;
-        Cairo.stroke t;
-        surface
-
-    let circle color edge =
-        let t, surface = initialize color edge in
-        let radius = float edge /. 2.0 in
-        Cairo.arc t radius radius ~r:radius ~a1:0.0 ~a2:(2.0 *. pi);
-        Cairo.fill t;
-        Cairo.stroke t;
-        surface
-
-    let square color edge =
-        let t, surface = initialize color edge in
-        let edge = float edge in
-        Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
-        Cairo.fill t;
-        Cairo.stroke t;
-        surface
-
-    let unfilled color edge =
-        let t, surface = initialize color edge in
-        Cairo.set_line_width t 5.0;
-        let edge = float edge in
-        Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
-        Cairo.stroke t;
-        surface
-
-    let palette ?(step = 12) colors edge =
-        let len = Array.length colors in
-        let surface = Cairo.Image.(create ARGB32 ~w:(step * len) ~h:edge) in
-        let t = Cairo.create surface in
-        Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        Array.iteri (fun i color ->
-            let r, g, b, a = parse_html_color color in
-            Cairo.set_source_rgba t r g b a;
-            Cairo.rectangle t (float (step * i)) 0.0 ~w:(float step) ~h:(float edge);
-            Cairo.fill t;
-            Cairo.stroke t;
-        ) colors;
-        Cairo.set_source_rgba t 0.0 0.0 0.0 1.0;
-        Cairo.set_line_width t 2.0;
-        Cairo.rectangle t 0.0 0.0 ~w:(float (step * len)) ~h:(float edge);
-        Cairo.stroke t;
-        surface
-
-end
-
-
-
-module Surface = struct
+module Memo = struct
     let memo f color =
         let rec get = ref (
             fun edge ->
@@ -117,29 +13,29 @@ module Surface = struct
         ) in
         fun edge -> !get edge
 
-    let joker = memo Aux.square "#00dd0099"
-    let cursor = memo Aux.unfilled "#cc0000cc"    
-    let pointer = memo Aux.square "#cc000066"
+    let joker = memo    AmfSurface.solid_square "#00dd0099"
+    let cursor = memo AmfSurface.empty_square "#cc0000cc"    
+    let pointer = memo AmfSurface.solid_square "#cc000066"
 
-    let margin_square_off = memo Aux.square "#ffffffff"
-    let margin_square_on = memo Aux.circle "#000000FF"
+    let margin_square_off = memo AmfSurface.solid_square "#ffffffff"
+    let margin_square_on = memo AmfSurface.circle "#000000FF"
 
-    let harrow = memo Aux.harrow "#FF0000FF"
-    let varrow = memo Aux.varrow "#FF0000FF"
+    let right_arrowhead = memo AmfSurface.right_arrowhead "#FF0000FF"
+    let down_arrowhead = memo AmfSurface.down_arrowhead "#FF0000FF"
 
-    let up_arrowhead = memo Aux.up_arrowhead "#FF0000FF"
+    let up_arrowhead = memo AmfSurface.up_arrowhead "#FF0000FF"
 
     let palette index edge =
         let color = (AmfUI.Predictions.get_colors ()).(index) in
-        Aux.circle color edge
+        AmfSurface.circle color edge
 
     let full_palette ?step edge =
         let colors = AmfUI.Predictions.get_colors () in
-        Aux.palette ?step colors edge
+        AmfSurface.palette ?step colors edge
 
     let layers =
         List.map (fun level ->
-            let surfaces = List.map2 (fun x y -> x, memo Aux.square y)
+            let surfaces = List.map2 (fun x y -> x, memo AmfSurface.solid_square y)
                 (AmfLevel.to_header level)
                 (AmfLevel.colors level)
             in level, surfaces
@@ -185,7 +81,7 @@ object (self)
 
     method background ?(sync = true) () =
         let t = AmfUI.Drawing.cairo () in
-        let r, g, b, a = Aux.parse_html_color backcolor in
+        let r, g, b, a = AmfSurface.parse_html_color backcolor in
         Cairo.set_source_rgba t r g b a;
         let w = float @@ AmfUI.Drawing.width () 
         and h = float @@ AmfUI.Drawing.height () in
@@ -214,7 +110,7 @@ object (self)
     method palette ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
         and y = float (self#y ~r:source#rows + 5)
-        and surface = Surface.full_palette edge in
+        and surface = Memo.full_palette edge in
         let rem = source#columns * edge - Cairo.Image.get_width surface in
         let x = float x_origin +. float rem /. 2.0 in
         Cairo.set_source_surface t surface x y;
@@ -240,30 +136,30 @@ object (self)
         if sync then self#sync ()
 
     method clear_margin ?sync ~r ~c () =
-        let surface = Surface.margin_square_off edge in
+        let surface = Memo.margin_square_off edge in
         self#margin ?sync ~r ~c surface
 
     method private margin_marks ?(sync = false) ~r ~c () =
         let t = AmfUI.Drawing.cairo ()
         and x = float (self#x ~c:0 - edge) 
         and y = float (self#y ~r) in
-        let surface = Surface.harrow edge in
+        let surface = Memo.right_arrowhead edge in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Arial";
-        Cairo.set_font_size t 10.0;
+        Cairo.set_font_size t 14.0;
         Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
         let text = sprintf "%04d" r in
         let te = Cairo.text_extents t text in
-        Cairo.move_to t (x -. 0.5 *. te.Cairo.width) (y +. float edge /. 2.0 -. te.Cairo.y_bearing /. 2.0);
+        Cairo.move_to t (x -. 0.7 *. te.Cairo.width) (y +. float edge /. 2.0 -. te.Cairo.y_bearing /. 2.0);
         Cairo.show_text t text;
-        let surface = Surface.varrow edge in
+        let surface = Memo.down_arrowhead edge in
         let x = float (self#x ~c) 
         and y = float (self#y ~r:0 - edge) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Arial";
-        Cairo.set_font_size t 10.0;
+        Cairo.set_font_size t 14.0;
         Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
         let text = sprintf "%04d" c in
         let te = Cairo.text_extents t text in
@@ -273,34 +169,42 @@ object (self)
 
     method private index_of_prob x = truncate (24.0 *. x) |> max 0 |> min 24
 
-    (* TODO: cleanup first! *)
-    method probability ?(sync = false) prob =
-        (* clean up *)
-        let len = Array.length (AmfUI.Predictions.get_colors ()) in
-        let grid_width = source#columns * edge in
-        let surface = Cairo.Image.(create ARGB32 ~w:((len + 2) * 12) ~h:edge) in
+    method hide_probability ?(sync = false) () =
+        let ncolors = Array.length (AmfUI.Predictions.get_colors ()) in
+        let grid_width = source#columns * edge
+        and prob_width = (ncolors + 2) * 12 in
+        let surface = Cairo.Image.(create ARGB32 ~w:prob_width ~h:edge) in
         let t = Cairo.create surface in
         Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        let r, g, b, a = Aux.parse_html_color backcolor in
+        let r, g, b, a = AmfSurface.parse_html_color backcolor in
         Cairo.set_source_rgba t r g b a;
         Cairo.rectangle t 0.0 0.0 ~w:(float grid_width) ~h:(float edge);
         Cairo.fill t;
         Cairo.stroke t;
+        let y = float (self#y ~r:source#rows + 5 + edge + 5) in
         let t = AmfUI.Drawing.cairo () in
-        let index = self#index_of_prob prob in
-        let rem = grid_width - 12 * len in
-        let x = float x_origin +. float rem /. 2.0
-        and y = float (self#y ~r:source#rows + 5 + edge + 5) in
+        let grid_width = source#columns * edge in
         Cairo.set_source_surface t surface
-            (float x_origin +. float (grid_width - 12 * (len + 2)) /. 2.0)
+            (float x_origin +. float (grid_width - 12 * (ncolors + 2)) /. 2.0)
             (y);
         Cairo.paint t;
+        if sync then self#sync ()
+
+    method show_probability ?(sync = false) prob =
+        self#hide_probability ();
+        let t = AmfUI.Drawing.cairo () in
+        let index = self#index_of_prob prob in
+        let y = float (self#y ~r:source#rows + 5 + edge + 5) in
+        let len = Array.length (AmfUI.Predictions.get_colors ()) in
+        let grid_width = source#columns * edge in
+        let rem = grid_width - 12 * len in
+        let x = float x_origin +. float rem /. 2.0 in
         let x = x +. float (index + 1) *. 12.0 in
-        let surface = Surface.up_arrowhead 12 in
+        let surface = Memo.up_arrowhead 12 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Arial";
-        Cairo.set_font_size t 10.0;
+        Cairo.set_font_size t 14.0;
         Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
         let text = sprintf "%.02f" prob in
         let te = Cairo.text_extents t text in
@@ -309,18 +213,24 @@ object (self)
         if sync then self#sync ()
 
     method cursor ?sync ~r ~c () =
-        self#surface ~r ~c (Surface.cursor edge);
+        self#surface ~r ~c (Memo.cursor edge);
         self#margin_marks ?sync ~r ~c ()
 
     method pointer ?sync ~r ~c () =
-        self#surface ?sync ~r ~c (Surface.pointer edge)
+        self#surface ?sync ~r ~c (Memo.pointer edge)
 
     method annotation ?sync ~r ~c level chr =
-        self#surface ?sync ~r ~c (Surface.layer level chr edge)
+        self#surface ?sync ~r ~c (Memo.layer level chr edge)
+
+    method pie_chart ?sync ~r ~c t =
+        AmfUI.Levels.current ()
+        |> AmfLevel.colors
+        |> (fun colors -> AmfSurface.pie_chart t colors edge)
+        |> self#surface ?sync ~r ~c
 
     method prediction ?sync ~r ~c (chr : char) x =
         let index = self#index_of_prob x in
-        self#surface ?sync ~r ~c (Surface.palette index edge)
+        self#surface ?sync ~r ~c (Memo.palette index edge)
 
 end
 

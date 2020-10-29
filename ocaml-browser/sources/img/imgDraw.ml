@@ -17,18 +17,17 @@ class draw
 
     method cursor ?(sync = true) ~r ~c () =
         brush#cursor ~sync ~r ~c ();
-        if preds#active then begin
+        if preds#active then (
             let level = annot#current_level in
             let mask = annot#get ~level ~r ~c () in
-            if mask#is_empty then begin
-                Option.iter (fun (chr, flo) ->
-                    let cur = annot#current_layer in
-                    if cur = chr then begin
-                        brush#probability ~sync:true flo
-                    end
-                )  (preds#max_layer ~r ~c)
-            end
-        end
+            if mask#is_empty then (
+                match preds#max_layer ~r ~c with
+                | None -> brush#hide_probability ~sync:true ()
+                | Some (chr, flo) -> let cur = annot#current_layer in
+                    if cur = chr then brush#show_probability ~sync:true flo
+                    else brush#hide_probability ~sync:true ()
+            )
+        )
 
     method pointer ?(sync = true) ~r ~c () =
         brush#pointer ~sync ~r ~c ()    
@@ -47,7 +46,7 @@ class draw
             | None -> () (* is that possible? *)
             | Some (chr, flo) -> let level = annot#current_level in
                 match annot#current_layer with
-                | '*' -> brush#annotation ?sync ~r ~c level chr
+                | '*' -> Option.iter (brush#pie_chart ?sync ~r ~c) (preds#get ~r ~c)
                 | cur when chr = cur -> brush#prediction ~sync:false ~r ~c chr flo;
                 | _ -> () (* Not to be displayed. *)
 
