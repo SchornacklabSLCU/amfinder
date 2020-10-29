@@ -145,6 +145,12 @@ class type brush = object
     method clear_margin : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Remove margin annotations at the given coordinates. *)
 
+    method palette : ?sync:bool -> unit -> unit
+    (** Displays a full palette. *)
+
+    method probability : ?sync:bool -> float -> unit
+    (** Displays the probability cursor. *)
+
     method sync : unit -> unit
     (** Synchronize drawings between the back pixmap and the drawing area. *)
 

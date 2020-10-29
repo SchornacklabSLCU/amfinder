@@ -45,6 +45,7 @@ object (self)
     val draw = ImgDraw.create 
         small_tiles
         brush
+        cursor
         annotations
         predictions
 
@@ -84,7 +85,7 @@ object (self)
     method show_predictions () =
         let preds = AmfUI.Predictions.get_active () in
         predictions#set_current preds;
-        self#mosaic ~sync:true ()    
+        self#mosaic ~sync:true ()
 
     method predictions_to_annotations ?(erase = false) () =
         assert predictions#active;
@@ -98,7 +99,6 @@ object (self)
     
     method update_statistics () = self#update_counters ()
 
-
     (* TODO: it should be possible to choose the folder! *)
     method screenshot () =
         let screenshot = AmfUI.Magnifier.screenshot () in
@@ -110,9 +110,11 @@ object (self)
     (* + self#magnified_view () and toggle buttons *)
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
         draw#tile ~sync:false ~r ~c ();
-        if cursor#at ~r ~c then brush#cursor ~sync:false ~r ~c ()
-        else if pointer#at ~r ~c then brush#pointer ~sync:false ~r ~c ()
-        else draw#overlay ~sync:false ~r ~c ();
+        if pointer#at ~r ~c then brush#pointer ~sync:false ~r ~c ()
+        else begin
+            draw#overlay ~sync:false ~r ~c ();
+            if cursor#at ~r ~c then brush#cursor ~sync:false ~r ~c ()
+        end;
         if sync then brush#sync ()
 
     method private may_overlay_cam ~i ~j ~r ~c =
@@ -154,12 +156,11 @@ object (self)
         small_tiles#iter (fun ~r ~c pixbuf ->
             self#draw_annotated_tile ~sync:false ~r ~c ()
         );
+        if predictions#active then brush#palette ();
         if sync then brush#sync ()
 
     method show () =
         self#mosaic ();
-        let r, c = cursor#get in
-        brush#cursor ~sync:true ~r ~c ();
         self#magnified_view ();
         self#update_counters ()
 

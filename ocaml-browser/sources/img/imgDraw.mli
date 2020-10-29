@@ -4,5 +4,5 @@
 
 open ImgTypes
 
-val create : tile_matrix -> brush -> annotations -> predictions -> draw
+val create : tile_matrix -> brush -> cursor -> annotations -> predictions -> draw
 (** Builder. *)

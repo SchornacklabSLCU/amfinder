@@ -3,6 +3,7 @@
 class draw 
   (tiles : ImgTypes.tile_matrix)
   (brush : ImgTypes.brush)
+  (cursor : ImgTypes.cursor)
   (annot : ImgTypes.annotations)
   (preds : ImgTypes.predictions) 
 
@@ -15,11 +16,21 @@ class draw
         | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
 
     method cursor ?(sync = true) ~r ~c () =
-        self#tile ~sync:false ~r ~c ();
-        brush#cursor ~sync ~r ~c ()
+        brush#cursor ~sync ~r ~c ();
+        if preds#active then begin
+            let level = annot#current_level in
+            let mask = annot#get ~level ~r ~c () in
+            if mask#is_empty then begin
+                Option.iter (fun (chr, flo) ->
+                    let cur = annot#current_layer in
+                    if cur = chr then begin
+                        brush#probability ~sync:true flo
+                    end
+                )  (preds#max_layer ~r ~c)
+            end
+        end
 
     method pointer ?(sync = true) ~r ~c () =
-        self#tile ~sync:false ~r ~c ();
         brush#pointer ~sync ~r ~c ()    
 
     method private annotation ?sync ~r ~c mask =
@@ -37,7 +48,7 @@ class draw
             | Some (chr, flo) -> let level = annot#current_level in
                 match annot#current_layer with
                 | '*' -> brush#annotation ?sync ~r ~c level chr
-                | cur when chr = cur -> brush#prediction ?sync ~r ~c chr flo
+                | cur when chr = cur -> brush#prediction ~sync:false ~r ~c chr flo;
                 | _ -> () (* Not to be displayed. *)
 
     method overlay ?(sync = true) ~r ~c () =
@@ -50,4 +61,4 @@ class draw
 end
 
 
-let create a b c d = new draw a b c d
+let create a b c d e = new draw a b c d e

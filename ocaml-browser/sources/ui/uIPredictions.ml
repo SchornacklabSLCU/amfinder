@@ -28,9 +28,9 @@ type palette = string array
 let folder = "data/palettes"
 let palette_db = ref []
 
-let validate_color ?(default = "#ffffffff") s =
+let validate_color ?(default = "#ffffff90") s =
   ksscanf s (fun _ _ -> default) "#%02x%02x%02x" 
-    (sprintf "#%02x%02x%02xcc")
+    (sprintf "#%02x%02x%02x90")
 
 let load () =
   Array.fold_left (fun pal elt ->
