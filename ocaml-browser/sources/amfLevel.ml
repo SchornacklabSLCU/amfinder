@@ -34,9 +34,12 @@ let to_header = function
     | `ARB_VESICLES -> ['A'; 'V'; 'N'; 'X']
     | `ALL_FEATURES -> ['A'; 'V'; 'E'; 'I'; 'H'; 'R'; 'X']
 
-
 let chars lvl = CSet.of_list (to_header lvl)
 
+let char_index lvl chr = to_header lvl
+    |> List.to_seq
+    |> String.of_seq
+    |> (fun str -> String.index str chr)
 
 let all_chars_list =
     chars `COLONIZATION
@@ -65,6 +68,11 @@ let others = function
     | `ARB_VESICLES -> [`COLONIZATION; `ALL_FEATURES]
     | `ALL_FEATURES -> [`COLONIZATION; `ARB_VESICLES]
 
+
+let symbols = function
+    | `COLONIZATION -> ["M+"; "M−"; "Bkg"]
+    | `ARB_VESICLES -> ["Arb"; "Ves"; "M−"; "Bkg"]
+    | `ALL_FEATURES -> ["Arb"; "Ves"; "IRH"; "ERH"; "Hyp"; "Root"; "Bkg"]
 
 
 let colors = function

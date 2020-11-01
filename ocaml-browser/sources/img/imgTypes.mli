@@ -108,6 +108,16 @@ class type brush = object
     method y_origin : int
     (** Returns drawing origin on Y axis. *)
 
+    method make_visible : r:int -> c:int -> unit -> bool
+    (** Ensure the given tile is within the visible window.
+      * @return True when drawing has to be updated. *)
+
+    method r_range : int * int
+    (** Returns the range of visible rows. *)
+
+    method c_range : int * int
+    (** Returns the range of visible columns. *)
+
     method backcolor : string
     (** Returns image background color. *)
 
@@ -148,8 +158,11 @@ class type brush = object
     method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
     (** Displays a pie chart (when using the joker layer with predictions). *)
 
-    method palette : ?sync:bool -> unit -> unit
+    method prediction_palette : ?sync:bool -> unit -> unit
     (** Displays a full palette. *)
+
+    method annotation_legend : ?sync:bool -> unit -> unit
+    (** Displays the annotations. *)
 
     method show_probability : ?sync:bool -> float -> unit
     (** Displays the probability cursor. *)
@@ -275,6 +288,9 @@ end
 (** {2 High-level tile drawing} *)
 
 class type draw = object
+
+    method set_update: (unit -> unit) -> unit
+    (** Registers a function to update the overall view. *)
 
     method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Draw tile image at the given coordinates. *)    

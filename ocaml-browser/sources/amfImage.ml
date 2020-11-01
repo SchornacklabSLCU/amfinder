@@ -67,7 +67,9 @@ object (self)
         pointer#set_erase self#draw_annotated_tile;
         annotations#current_level
         |> predictions#ids
-        |> AmfUI.Predictions.set_choices
+        |> AmfUI.Predictions.set_choices;
+        (* Drawing functions. *)
+        draw#set_update (fun () -> self#mosaic ~sync:true ())
 
     method at_exit f = exit_funcs <- f :: exit_funcs
 
@@ -107,7 +109,6 @@ object (self)
         AmfLog.info "Saving screenshot as %S" filename;
         GdkPixbuf.save ~filename ~typ:"jpeg" screenshot
 
-    (* + self#magnified_view () and toggle buttons *)
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
         draw#tile ~sync:false ~r ~c ();
         if pointer#at ~r ~c then brush#pointer ~sync:false ~r ~c ()
@@ -145,18 +146,25 @@ object (self)
         ui#update ()
 
     method private update_counters () =
-        let source =
-            match predictions#active with
-            | true  -> predictions#statistics
-            | false -> annotations#statistics (annotations#current_level)
-        in List.iter (fun (c, n) -> AmfUI.Layers.set_label c n) source
+        annotations#current_level
+        |> annotations#statistics
+        |> List.iter (fun (c, n) -> AmfUI.Layers.set_label c n)
 
     method mosaic ?(sync = false) () =
         brush#background ~sync:false ();
-        small_tiles#iter (fun ~r ~c pixbuf ->
-            self#draw_annotated_tile ~sync:false ~r ~c ()
-        );
-        if predictions#active then brush#palette ();
+        (** Redraw only the active tiles. *)
+        let rmin, rmax = brush#r_range
+        and cmin, cmax = brush#c_range in
+        for r = rmin to rmax do
+            for c = cmin to cmax do
+                self#draw_annotated_tile ~sync:false ~r ~c ()
+            done;
+        done;
+        if predictions#active then begin 
+            match annotations#current_layer with
+            | '*' -> brush#annotation_legend ()
+            |  _  -> brush#prediction_palette ()
+        end;
         if sync then brush#sync ()
 
     method show () =

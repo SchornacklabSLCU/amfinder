@@ -20,8 +20,10 @@ class pointer
         | Some (cr, cc) -> r = cr && c = cc
 
     method private update_pointer_pos ~r ~c =
-        if r >= 0 && r < img_source#rows 
-        && c >= 0 && c < img_source#columns then
+        let rmin, rmax = img_brush#r_range 
+        and cmin, cmax = img_brush#c_range in
+        if r >= rmin && r <= rmax 
+        && c >= cmin && c <= cmax then
             begin 
                 match pos with
                 | Some old when old = (r, c) -> () (* same position *)
@@ -36,12 +38,15 @@ class pointer
         else Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos
 
     method track ev =
-        let x = truncate (GdkEvent.Motion.x ev) - img_brush#x_origin
-        and y = truncate (GdkEvent.Motion.y ev) - img_brush#y_origin in
+        let rmin, _ = img_brush#r_range and cmin, _ = img_brush#c_range in
+        let x = GdkEvent.Motion.x ev -. float img_brush#x_origin
+        and y = GdkEvent.Motion.y ev -. float img_brush#y_origin in
         let r, c =
-            if x < 0 || y < 0 then (-1, -1)
-            else (y / img_brush#edge, x / img_brush#edge)
-        in self#update_pointer_pos ~r ~c;
+            if x < 0.0 || y < 0.0 then (-1, -1) else
+                let edge = float img_brush#edge in
+                (rmin + truncate (y /. edge), cmin + truncate (x /. edge))
+        in 
+        self#update_pointer_pos ~r ~c;
         false
 
     method leave (_ : GdkEvent.Crossing.t)  =

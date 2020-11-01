@@ -28,6 +28,8 @@ val of_header : char list -> t
 val chars : t -> Morelib.CSet.t
 (** Returns the string set containing all available chars at a given level. *)
 
+val char_index : t -> char -> int
+(** Index of the given char at the given level. *)
 
 val all_flags : t list
 (** List of available annotation levels, sorted from lowest to highest. *)
@@ -52,6 +54,9 @@ val others : t -> t list
 val colors : t -> string list
 (** [colors t] returns the list of RGB colors to use to display annotations at
   * level [t]. *)
+
+val symbols : t -> string list
+(** Short symbols for annotation legend. *) 
 
 
 (** Annotation rules. *)

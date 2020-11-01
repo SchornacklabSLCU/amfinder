@@ -26,8 +26,11 @@ val solid_square : color -> edge -> Cairo.Surface.t
 val empty_square : ?line:float -> color -> edge -> Cairo.Surface.t
 (** Empty square with the given line thickness and color. *)
 
-val palette : ?step:int -> color array -> edge -> Cairo.Surface.t
+val prediction_palette : ?step:int -> color array -> edge -> Cairo.Surface.t
 (** Color palette. *)
+
+val annotation_legend : string list -> color list -> Cairo.Surface.t
+(** Annotation legend. *)
 
 val pie_chart : float list -> color list -> edge -> Cairo.Surface.t
 (** Pie chart. *)

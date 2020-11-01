@@ -91,7 +91,7 @@ let empty_square ?(line = 5.0) color edge =
     surface
 
 
-let palette ?(step = 12) colors edge =
+let prediction_palette ?(step = 12) colors edge =
     let len = Array.length colors in
     let surface = Cairo.Image.(create ARGB32 ~w:(step * len + 40) ~h:edge) in
     let t = Cairo.create surface in
@@ -119,6 +119,30 @@ let palette ?(step = 12) colors edge =
     Cairo.show_text t "1";
     surface
 
+let annotation_legend symbs colors =
+    assert List.(length symbs = length colors);
+    let len = List.length colors in
+    let surface = Cairo.Image.(create ARGB32 ~w:(70 * len) ~h:30) in
+    let t = Cairo.create surface in
+    Cairo.set_antialias t Cairo.ANTIALIAS_NONE;
+    let index = ref 0 in
+    Cairo.select_font_face t "Arial";
+    Cairo.set_font_size t 14.0;
+    let te = Cairo.text_extents t "M" in
+    List.iter2 (fun symb color ->
+        let r, g, b, a = parse_html_color (color ^ "90") in
+        Cairo.set_source_rgba t r g b a;
+        let x = float (70 * !index) in
+        Cairo.rectangle t x 0.0 ~w:30.0 ~h:30.0;
+        Cairo.fill t;
+        Cairo.stroke t;
+        Cairo.set_source_rgba t 0.0 0.0 0.0 1.0;
+        let x = x +. 32.0 and y = 15.0 +. te.Cairo.height /. 2.0 in
+        Cairo.move_to t x y;
+        Cairo.show_text t symb;
+        incr index
+    ) symbs colors;
+    surface
 
 let pie_chart prob_list colors edge =
     let t, surface = initialize "#ffffffff" edge in

@@ -29,10 +29,6 @@ module Memo = struct
         let color = (AmfUI.Predictions.get_colors ()).(index) in
         AmfSurface.circle color edge
 
-    let full_palette ?step edge =
-        let colors = AmfUI.Predictions.get_colors () in
-        AmfSurface.palette ?step colors edge
-
     let layers =
         List.map (fun level ->
             let surfaces = List.map2 (fun x y -> x, memo AmfSurface.solid_square y)
@@ -53,26 +49,38 @@ class brush (source : ImgTypes.source) =
     let ui_width = AmfUI.Drawing.width ()
     and ui_height = AmfUI.Drawing.height () in
 
-    (* Extra blank space for drawings. *)
-    let extra_rows = 2
-    and extra_cols = 4 in
-
-    let edge = min (ui_width / (source#columns + extra_cols)) 
-                   (ui_height / (source#rows + extra_rows)) in
-
-    let x_origin = (ui_width - edge * source#columns) / 2
-    and y_origin = (ui_height - edge * source#rows) / 2 in
+    (* Fixed window size. *)
+    let edge = 32
+    and max_tile_w = 14 
+    and max_tile_h = 14 in
+    
+    let x_origin = (ui_width - edge * max_tile_w) / 2
+    and y_origin = (ui_height - edge * max_tile_h) / 2 in
 
 object (self)
 
+    val mutable rbound = 0 (* index of the topmost row. *)
+    val mutable cbound = 0 (* index of the leftmost column. *)
     val mutable backcolor = "#ffffffff"
+
+    method make_visible ~r ~c () =
+        let rlimit = snd self#r_range and climit = snd self#c_range in
+        let res = ref false in
+        if r < rbound then (rbound <- r; res := true)
+        else if r > rlimit then (rbound <- r - max_tile_h + 1; res := true);
+        if c < cbound then (cbound <- c; res := true)
+        else if c > climit then (cbound <- c - max_tile_w + 1; res := true);
+        !res
+ 
+    method r_range = rbound, min source#rows (rbound + max_tile_h - 1)
+    method c_range = cbound, min source#columns (cbound + max_tile_w - 1)
 
     method edge = edge
     method x_origin = x_origin
     method y_origin = y_origin
 
-    method private x ~c = x_origin + c * edge
-    method private y ~r = y_origin + r * edge
+    method private x ~c = x_origin + (c - cbound) * edge
+    method private y ~r = y_origin + (r - rbound) * edge
 
     method backcolor = backcolor
     method set_backcolor x = backcolor <- x
@@ -107,19 +115,34 @@ object (self)
         Cairo.paint t;
         if sync then self#sync ()
 
-    method palette ?(sync = false) () =
+    method prediction_palette ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
-        and y = float (self#y ~r:source#rows + 5)
-        and surface = Memo.full_palette edge in
-        let rem = source#columns * edge - Cairo.Image.get_width surface in
+        and y = float (self#y ~r:(snd self#r_range + 1) + 5) in
+        let colors = AmfUI.Predictions.get_colors () in
+        let surface = AmfSurface.prediction_palette colors edge in
+        let rem = max_tile_w * edge - Cairo.Image.get_width surface in
         let x = float x_origin +. float rem /. 2.0 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         if sync then self#sync ()
 
+    method annotation_legend ?(sync = false) () =
+        let t = AmfUI.Drawing.cairo ()
+        and y = float (self#y ~r:(snd self#r_range + 1) + 5) in
+        let level = AmfUI.Levels.current () in
+        let colors = AmfLevel.colors level
+        and symbols = AmfLevel.symbols level in
+        let surface = AmfSurface.annotation_legend symbols colors in
+        let rem = max_tile_w * edge - Cairo.Image.get_width surface in
+        let x = float x_origin +. float rem /. 2.0 in
+        Cairo.set_source_surface t surface x y;
+        Cairo.paint t;
+        if sync then self#sync () 
+    
+
     method private margin ?(sync = false) ~r ~c surface =
         let t = AmfUI.Drawing.cairo ()
-        and x = float (self#x ~c:0 - edge) 
+        and x = float (self#x ~c:cbound - edge) 
         and y = float (self#y ~r) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
@@ -127,7 +150,7 @@ object (self)
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         let x = float (self#x ~c) 
-        and y = float (self#y ~r:0 - edge) in
+        and y = float (self#y ~r:rbound - edge) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         let y = y -. float edge in
@@ -141,7 +164,7 @@ object (self)
 
     method private margin_marks ?(sync = false) ~r ~c () =
         let t = AmfUI.Drawing.cairo ()
-        and x = float (self#x ~c:0 - edge) 
+        and x = float (self#x ~c:cbound - edge) 
         and y = float (self#y ~r) in
         let surface = Memo.right_arrowhead edge in
         Cairo.set_source_surface t surface x y;
@@ -155,7 +178,7 @@ object (self)
         Cairo.show_text t text;
         let surface = Memo.down_arrowhead edge in
         let x = float (self#x ~c) 
-        and y = float (self#y ~r:0 - edge) in
+        and y = float (self#y ~r:rbound - edge) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Arial";
@@ -167,11 +190,11 @@ object (self)
         Cairo.show_text t text;
         if sync then self#sync ()
 
-    method private index_of_prob x = truncate (24.0 *. x) |> max 0 |> min 24
+    method private index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 25
 
     method hide_probability ?(sync = false) () =
         let ncolors = Array.length (AmfUI.Predictions.get_colors ()) in
-        let grid_width = source#columns * edge
+        let grid_width = max_tile_w * edge
         and prob_width = (ncolors + 2) * 12 in
         let surface = Cairo.Image.(create ARGB32 ~w:prob_width ~h:edge) in
         let t = Cairo.create surface in
@@ -181,9 +204,9 @@ object (self)
         Cairo.rectangle t 0.0 0.0 ~w:(float grid_width) ~h:(float edge);
         Cairo.fill t;
         Cairo.stroke t;
-        let y = float (self#y ~r:source#rows + 5 + edge + 5) in
+        let y = float (self#y ~r:(snd self#r_range + 1) + 5 + edge + 5) in
         let t = AmfUI.Drawing.cairo () in
-        let grid_width = source#columns * edge in
+        let grid_width = max_tile_w * edge in
         Cairo.set_source_surface t surface
             (float x_origin +. float (grid_width - 12 * (ncolors + 2)) /. 2.0)
             (y);
@@ -194,12 +217,12 @@ object (self)
         self#hide_probability ();
         let t = AmfUI.Drawing.cairo () in
         let index = self#index_of_prob prob in
-        let y = float (self#y ~r:source#rows + 5 + edge + 5) in
+        let y = float (self#y ~r:(snd self#r_range + 1) + 5 + edge + 5) in
         let len = Array.length (AmfUI.Predictions.get_colors ()) in
-        let grid_width = source#columns * edge in
+        let grid_width = max_tile_w * edge in
         let rem = grid_width - 12 * len in
         let x = float x_origin +. float rem /. 2.0 in
-        let x = x +. float (index + 1) *. 12.0 in
+        let x = x +. float index *. 12.0 in
         let surface = Memo.up_arrowhead 12 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
@@ -230,6 +253,7 @@ object (self)
 
     method prediction ?sync ~r ~c (chr : char) x =
         let index = self#index_of_prob x in
+        self#show_probability x;
         self#surface ?sync ~r ~c (Memo.palette index edge)
 
 end

@@ -74,7 +74,7 @@ module DrawingArea = struct
 
     let widget = AmfUI.Drawing.area#as_widget
 
-    let cursor image =
+    let cursor image = () (*
         let callback = image#cursor#mouse_click in
         let id = AmfUI.Drawing.area#event#connect#button_press ~callback in
         image#at_exit (fun () -> GtkSignal.disconnect widget id);
@@ -83,7 +83,7 @@ module DrawingArea = struct
         image#at_exit (fun () -> GtkSignal.disconnect widget id);
         let callback = image#pointer#leave in
         let id = AmfUI.Drawing.area#event#connect#leave_notify ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+        image#at_exit (fun () -> GtkSignal.disconnect widget id) *)
 
     let annotate image =
         let callback = image#ui#mouse_click in

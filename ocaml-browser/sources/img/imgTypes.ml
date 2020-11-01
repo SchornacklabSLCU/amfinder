@@ -20,6 +20,9 @@ class type brush = object
     method edge : int
     method x_origin : int
     method y_origin : int
+    method make_visible : r:int -> c:int -> unit -> bool
+    method r_range : int * int
+    method c_range : int * int
     method backcolor : string
     method set_backcolor : string -> unit
     method background : ?sync:bool -> unit -> unit
@@ -31,7 +34,8 @@ class type brush = object
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
-    method palette : ?sync:bool -> unit -> unit
+    method prediction_palette : ?sync:bool -> unit -> unit
+    method annotation_legend : ?sync:bool -> unit -> unit
     method show_probability : ?sync:bool -> float -> unit
     method hide_probability : ?sync:bool -> unit -> unit
     method sync : unit -> unit
@@ -102,6 +106,7 @@ end
 
 
 class type draw = object
+    method set_update: (unit -> unit) -> unit
     method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
