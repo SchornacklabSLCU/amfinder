@@ -43,17 +43,16 @@ module Levels = UILevels.Make (
     end )
 
 
-let framed_pane ~label ~r ~c =
-    let frame = GBin.frame ~label ~packing:Box.h#add () in
-    GPack.table
-        ~rows:r ~columns:c 
-        ~row_spacings:spacing
-        ~col_spacings:spacing 
-        ~border_width
-        ~packing:frame#add ()
+let make_pane ~r ~c = GPack.table
+    ~rows:r
+    ~columns:c 
+    ~row_spacings:spacing
+    ~col_spacings:spacing 
+    ~border_width
+    ~packing:Box.h#add ()
 
-let left_pane = framed_pane ~label:"Magnified view" ~r:2 ~c:1
-let right_pane = framed_pane ~label:"Whole image" ~r:1 ~c:2
+let left_pane = make_pane ~r:2 ~c:1
+let right_pane = make_pane ~r:1 ~c:2
 
 
 let container = GPack.table 
