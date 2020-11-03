@@ -125,7 +125,6 @@ end
 module Toggles = UIToggleBar.Make(Params.Toggles)
 module Magnifier = UIMagnifier.Make(Params.Magnifier)
 module Drawing = UIDrawing.Make(Params.Drawing)
-module CursorPos = UICursorPos.Make(Params.CursorPos)
 module Predictions = UIPredictions.Make(Params.Predictions)
 module Layers = UILayers.Make(Params.Layers)
 module TileSet = UITileSet.Make(Params.TileSet)

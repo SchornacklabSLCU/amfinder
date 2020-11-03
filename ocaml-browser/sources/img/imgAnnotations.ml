@@ -51,9 +51,7 @@ object (self)
     method get ?level ~r ~c () =
         let level = Option.value level ~default:self#current_level in
         match Matrix.get_opt (List.assoc level input) ~r ~c with
-        | None -> AmfLog.error ~code:Err.out_of_bounds 
-            "ImgAnnotations.annotations#get: Index \
-             out of bounds (r = %d, c = %d)" r c
+        | None -> AmfAnnot.of_string self#current_level ""
         | Some mask -> mask
 
     method has_annot ?level ~r ~c () = (self#get ?level ~r ~c ())#has_annot

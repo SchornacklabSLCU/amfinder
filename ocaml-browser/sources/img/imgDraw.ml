@@ -22,8 +22,7 @@ class draw
     method tile ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then begin
             match tiles#get ~r ~c with
-            | None -> AmfLog.error ~code:Err.out_of_bounds "ImgDraw.draw#tile: \
-                Index out of bounds (r = %d, c = %d)" r c
+            | None -> brush#missing_tile ~sync ~r ~c ()
             | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
         end
 

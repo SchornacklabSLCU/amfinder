@@ -136,6 +136,9 @@ class type brush = object
     (** [surface ?sync ~r ~c s] draws surface [s] at row [r] and column [c].
       * @param sync defaults to [false]. *)
 
+    method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Same as [surface], but draws a specialized surface for missing tile. *)
+
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Draws the cursor.
       * @param sync defaults to [false]. *)

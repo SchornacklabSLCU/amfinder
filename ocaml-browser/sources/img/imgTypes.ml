@@ -28,6 +28,7 @@ class type brush = object
     method background : ?sync:bool -> unit -> unit
     method pixbuf : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
+    method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit

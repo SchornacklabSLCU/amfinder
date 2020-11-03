@@ -33,6 +33,8 @@ module Create = struct
         Cairo.fill t;
         Cairo.stroke t;
         t, surface
+
+    let square ~edge ~color () = rectangle ~width:edge ~height:edge ~color ()
 end
 
 let up_arrowhead color edge =
@@ -106,30 +108,31 @@ let empty_square ?(line = 5.0) color edge =
 
 let prediction_palette ?(step = 12) colors edge =
     let len = Array.length colors in
-    let surface = Cairo.Image.(create ARGB32 ~w:(step * len + 40) ~h:edge) in
+    let surface = Cairo.Image.(create ARGB32 ~w:(step * len + 100) ~h:edge) in
     let t = Cairo.create surface in
     Cairo.set_antialias t Cairo.ANTIALIAS_NONE;
     Array.iteri (fun i color ->
         let r, g, b, a = parse_html_color color in
         Cairo.set_source_rgba t r g b a;
-        Cairo.rectangle t (float (step * i + 20)) 0.0 ~w:(float step) ~h:(float edge);
+        Cairo.rectangle t (float (step * i + 50)) 0.0
+            ~w:(float step)
+            ~h:(float edge);
         Cairo.fill t;
         Cairo.stroke t;
     ) colors;
     Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-    Cairo.select_font_face t "Arial" ~weight:Cairo.Bold;
-    Cairo.set_font_size t 16.0;
+    Cairo.select_font_face t "Arial" ~slant:Cairo.Italic;
+    Cairo.set_font_size t 14.0;
     Cairo.set_source_rgba t 0.0 0.0 0.0 1.0;
-    let te = Cairo.text_extents t "0" in
+    let te = Cairo.text_extents t "ggg" in
     Cairo.move_to t 
-        (10.0 -. te.Cairo.width /. 2.0)
+        (50.0 -. te.Cairo.width -. 5.0)
         (float edge /. 2.0 +. te.Cairo.height /. 2.0);
-    Cairo.show_text t "0";
-    let te = Cairo.text_extents t "1" in
+    Cairo.show_text t "low";
     Cairo.move_to t
-        (float (20 + step * len + 10) -. te.Cairo.width /. 2.0)
+        (float (50 + step * len + 5))
         (float edge /. 2.0 +. te.Cairo.height /. 2.0);
-    Cairo.show_text t "1";
+    Cairo.show_text t "high";
     surface
 
 let annotation_legend symbs colors =

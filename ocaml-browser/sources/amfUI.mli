@@ -24,9 +24,6 @@ module Drawing : UIDrawing.S
 module Layers : UILayers.S
 (** Annotation layers. *)
 
-module CursorPos : UICursorPos.S
-(** Vertical toolbar to display cursor position (row/column). *)
-
 module Predictions : UIPredictions.S
 (** Prediction manager. *)
 

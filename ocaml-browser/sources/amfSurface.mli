@@ -6,7 +6,8 @@ type edge = int
 type color = string
 
 module Create : sig
-    val rectangle : width:int -> height:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t 
+    val rectangle : width:int -> height:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t
+    val square : edge:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t
 end
 
 val parse_html_color : color -> float * float * float * float

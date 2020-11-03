@@ -53,7 +53,7 @@ class brush (source : ImgTypes.source) =
 
     (* Fixed window size. *)
     let edge = 32
-    and max_tile_w = 14
+    and max_tile_w = 16
     and max_tile_h = 14 in
     
     let x_origin = (ui_width - edge * max_tile_w) / 2
@@ -120,6 +120,11 @@ object (self)
         Cairo.paint t;
         if sync then self#sync "surface" ()
 
+    method missing_tile ?sync ~r ~c () =
+        AmfSurface.Create.square ~edge ~color:"#808080FF" ()
+        |> snd
+        |> self#surface ?sync ~r ~c
+
     method prediction_palette ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
         and y = float (self#y ~r:(snd self#r_range + 1) + 5) in
@@ -143,6 +148,21 @@ object (self)
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         if sync then self#sync "annotation_legend" () 
+
+    method private draw_window_arrow orientation visible x y =
+        let t = AmfUI.Drawing.cairo () in
+        let color = if visible then "#FF0000FF" else "#FFFFFFFF" in
+        let f = match orientation with
+            | `TOP -> AmfSurface.Dir.top
+            | `BOTTOM -> AmfSurface.Dir.bottom
+            | `LEFT -> AmfSurface.Dir.left
+            | `RIGHT -> AmfSurface.Dir.right
+        in
+        let surface = f
+            ~background:self#backcolor
+            ~foreground:color (edge / 4) in
+        Cairo.set_source_surface t surface x y;
+        Cairo.paint t
 
     method private redraw_row_pane r =
         (* Background clean-up. *)
@@ -207,22 +227,6 @@ object (self)
         self#redraw_column_pane c;
         if sync then self#sync "coordinates" ()
 
-    method private draw_window_arrow orientation visible x y =
-        let t = AmfUI.Drawing.cairo () in
-        let color = if visible then "#FF0000FF" else "#FFFFFFFF" in
-        let f = match orientation with
-            | `TOP -> AmfSurface.Dir.top
-            | `BOTTOM -> AmfSurface.Dir.bottom
-            | `LEFT -> AmfSurface.Dir.left
-            | `RIGHT -> AmfSurface.Dir.right
-        in
-        let surface = f
-            ~background:self#backcolor
-            ~foreground:color (edge / 4)
-        in
-        Cairo.set_source_surface t surface x y;
-        Cairo.paint t
-
     method private index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 25
 
     method hide_probability ?(sync = false) () =
@@ -259,8 +263,8 @@ object (self)
         let surface = Memo.up_arrowhead 12 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
-        Cairo.select_font_face t "Arial";
-        Cairo.set_font_size t 14.0;
+        Cairo.select_font_face t "Monospace";
+        Cairo.set_font_size t 12.0;
         Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
         let text = sprintf "%.02f" prob in
         let te = Cairo.text_extents t text in
