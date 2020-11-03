@@ -61,14 +61,14 @@ object (self)
         cursor#set_paint draw#cursor;
         cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
         cursor#set_erase self#draw_annotated_tile;
-        cursor#set_erase brush#clear_margin;
         (* Pointer drawing functions. *)
         pointer#set_paint draw#pointer;
         pointer#set_erase self#draw_annotated_tile;
         annotations#current_level
         |> predictions#ids
         |> AmfUI.Predictions.set_choices;
-        (* Drawing functions. *)
+        (* When the active r/c range changes, the entire mosaic is redraw to
+         * the backing pixmap, then synchronized with the drawing area. *)
         draw#set_update (fun () -> self#mosaic ~sync:true ())
 
     method at_exit f = exit_funcs <- f :: exit_funcs
@@ -114,9 +114,9 @@ object (self)
         if pointer#at ~r ~c then brush#pointer ~sync:false ~r ~c ()
         else begin
             draw#overlay ~sync:false ~r ~c ();
-            if cursor#at ~r ~c then brush#cursor ~sync:false ~r ~c ()
+            if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ()
         end;
-        if sync then brush#sync ()
+        if sync then brush#sync "draw_annotated_tile" ()
 
     method private may_overlay_cam ~i ~j ~r ~c =
         if i = 1 && j = 1 && predictions#active && activations#active then (
@@ -152,7 +152,7 @@ object (self)
 
     method mosaic ?(sync = false) () =
         brush#background ~sync:false ();
-        (** Redraw only the active tiles. *)
+        (** Redraw only the visible tiles. *)
         let rmin, rmax = brush#r_range
         and cmin, cmax = brush#c_range in
         for r = rmin to rmax do
@@ -162,12 +162,14 @@ object (self)
         done;
         if predictions#active then begin 
             match annotations#current_layer with
-            | '*' -> brush#annotation_legend ()
-            |  _  -> brush#prediction_palette ()
+            | '*' -> brush#annotation_legend ~sync:false ()
+            |  _  -> brush#prediction_palette ~sync:false ()
         end;
-        if sync then brush#sync ()
+        if sync then brush#sync "mosaic" ()
 
     method show () =
+        (* No need to synchronize here. The #expose event (see ui/uIDrawing.ml
+         * line 53) will refresh the drawing area for us. *)
         self#mosaic ();
         self#magnified_view ();
         self#update_counters ()
@@ -180,7 +182,6 @@ object (self)
         predictions#dump och;
         activations#dump och;
         Zip.close_out och
-
 end
 
 

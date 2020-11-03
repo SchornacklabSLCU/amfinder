@@ -5,6 +5,10 @@
 type edge = int
 type color = string
 
+module Create : sig
+    val rectangle : width:int -> height:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t 
+end
+
 val parse_html_color : color -> float * float * float * float
 (** Color parser. Returns red, green, blue, and alpha channels. *)
 
@@ -34,3 +38,10 @@ val annotation_legend : string list -> color list -> Cairo.Surface.t
 
 val pie_chart : float list -> color list -> edge -> Cairo.Surface.t
 (** Pie chart. *)
+
+module Dir : sig
+    val top : background:color -> foreground:color -> edge -> Cairo.Surface.t
+    val bottom : background:color -> foreground:color -> edge -> Cairo.Surface.t
+    val left : background:color -> foreground:color -> edge -> Cairo.Surface.t
+    val right : background:color -> foreground:color -> edge -> Cairo.Surface.t
+end

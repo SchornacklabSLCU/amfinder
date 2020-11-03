@@ -15,7 +15,7 @@ class draw
 
     method private may_update_view ~r ~c () =
         if brush#make_visible ~r ~c () then (
-            List.iter (fun f -> f ()) update_funcs;
+            List.iter (fun f ->  f ()) update_funcs;
             false
         ) else true
 
@@ -28,22 +28,19 @@ class draw
         end
 
     method cursor ?(sync = true) ~r ~c () =
-        if self#may_update_view ~r ~c () then begin
-            brush#cursor ~sync ~r ~c ();
-            (*
-            if preds#active then (
-                let level = annot#current_level in
-                let mask = annot#get ~level ~r ~c () in
-                if mask#is_empty then
-                    Option.iter (fun t ->
-                        let chr = annot#current_layer in
-                        if chr <> '*' then annot#current_level
-                        |> (fun x -> AmfLevel.char_index x chr)
-                        |> List.nth t
-                        |> brush#show_probability ~sync:true
-                    ) (preds#get ~r ~c)
-            )*)
-        end
+        if self#may_update_view ~r ~c () then brush#cursor ~sync ~r ~c ();
+        if preds#active then (
+            let level = annot#current_level in
+            let mask = annot#get ~level ~r ~c () in
+            if mask#is_empty then
+                Option.iter (fun t ->
+                    let chr = annot#current_layer in
+                    if chr <> '*' then annot#current_level
+                    |> (fun x -> AmfLevel.char_index x chr)
+                    |> List.nth t
+                    |> (fun x -> brush#show_probability ~sync x)
+                ) (preds#get ~r ~c)
+        )
 
     method pointer ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then brush#pointer ~sync ~r ~c ()    
@@ -61,11 +58,11 @@ class draw
         if preds#active then
             Option.iter (fun t ->
                 let chr = annot#current_layer in
-                if chr = '*' then brush#pie_chart ?sync ~r ~c t
-                else annot#current_level
-                    |> (fun x -> AmfLevel.char_index x chr)
-                    |> List.nth t
-                    |> brush#prediction ~sync:false ~r ~c chr
+                if chr = '*' then brush#pie_chart ?sync ~r ~c t else
+                    let x = annot#current_level
+                        |> (fun x -> AmfLevel.char_index x chr)
+                        |> List.nth t
+                    in (brush#prediction ?sync ~r ~c chr x);
             ) (preds#get ~r ~c)
 
     method overlay ?(sync = true) ~r ~c () =

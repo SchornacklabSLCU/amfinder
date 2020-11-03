@@ -63,8 +63,7 @@ let load_image () =
     connect_image image;
     image#show ();
     AmfUI.Layers.set_callback (fun _ radio _ _ -> 
-        if radio#get_active then
-            image#mosaic ~sync:true ()
+        if radio#get_active then image#mosaic ~sync:true ()
     );
     (* Displays cursor and the corresponding magnified view. *)
     AmfUI.status#set_label (digest image)

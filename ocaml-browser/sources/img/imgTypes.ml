@@ -30,7 +30,6 @@ class type brush = object
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method clear_margin : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
@@ -38,7 +37,7 @@ class type brush = object
     method annotation_legend : ?sync:bool -> unit -> unit
     method show_probability : ?sync:bool -> float -> unit
     method hide_probability : ?sync:bool -> unit -> unit
-    method sync : unit -> unit
+    method sync : string -> unit -> unit
 end
 
 

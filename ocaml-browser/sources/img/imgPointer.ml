@@ -27,18 +27,17 @@ class pointer
             begin 
                 match pos with
                 | Some old when old = (r, c) -> () (* same position *)
-                | _ -> 
-                    Option.iter (fun (r, c) ->
-                        pos <- None;
-                        erase ~sync:false ~r ~c ()
-                    ) pos;
+                | _ -> let old = pos in
+                    pos <- None;
+                    Option.iter (fun (r, c) -> erase ~sync:false ~r ~c ()) old;
                     pos <- Some (r, c);
                     paint ~sync:true ~r ~c ();
             end
         else Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos
 
     method track ev =
-        let rmin, _ = img_brush#r_range and cmin, _ = img_brush#c_range in
+        let rmin, _ = img_brush#r_range 
+        and cmin, _ = img_brush#c_range in
         let x = GdkEvent.Motion.x ev -. float img_brush#x_origin
         and y = GdkEvent.Motion.y ev -. float img_brush#y_origin in
         let r, c =

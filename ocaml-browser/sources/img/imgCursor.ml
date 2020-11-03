@@ -76,10 +76,13 @@ class cursor
 
 
     method mouse_click ev =
-        let x = truncate (GdkEvent.Button.x ev) - img_brush#x_origin
-        and y = truncate (GdkEvent.Button.y ev) - img_brush#y_origin in
-        let r = y / img_brush#edge 
-        and c = x / img_brush#edge in
+        let rmin, _ = img_brush#r_range 
+        and cmin, _ = img_brush#c_range in
+        let x = GdkEvent.Button.x ev -. float img_brush#x_origin
+        and y = GdkEvent.Button.y ev -. float img_brush#y_origin in
+        let edge = float img_brush#edge in
+        let r = rmin + truncate (y /. edge)
+        and c = cmin + truncate (x /. edge) in
         ignore (self#update_cursor_pos ~r ~c);
         false
 

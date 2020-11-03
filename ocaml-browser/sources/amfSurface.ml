@@ -21,6 +21,19 @@ let initialize color edge =
     Cairo.set_source_rgba t r g b a;
     t, surface
 
+module Create = struct
+    let rectangle ~width ~height ~color () =
+        assert (width > 0 && height > 0);
+        let surface = Cairo.Image.(create ARGB32 ~w:width ~h:height) in
+        let t = Cairo.create surface in
+        Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
+        let r, g, b, a = parse_html_color color in
+        Cairo.set_source_rgba t r g b a;
+        Cairo.rectangle t 0.0 0.0 ~w:(float width) ~h:(float height);
+        Cairo.fill t;
+        Cairo.stroke t;
+        t, surface
+end
 
 let up_arrowhead color edge =
     let t, surface = initialize color edge in
@@ -161,3 +174,49 @@ let pie_chart prob_list colors edge =
         Cairo.stroke t;
     ) prob_list colors;
     surface
+
+module Dir = struct
+    let top ~background ~foreground edge =
+        let t, surface = initialize background edge in
+        let r, g, b, a = parse_html_color foreground in
+        Cairo.set_source_rgba t r g b a;
+        Cairo.move_to t (float edge /. 2.0) 0.0;
+        Cairo.line_to t 0.0 (float edge);
+        Cairo.line_to t (float edge) (float edge);
+        Cairo.fill t;
+        Cairo.stroke t;
+        surface
+
+    let bottom ~background ~foreground edge =
+        let t, surface = initialize background edge in
+        let r, g, b, a = parse_html_color foreground in
+        Cairo.set_source_rgba t r g b a;
+        Cairo.move_to t (float edge /. 2.0) (float edge);
+        Cairo.line_to t 0.0 0.0;
+        Cairo.line_to t (float edge) 0.0;
+        Cairo.fill t;
+        Cairo.stroke t;
+        surface
+
+    let left ~background ~foreground edge =
+        let t, surface = initialize background edge in
+        let r, g, b, a = parse_html_color foreground in
+        Cairo.set_source_rgba t r g b a;
+        Cairo.move_to t 0.0 (float edge /. 2.0);
+        Cairo.line_to t (float edge) 0.0;
+        Cairo.line_to t (float edge) (float edge);
+        Cairo.fill t;
+        Cairo.stroke t;
+        surface
+
+    let right ~background ~foreground edge =
+        let t, surface = initialize background edge in
+        let r, g, b, a = parse_html_color foreground in
+        Cairo.set_source_rgba t r g b a;
+        Cairo.move_to t (float edge) (float edge /. 2.0);
+        Cairo.line_to t 0.0 0.0;
+        Cairo.line_to t 0.0 (float edge);
+        Cairo.fill t;
+        Cairo.stroke t;
+        surface
+end

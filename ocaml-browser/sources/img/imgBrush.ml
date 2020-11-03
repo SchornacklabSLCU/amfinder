@@ -3,6 +3,8 @@
 open Scanf
 open Printf
 
+let (%) = float
+
 module Memo = struct
     let memo f color =
         let rec get = ref (
@@ -51,7 +53,7 @@ class brush (source : ImgTypes.source) =
 
     (* Fixed window size. *)
     let edge = 32
-    and max_tile_w = 14 
+    and max_tile_w = 14
     and max_tile_h = 14 in
     
     let x_origin = (ui_width - edge * max_tile_w) / 2
@@ -85,7 +87,10 @@ object (self)
     method backcolor = backcolor
     method set_backcolor x = backcolor <- x
 
-    method sync () = AmfUI.Drawing.synchronize ()
+    method sync calling_func () =
+        (* For debugging purposes. *)
+        if false then AmfLog.info "Sync from %s" calling_func;
+        AmfUI.Drawing.synchronize ()
 
     method background ?(sync = true) () =
         let t = AmfUI.Drawing.cairo () in
@@ -96,7 +101,7 @@ object (self)
         Cairo.rectangle t 0.0 0.0 ~w ~h;
         Cairo.fill t;
         Cairo.stroke t;
-        if sync then self#sync ()
+        if sync then self#sync "background" ()
 
     method pixbuf ?(sync = false) ~r ~c pixbuf =
         assert (GdkPixbuf.get_width pixbuf = edge);
@@ -105,7 +110,7 @@ object (self)
         pixmap#put_pixbuf
             ~x:(self#x ~c)
             ~y:(self#y ~r) pixbuf;
-        if sync then self#sync ()
+        if sync then self#sync "pixbuf" ()
 
     method surface ?(sync = false) ~r ~c surface =
         let t = AmfUI.Drawing.cairo ()
@@ -113,7 +118,7 @@ object (self)
         and y = float (self#y ~r) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
-        if sync then self#sync ()
+        if sync then self#sync "surface" ()
 
     method prediction_palette ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
@@ -124,7 +129,7 @@ object (self)
         let x = float x_origin +. float rem /. 2.0 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
-        if sync then self#sync ()
+        if sync then self#sync "prediction_palette" ()
 
     method annotation_legend ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
@@ -137,58 +142,86 @@ object (self)
         let x = float x_origin +. float rem /. 2.0 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
-        if sync then self#sync () 
-    
+        if sync then self#sync "annotation_legend" () 
 
-    method private margin ?(sync = false) ~r ~c surface =
-        let t = AmfUI.Drawing.cairo ()
-        and x = float (self#x ~c:cbound - edge) 
-        and y = float (self#y ~r) in
-        Cairo.set_source_surface t surface x y;
+    method private redraw_row_pane r =
+        (* Background clean-up. *)
+        let h_area = AmfSurface.Create.rectangle
+            ~width:edge
+            ~height:((max_tile_h + 1) * edge)
+            ~color:backcolor ()
+        and t = AmfUI.Drawing.cairo ()
+        and x = float x_origin -. 1.25 *. (float edge)
+        and y = float y_origin -. 0.50 *. (float edge) in
+        Cairo.set_source_surface t (snd h_area) x y;
         Cairo.paint t;
-        let x = x -. float edge in
-        Cairo.set_source_surface t surface x y;
-        Cairo.paint t;
-        let x = float (self#x ~c) 
-        and y = float (self#y ~r:rbound - edge) in
-        Cairo.set_source_surface t surface x y;
-        Cairo.paint t;
-        let y = y -. float edge in
-        Cairo.set_source_surface t surface x y;
-        Cairo.paint t;
-        if sync then self#sync ()
-
-    method clear_margin ?sync ~r ~c () =
-        let surface = Memo.margin_square_off edge in
-        self#margin ?sync ~r ~c surface
-
-    method private margin_marks ?(sync = false) ~r ~c () =
-        let t = AmfUI.Drawing.cairo ()
-        and x = float (self#x ~c:cbound - edge) 
-        and y = float (self#y ~r) in
-        let surface = Memo.right_arrowhead edge in
-        Cairo.set_source_surface t surface x y;
-        Cairo.paint t;
-        Cairo.select_font_face t "Arial";
-        Cairo.set_font_size t 14.0;
-        Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
+        (* Adding column number *)
+        Cairo.select_font_face t "Monospace";
+        Cairo.set_font_size t 12.0;
+        Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;         
         let text = sprintf "%04d" r in
-        let te = Cairo.text_extents t text in
-        Cairo.move_to t (x -. 0.7 *. te.Cairo.width) (y +. float edge /. 2.0 -. te.Cairo.y_bearing /. 2.0);
+        let Cairo.{width; height; y_bearing; _} = Cairo.text_extents t text in
+        let x = float x_origin -. 0.25 *. (float edge) -. width
+        and y = float (self#y ~r) +. 0.5 *. (float edge) -. y_bearing /. 2.0 in
+        Cairo.move_to t x y;
         Cairo.show_text t text;
-        let surface = Memo.down_arrowhead edge in
-        let x = float (self#x ~c) 
-        and y = float (self#y ~r:rbound - edge) in
-        Cairo.set_source_surface t surface x y;
+        (* Adding arrows. *)
+        self#draw_window_arrow `TOP (r > 0) 
+            (x +. width /. 2.0 -. float edge /. 8.0)
+            (y -. height -. float edge /. 4.0 -. 2.0);
+        self#draw_window_arrow `BOTTOM (r < source#rows - 1) 
+            (x +. width /. 2.0 -. float edge /. 8.0)
+            (y +. 1.0 +. 2.0);
+
+    method private redraw_column_pane c =
+        (* Background clean-up. *)
+        let h_area = AmfSurface.Create.rectangle
+            ~width:((max_tile_w + 1) * edge)
+            ~height:edge
+            ~color:backcolor ()
+        and t = AmfUI.Drawing.cairo ()
+        and x = float x_origin -. 0.50 *. (float edge)
+        and y = float y_origin -. 1.25 *. (float edge) in
+        Cairo.set_source_surface t (snd h_area) x y;
         Cairo.paint t;
-        Cairo.select_font_face t "Arial";
-        Cairo.set_font_size t 14.0;
-        Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
+        (* Adding column number *)
+        Cairo.select_font_face t "Monospace";
+        Cairo.set_font_size t 12.0;
+        Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;         
         let text = sprintf "%04d" c in
-        let te = Cairo.text_extents t text in
-        Cairo.move_to t (x +. float edge /. 2.0 -. te.Cairo.width /. 2.0) (y +. 10.0);
+        let Cairo.{width; height; y_bearing; _} = Cairo.text_extents t text in
+        let x = float (self#x ~c) +. 0.5 *. (float edge) -. width /. 2.0
+        and y = float y_origin -. 0.25 *. (float edge) in
+        Cairo.move_to t x y;
         Cairo.show_text t text;
-        if sync then self#sync ()
+        (* Adding arrows. *)
+        self#draw_window_arrow `LEFT (c > 0) 
+            (x -. float edge /. 4.0 -. 2.0)
+            (y -. height);
+        self#draw_window_arrow `RIGHT (c < source#columns - 1) 
+            (x +. width +. 2.0)
+            (y -. height)
+
+    method private coordinates ?(sync = false) ~r ~c () =
+        self#redraw_row_pane r;
+        self#redraw_column_pane c;
+        if sync then self#sync "coordinates" ()
+
+    method private draw_window_arrow orientation visible x y =
+        let t = AmfUI.Drawing.cairo () in
+        let color = if visible then "#FF0000FF" else "#FFFFFFFF" in
+        let f = match orientation with
+            | `TOP -> AmfSurface.Dir.top
+            | `BOTTOM -> AmfSurface.Dir.bottom
+            | `LEFT -> AmfSurface.Dir.left
+            | `RIGHT -> AmfSurface.Dir.right
+        in
+        let surface = f
+            ~background:self#backcolor
+            ~foreground:color (edge / 4)
+        in
+        Cairo.set_source_surface t surface x y;
+        Cairo.paint t
 
     method private index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 25
 
@@ -211,7 +244,7 @@ object (self)
             (float x_origin +. float (grid_width - 12 * (ncolors + 2)) /. 2.0)
             (y);
         Cairo.paint t;
-        if sync then self#sync ()
+        if sync then self#sync "hide_probability" ()
 
     method show_probability ?(sync = false) prob =
         self#hide_probability ();
@@ -231,13 +264,15 @@ object (self)
         Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
         let text = sprintf "%.02f" prob in
         let te = Cairo.text_extents t text in
-        Cairo.move_to t (x +. 6.0 -. te.Cairo.width /. 2.0) (y +. 10.0 +. te.Cairo.height +. 5.0);
+        Cairo.move_to t
+            (x +. 6.0 -. te.Cairo.width /. 2.0)
+            (y +. 10.0 +. te.Cairo.height +. 5.0);
         Cairo.show_text t text;
-        if sync then self#sync ()
+        if sync then self#sync "show_probability" ()
 
     method cursor ?sync ~r ~c () =
         self#surface ~r ~c (Memo.cursor edge);
-        self#margin_marks ?sync ~r ~c ()
+        self#coordinates ?sync ~r ~c ()
 
     method pointer ?sync ~r ~c () =
         self#surface ?sync ~r ~c (Memo.pointer edge)
@@ -253,7 +288,7 @@ object (self)
 
     method prediction ?sync ~r ~c (chr : char) x =
         let index = self#index_of_prob x in
-        self#show_probability x;
+        (* self#show_probability x; *)
         self#surface ?sync ~r ~c (Memo.palette index edge)
 
 end
