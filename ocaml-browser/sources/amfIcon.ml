@@ -1,22 +1,41 @@
-(* CastANet - cIcon.ml *)
-
-type style = [
-    | `RGBA
-    | `RGBA_LOCKED
-    | `GREY
-    | `GREY_LOCKED
-]
+(* CastANet - amfIcon.ml *)
 
 type size = [
-    | `SMALL
-    | `LARGE
+  | `SMALL          (** Small icons, 24x24 pixels. *)
+  | `LARGE          (** Large icons, 48x48 pixels. *)
 ]
+(** Available icon sizes.  *)
+
+type style = [
+  | `RGBA           (** Active, coloured icons. *)
+  | `RGBA_LOCKED    (** Same, but locked.       *)
+  | `GREY           (** Inactive, grey icons.   *)
+
+  | `GREY_LOCKED    (** Same, but locked.       *)
+]
+
+let icon_dir = "data/icons"
+
+let read_icon pix shp chr typ =
+    Printf.sprintf "%c_%s.png" chr typ
+    |> Filename.concat icon_dir
+    |> GdkPixbuf.from_file_at_size ~width:pix ~height:pix
+
+let read_small_icon = read_icon 24 "empty"
+let read_large_icon = read_icon 48 "square"
+
+let square_icons = 
+    List.map (fun chr -> 
+        chr, (read_large_icon chr "rgba", read_large_icon chr "grey") 
+    ) AmfLevel.all_chars_list
+
 
 type palette = [
     | `CIVIDIS 
     | `VIRIDIS 
     | `PLASMA
 ]
+
 
 (* Icon sources. Load icons as pixbufs of 24 (small) or 48 (large) pixels. *)
 module Source = struct
@@ -92,6 +111,9 @@ let get_joker sty sz =
 
 
 
+
+
+
 let get_standard chr sty sz =
 
     let set = match sty with
@@ -127,7 +149,7 @@ module Misc = struct
     let cam = function
         | `RGBA  -> cam_rgba
         | `GREY  -> cam_grey
-        | #style -> assert false (* does not happen. *) 
+        | _      -> assert false (* does not happen. *) 
 
     let conv =
         let path = "data/icons/convert.png" in
