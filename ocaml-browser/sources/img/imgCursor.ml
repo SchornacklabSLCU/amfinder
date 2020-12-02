@@ -57,7 +57,7 @@ class cursor
             List.iter (fun f -> f ?sync:(Some false) ~r:old_r ~c:old_c ()) erase;
             List.iter (fun f -> f ?sync:(Some true) ~r ~c ()) paint;
         end;
-        true (* otherwise GUI focus is moving. *)
+        false (* same event has to go to image#ui. *)
 
     method key_press ev =
         let modi = GdkEvent.Key.state ev in

@@ -47,9 +47,10 @@ class draw
     method private annotation ?sync ~r ~c mask =
         let level = annot#current_level in
         match annot#current_layer with
-        | '*' -> brush#annotation ?sync ~r ~c level '*'
+        (* Display a digest of all annotations. *)
+        | '*' -> brush#annotation ?sync ~r ~c level mask#get
         | chr -> match mask#mem chr with
-            | true  -> brush#annotation ?sync ~r ~c level chr
+            | true  -> brush#annotation ?sync ~r ~c level (String.make 1 chr)
             | false -> () (* no annotation in this layer. *)
 
     (*  *)

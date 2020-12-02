@@ -12,7 +12,7 @@ end
 
 module type S = sig
     val is_active : char -> bool option
-    val iter_all : (AmfLevel.t -> char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
+    val iter_all : (AmfLevel.level -> char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
     val iter_current : (char -> GButton.toggle_button -> GMisc.image -> unit) -> unit
 end
 
@@ -20,9 +20,9 @@ end
 module type PARAMS = sig
     val packing : GObj.widget -> unit
     val remove : GObj.widget -> unit
-    val current : unit -> AmfLevel.t
-    val set_current : AmfLevel.t -> unit
-    val radios : (AmfLevel.t * GButton.radio_button) list
+    val current : unit -> AmfLevel.level
+    val set_current : AmfLevel.level -> unit
+    val radios : (AmfLevel.level * GButton.radio_button) list
 end
 
 
@@ -31,9 +31,8 @@ module Make (P : PARAMS) : S = struct
     (* Values here ensure that new buttons appear between existing ones when
     * the user switches between the different annotation levels. *)
     let get_col_spacing = function
-        | `COLONIZATION -> 134
-        | `ARB_VESICLES -> 68
-        | `ALL_FEATURES -> 2
+        | AmfLevel.COLONIZATION -> 134
+        | AmfLevel.MYC_STRUCTURES -> 2
 
     let add_item (table : GPack.table) i chr =
         let packing = table#attach ~left:i ~top:0 in
@@ -105,7 +104,7 @@ module Make (P : PARAMS) : S = struct
 
     let _ = (* initialization. *)
     (* Setting up expand/fill allows to centre the button box. *)
-    attach `COLONIZATION;
+    attach AmfLevel.COLONIZATION;
     List.iter (fun (typ, radio) ->
         let callback () = if radio#active then attach typ in
         ignore (radio#connect#toggled ~callback)

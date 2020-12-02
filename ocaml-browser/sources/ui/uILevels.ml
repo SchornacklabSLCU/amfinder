@@ -3,15 +3,15 @@
 open Printf
 
 module type PARAMS = sig
-  val init_level : AmfLevel.t
+  val init_level : AmfLevel.level
   val packing : GObj.widget -> unit
 end
 
 module type S = sig
-  val current : unit -> AmfLevel.t
-  val set_current : AmfLevel.t -> unit
-  val radios : (AmfLevel.t * GButton.radio_button) list 
-  val set_callback : (AmfLevel.t -> GButton.radio_button -> unit) -> unit
+  val current : unit -> AmfLevel.level
+  val set_current : AmfLevel.level -> unit
+  val radios : (AmfLevel.level * GButton.radio_button) list 
+  val set_callback : (AmfLevel.level -> GButton.radio_button -> unit) -> unit
 end
 
 module Make (P : PARAMS) : S = struct
@@ -39,7 +39,7 @@ module Make (P : PARAMS) : S = struct
       let radio = make_radio !group lbl lvl in
       if !group = None then group := Some radio#group;
       lvl, radio
-    ) AmfLevel.all_flags ["Colonization"; "Arbuscules/vesicles"; "All features"]
+    ) AmfLevel.all_flags ["Colonization"; "Myc structures"]
     
   let set_callback f =
     List.iter (fun (lvl, radio) ->

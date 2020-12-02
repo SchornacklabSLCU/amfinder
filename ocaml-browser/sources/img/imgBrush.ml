@@ -32,12 +32,11 @@ module Memo = struct
         AmfSurface.circle color edge
 
     let layers =
+        let make_surface chr clr = chr, memo AmfSurface.solid_square clr in
+        let open AmfLevel in
         List.map (fun level ->
-            let surfaces = List.map2 (fun x y -> x, memo AmfSurface.solid_square y)
-                (AmfLevel.to_header level)
-                (AmfLevel.colors level)
-            in level, surfaces
-        ) AmfLevel.all_flags
+            level, List.map2 make_surface (to_header level) (colors level)
+        ) all_flags
 
     let layer level = function
         | '*' -> joker
@@ -281,7 +280,8 @@ object (self)
     method pointer ?sync ~r ~c () =
         self#surface ?sync ~r ~c (Memo.pointer edge)
 
-    method annotation ?sync ~r ~c level chr =
+    method annotation ?sync ~r ~c level str =
+        let chr = str.[0] in (* TODO: complete this. *)
         self#surface ?sync ~r ~c (Memo.layer level chr edge)
 
     method pie_chart ?sync ~r ~c t =
@@ -294,7 +294,6 @@ object (self)
         let index = self#index_of_prob x in
         (* self#show_probability x; *)
         self#surface ?sync ~r ~c (Memo.palette index edge)
-
 end
 
 

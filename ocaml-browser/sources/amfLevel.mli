@@ -1,63 +1,51 @@
-(* CastANet - cLevel.mli *)
+(* CastANet - amfLevel.mli *)
 
 (** Annotation levels. *)
 
-type t = [
-  | `COLONIZATION   (** Basic annotation level (colonized vs non-colonized). *) 
-  | `ARB_VESICLES   (** Intermediate level, with arbuscules and vesicles.    *)
-  | `ALL_FEATURES   (** Fully-featured level, with IRH, ERH and hyphopodia.  *)
-]
+type level =
+  | COLONIZATION   (** Basic annotation level (colonized vs non-colonized). *) 
+  | MYC_STRUCTURES   (** Fully-featured level, with IRH, ERH and hyphopodia.  *)
 (** Annotation levels. *)
 
-
-val to_string : t -> string
+val to_string : level -> string
 (** [to_string t] returns the textual representation of the level [t]. *)
 
-
-val of_string : string -> t
+val of_string : string -> level
 (** [of_string s] returns the level corresponding to the string [s]. *)
 
-
-val to_header : t -> char list
+val to_header : level -> char list
 (** [to_header t] returns the header associated with annotation level [t]. *)
 
-
-val of_header : char list -> t
+val of_header : char list -> level
 (** [of_header t] returns the annotation level associated with header [t]. *)
 
-val chars : t -> Morelib.CSet.t
+val chars : level -> Morelib.CSet.t
 (** Returns the string set containing all available chars at a given level. *)
 
-val char_index : t -> char -> int
+val char_index : level -> char -> int
 (** Index of the given char at the given level. *)
 
-val all_flags : t list
+val all_flags : level list
 (** List of available annotation levels, sorted from lowest to highest. *)
-
 
 val all_chars_list : char list
 (** All available annotations. *)
 
-
-val lowest : t
+val lowest : level
 (** Least detailed level of mycorrhiza annotation. *)
 
-
-val highest : t
+val highest : level
 (** Most detailed level of mycorrhiza annotation. *)
 
-
-val others : t -> t list
+val others : level -> level list
 (** [other t] returns the list of all annotations levels but [t]. *)
 
-
-val colors : t -> string list
+val colors : level -> string list
 (** [colors t] returns the list of RGB colors to use to display annotations at
   * level [t]. *)
 
-val symbols : t -> string list
+val symbols : level -> string list
 (** Short symbols for annotation legend. *) 
-
 
 (** Annotation rules. *)
 module type ANNOTATION_RULES = sig
@@ -76,7 +64,5 @@ module type ANNOTATION_RULES = sig
 
 end
 
-
-val rules : t -> (module ANNOTATION_RULES)
+val rules : level -> (module ANNOTATION_RULES)
 (** Returns the rules associated with a given annotation level. *)
-

@@ -147,7 +147,7 @@ class type brush = object
     (** Draws the cursor at mouse pointer.
       * @param sync defaults to [false]. *)
 
-    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
+    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> string -> unit
     (** Draws a tile annotation.
       * @param sync defaults to [false]. *)
 
@@ -195,25 +195,25 @@ end
 
 class type annotations = object
 
-    method current_level : AmfLevel.t
+    method current_level : AmfLevel.level
     (** Returns the current level. *)
     
     method current_layer : char
     (** Returns the current layer (uses ['*'] for the main layer). *)
 
-    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> AmfAnnot.annot
+    method get : ?level:AmfLevel.level -> r:int -> c:int -> unit -> AmfAnnot.annot
     (** Returns the item at the given coordinates and annotation level. *)
 
-    method iter : AmfLevel.t -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter : AmfLevel.level -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter_layer : AmfLevel.level -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method statistics : AmfLevel.t -> (char * int) list
+    method statistics : AmfLevel.level -> (char * int) list
     (** Returns the current statistics. *)
    
-    method has_annot : ?level:AmfLevel.t -> r:int -> c:int -> unit -> bool
+    method has_annot : ?level:AmfLevel.level -> r:int -> c:int -> unit -> bool
     (** Indicates whether the given tile has annotation. By default, checks the
       * current annotation layer. *)
 
@@ -228,7 +228,7 @@ end
 
 class type predictions = object
 
-    method ids : AmfLevel.t -> string list
+    method ids : AmfLevel.level -> string list
     (** Returns the list of predictions at the given annotation level. *)
 
     method current : string option
@@ -311,6 +311,9 @@ end
 (** {2 Interaction with the user interface} *)
 
 class type ui = object
+
+    method set_paint : (unit -> unit) -> unit
+    (** Painting functions to update the current tile. *)
 
     method update : unit -> unit
     (** Update annotations at the current cursor position. *)

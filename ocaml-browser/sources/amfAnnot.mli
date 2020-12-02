@@ -5,7 +5,7 @@ class type annot = object
 
     method get : string
 
-    method level : AmfLevel.t
+    method level : AmfLevel.level
 
     method add : char -> unit
 
@@ -26,6 +26,6 @@ class type annot = object
 end
 
 
-val create : AmfLevel.t -> annot
+val create : AmfLevel.level -> annot
 
-val of_string : AmfLevel.t -> string -> annot 
+val of_string : AmfLevel.level -> string -> annot 

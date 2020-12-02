@@ -64,6 +64,8 @@ object (self)
         (* Pointer drawing functions. *)
         pointer#set_paint draw#pointer;
         pointer#set_erase self#draw_annotated_tile;
+        (* UI update functions. *)
+        ui#set_paint self#update_current_tile;
         annotations#current_level
         |> predictions#ids
         |> AmfUI.Predictions.set_choices;
@@ -117,6 +119,10 @@ object (self)
             if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ()
         end;
         if sync then brush#sync "draw_annotated_tile" ()
+
+    method private update_current_tile () =
+        let r, c = cursor#get in
+        self#draw_annotated_tile ~sync:true ~r ~c ()
 
     method private may_overlay_cam ~i ~j ~r ~c =
         if i = 1 && j = 1 && predictions#active && activations#active then (

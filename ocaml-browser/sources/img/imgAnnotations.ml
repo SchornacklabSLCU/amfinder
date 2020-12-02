@@ -18,8 +18,7 @@ module Aux = struct
         |> Array.map (String.concat "\t")
         |> Array.to_list
         |> String.concat "\n"
-        
-        
+                
     let to_python level data =
         let rows = Array.length data
         and columns = Array.length data.(0) in
@@ -41,7 +40,7 @@ end
 
 
 
-class annotations (input : (AmfLevel.t * AmfAnnot.annot Matrix.t) list) = 
+class annotations (input : (AmfLevel.level * AmfAnnot.annot Matrix.t) list) = 
 
 object (self)
 

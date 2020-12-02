@@ -19,8 +19,8 @@ end
 module type PARAMS = sig
   val packing : GObj.widget -> unit
   val remove : GObj.widget -> unit
-  val current : unit -> AmfLevel.t
-  val radios : (AmfLevel.t * GButton.radio_button) list
+  val current : unit -> AmfLevel.level
+  val radios : (AmfLevel.level * GButton.radio_button) list
 end
 
 
@@ -128,7 +128,7 @@ module Make (P : PARAMS) : S = struct
         ) (current_level_radios ()) 
 
     let _ =
-        attach `COLONIZATION;
+        attach AmfLevel.COLONIZATION;
         List.iter (fun (level, radio) ->
             let callback () = if radio#active then attach level in
             ignore (radio#connect#toggled ~callback)

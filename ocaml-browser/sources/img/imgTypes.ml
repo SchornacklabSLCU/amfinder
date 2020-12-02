@@ -31,7 +31,7 @@ class type brush = object
     method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.t -> char -> unit
+    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> string -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
     method prediction_palette : ?sync:bool -> unit -> unit
@@ -69,19 +69,19 @@ end
 
 
 class type annotations = object
-    method current_level : AmfLevel.t
+    method current_level : AmfLevel.level
     method current_layer : char
-    method get : ?level:AmfLevel.t -> r:int -> c:int -> unit -> AmfAnnot.annot
-    method iter : AmfLevel.t -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
-    method iter_layer : AmfLevel.t -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
-    method statistics : AmfLevel.t -> (char * int) list
-    method has_annot : ?level:AmfLevel.t -> r:int -> c:int -> unit -> bool
+    method get : ?level:AmfLevel.level -> r:int -> c:int -> unit -> AmfAnnot.annot
+    method iter : AmfLevel.level -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter_layer : AmfLevel.level -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method statistics : AmfLevel.level -> (char * int) list
+    method has_annot : ?level:AmfLevel.level -> r:int -> c:int -> unit -> bool
     method dump : Zip.out_file -> unit
 end
 
 
 class type predictions = object
-    method ids : AmfLevel.t -> string list
+    method ids : AmfLevel.level -> string list
     method current : string option
     method set_current : string option -> unit
     method active : bool
@@ -115,6 +115,7 @@ end
 
 
 class type ui = object
+    method set_paint : (unit -> unit) -> unit
     method update : unit -> unit
     method key_press : GdkEvent.Key.t -> bool
     method mouse_click : GdkEvent.Button.t -> bool
