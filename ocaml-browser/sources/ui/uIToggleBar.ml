@@ -30,16 +30,14 @@ module Make (P : PARAMS) : S = struct
 
     (* Values here ensure that new buttons appear between existing ones when
     * the user switches between the different annotation levels. *)
-    let get_col_spacing = function
-        | AmfLevel.COLONIZATION -> 134
-        | AmfLevel.MYC_STRUCTURES -> 2
+    let get_col_spacing _ = 134
 
     let add_item (table : GPack.table) i chr =
         let packing = table#attach ~left:i ~top:0 in
         let t_toggle = GButton.toggle_button ~relief:`NONE ~packing () in
         t_toggle#misc#set_can_focus false;
         let t_image = GMisc.image ~width:48 ~packing:t_toggle#set_image () in
-        t_image#set_pixbuf (AmfIcon.get chr `GREY `LARGE);
+        t_image#set_pixbuf AmfIcon.(get chr Large Grayscale);
         chr, {t_toggle; t_image}
 
     let make_toolbox typ =
@@ -104,7 +102,7 @@ module Make (P : PARAMS) : S = struct
 
     let _ = (* initialization. *)
     (* Setting up expand/fill allows to centre the button box. *)
-    attach AmfLevel.COLONIZATION;
+    attach AmfLevel.root_segmentation;
     List.iter (fun (typ, radio) ->
         let callback () = if radio#active then attach typ in
         ignore (radio#connect#toggled ~callback)

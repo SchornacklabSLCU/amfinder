@@ -28,9 +28,11 @@ type palette = string array
 let folder = "data/palettes"
 let palette_db = ref []
 
-let validate_color ?(default = "#ffffff90") s =
+let transparency = "B0"
+
+let validate_color ?(default = "#ffffff" ^ transparency) s =
   ksscanf s (fun _ _ -> default) "#%02x%02x%02x" 
-    (sprintf "#%02x%02x%02x90")
+    (fun a b c -> sprintf "#%02x%02x%02x%s" a b c transparency)
 
 let load () =
   Array.fold_left (fun pal elt ->
@@ -204,12 +206,12 @@ module Make (P : PARAMS) : S = struct
 
     let cams =
         let btn, lbl, ico = Aux.markup_toggle_button
-            ~pixbuf:(AmfIcon.Misc.cam `GREY)
+            ~pixbuf:AmfIcon.(Misc.cam Grayscale)
             ~label:"CAMs" ~packing () in 
         btn#connect#toggled (fun () ->
             match btn#get_active with
-            | true  -> ico#set_pixbuf (AmfIcon.Misc.cam `RGBA)
-            | false -> ico#set_pixbuf (AmfIcon.Misc.cam `GREY)
+            | true  -> ico#set_pixbuf AmfIcon.(Misc.cam RGBA)
+            | false -> ico#set_pixbuf AmfIcon.(Misc.cam Grayscale)
         );
         btn
 
@@ -279,7 +281,7 @@ module Make (P : PARAMS) : S = struct
       List.iteri (fun i (id, colors) ->
         let id = String.capitalize_ascii id in
         let row = TreeView.Data.store#append () in
-        if i = 0 then sel := Some (id, colors, row);
+        if id = "Cividis" then sel := Some (id, colors, row);
         let set ~column x = TreeView.Data.store#set ~row ~column x in
         set ~column:TreeView.Data.name id;
         set ~column:TreeView.Data.colors colors;

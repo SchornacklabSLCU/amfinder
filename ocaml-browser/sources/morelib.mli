@@ -1,4 +1,4 @@
-(* CastANet - morelib.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - morelib.mli *)
 
 (** Lightweight extension of the OCaml standard library. *)
 
@@ -52,11 +52,17 @@ module Matrix : sig
     val mapi : (r:int -> c:int -> 'a -> 'b) -> 'a t -> 'b t
     (** Same as [map], but [f] receives row and column indexes as parameters. *)
 
+    val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+    (** Same as [map], but iterates over two matrices in one go. *) 
+
     val iter : ('a -> unit) -> 'a t -> unit
     (** [iter f m] applies [f] to all members of the matrix [m]. *)
 
     val iteri : (r:int -> c:int -> 'a -> unit) -> 'a t -> unit
     (** Same as [iter], but oasses row and column indexes as parameters. *)
+
+    val iter2 : ('a -> 'b -> unit) -> 'a t -> 'b t -> unit
+    (** Same as [iter], but iterates over two matrices in one go. *) 
 
     val fold : (r:int -> c:int -> 'a -> 'b -> 'a) -> 'a -> 'b t -> 'a
     (** Fold function. *)

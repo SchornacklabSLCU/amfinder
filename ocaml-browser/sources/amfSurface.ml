@@ -1,4 +1,4 @@
-(* amfSurface.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfSurface.ml *)
 
 open Scanf
 
@@ -79,21 +79,33 @@ let right_arrowhead color edge =
     surface
 
 
-let circle color edge =
+let circle ?(margin = 2.0) color edge =
     let t, surface = initialize color edge in
-    let radius = float edge /. 2.0 in
-    Cairo.arc t radius radius ~r:radius ~a1:0.0 ~a2:two_pi;
+    let edge = float edge -. margin in
+    let radius = 0.5 *. edge in
+    let centre = 0.5 *. margin +. radius in
+    Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:two_pi;
     Cairo.fill t;
     Cairo.stroke t;
     surface
 
 
-let solid_square color edge =
+let solid_square ?sym ?(margin = 2.0) color edge =
     let t, surface = initialize color edge in
-    let edge = float edge in
-    Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
+    let edge = float edge -. margin in
+    Cairo.rectangle t (0.5 *. margin) (0.5 *. margin) ~w:edge ~h:edge;
     Cairo.fill t;
     Cairo.stroke t;
+    Option.iter (fun sym ->
+        Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
+        Cairo.select_font_face t "Arial" ~weight:Cairo.Bold;
+        Cairo.set_font_size t (if sym = "×" then 22.0 else 16.0);
+        let te = Cairo.text_extents t sym in
+        Cairo.move_to t
+            (0.5 *. margin +. 0.5 *. edge -. te.Cairo.x_bearing -. 0.5 *. te.Cairo.width) 
+            (0.5 *. margin +. 0.5 *. edge -. te.Cairo.y_bearing -. 0.5 *. te.Cairo.height);
+        Cairo.show_text t sym;
+    ) sym;
     surface
 
 
@@ -135,40 +147,49 @@ let prediction_palette ?(step = 12) colors edge =
     Cairo.show_text t "high";
     surface
 
+let transparency = "B0"
+
 let annotation_legend symbs colors =
     assert List.(length symbs = length colors);
     let len = List.length colors in
-    let surface = Cairo.Image.(create ARGB32 ~w:(70 * len) ~h:30) in
+    let margin = 8 in
+    let w = 140 * len + 2 * margin and h = 30 + 2 * margin in
+    let surface = Cairo.Image.(create ARGB32 ~w ~h) in
     let t = Cairo.create surface in
-    Cairo.set_antialias t Cairo.ANTIALIAS_NONE;
+    Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
+    Cairo.set_source_rgba t 0.4 0.4 0.4 1.0;
+    Cairo.rectangle t 0.0 0.0 ~w:(float w) ~h:(float h);
+    Cairo.stroke t;
     let index = ref 0 in
     Cairo.select_font_face t "Arial";
     Cairo.set_font_size t 14.0;
     let te = Cairo.text_extents t "M" in
     List.iter2 (fun symb color ->
-        let r, g, b, a = parse_html_color (color ^ "90") in
+        let r, g, b, a = parse_html_color (color ^ transparency) in
         Cairo.set_source_rgba t r g b a;
-        let x = float (70 * !index) in
-        Cairo.rectangle t x 0.0 ~w:30.0 ~h:30.0;
+        let x = float (margin + 140 * !index) in
+        Cairo.arc t (x +. 15.0) (float margin +. 15.0) ~r:15.0 ~a1:0.0 ~a2:(2. *. acos(-1.0));
         Cairo.fill t;
         Cairo.stroke t;
         Cairo.set_source_rgba t 0.0 0.0 0.0 1.0;
-        let x = x +. 32.0 and y = 15.0 +. te.Cairo.height /. 2.0 in
+        let x = x +. 32.0 and y = float margin +. 15.0 +. te.Cairo.height /. 2.0 in
         Cairo.move_to t x y;
         Cairo.show_text t symb;
         incr index
     ) symbs colors;
     surface
 
-let pie_chart prob_list colors edge =
+let pie_chart ?(margin = 2.0) prob_list colors edge =
     let t, surface = initialize "#ffffffff" edge in
-    let radius = float edge /. 2.0 in
+    let edge = float edge -. margin in
+    let radius = 0.5 *. edge in
     let from = ref 0.0 in
     List.iter2 (fun x clr ->
         let rad = two_pi *. x in  
         Cairo.move_to t radius radius;
         let a2 = !from +. rad in
-        Cairo.arc t radius radius ~r:radius ~a1:!from ~a2;
+        let centre = 0.5 *. margin +. radius in
+        Cairo.arc t centre centre ~r:radius ~a1:!from ~a2;
         from := a2;
         Cairo.Path.close t;
         let r, g, b, a = parse_html_color (clr ^ "90") in

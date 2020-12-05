@@ -1,4 +1,4 @@
-(* amf - imgTypes.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgTypes.mli *)
 
 (** Class types. *)
 
@@ -147,7 +147,7 @@ class type brush = object
     (** Draws the cursor at mouse pointer.
       * @param sync defaults to [false]. *)
 
-    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> string -> unit
+    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> Morelib.CSet.t -> unit
     (** Draws a tile annotation.
       * @param sync defaults to [false]. *)
 
@@ -195,22 +195,16 @@ end
 
 class type annotations = object
 
-    method current_level : AmfLevel.level
-    (** Returns the current level. *)
-    
-    method current_layer : char
-    (** Returns the current layer (uses ['*'] for the main layer). *)
-
-    method get : ?level:AmfLevel.level -> r:int -> c:int -> unit -> AmfAnnot.annot
+    method get : r:int -> c:int -> unit -> AmfAnnot.annot
     (** Returns the item at the given coordinates and annotation level. *)
 
-    method iter : AmfLevel.level -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter : (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method iter_layer : AmfLevel.level -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter_layer : char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
     (** Iterates over items at the given coordinates and annotation level. *)
 
-    method statistics : AmfLevel.level -> (char * int) list
+    method statistics : ?level:AmfLevel.level -> unit -> (char * int) list
     (** Returns the current statistics. *)
    
     method has_annot : ?level:AmfLevel.level -> r:int -> c:int -> unit -> bool

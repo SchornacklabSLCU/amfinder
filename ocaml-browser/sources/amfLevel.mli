@@ -1,11 +1,16 @@
-(* CastANet - amfLevel.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfLevel.mli *)
+
 
 (** Annotation levels. *)
 
-type level =
-  | COLONIZATION   (** Basic annotation level (colonized vs non-colonized). *) 
-  | MYC_STRUCTURES   (** Fully-featured level, with IRH, ERH and hyphopodia.  *)
-(** Annotation levels. *)
+type level = RootSegm | IRStruct
+(** Annotation level. *)
+
+val root_segmentation : level
+(** Root segmentation (colonized, non-colonized, background. *) 
+
+val intraradical_structures : level
+(** Intraradical structures (arbuscules, vesicles, hyphae).  *)
 
 val to_string : level -> string
 (** [to_string t] returns the textual representation of the level [t]. *)
@@ -18,6 +23,9 @@ val to_header : level -> char list
 
 val of_header : char list -> level
 (** [of_header t] returns the annotation level associated with header [t]. *)
+
+val to_charset : level -> Morelib.CSet.t
+(** Returns the string set containing all available chars at a given level. *)
 
 val chars : level -> Morelib.CSet.t
 (** Returns the string set containing all available chars at a given level. *)
@@ -46,6 +54,9 @@ val colors : level -> string list
 
 val symbols : level -> string list
 (** Short symbols for annotation legend. *) 
+
+val icon_text : level -> (char * string) list
+(** Short symbols for icons. *) 
 
 (** Annotation rules. *)
 module type ANNOTATION_RULES = sig

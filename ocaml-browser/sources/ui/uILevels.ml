@@ -1,4 +1,4 @@
-(* CastANet - uI_Levels.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - uI_Levels.ml *)
 
 open Printf
 
@@ -39,11 +39,11 @@ module Make (P : PARAMS) : S = struct
       let radio = make_radio !group lbl lvl in
       if !group = None then group := Some radio#group;
       lvl, radio
-    ) AmfLevel.all_flags ["Colonization"; "Myc structures"]
+    ) AmfLevel.all_flags ["Root segmentation"; "Intraradical structures"]
     
   let set_callback f =
-    List.iter (fun (lvl, radio) ->
-      let callback () = f lvl radio in
+    List.iter (fun (level, radio) ->
+      let callback () = f level radio in
       ignore (radio#connect#toggled ~callback)
     ) radios
 end

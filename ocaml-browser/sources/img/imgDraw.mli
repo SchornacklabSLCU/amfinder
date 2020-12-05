@@ -1,4 +1,4 @@
-(** amf - imgDraw.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgDraw.mli *)
 
 (** High-level drawing functions. *)
 

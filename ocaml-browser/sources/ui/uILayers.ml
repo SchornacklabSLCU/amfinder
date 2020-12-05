@@ -45,8 +45,9 @@ module Toolbox = struct
         and r_label = GMisc.label
             ~markup:"<small><tt>000000</tt></small>" 
             ~packing:hbox#add () in
-        let style = if chr = '*' then `RGBA else `GREY in
-        r_image#set_pixbuf (AmfIcon.get chr style `SMALL);
+        let open AmfIcon in
+        let style = if chr = '*' then RGBA else Grayscale in
+        r_image#set_pixbuf (get chr Small style);
         chr, {r_radio; r_label; r_image}
 
     let make level =
@@ -55,7 +56,7 @@ module Toolbox = struct
             let toolbar = GButton.toolbar
                 ~orientation:`VERTICAL
                 ~style:`ICONS
-                ~width:98 ~height:340 ()
+                ~width:98 ~height:420 ()
             let active = ref true
             let group = ref None
             let packing = toolbar#insert
@@ -128,13 +129,14 @@ module Make (P : PARAMS) : S = struct
         ) (current_level_radios ()) 
 
     let _ =
-        attach AmfLevel.COLONIZATION;
+        attach AmfLevel.root_segmentation;
         List.iter (fun (level, radio) ->
             let callback () = if radio#active then attach level in
             ignore (radio#connect#toggled ~callback)
         ) P.radios;
         let callback chr radio _ icon =
-            let style = if radio#get_active then `RGBA else `GREY in
-            icon#set_pixbuf (AmfIcon.get chr style `SMALL)
+            let open AmfIcon in
+            let style = if radio#get_active then RGBA else Grayscale in
+            icon#set_pixbuf (get chr Small style)
         in set_callback callback
 end

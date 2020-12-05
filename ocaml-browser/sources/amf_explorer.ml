@@ -21,6 +21,8 @@ let connect_callbacks () =
     AmfCallback.Window.save Par.image;
     (* Magnifier events. *)
     AmfCallback.Magnifier.capture_screenshot Par.image;
+    (* Annotation events. *)
+    AmfCallback.Annotations.update_mosaic Par.image;
     (* Prediction events. *)
     AmfCallback.Predictions.convert Par.image;
     AmfCallback.Predictions.update_list Par.image;

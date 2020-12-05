@@ -1,23 +1,36 @@
-(* CastANet - amfLevel.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfLevel.ml *)
 
 open Printf
 open Morelib
 
-type level = COLONIZATION | MYC_STRUCTURES
+type level = RootSegm | IRStruct
 
-let to_string = function
-    | COLONIZATION -> "colonization"
-    | MYC_STRUCTURES -> "myc_structures"
-
-let of_string str =
-    match String.lowercase_ascii str with
-    | "colonization" -> COLONIZATION
-    | "myc_structures" -> MYC_STRUCTURES
-    | unknown -> AmfLog.error ~code:17 "(AmfLevel.of_string) Wrong annotation level %S" unknown
+let root_segmentation = RootSegm
+let intraradical_structures = IRStruct
 
 let to_header = function
-    | COLONIZATION -> ['Y'; 'N'; 'X']
-    | MYC_STRUCTURES -> ['A'; 'V'; 'E'; 'I'; 'H'; 'R'; 'X']
+    | RootSegm -> ['Y'; 'N'; 'X']
+    | IRStruct -> ['A'; 'V'; 'H']
+
+let to_charset lvl = CSet.of_list (to_header lvl) 
+
+let to_string = function
+    | RootSegm -> "RootSegm"
+    | IRStruct -> "IRStruct"
+
+let of_string str =
+    match String.uppercase_ascii str with (* case-insensitive. *)
+    | "ROOTSEGM" | "COLONIZATION" -> RootSegm
+    | "IRSTRUCT" -> IRStruct
+    | unknown -> AmfLog.error ~code:Err.Level.unknown_level
+        "(AmfLevel.of_string) Wrong annotation level %S" unknown
+
+let of_header t =
+    match List.map Char.uppercase_ascii t with (* case-insensitive. *)
+    | ['Y'; 'N'; 'X'] -> RootSegm
+    | ['A'; 'V'; 'H'] -> IRStruct
+    | _ -> AmfLog.error ~code:Err.Level.invalid_level_header
+        "(AmfLevel.of_header) Malformed table header"
 
 let chars lvl = CSet.of_list (to_header lvl)
 
@@ -27,32 +40,32 @@ let char_index lvl chr = to_header lvl
     |> (fun str -> String.index str chr)
 
 let all_chars_list =
-    chars COLONIZATION
-    |> CSet.union (chars MYC_STRUCTURES)
+    chars RootSegm
+    |> CSet.union (chars IRStruct)
     |> CSet.elements
 
-let of_header t =
-    match List.map Char.uppercase_ascii t with
-    | ['Y'; 'N'; 'X'] -> COLONIZATION
-    | ['A'; 'V'; 'E'; 'I'; 'H'; 'R'; 'X'] -> MYC_STRUCTURES
-    | _ -> invalid_arg "(AmfLevel.of_header) Malformed table header"
-
-let all_flags = [COLONIZATION; MYC_STRUCTURES]
-let lowest = COLONIZATION
-let highest = MYC_STRUCTURES
+let all_flags = [RootSegm; IRStruct]
+let lowest = RootSegm
+let highest = IRStruct
 
 let others = function
-    | COLONIZATION -> [MYC_STRUCTURES]
-    | MYC_STRUCTURES -> [COLONIZATION]
+    | RootSegm -> [IRStruct]
+    | IRStruct -> [RootSegm]
 
 let symbols = function
-    | COLONIZATION -> ["M+"; "M−"; "Bkg"]
-    | MYC_STRUCTURES -> ["Arb"; "Ves"; "IRH"; "ERH"; "Hyp"; "Root"; "Bkg"]
+    | RootSegm -> ["AM fungi (M+)"; "Plant root (M−)"; "Background (×)"]
+    | IRStruct -> ["Arbuscule (A)";  "Vesicle (V)";        "Hypha (H)"]
+
+let icon_text = function
+    | RootSegm -> [('Y', "M+"); ('N', "M−"); ('X', "×")]
+    | IRStruct -> [('A', "A");  ('V', "V");  ('H', "H")]
+
+let transparency = "B0"
+let process = List.map (fun s -> s ^ transparency)
 
 let colors = function
-    | COLONIZATION -> ["#173ec299"; "#c217ba99"; "#51c21799"]
-    | MYC_STRUCTURES -> ["#80b3ff99"; "#afe9c699"; "#ffeeaa99"; "#eeaaff99";
-                        "#ffb38099"; "#bec8b799"; "#ffaaaa99" ]
+    | RootSegm -> process ["#c217ba"; "#00ffff"; "#5a5b7e"]
+    | IRStruct -> process ["#ffab00"; "#c217ba"; "#119DA4"]
 
 module type ANNOTATION_RULES = sig
     val add_add : char -> Morelib.CSet.t
@@ -63,38 +76,25 @@ end
 
 let cset_of_string str = CSet.of_seq (String.to_seq str)
 
-module Colonization = struct
+module RootSegm = struct
     let add_add _ = Morelib.CSet.empty
     let add_rem = function
         | 'Y' -> cset_of_string "NX"
         | 'N' -> cset_of_string "YX"
         | 'X' -> cset_of_string "YN"
         | chr -> AmfLog.error ~code:Err.invalid_argument 
-            "AmfLevel.Colonization.add_rem: Invalid argument %C" chr
+            "AmfLevel.RootSegm.add_rem: Invalid argument %C" chr
     let rem_add _ = Morelib.CSet.empty
     let rem_rem _ = Morelib.CSet.empty
 end
 
-module Myc_structures = struct
-    let add_add = function
-        | 'A' | 'V' | 'I' | 'H' -> Morelib.CSet.singleton 'R'
-        | 'E' | 'R' | 'X' -> Morelib.CSet.empty
-        | chr -> AmfLog.error ~code:Err.invalid_argument 
-            "AmfLevel.All_features.add_add: Invalid argument %C" chr
-    let add_rem = function
-        | 'A' | 'V' | 'I' | 'H' | 'E' | 'R' -> Morelib.CSet.singleton 'X'
-        | 'X' -> cset_of_string "AVEIHR"
-        | chr -> AmfLog.error ~code:Err.invalid_argument 
-            "AmfLevel.Arb_vesicles.add_rem: Invalid argument %C" chr
+module IRStruct = struct
+    let add_add _ = Morelib.CSet.empty
+    let add_rem _ = Morelib.CSet.empty
     let rem_add _ = Morelib.CSet.empty
-    let rem_rem = function
-        | 'R' -> cset_of_string "AVIH"
-        | 'A' | 'V' | 'I' | 'H' | 'E' | 'X' -> Morelib.CSet.empty
-        | chr -> AmfLog.error ~code:Err.invalid_argument 
-            "AmfLevel.Arb_vesicles.add_rem: Invalid argument %C" chr
+    let rem_rem _ = Morelib.CSet.empty
 end
 
-
 let rules = function
-    | COLONIZATION -> (module Colonization : ANNOTATION_RULES)
-    | MYC_STRUCTURES -> (module Myc_structures : ANNOTATION_RULES)
+    | RootSegm -> (module RootSegm : ANNOTATION_RULES)
+    | IRStruct -> (module IRStruct : ANNOTATION_RULES)

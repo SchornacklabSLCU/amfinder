@@ -1,4 +1,4 @@
-(* CastANet - uI_Levels.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - uI_Levels.mli *)
 
 (** UI auxiliary module dealing with annotation levels. *)
 

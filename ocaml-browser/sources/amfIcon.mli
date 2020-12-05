@@ -1,40 +1,27 @@
-(* CastANet - cIcon.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfIcon.mli *)
 
-(** CastANet icons. *)
+(** Interface icons. *)
 
-type size = [
-  | `SMALL          (** Small icons, 24x24 pixels. *)
-  | `LARGE          (** Large icons, 48x48 pixels. *)
-]
-(** Available icon sizes.  *)
+(** Icon size.  *)
+type size = 
+    | Small (** Small icons, 24 x 24 pixels. *)
+    | Large (** Large icons, 48 x 48 pixels. *)
 
-type style = [
-  | `RGBA           (** Active, coloured icons. *)
-  | `RGBA_LOCKED    (** Same, but locked.       *)
-  | `GREY           (** Inactive, grey icons.   *)
-  | `GREY_LOCKED    (** Same, but locked.       *)
-]
-(** Available icon styles. *)
 
-type palette = [
-  | `CIVIDIS 
-  | `VIRIDIS 
-  | `PLASMA
-]
-(** Available color palettes. *)
+(** Color mode. *)
+type style = 
+    | Grayscale     (** Gray levels. *)
+    | RGBA          (** Color mode (with alpha channel). *)
 
-val get_palette : palette -> size -> GdkPixbuf.pixbuf
-(** Returns a palette icon. *)
 
-val get : char -> style -> size -> GdkPixbuf.pixbuf
+val get : char -> size -> style -> GdkPixbuf.pixbuf
 (** [get chr sty sz] returns a GdkPixbuf corresponding to icon [chr], of 
-  * style [sty] and size [sz].
-  $ @raise Invalid_argument if [chr] is not a valid character. *)
+  * style [sty] and size [sz]. @raise Invalid_argument if [chr] is not a 
+  * valid character. *)
 
 
 (** Miscellaneous icons. *)
 module Misc : sig
-
     val cam : style -> GdkPixbuf.pixbuf
     (** Icon for class activation maps. *)
 
@@ -49,5 +36,4 @@ module Misc : sig
     
     val hide_preds : GdkPixbuf.pixbuf
     (** Remove predictions. *)
-
 end

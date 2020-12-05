@@ -1,4 +1,6 @@
-(* amf - imgTypes.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgTypes.ml *)
+
+open Morelib
 
 class type file = object
     method path : string
@@ -31,7 +33,7 @@ class type brush = object
     method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> string -> unit
+    method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> CSet.t -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
     method prediction_palette : ?sync:bool -> unit -> unit
@@ -69,12 +71,10 @@ end
 
 
 class type annotations = object
-    method current_level : AmfLevel.level
-    method current_layer : char
-    method get : ?level:AmfLevel.level -> r:int -> c:int -> unit -> AmfAnnot.annot
-    method iter : AmfLevel.level -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
-    method iter_layer : AmfLevel.level -> char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
-    method statistics : AmfLevel.level -> (char * int) list
+    method get : r:int -> c:int -> unit -> AmfAnnot.annot
+    method iter : (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter_layer : char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method statistics : ?level:AmfLevel.level -> unit -> (char * int) list
     method has_annot : ?level:AmfLevel.level -> r:int -> c:int -> unit -> bool
     method dump : Zip.out_file -> unit
 end

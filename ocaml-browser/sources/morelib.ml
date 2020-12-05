@@ -1,4 +1,4 @@
-(* CastANet - morelib.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - morelib.ml *)
 
 module CSet = Set.Make(Char)
 
@@ -80,11 +80,13 @@ module Matrix = struct
     let make ~r ~c x = Array.init r (fun _ -> Array.make c x)
     let init ~r ~c f = Array.init r (fun r -> Array.init c (fun c -> f ~r ~c))
 
-    let map f = Array.map (Array.map f)
-    let mapi f = Array.mapi (fun r -> Array.mapi (fun c -> f ~r ~c))
+    let map f = Array.(map (map f))
+    let mapi f = Array.(mapi (fun r -> mapi (fun c -> f ~r ~c)))
+    let map2 f = Array.(map2 (map2 f))
 
-    let iter f = Array.iter (Array.iter f)
-    let iteri f = Array.iteri (fun r -> Array.iteri (fun c -> f ~r ~c))
+    let iter f = Array.(iter (iter f))
+    let iteri f = Array.(iteri (fun r -> iteri (fun c -> f ~r ~c)))
+    let iter2 f = Array.(iter2 (iter2 f))
 
     let fold f ini t = 
         let res = ref ini in

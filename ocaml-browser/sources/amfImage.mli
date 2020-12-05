@@ -1,4 +1,4 @@
-(* CastANet - cImage.mli *) 
+(* The Automated Mycorrhiza Finder version 1.0 - amfImage.mli *)
 
 (** Image management. *)
 

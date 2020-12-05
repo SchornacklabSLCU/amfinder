@@ -1,4 +1,4 @@
-(* amf - amfCallback.ml  *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfCallback.ml *)
 
 module Magnifier = struct
 
@@ -10,6 +10,20 @@ module Magnifier = struct
         ignore (center#event#connect#button_press ~callback)
 
 end
+
+
+
+module Annotations = struct
+
+    let update_mosaic image_ref =
+        let callback _ radio =
+            Option.iter (fun (image : AmfImage.image) ->
+                if radio#active then image#mosaic ~sync:true ()
+            ) !image_ref
+        in AmfUI.Levels.set_callback callback
+
+end
+
 
 
 module Predictions = struct

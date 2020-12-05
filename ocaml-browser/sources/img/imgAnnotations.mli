@@ -1,4 +1,4 @@
-(* CastANet browser - imgAnnotations.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgAnnotations.mli *)
 
 (** Annotation manager. *)
 

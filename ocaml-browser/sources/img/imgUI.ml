@@ -1,4 +1,4 @@
-(* amf - imgUI.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgUI.ml *)
 
 
 class ui 
@@ -19,24 +19,24 @@ class ui
             (* Annotation is there, but toggle is inactive. *)
             if annot#mem chr && not tog#active then (
                 tog#set_active true;
-                img#set_pixbuf (AmfIcon.get chr `RGBA `LARGE)
+                img#set_pixbuf AmfIcon.(get chr Large RGBA)
             (* Annotation is missing, but toggle is active. *)
-            ) else if annot#off chr && tog#active then (
+            ) else if not (annot#mem chr) && tog#active then (
                 tog#set_active false;
-                img#set_pixbuf (AmfIcon.get chr `GREY `LARGE)
+                img#set_pixbuf AmfIcon.(get chr Large Grayscale)
             )
         )
     
     method private add_annot ?level chr =
         let r, c = cursor#get in
-        let annot = annotations#get ?level ~r ~c () in
-        annot#add chr;
+        let annot = annotations#get ~r ~c () in
+        annot#add ?level chr;
         self#update ()
 
     method private rem_annot ?level chr =
         let r, c = cursor#get in
-        let annot = annotations#get ?level ~r ~c () in
-        annot#add chr;
+        let annot = annotations#get ~r ~c () in
+        annot#add ?level chr;
         self#update ()
 
     method key_press ev =

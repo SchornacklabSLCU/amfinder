@@ -1,11 +1,12 @@
-(* amf - amfAnnot.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfAnnot.ml *)
 
 open Morelib
 
-class annot ?init level =
 
-    let valid = AmfLevel.chars level
-    and rules = AmfLevel.rules level in
+class annot ?init () =
+
+    let valid_root_segm = AmfLevel.(to_charset root_segmentation)
+    and valid_ir_struct = AmfLevel.(to_charset intraradical_structures) in
 
 object (self)
 
@@ -14,50 +15,51 @@ object (self)
         | None -> CSet.empty
         | Some str -> CSet.of_seq (String.to_seq str)
 
-    method private validate chr =
-        let uch = Char.uppercase_ascii chr in
-        if CSet.mem uch valid then uch
-        else AmfLog.error ~code:Err.invalid_argument
-            "AmfAnnot.annot#validate: Invalid argument %C" chr
+    method is_empty ?level () = 
+        match level with
+        | None -> CSet.is_empty annot
+        | Some level -> CSet.is_empty (self#get ~level ())
+        
+    method has_annot ?level () = not (self#is_empty ?level ())
 
-    method level = level
+    method get ?(level = AmfUI.Levels.current ()) () =
+        CSet.inter annot begin
+            match level with 
+            | AmfLevel.RootSegm -> valid_root_segm
+            | AmfLevel.IRStruct -> valid_ir_struct
+        end
 
-    method get = CSet.to_seq annot |> String.of_seq
-    
     method mem chr = CSet.mem chr annot
-    method off chr = CSet.mem chr (CSet.diff valid annot)
 
-    method is_empty = CSet.is_empty annot
-    method has_annot = not (self#is_empty)
+    method hot ?(level = AmfUI.Levels.current ()) () =
+        List.map (fun chr ->
+            if self#mem chr then 1 else 0
+        ) (AmfLevel.to_header level)
 
-    method hot = 
-        List.fold_left (fun res chr ->
-            (if self#mem chr then 1 else 0) :: res
-        ) [] (AmfLevel.to_header level) 
-        |> List.rev
+    method editable = AmfUI.Levels.current () = AmfLevel.RootSegm || self#mem 'Y'
 
-    method set chr =
-        annot <- CSet.empty;
-        self#add chr
+    method add ?(level = AmfUI.Levels.current ()) chr =
+        if not (self#mem chr) then begin
+            match level with
+            | AmfLevel.RootSegm -> assert (CSet.mem chr valid_root_segm);
+                annot <- CSet.singleton chr (* mutually exclusive. *)
+            | AmfLevel.IRStruct -> assert (CSet.mem chr valid_ir_struct);
+                annot <- CSet.add chr annot (* can be combined. *)
+        end
 
-    method add chr =
-        let chr = self#validate chr in
-        let module Rules = (val rules : AmfLevel.ANNOTATION_RULES) in
-        if not (CSet.mem chr annot) then
-            annot <- CSet.diff annot (Rules.add_rem chr)
-                |> CSet.union (Rules.add_add chr)
-                |> CSet.add chr
-
-    method remove chr =
-        let chr = self#validate chr in
-        let module Rules = (val rules : AmfLevel.ANNOTATION_RULES) in
-        if CSet.mem chr annot then
-            annot <- CSet.diff annot (Rules.rem_rem chr)
-                |> CSet.union (Rules.rem_add chr)
-                |> CSet.remove chr
-
+    method remove ?(level = AmfUI.Levels.current ()) chr =
+        if self#mem chr then begin
+            match level with
+            | AmfLevel.RootSegm when CSet.mem chr valid_root_segm -> 
+                annot <- CSet.empty (* Also removes intraradical structures. *)
+            | AmfLevel.IRStruct when CSet.mem chr valid_ir_struct ->
+                annot <- CSet.remove chr annot
+            | _ -> AmfLog.error ~code:Err.Annot.invalid_character
+                "Invalid character %C at annotation level %s" chr
+                (AmfLevel.to_string level)
+        end
 end
 
 
-let create x = new annot x
-let of_string level init = new annot ~init level
+let create () = new annot ()
+let of_string s = new annot ~init:s ()

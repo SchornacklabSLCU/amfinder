@@ -1,4 +1,4 @@
-(* CastANet - cLog.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfLog.ml *)
 
 
 

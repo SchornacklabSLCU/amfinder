@@ -1,4 +1,4 @@
-(* CastANet - cImage.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfImage.ml *)
 
 open Printf
 
@@ -60,13 +60,15 @@ object (self)
         (* Cursor drawing functions. *)
         cursor#set_paint draw#cursor;
         cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
+        (*cursor#set_paint (fun ?sync:_ ~r ~c -> self#update_current_legend r c);
+        cursor#set_erase (fun ?sync:_ ~r ~c -> self#register_last_legend r c);*)
         cursor#set_erase self#draw_annotated_tile;
         (* Pointer drawing functions. *)
         pointer#set_paint draw#pointer;
         pointer#set_erase self#draw_annotated_tile;
         (* UI update functions. *)
         ui#set_paint self#update_current_tile;
-        annotations#current_level
+        AmfUI.Levels.current ()
         |> predictions#ids
         |> AmfUI.Predictions.set_choices;
         (* When the active r/c range changes, the entire mosaic is redraw to
@@ -86,6 +88,21 @@ object (self)
     method annotations = annotations
     method predictions = predictions
 
+(*
+    val mutable last_is_annot = false
+    method register_last_legend r c = 
+        last_is_annot <- not predictions#active || predictions#get ~r ~c = None
+
+    method update_current_legend r c =
+        let level = annot#current_level in
+        let mask = annot#get ~level ~r ~c () in
+        if predictions#active && predictions#get ~r ~c <> None then (
+            if last_is_annot then (
+                brush#prediction_legend ~sync:false ();
+                last_is_annot <- false;
+            ) else rush#annotation_legend ~sync:true ()
+        )*)
+
     method show_predictions () =
         let preds = AmfUI.Predictions.get_active () in
         predictions#set_current preds;
@@ -95,8 +112,8 @@ object (self)
         assert predictions#active;
         let set_annot ~r ~c (chr, _) =
             let annot = annotations#get ~r ~c () in
-            if annot#is_empty then annot#add chr
-            else if erase then annot#set chr
+            if annot#is_empty () then annot#add chr
+            else if erase then annot#add chr
         in predictions#iter (`MAX set_annot);
         (* Things below should be part of ui. *)
         AmfUI.Predictions.overlay#set_active false
@@ -128,7 +145,7 @@ object (self)
         if i = 1 && j = 1 && predictions#active && activations#active then (
              match predictions#current with
              | None -> large_tiles#get (* No active prediction set. *)
-             | Some id -> match annotations#current_layer with
+             | Some id -> match AmfUI.Layers.current () with
                 | '*' -> (* let's find the top layer. *)
                     begin match predictions#max_layer ~r ~c with
                         | None -> large_tiles#get
@@ -152,8 +169,7 @@ object (self)
         ui#update ()
 
     method private update_counters () =
-        annotations#current_level
-        |> annotations#statistics
+        annotations#statistics ()
         |> List.iter (fun (c, n) -> AmfUI.Layers.set_label c n)
 
     method mosaic ?(sync = false) () =
@@ -167,7 +183,7 @@ object (self)
             done;
         done;
         if predictions#active then begin 
-            match annotations#current_layer with
+            match AmfUI.Layers.current () with
             | '*' -> brush#annotation_legend ~sync:false ()
             |  _  -> brush#prediction_palette ~sync:false ()
         end;

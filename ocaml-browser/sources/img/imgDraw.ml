@@ -1,4 +1,6 @@
-(** amf - imgDraw.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgDraw.ml *)
+
+open Morelib
 
 class draw 
   (tiles : ImgTypes.tile_matrix)
@@ -29,12 +31,12 @@ class draw
     method cursor ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then brush#cursor ~sync ~r ~c ();
         if preds#active then (
-            let level = annot#current_level in
-            let mask = annot#get ~level ~r ~c () in
-            if mask#is_empty then
+            let level = AmfUI.Levels.current () in
+            let mask = annot#get ~r ~c () in
+            if mask#is_empty () then
                 Option.iter (fun t ->
-                    let chr = annot#current_layer in
-                    if chr <> '*' then annot#current_level
+                    let chr = AmfUI.Layers.current () in
+                    if chr <> '*' then level
                     |> (fun x -> AmfLevel.char_index x chr)
                     |> List.nth t
                     |> (fun x -> brush#show_probability ~sync x)
@@ -44,22 +46,22 @@ class draw
     method pointer ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then brush#pointer ~sync ~r ~c ()    
 
-    method private annotation ?sync ~r ~c mask =
-        let level = annot#current_level in
-        match annot#current_layer with
+    method private annotation ?sync ~r ~c (mask : AmfAnnot.annot) =
+        let level = AmfUI.Levels.current () in
+        match AmfUI.Layers.current () with
         (* Display a digest of all annotations. *)
-        | '*' -> brush#annotation ?sync ~r ~c level mask#get
+        | '*' -> brush#annotation ?sync ~r ~c level (mask#get ())
         | chr -> match mask#mem chr with
-            | true  -> brush#annotation ?sync ~r ~c level (String.make 1 chr)
+            | true  -> brush#annotation ?sync ~r ~c level (CSet.singleton chr);
             | false -> () (* no annotation in this layer. *)
 
     (*  *)
     method private prediction ?sync ~r ~c () =
         if preds#active then
             Option.iter (fun t ->
-                let chr = annot#current_layer in
+                let chr = AmfUI.Layers.current () in
                 if chr = '*' then brush#pie_chart ?sync ~r ~c t else
-                    let x = annot#current_level
+                    let x = AmfUI.Levels.current ()
                         |> (fun x -> AmfLevel.char_index x chr)
                         |> List.nth t
                     in (brush#prediction ?sync ~r ~c chr x);
@@ -67,10 +69,9 @@ class draw
 
     method overlay ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then begin
-            let level = annot#current_level in
-            let mask = annot#get ~level ~r ~c () in
+            let mask = annot#get ~r ~c () in
             (* Gives priority to annot over preds. *)
-            if mask#is_empty then self#prediction ~sync ~r ~c ()
+            if mask#is_empty () then self#prediction ~sync ~r ~c ()
             else self#annotation ~sync ~r ~c mask
         end
 end

@@ -1,33 +1,39 @@
-(* CastANet browser - imgAnnotations.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgAnnotations.ml *)
 
 open Scanf
 open Printf
 open Morelib
 
 module Aux = struct
-    let of_string level data =
+    let of_string data =
         String.split_on_char '\n' data
-        |> List.rev_map (String.split_on_char '\t')
-        |> List.rev_map (List.map (AmfAnnot.of_string level))
+        |> List.map (String.split_on_char '\t')
         |> Array.of_list
         |> Array.map Array.of_list
 
-    let to_string data =
-        Matrix.map (fun annot -> annot#get) data
+    let to_string level data =
+        Matrix.map (fun (annot : AmfAnnot.annot) -> 
+            annot#get ~level ()
+            |> CSet.to_seq
+            |> String.of_seq    
+        ) data
         |> Array.map Array.to_list
         |> Array.map (String.concat "\t")
         |> Array.to_list
         |> String.concat "\n"
                 
-    let to_python level data =
+    let to_python level (data : AmfAnnot.annot Matrix.t) =
         let rows = Array.length data
         and columns = Array.length data.(0) in
         let buf = Buffer.create 100 in
         for i = 0 to rows * columns - 1 do
             let r = i / columns and c = i mod columns in
             let mask = data.(r).(c) in
-            if mask#has_annot then bprintf buf "%d\t%d\t%s\n" r c
-                (mask#hot |> List.map string_of_int |> String.concat "\t")
+            if mask#has_annot ~level () then
+                bprintf buf "%d\t%d\t%s\n" r c
+                (mask#hot ~level () 
+                    |> List.map string_of_int
+                    |> String.concat "\t")
         done;
         let res = Buffer.contents buf in
         if String.length res = 0 then None else
@@ -39,82 +45,82 @@ module Aux = struct
 end
 
 
+class annotations (source : ImgTypes.source) root_segm ir_struct =
 
-class annotations (input : (AmfLevel.level * AmfAnnot.annot Matrix.t) list) = 
+    let table =
+        match root_segm with
+        | None -> let r = source#rows and c = source#columns in
+            Matrix.init ~r ~c (fun ~r:_ ~c:_ -> AmfAnnot.create ())
+        | Some root_segm -> let seg = Aux.of_string root_segm in
+            match ir_struct with
+            | None -> Matrix.map AmfAnnot.of_string seg
+            | Some myc ->
+                Matrix.map2 (fun rs is ->
+                    AmfAnnot.of_string (rs ^ is)
+                ) seg (Aux.of_string myc)
+    in
 
 object (self)
 
-    method current_level = AmfUI.Levels.current ()
-    method current_layer = AmfUI.Layers.current ()
+    method get ~r ~c () = Matrix.get table ~r ~c
 
-    method get ?level ~r ~c () =
-        let level = Option.value level ~default:self#current_level in
-        match Matrix.get_opt (List.assoc level input) ~r ~c with
-        | None -> AmfAnnot.of_string self#current_level ""
-        | Some mask -> mask
+    method has_annot ?level ~r ~c () = (self#get ~r ~c ())#has_annot ?level ()
 
-    method has_annot ?level ~r ~c () = (self#get ?level ~r ~c ())#has_annot
+    method iter f = Matrix.iteri f table
 
-    method iter level f = Matrix.iteri f (List.assoc level input)
-
-    method iter_layer level layer f =
+    method iter_layer layer f =
         let has_layer = match layer with
-            | '*' -> (fun mask -> String.length mask#get > 0)
-            | chr -> (fun mask -> String.contains mask#get chr)
+            | '*' -> (fun (mask : AmfAnnot.annot) -> CSet.cardinal (mask#get ()) > 0)
+            | chr -> (fun (mask : AmfAnnot.annot) -> CSet.mem chr (mask#get ()))
         in
-        Matrix.iteri (fun ~r ~c mask ->
-            if has_layer mask then f ~r ~c mask
-        ) (List.assoc level input)
+        Matrix.iteri (fun ~r ~c annot ->
+            if has_layer annot then f ~r ~c annot
+        ) table
 
-    method statistics level =
-        let counters = List.map (fun c -> c, ref 0) (AmfLevel.to_header level) in
-        self#iter level (fun ~r ~c mask ->
-            String.iter (fun chr -> incr (List.assoc chr counters)) mask#get
+    method statistics ?(level = AmfUI.Levels.current ()) () =
+        let counters = AmfLevel.to_header level
+            |> List.map (fun c -> c, ref 0) in
+        self#iter (fun ~r:_ ~c:_ (mask : AmfAnnot.annot) ->
+            CSet.iter (fun chr ->
+                incr (List.assoc chr counters)
+            ) (mask#get ~level ())
         );
         List.map (fun (c, r) -> c, !r) counters
 
     method dump och =
-        List.iter (fun (level, matrix) ->
+        List.iter (fun level ->
             let file = AmfLevel.to_string level
                 |> sprintf "annotations/%s.caml" in
-            Zip.add_entry (Aux.to_string matrix) och file;
+            Zip.add_entry (Aux.to_string level table) och file;
             (* Create Python table for use with Python amf scripts. *)
-            match Aux.to_python level matrix with
+            match Aux.to_python level table with
             | None -> ()
             | Some data -> let lvl_string = AmfLevel.to_string level in
                 Zip.add_entry data och (sprintf "%s.tsv" lvl_string)
-        ) input
+        ) AmfLevel.[RootSegm; IRStruct]
 
 end
 
 
-let filter entries = 
-    List.filter (fun e -> 
-        Filename.dirname e.Zip.filename = "annotations"
-    ) entries
+let retrieve_annotations ich entries =
+    let root_segm = ref None and ir_struct = ref None in
+    List.iter (fun entry ->
+        let path = entry.Zip.filename in
+        if Filename.dirname path = "annotations" then
+            match Filename.basename path with
+            | "RootSegm.caml" -> root_segm := Some (Zip.read_entry ich entry)
+            | "IRStruct.caml" -> ir_struct := Some (Zip.read_entry ich entry)
+            | any -> AmfLog.error ~code:Err.Image.unknown_annotation_file
+                "Unknown annotation file %S" any 
+    ) entries;
+    (!root_segm, !ir_struct)
 
-
-let empty_tables source =
-    let r = source#rows and c = source#columns in
-    List.map (fun level ->
-        level, Matrix.init ~r ~c (fun ~r:_ ~c:_ -> AmfAnnot.create level)
-    ) AmfLevel.all_flags
 
 
 let create ?zip source =
     match zip with
-    | None -> new annotations (empty_tables source)
+    | None -> new annotations source None None
     | Some ich -> let entries = Zip.entries ich in
-        match filter entries with
-        | [] -> new annotations (empty_tables source)
-        | entries ->
-            let tables = 
-                List.map (fun ({Zip.filename; _} as entry) ->
-                    let level = Filename.chop_extension filename
-                        |> Filename.basename
-                        |> AmfLevel.of_string in
-                    let table = Zip.read_entry ich entry
-                        |> Aux.of_string level in
-                    level, table
-                ) entries
-            in new annotations tables
+        match retrieve_annotations ich entries with
+        | None, _ -> new annotations source None None
+        | root_segm, ir_struct -> new annotations source root_segm ir_struct

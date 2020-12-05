@@ -43,7 +43,11 @@ class predictions input = object (self)
 
     method current = curr
     method set_current x = curr <- x
-    method active = curr <> None
+    method active =
+        match curr with
+        | None -> false
+        | Some str -> fst (List.assoc str input) = AmfUI.Levels.current ()
+    
 
     method ids level = 
         List.filter (fun (_, (x, _)) -> x = level) input

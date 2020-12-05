@@ -2,8 +2,7 @@
 
 open Scanf
 open Printf
-
-let (%) = float
+open Morelib
 
 module Memo = struct
     let memo f color =
@@ -16,7 +15,7 @@ module Memo = struct
         fun edge -> !get edge
 
     let joker = memo    AmfSurface.solid_square "#00dd0099"
-    let cursor = memo AmfSurface.empty_square "#cc0000cc"    
+    let cursor = memo AmfSurface.empty_square "#cc0000ff"    
     let pointer = memo AmfSurface.solid_square "#cc000066"
 
     let margin_square_off = memo AmfSurface.solid_square "#ffffffff"
@@ -32,10 +31,12 @@ module Memo = struct
         AmfSurface.circle color edge
 
     let layers =
-        let make_surface chr clr = chr, memo AmfSurface.solid_square clr in
+        let make_surface lvl chr clr = 
+            let sym = List.assoc_opt chr (AmfLevel.icon_text lvl) in
+            chr, memo (AmfSurface.solid_square ?sym) clr in
         let open AmfLevel in
         List.map (fun level ->
-            level, List.map2 make_surface (to_header level) (colors level)
+            level, List.map2 (make_surface level) (to_header level) (colors level)
         ) all_flags
 
     let layer level = function
@@ -137,7 +138,7 @@ object (self)
 
     method annotation_legend ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
-        and y = float (self#y ~r:(snd self#r_range + 1) + 5) in
+        and y = float (self#y ~r:(snd self#r_range + 1) + 20) in
         let level = AmfUI.Levels.current () in
         let colors = AmfLevel.colors level
         and symbols = AmfLevel.symbols level in
@@ -280,8 +281,8 @@ object (self)
     method pointer ?sync ~r ~c () =
         self#surface ?sync ~r ~c (Memo.pointer edge)
 
-    method annotation ?sync ~r ~c level str =
-        let chr = str.[0] in (* TODO: complete this. *)
+    method annotation ?sync ~r ~c level set =
+        let chr = (CSet.to_seq set |> String.of_seq).[0] in (* TODO: complete this. *)
         self#surface ?sync ~r ~c (Memo.layer level chr edge)
 
     method pie_chart ?sync ~r ~c t =

@@ -4,7 +4,7 @@ let _ = GMain.init ()
 
 let window =
     let wnd = GWindow.window
-        ~title:"CastANet Editor 2.0"
+        ~title:"AMFinder 2.0"
         ~resizable:false
         ~position:`CENTER ()
     in wnd#connect#destroy GMain.quit;
@@ -63,7 +63,7 @@ let container = GPack.table
 let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:98 ~height:265
+    ~width:98 ~height:185
     ~packing:(container#attach ~left:0 ~top:0) ()
 
 let status = 
@@ -90,9 +90,6 @@ module Params = struct
     end
     module Drawing = struct
         let packing obj = right_pane#attach ~left:0 ~top:0 obj
-    end
-    module CursorPos = struct
-        let packing obj = toolbar#insert obj
     end
     module Predictions = struct
         let parent = window

@@ -1,4 +1,4 @@
-(* amf - amfCallback.mli  *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfCallback.mli *)
 
 (** Event manager. *)
 
@@ -8,6 +8,14 @@ module Magnifier : sig
     val capture_screenshot : AmfImage.image option ref -> unit
 
 end
+
+
+
+(** Annotations. *)
+module Annotations : sig
+    val update_mosaic : AmfImage.image option ref -> unit
+end
+
 
 
 (** Predictions. *)
