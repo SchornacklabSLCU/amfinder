@@ -19,7 +19,7 @@ module Make (P : PARAMS) : S = struct
   let current () = !curr
   let set_current x = curr := x
 
-  let make_radio group str lvl =
+  let make_radio group step text lvl =
     (* Container for the GtkRadioButton and its corresponding GtkLabel. *)
     let packing = (GPack.hbox ~packing:P.packing ())#pack ~expand:false in
     (* Radio button without a label (will use a GtkLabel for that). *)
@@ -27,7 +27,7 @@ module Make (P : PARAMS) : S = struct
     let r = GButton.radio_button ?group ~active ~packing () in
     (* Removes the unpleasant focus square around the round button. *)
     r#misc#set_can_focus false;
-    let markup = sprintf "<big><b>%s</b></big>" str in
+    let markup = sprintf "<big><b>%s.</b> %s</big>" step text in
     ignore (GMisc.label ~markup ~packing ());
     (* Updates the annotation level upon activation. *)
     r#connect#toggled (fun () -> if r#active then curr := lvl);
@@ -35,11 +35,12 @@ module Make (P : PARAMS) : S = struct
 
   let radios = 
     let group = ref None in
-    List.map2 (fun lvl lbl ->
-      let radio = make_radio !group lbl lvl in
+    List.map2 (fun lvl (step, text) ->
+      let radio = make_radio !group step text lvl in
       if !group = None then group := Some radio#group;
       lvl, radio
-    ) AmfLevel.all_flags ["Root segmentation"; "Intraradical structures"]
+    ) AmfLevel.all_flags ["Step 1", "Root segmentation"; 
+                          "Step 2", "Intraradical structures"]
     
   let set_callback f =
     List.iter (fun (level, radio) ->

@@ -68,6 +68,8 @@ object (self)
         pointer#set_erase self#draw_annotated_tile;
         (* UI update functions. *)
         ui#set_paint self#update_current_tile;
+        (* Updates the display if the current palette changes. *)
+        AmfUI.Predictions.set_palette_update (fun () -> self#mosaic ~sync:true ());
         AmfUI.Levels.current ()
         |> predictions#ids
         |> AmfUI.Predictions.set_choices;
@@ -112,8 +114,7 @@ object (self)
         assert predictions#active;
         let set_annot ~r ~c (chr, _) =
             let annot = annotations#get ~r ~c () in
-            if annot#is_empty () then annot#add chr
-            else if erase then annot#add chr
+            if annot#is_empty () || erase then annot#add chr
         in predictions#iter (`MAX set_annot);
         (* Things below should be part of ui. *)
         AmfUI.Predictions.overlay#set_active false

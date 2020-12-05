@@ -13,12 +13,12 @@ end
 
 module type S = sig
     val palette : GButton.tool_button
-    val set_icon : string array -> unit
     val get_colors : unit -> string array
     val set_choices : string list -> unit
     val get_active : unit -> string option
     val overlay : GButton.toggle_tool_button
     val palette : GButton.tool_button
+    val set_palette_update : (unit -> unit) -> unit
     val cams : GButton.toggle_tool_button
     val convert : GButton.tool_button
 end
@@ -35,17 +35,19 @@ let validate_color ?(default = "#ffffff" ^ transparency) s =
     (fun a b c -> sprintf "#%02x%02x%02x%s" a b c transparency)
 
 let load () =
-  Array.fold_left (fun pal elt ->
-    let path = Filename.concat folder elt in
-    if Filename.check_suffix path ".palette" then (
-      let base = Filename.remove_extension elt in
-        let colors = File.read path
-          |> String.split_on_char '\n'
-          |> List.map validate_color
-          |> Array.of_list
-        in (base, colors) :: pal
-    ) else pal
-  ) [] (Sys.readdir folder)
+    let files = Sys.readdir folder in
+    Array.sort String.compare files;
+    Array.fold_left (fun pal elt ->
+        let path = Filename.concat folder elt in
+        if Filename.check_suffix path ".palette" then (
+            let base = Filename.remove_extension elt in
+            let colors = File.read path
+                |> String.split_on_char '\n'
+                |> List.map validate_color
+                |> Array.of_list
+            in (base, colors) :: pal
+        ) else pal
+    ) [] files
 
 let parse_html_color =
     let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
@@ -157,6 +159,7 @@ module Make (P : PARAMS) : S = struct
                 ~parent:P.parent
                 ~width:300
                 ~height:100
+                ~modal:true
                 ~deletable:false
                 ~resizable:false
                 ~title:"Predictions"
@@ -187,22 +190,25 @@ module Make (P : PARAMS) : S = struct
             ~label:"Add" 
             ~packing ()
 
-    let palette, palette_icon =
+    let palette =
         let btn = GButton.tool_button ~packing () in
         btn#misc#set_sensitive false;
         let box = GPack.hbox
             ~spacing:2
             ~packing:btn#set_label_widget () in
-        let ico = GMisc.image 
+        let _ = GMisc.image 
             ~width:25 
             ~pixbuf:AmfIcon.Misc.palette
-            ~packing:(box#pack ~expand:false) () in
-        ignore (GMisc.label
+            ~packing:(box#pack ~expand:false) ()
+        and _ = GMisc.label
             ~markup:(Aux.small_text "Palette")
             ~xalign:0.0
             ~yalign:0.5
-            ~packing:box#add ());
-        btn, ico
+            ~packing:box#add () in
+        btn
+
+    let palette_update = ref []
+    let set_palette_update f = palette_update := f :: !palette_update
 
     let cams =
         let btn, lbl, ico = Aux.markup_toggle_button
@@ -242,13 +248,12 @@ module Make (P : PARAMS) : S = struct
         let text = sprintf "%s %s" (CI18n.get `CURRENT_PALETTE) s in
         P.tooltips#set_tip ~text palette#coerce
  
-    let set_icon t = () (* palette_icon#set_pixbuf (draw_icon ~digest:true t)*)
-
     let dialog = 
         let dlg = GWindow.dialog
             ~parent:P.parent
             ~width:250
             ~height:200
+            ~modal:true
             ~deletable:false
             ~resizable:false
             ~title:"Color Palettes"
@@ -280,7 +285,7 @@ module Make (P : PARAMS) : S = struct
       let sel = ref None in
       List.iteri (fun i (id, colors) ->
         let id = String.capitalize_ascii id in
-        let row = TreeView.Data.store#append () in
+        let row = TreeView.Data.store#prepend () in
         if id = "Cividis" then sel := Some (id, colors, row);
         let set ~column x = TreeView.Data.store#set ~row ~column x in
         set ~column:TreeView.Data.name id;
@@ -288,7 +293,6 @@ module Make (P : PARAMS) : S = struct
         set ~column:TreeView.Data.pixbuf (draw_icon colors)
       ) (load ());
       Option.iter (fun (id, colors, row) ->
-        set_icon colors;
         set_tooltip id;
         view#selection#select_iter row
       ) !sel
@@ -337,9 +341,13 @@ module Make (P : PARAMS) : S = struct
             else Toolbox.disable ()
         in ignore (overlay#connect#toggled ~callback);
         let callback () =
+            let old_palname = get_name () in
             if dialog#run () = `OK then (
-                set_icon (get_colors ());
-                set_tooltip (get_name ());
+                let new_palname = get_name () in
+                if new_palname <> old_palname then begin
+                    set_tooltip new_palname;
+                    List.iter (fun f -> f ()) !palette_update
+                end;
                 dialog#misc#hide ()
             )
         in palette#connect#clicked ~callback

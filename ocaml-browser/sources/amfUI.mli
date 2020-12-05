@@ -27,10 +27,6 @@ module Layers : UILayers.S
 module Predictions : UIPredictions.S
 (** Prediction manager. *)
 
-val status : GMisc.label
-(** Label used as a status bar. It displays general information related to the 
-  * loaded image, such as height and width (in pixels). *)
-
 module TileSet : UITileSet.S
 (** Auxiliary window to display all tiles sharing a given annotation. *)
 

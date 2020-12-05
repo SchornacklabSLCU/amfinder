@@ -39,16 +39,6 @@ let connect_image image =
     (* GtkToggleButtons. *)
     AmfCallback.ToggleBar.annotate image
 
-let digest image =
-  sprintf "<small><tt> \
-    <b>Image:</b> %s ▪ \
-    <b>Size:</b> %d × %d pixels ▪ \
-    <b>Tiles:</b> %d × %d</tt></small>" 
-    image#file#base
-    image#source#width image#source#height
-    image#source#rows image#source#columns
-
-
 
 let load_image () =
     (* Retrieves an image path from the command line or from a file chooser. *)
@@ -66,9 +56,7 @@ let load_image () =
     image#show ();
     AmfUI.Layers.set_callback (fun _ radio _ _ -> 
         if radio#get_active then image#mosaic ~sync:true ()
-    );
-    (* Displays general information regarding the image. *)
-    AmfUI.status#set_label (digest image)
+    )
 
 
 let main () =

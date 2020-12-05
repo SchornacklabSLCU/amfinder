@@ -66,15 +66,6 @@ let toolbar = GButton.toolbar
     ~width:98 ~height:185
     ~packing:(container#attach ~left:0 ~top:0) ()
 
-let status = 
-    let lbl = GMisc.label
-        ~xalign:0.0
-        ~yalign:0.0
-        ~packing:(Box.v#pack ~expand:false) () in
-    lbl#set_use_markup true;
-    lbl
-
-
 module Params = struct
     module Toggles = struct
         include Levels

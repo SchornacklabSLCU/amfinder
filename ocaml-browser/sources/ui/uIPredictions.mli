@@ -14,9 +14,6 @@ module type S = sig
     val palette : GButton.tool_button
     (** Displays a small utility window to select a palette. *)
 
-    val set_icon : string array -> unit
-    (** Updates the palette icon. *)
-
     val get_colors : unit -> string array
     (** Returns the colors associated with the current palette. *)
 
@@ -31,6 +28,9 @@ module type S = sig
 
     val palette : GButton.tool_button
     (** Color palette selector. *)
+
+    val set_palette_update : (unit -> unit) -> unit
+    (** Defines the update function to use when the palette changes. *)
 
     val cams : GButton.toggle_tool_button
     (** Indicates whether CAMs are to be displayed or not. *)

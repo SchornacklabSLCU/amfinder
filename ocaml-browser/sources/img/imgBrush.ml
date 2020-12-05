@@ -282,9 +282,11 @@ object (self)
         self#surface ?sync ~r ~c (Memo.pointer edge)
 
     method annotation ?sync ~r ~c level set =
-        let chr = (CSet.to_seq set |> String.of_seq).[0] in (* TODO: complete this. *)
-        self#surface ?sync ~r ~c (Memo.layer level chr edge)
-
+        if not (CSet.is_empty set) then begin
+             (* FIXME: what to display in case of multiple annotations? *)
+            let chr = (CSet.to_seq set |> String.of_seq).[0] in
+            self#surface ?sync ~r ~c (Memo.layer level chr edge)
+        end
     method pie_chart ?sync ~r ~c t =
         AmfUI.Levels.current ()
         |> AmfLevel.colors
