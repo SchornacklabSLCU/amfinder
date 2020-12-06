@@ -43,17 +43,15 @@ class draw
                 ) (preds#get ~r ~c)
         )
 
-    method pointer ?(sync = true) ~r ~c () =
-        if self#may_update_view ~r ~c () then brush#pointer ~sync ~r ~c ()    
-
     method private annotation ?sync ~r ~c (mask : AmfAnnot.annot) =
         let level = AmfUI.Levels.current () in
         match AmfUI.Layers.current () with
         (* Display a digest of all annotations. *)
         | '*' -> brush#annotation ?sync ~r ~c level (mask#get ())
-        | chr -> match mask#mem chr with
+        | chr -> if cursor#at ~r ~c then brush#hide_probability ();
+            match mask#mem chr with
             | true  -> brush#annotation ?sync ~r ~c level (CSet.singleton chr);
-            | false -> () (* no annotation in this layer. *)
+            | false -> brush#annotation_other_layer ?sync ~r ~c ()
 
     (*  *)
     method private prediction ?sync ~r ~c () =

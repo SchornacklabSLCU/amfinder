@@ -32,8 +32,8 @@ class type brush = object
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
     method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> CSet.t -> unit
+    method annotation_other_layer : ?sync:bool -> r:int -> c:int -> unit -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
     method prediction_palette : ?sync:bool -> unit -> unit
@@ -109,7 +109,6 @@ class type draw = object
     method set_update: (unit -> unit) -> unit
     method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
-    method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
     method overlay : ?sync:bool -> r:int -> c:int -> unit -> unit
 end
 

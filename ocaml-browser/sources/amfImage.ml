@@ -60,12 +60,8 @@ object (self)
         (* Cursor drawing functions. *)
         cursor#set_paint draw#cursor;
         cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
-        (*cursor#set_paint (fun ?sync:_ ~r ~c -> self#update_current_legend r c);
-        cursor#set_erase (fun ?sync:_ ~r ~c -> self#register_last_legend r c);*)
+        cursor#set_paint self#draw_annotated_tile;
         cursor#set_erase self#draw_annotated_tile;
-        (* Pointer drawing functions. *)
-        pointer#set_paint draw#pointer;
-        pointer#set_erase self#draw_annotated_tile;
         (* UI update functions. *)
         ui#set_paint self#update_current_tile;
         (* Updates the display if the current palette changes. *)
@@ -89,21 +85,6 @@ object (self)
     method large_tiles = large_tiles
     method annotations = annotations
     method predictions = predictions
-
-(*
-    val mutable last_is_annot = false
-    method register_last_legend r c = 
-        last_is_annot <- not predictions#active || predictions#get ~r ~c = None
-
-    method update_current_legend r c =
-        let level = annot#current_level in
-        let mask = annot#get ~level ~r ~c () in
-        if predictions#active && predictions#get ~r ~c <> None then (
-            if last_is_annot then (
-                brush#prediction_legend ~sync:false ();
-                last_is_annot <- false;
-            ) else rush#annotation_legend ~sync:true ()
-        )*)
 
     method show_predictions () =
         let preds = AmfUI.Predictions.get_active () in
@@ -131,11 +112,8 @@ object (self)
 
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
         draw#tile ~sync:false ~r ~c ();
-        if pointer#at ~r ~c then brush#pointer ~sync:false ~r ~c ()
-        else begin
-            draw#overlay ~sync:false ~r ~c ();
-            if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ()
-        end;
+        draw#overlay ~sync:false ~r ~c ();
+        if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ();
         if sync then brush#sync "draw_annotated_tile" ()
 
     method private update_current_tile () =

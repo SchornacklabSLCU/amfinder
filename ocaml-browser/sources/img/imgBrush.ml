@@ -14,17 +14,15 @@ module Memo = struct
         ) in
         fun edge -> !get edge
 
-    let joker = memo    AmfSurface.solid_square "#00dd0099"
-    let cursor = memo AmfSurface.empty_square "#cc0000ff"    
-    let pointer = memo AmfSurface.solid_square "#cc000066"
+    let joker = memo AmfSurface.Square.filled "#00dd0099"
+    let cursor = memo AmfSurface.Square.cursor "#cc0000ff"    
 
-    let margin_square_off = memo AmfSurface.solid_square "#ffffffff"
+    let dashed_square = memo AmfSurface.Square.dashed "#000000FF"
+
+    let margin_square_off = memo AmfSurface.Square.filled "#FFFFFFFF"
     let margin_square_on = memo AmfSurface.circle "#000000FF"
 
-    let right_arrowhead = memo AmfSurface.right_arrowhead "#FF0000FF"
-    let down_arrowhead = memo AmfSurface.down_arrowhead "#FF0000FF"
-
-    let up_arrowhead = memo AmfSurface.up_arrowhead "#FF0000FF"
+    let arrowhead = memo AmfSurface.arrowhead "#FF0000FF"
 
     let palette index edge =
         let color = (AmfUI.Predictions.get_colors ()).(index) in
@@ -32,8 +30,8 @@ module Memo = struct
 
     let layers =
         let make_surface lvl chr clr = 
-            let sym = List.assoc_opt chr (AmfLevel.icon_text lvl) in
-            chr, memo (AmfSurface.solid_square ?sym) clr in
+            let symbol = List.assoc_opt chr (AmfLevel.icon_text lvl) in
+            chr, memo (AmfSurface.Square.filled ?symbol) clr in
         let open AmfLevel in
         List.map (fun level ->
             level, List.map2 (make_surface level) (to_header level) (colors level)
@@ -127,7 +125,7 @@ object (self)
 
     method prediction_palette ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
-        and y = float (self#y ~r:(snd self#r_range + 1) + 5) in
+        and y = float (self#y ~r:(snd self#r_range + 1) + 15) in
         let colors = AmfUI.Predictions.get_colors () in
         let surface = AmfSurface.prediction_palette colors edge in
         let rem = max_tile_w * edge - Cairo.Image.get_width surface in
@@ -241,12 +239,12 @@ object (self)
         Cairo.rectangle t 0.0 0.0 ~w:(float grid_width) ~h:(float edge);
         Cairo.fill t;
         Cairo.stroke t;
-        let y = float (self#y ~r:(snd self#r_range + 1) + 5 + edge + 5) in
+        let y = float (self#y ~r:(snd self#r_range + 1) + 15 + edge + 5) in
         let t = AmfUI.Drawing.cairo () in
         let grid_width = max_tile_w * edge in
         Cairo.set_source_surface t surface
             (float x_origin +. float (grid_width - 12 * (ncolors + 2)) /. 2.0)
-            (y);
+            y;
         Cairo.paint t;
         if sync then self#sync "hide_probability" ()
 
@@ -254,13 +252,13 @@ object (self)
         self#hide_probability ();
         let t = AmfUI.Drawing.cairo () in
         let index = self#index_of_prob prob in
-        let y = float (self#y ~r:(snd self#r_range + 1) + 5 + edge + 5) in
+        let y = float (self#y ~r:(snd self#r_range + 1) + 15 + edge + 5) in
         let len = Array.length (AmfUI.Predictions.get_colors ()) in
         let grid_width = max_tile_w * edge in
         let rem = grid_width - 12 * len in
         let x = float x_origin +. float rem /. 2.0 in
         let x = x +. float index *. 12.0 in
-        let surface = Memo.up_arrowhead 12 in
+        let surface = Memo.arrowhead 12 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Monospace";
@@ -278,15 +276,16 @@ object (self)
         self#surface ~r ~c (Memo.cursor edge);
         self#coordinates ?sync ~r ~c ()
 
-    method pointer ?sync ~r ~c () =
-        self#surface ?sync ~r ~c (Memo.pointer edge)
-
     method annotation ?sync ~r ~c level set =
         if not (CSet.is_empty set) then begin
              (* FIXME: what to display in case of multiple annotations? *)
             let chr = (CSet.to_seq set |> String.of_seq).[0] in
             self#surface ?sync ~r ~c (Memo.layer level chr edge)
         end
+
+    method annotation_other_layer ?sync ~r ~c () =
+        self#surface ?sync ~r ~c (Memo.dashed_square edge)
+
     method pie_chart ?sync ~r ~c t =
         AmfUI.Levels.current ()
         |> AmfLevel.colors

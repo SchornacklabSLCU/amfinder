@@ -13,24 +13,27 @@ end
 val parse_html_color : color -> float * float * float * float
 (** Color parser. Returns red, green, blue, and alpha channels. *)
 
-val up_arrowhead : color -> edge -> Cairo.Surface.t
-(** Arrowhead oriented to the top. *)
 
-val down_arrowhead : color -> edge -> Cairo.Surface.t
-(** Arrowhead oriented to the bottom. *)
-
-val right_arrowhead : color -> edge -> Cairo.Surface.t
-(** Arrowhead oriented to the right. *)
+val arrowhead : color -> edge -> Cairo.Surface.t
+    (** Arrowhead oriented to the top. *)
 
 val circle : ?margin:float -> color -> edge -> Cairo.Surface.t
 (** Circle. *)
 
-val solid_square : ?sym:string -> ?margin:float -> color -> edge -> Cairo.Surface.t
-(** Square filled with the given color. A short text can be inserted within
-  * the rectangle. *)
 
-val empty_square : ?line:float -> color -> edge -> Cairo.Surface.t
-(** Empty square with the given line thickness and color. *)
+(** Squares. *)
+module Square : sig
+    val cursor : color -> edge -> Cairo.Surface.t
+    (** Square with a thick stroke. *)
+
+    val filled : ?symbol:string -> color -> edge -> Cairo.Surface.t
+    (** Rounded, filled square with a centered symbol. *)
+
+    val dashed : color -> edge -> Cairo.Surface.t
+    (** Square with a dashed stroke. *)
+end
+
+
 
 val prediction_palette : ?step:int -> color array -> edge -> Cairo.Surface.t
 (** Color palette. *)

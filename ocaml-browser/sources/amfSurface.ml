@@ -37,7 +37,9 @@ module Create = struct
     let square ~edge ~color () = rectangle ~width:edge ~height:edge ~color ()
 end
 
-let up_arrowhead color edge =
+
+
+let arrowhead color edge =
     let t, surface = initialize color edge in
     let edge = float edge in
     let frac = 0.1 *. edge in
@@ -51,33 +53,6 @@ let up_arrowhead color edge =
     surface
 
 
-let down_arrowhead color edge =
-    let t, surface = initialize color edge in
-    let edge = float edge in
-    let frac = 0.4 *. edge in
-    let yini = edge -. frac and xini = edge /. 2.0 in
-    let size =  0.3 *. xini in 
-    Cairo.move_to t xini yini;
-    Cairo.line_to t (xini -. size) frac;
-    Cairo.line_to t (xini +. size) frac;
-    Cairo.fill t;
-    Cairo.stroke t;
-    surface
-
-
-let right_arrowhead color edge =
-    let t, surface = initialize color edge in
-    let edge = float edge in
-    let frac = 0.4 *. edge in
-    let xini = edge -. frac and yini = edge /. 2.0 in
-    let size =  0.3 *. yini in 
-    Cairo.move_to t xini yini;
-    Cairo.line_to t frac (yini -. size);
-    Cairo.line_to t frac (yini +. size);
-    Cairo.fill t;
-    Cairo.stroke t;
-    surface
-
 
 let circle ?(margin = 2.0) color edge =
     let t, surface = initialize color edge in
@@ -90,32 +65,96 @@ let circle ?(margin = 2.0) color edge =
     surface
 
 
-let solid_square ?sym ?(margin = 2.0) color edge =
-    let t, surface = initialize color edge in
-    let edge = float edge -. margin in
-    Cairo.rectangle t (0.5 *. margin) (0.5 *. margin) ~w:edge ~h:edge;
-    Cairo.fill t;
-    Cairo.stroke t;
-    Option.iter (fun sym ->
-        Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
-        Cairo.select_font_face t "Arial" ~weight:Cairo.Bold;
-        Cairo.set_font_size t (if sym = "×" then 22.0 else 16.0);
-        let te = Cairo.text_extents t sym in
-        Cairo.move_to t
-            (0.5 *. margin +. 0.5 *. edge -. te.Cairo.x_bearing -. 0.5 *. te.Cairo.width) 
-            (0.5 *. margin +. 0.5 *. edge -. te.Cairo.y_bearing -. 0.5 *. te.Cairo.height);
-        Cairo.show_text t sym;
-    ) sym;
-    surface
 
+module Square = struct
+    let draw 
+      ?(margin = 2.0)
+      ?(rounded = false)
+      ?(symbol = "")
+      ?(symbol_color = "#FFFFFFFF")
+      ?(font_size = 16.0)
+      ?(font_face = "Arial")
+      ?(font_weight = Cairo.Bold)
+      ?(dash = [||])
+      ?(stroke = false)
+      ?(dash_color = "#000000FF")
+      ?(line_width = 1.5)
+      ?(fill = true)
+      ?(fill_color = "#FFFFFFB0") edge =
 
-let empty_square ?(line = 5.0) color edge =
-    let t, surface = initialize color edge in
-    Cairo.set_line_width t line;
-    let edge = float edge in
-    Cairo.rectangle t 0.0 0.0 ~w:edge ~h:edge;
-    Cairo.stroke t;
-    surface
+        assert (margin >= 0.0 && mod_float margin 2.0 = 0.0);
+
+        let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
+        let t = Cairo.create surface in
+        Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
+        let edge = float edge -. margin in
+        let half_margin = 0.5 *. margin in
+
+        (* Filled rectangle, possibly with rounded corners. *)
+        if fill then begin
+            (* See https://www.cairographics.org/samples/rounded_rectangle/ *)
+            if rounded then (
+                let degrees = pi /. 180.0
+                and corner_radius = edge /. 5.0 in
+                Cairo.Path.sub t;
+                Cairo.arc t (half_margin +. edge -. corner_radius)  
+                            (half_margin +. corner_radius)
+                            ~r:corner_radius
+                            ~a1:(-90.0 *. degrees) ~a2:0.0;
+                Cairo.arc t (half_margin +. edge -. corner_radius)
+                            (half_margin +. edge -. corner_radius)
+                            ~r:corner_radius
+                            ~a1:0.0 ~a2:(90.0 *. degrees);
+                Cairo.arc t (half_margin +. corner_radius)
+                            (half_margin +. edge -. corner_radius)
+                            ~r:corner_radius
+                            ~a1:(90.0 *. degrees) ~a2:(180.0 *. degrees);
+                Cairo.arc t (half_margin +. corner_radius)
+                            (half_margin +. corner_radius)
+                            ~r:corner_radius
+                            ~a1:(180.0 *. degrees) ~a2:(270.0 *. degrees);
+                Cairo.Path.close t;                
+            ) else Cairo.rectangle t half_margin half_margin ~w:edge ~h:edge;
+            let r, g, b, a = parse_html_color fill_color in
+            Cairo.set_source_rgba t r g b a;
+            Cairo.fill t;
+        end;
+
+        (* Centered symbol. *)
+        if symbol <> "" then begin
+            let r, g, b, a = parse_html_color symbol_color in
+            Cairo.set_source_rgba t r g b a;
+            Cairo.select_font_face t font_face ~weight:font_weight;
+            Cairo.set_font_size t font_size;
+            let te = Cairo.text_extents t symbol in
+            let centre = half_margin +. 0.5 *. edge in 
+            Cairo.move_to t
+                (centre -. Cairo.(te.x_bearing +. 0.5 *. te.width)) 
+                (centre -. Cairo.(te.y_bearing +. 0.5 *. te.height));
+            Cairo.show_text t symbol;
+        end;
+
+        (* Solid or dashed stroke. *)
+        if stroke || Array.length dash > 0 then begin
+            let r, g, b, a = parse_html_color dash_color in
+            Cairo.set_source_rgba t r g b a;
+            Cairo.set_line_width t line_width;
+            Cairo.set_dash t dash;
+            Cairo.rectangle t half_margin half_margin ~w:edge ~h:edge;
+            Cairo.stroke t
+        end;
+        surface
+
+    (* Specialized versions. *)
+    let cursor dash_color x = 
+        draw ~margin:0.0 ~fill:false ~line_width:5.0 ~stroke:true ~dash_color x
+    let dashed dash_color x = draw ~margin:4.0 ~dash:[|2.0|] ~dash_color x
+    let filled ?symbol fill_color x =
+        (* The symbol × is small and needs greater font size. *)
+        let font_size = match symbol with Some "×" -> Some 28.0 | _ -> None in
+        draw ~rounded:true ?symbol ?font_size ~fill_color x
+end
+
 
 
 let prediction_palette ?(step = 12) colors edge =

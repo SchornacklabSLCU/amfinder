@@ -143,13 +143,13 @@ class type brush = object
     (** Draws the cursor.
       * @param sync defaults to [false]. *)
 
-    method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    (** Draws the cursor at mouse pointer.
-      * @param sync defaults to [false]. *)
-
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> Morelib.CSet.t -> unit
     (** Draws a tile annotation.
       * @param sync defaults to [false]. *)
+
+    method annotation_other_layer : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Draw the frame of an annotation, for tiles that gets annotated but not
+      * in the active layer (to distinguish with non-annotated tiles). *)
 
     method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
     (** Draws a tile prediction.
@@ -291,9 +291,6 @@ class type draw = object
 
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Draw cursor at the given coordinates. *)
-
-    method pointer : ?sync:bool -> r:int -> c:int -> unit -> unit
-    (** Draw mouse pointer at the given coordinates. *)
 
     method overlay : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Draw annotation/prediction at the given coordinates. *)
