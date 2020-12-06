@@ -68,6 +68,8 @@ let circle ?(margin = 2.0) color edge =
 
 module Square = struct
     let draw 
+      ?(eye = false)
+      ?(lock = false)
       ?(margin = 2.0)
       ?(rounded = false)
       ?(symbol = "")
@@ -82,7 +84,11 @@ module Square = struct
       ?(fill = true)
       ?(fill_color = "#FFFFFFB0") edge =
 
-        assert (margin >= 0.0 && mod_float margin 2.0 = 0.0);
+        (* Simple checks. Other values may be malformed as well. *)
+        assert (font_size > 0.0
+                 && line_width > 0.0
+                 && margin >= 0.0
+                 && mod_float margin 2.0 = 0.0);
 
         let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
         let t = Cairo.create surface in
@@ -121,7 +127,28 @@ module Square = struct
         end;
 
         (* Centered symbol. *)
-        if symbol <> "" then begin
+        if symbol = "" then begin
+            (* Eye symbol for masked annotations. *)
+            if eye then begin
+                Cairo.set_source_rgba t 0.0 0.0 0.0 1.0;
+                let radius = 4.0 in
+                let centre = margin +. 0.5 *. (edge -. radius) in 
+                Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:two_pi;
+                Cairo.fill t;
+                Cairo.save t;
+                Cairo.translate t centre centre;
+                Cairo.scale t (16.0 /. 2.0) (10.0 /. 2.0);
+                Cairo.arc t 0.0 0.0 ~r:1.0 ~a1:0.0 ~a2:two_pi;
+                Cairo.restore t;
+                Cairo.stroke t;
+                Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
+                Cairo.move_to t (2.0 *. margin) (2.0 *. margin);
+                Cairo.line_to t (edge -. margin) (edge -. margin);
+                Cairo.stroke t;
+            end else if lock then begin
+                (* Not implemented yet. *)
+            end
+        end else begin
             let r, g, b, a = parse_html_color symbol_color in
             Cairo.set_source_rgba t r g b a;
             Cairo.select_font_face t font_face ~weight:font_weight;
@@ -148,7 +175,7 @@ module Square = struct
     (* Specialized versions. *)
     let cursor dash_color x = 
         draw ~margin:0.0 ~fill:false ~line_width:5.0 ~stroke:true ~dash_color x
-    let dashed dash_color x = draw ~margin:4.0 ~dash:[|2.0|] ~dash_color x
+    let dashed dash_color x = draw ~eye:true ~margin:4.0 ~dash:[|2.0|] ~dash_color x
     let filled ?symbol fill_color x =
         (* The symbol × is small and needs greater font size. *)
         let font_size = match symbol with Some "×" -> Some 28.0 | _ -> None in
