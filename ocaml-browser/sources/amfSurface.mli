@@ -10,9 +10,6 @@ module Create : sig
     val square : edge:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t
 end
 
-val parse_html_color : color -> float * float * float * float
-(** Color parser. Returns red, green, blue, and alpha channels. *)
-
 
 val arrowhead : color -> edge -> Cairo.Surface.t
     (** Arrowhead oriented to the top. *)

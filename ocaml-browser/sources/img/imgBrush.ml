@@ -92,7 +92,7 @@ object (self)
 
     method background ?(sync = true) () =
         let t = AmfUI.Drawing.cairo () in
-        let r, g, b, a = AmfSurface.parse_html_color backcolor in
+        let r, g, b, a = AmfColor.parse_rgba backcolor in
         Cairo.set_source_rgba t r g b a;
         let w = float @@ AmfUI.Drawing.width () 
         and h = float @@ AmfUI.Drawing.height () in
@@ -234,7 +234,7 @@ object (self)
         let surface = Cairo.Image.(create ARGB32 ~w:prob_width ~h:edge) in
         let t = Cairo.create surface in
         Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        let r, g, b, a = AmfSurface.parse_html_color backcolor in
+        let r, g, b, a = AmfColor.parse_rgba backcolor in
         Cairo.set_source_rgba t r g b a;
         Cairo.rectangle t 0.0 0.0 ~w:(float grid_width) ~h:(float edge);
         Cairo.fill t;

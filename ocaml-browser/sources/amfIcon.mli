@@ -28,6 +28,9 @@ module Misc : sig
     val conv : GdkPixbuf.pixbuf
     (** Icon for conversion of predictions to annotations. *)
 
+    val ambiguities : GdkPixbuf.pixbuf
+    (** Icon to move cursor to ambiguous predictions. *)
+
     val palette : GdkPixbuf.pixbuf
     (** Icon for color palettes. *)
 

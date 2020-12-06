@@ -63,7 +63,7 @@ let container = GPack.table
 let toolbar = GButton.toolbar
     ~orientation:`VERTICAL
     ~style:`ICONS
-    ~width:98 ~height:185
+    ~width:98 ~height:225
     ~packing:(container#attach ~left:0 ~top:0) ()
 
 module Params = struct

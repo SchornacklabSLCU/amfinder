@@ -42,6 +42,7 @@ module Misc = struct
         | RGBA -> load_pixbuf 24 (Dir.interface "CAMs_rgba.png")
         | Grayscale -> load_pixbuf 24 (Dir.interface "CAMs_grey.png")
     let conv = load_pixbuf 24 (Dir.interface "convert.png")
+    let ambiguities = load_pixbuf 24 (Dir.interface "ambiguous.png")
     let palette = load_pixbuf 24 (Dir.interface "palette.png")
     let show_preds = load_pixbuf 24 (Dir.interface "show_preds.png")
     let hide_preds = load_pixbuf 24 (Dir.interface "hide_preds.png")

@@ -5,10 +5,6 @@ open Scanf
 type edge = int
 type color = string
 
-let parse_html_color =
-    let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
-    fun s -> sscanf s "#%02x%02x%02x%02x" (fun r g b a -> f r, f g, f b, f a)
-
 let pi = acos (-1.0)
 let two_pi = 2.0 *. pi
 
@@ -17,7 +13,7 @@ let initialize color edge =
     let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
     let t = Cairo.create surface in
     Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-    let r, g, b, a = parse_html_color color in
+    let r, g, b, a = AmfColor.parse_rgba color in
     Cairo.set_source_rgba t r g b a;
     t, surface
 
@@ -27,7 +23,7 @@ module Create = struct
         let surface = Cairo.Image.(create ARGB32 ~w:width ~h:height) in
         let t = Cairo.create surface in
         Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        let r, g, b, a = parse_html_color color in
+        let r, g, b, a = AmfColor.parse_rgba color in
         Cairo.set_source_rgba t r g b a;
         Cairo.rectangle t 0.0 0.0 ~w:(float width) ~h:(float height);
         Cairo.fill t;
@@ -121,7 +117,7 @@ module Square = struct
                             ~a1:(180.0 *. degrees) ~a2:(270.0 *. degrees);
                 Cairo.Path.close t;                
             ) else Cairo.rectangle t half_margin half_margin ~w:edge ~h:edge;
-            let r, g, b, a = parse_html_color fill_color in
+            let r, g, b, a = AmfColor.parse_rgba fill_color in
             Cairo.set_source_rgba t r g b a;
             Cairo.fill t;
         end;
@@ -149,7 +145,7 @@ module Square = struct
                 (* Not implemented yet. *)
             end
         end else begin
-            let r, g, b, a = parse_html_color symbol_color in
+            let r, g, b, a = AmfColor.parse_rgba symbol_color in
             Cairo.set_source_rgba t r g b a;
             Cairo.select_font_face t font_face ~weight:font_weight;
             Cairo.set_font_size t font_size;
@@ -163,7 +159,7 @@ module Square = struct
 
         (* Solid or dashed stroke. *)
         if stroke || Array.length dash > 0 then begin
-            let r, g, b, a = parse_html_color dash_color in
+            let r, g, b, a = AmfColor.parse_rgba dash_color in
             Cairo.set_source_rgba t r g b a;
             Cairo.set_line_width t line_width;
             Cairo.set_dash t dash;
@@ -190,7 +186,7 @@ let prediction_palette ?(step = 12) colors edge =
     let t = Cairo.create surface in
     Cairo.set_antialias t Cairo.ANTIALIAS_NONE;
     Array.iteri (fun i color ->
-        let r, g, b, a = parse_html_color color in
+        let r, g, b, a = AmfColor.parse_rgba color in
         Cairo.set_source_rgba t r g b a;
         Cairo.rectangle t (float (step * i + 50)) 0.0
             ~w:(float step)
@@ -213,8 +209,6 @@ let prediction_palette ?(step = 12) colors edge =
     Cairo.show_text t "high";
     surface
 
-let transparency = "B0"
-
 let annotation_legend symbs colors =
     assert List.(length symbs = length colors);
     let len = List.length colors in
@@ -231,8 +225,8 @@ let annotation_legend symbs colors =
     Cairo.set_font_size t 14.0;
     let te = Cairo.text_extents t "M" in
     List.iter2 (fun symb color ->
-        let r, g, b, a = parse_html_color (color ^ transparency) in
-        Cairo.set_source_rgba t r g b a;
+        let r, g, b = AmfColor.parse_rgb color in
+        Cairo.set_source_rgba t r g b AmfColor.opacity;
         let x = float (margin + 140 * !index) in
         Cairo.arc t (x +. 15.0) (float margin +. 15.0) ~r:15.0 ~a1:0.0 ~a2:(2. *. acos(-1.0));
         Cairo.fill t;
@@ -258,8 +252,8 @@ let pie_chart ?(margin = 2.0) prob_list colors edge =
         Cairo.arc t centre centre ~r:radius ~a1:!from ~a2;
         from := a2;
         Cairo.Path.close t;
-        let r, g, b, a = parse_html_color (clr ^ "90") in
-        Cairo.set_source_rgba t r g b a;
+        let r, g, b = AmfColor.parse_rgb clr in
+        Cairo.set_source_rgba t r g b AmfColor.opacity;
         Cairo.fill t;
         Cairo.stroke t;
     ) prob_list colors;
@@ -268,7 +262,7 @@ let pie_chart ?(margin = 2.0) prob_list colors edge =
 module Dir = struct
     let top ~background ~foreground edge =
         let t, surface = initialize background edge in
-        let r, g, b, a = parse_html_color foreground in
+        let r, g, b, a = AmfColor.parse_rgba foreground in
         Cairo.set_source_rgba t r g b a;
         Cairo.move_to t (float edge /. 2.0) 0.0;
         Cairo.line_to t 0.0 (float edge);
@@ -279,7 +273,7 @@ module Dir = struct
 
     let bottom ~background ~foreground edge =
         let t, surface = initialize background edge in
-        let r, g, b, a = parse_html_color foreground in
+        let r, g, b, a = AmfColor.parse_rgba foreground in
         Cairo.set_source_rgba t r g b a;
         Cairo.move_to t (float edge /. 2.0) (float edge);
         Cairo.line_to t 0.0 0.0;
@@ -290,7 +284,7 @@ module Dir = struct
 
     let left ~background ~foreground edge =
         let t, surface = initialize background edge in
-        let r, g, b, a = parse_html_color foreground in
+        let r, g, b, a = AmfColor.parse_rgba foreground in
         Cairo.set_source_rgba t r g b a;
         Cairo.move_to t 0.0 (float edge /. 2.0);
         Cairo.line_to t (float edge) 0.0;
@@ -301,7 +295,7 @@ module Dir = struct
 
     let right ~background ~foreground edge =
         let t, surface = initialize background edge in
-        let r, g, b, a = parse_html_color foreground in
+        let r, g, b, a = AmfColor.parse_rgba foreground in
         Cairo.set_source_rgba t r g b a;
         Cairo.move_to t (float edge) (float edge /. 2.0);
         Cairo.line_to t 0.0 0.0;
