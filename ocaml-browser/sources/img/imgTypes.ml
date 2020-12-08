@@ -30,7 +30,7 @@ class type brush = object
     method background : ?sync:bool -> unit -> unit
     method pixbuf : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
-    method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method locked_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> CSet.t -> unit
     method annotation_other_layer : ?sync:bool -> r:int -> c:int -> unit -> unit
@@ -115,7 +115,7 @@ end
 
 class type ui = object
     method set_paint : (unit -> unit) -> unit
-    method update : unit -> unit
+    method update_toggles : unit -> unit
     method key_press : GdkEvent.Key.t -> bool
     method mouse_click : GdkEvent.Button.t -> bool
     method toggle : GButton.toggle_button -> char -> GdkEvent.Button.t -> bool

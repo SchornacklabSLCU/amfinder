@@ -136,8 +136,8 @@ class type brush = object
     (** [surface ?sync ~r ~c s] draws surface [s] at row [r] and column [c].
       * @param sync defaults to [false]. *)
 
-    method missing_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
-    (** Same as [surface], but draws a specialized surface for missing tile. *)
+    method locked_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Specialized method for locked tiles. *)
 
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     (** Draws the cursor.
@@ -306,7 +306,7 @@ class type ui = object
     method set_paint : (unit -> unit) -> unit
     (** Painting functions to update the current tile. *)
 
-    method update : unit -> unit
+    method update_toggles : unit -> unit
     (** Update annotations at the current cursor position. *)
 
     method toggle : GButton.toggle_button -> char -> GdkEvent.Button.t -> bool

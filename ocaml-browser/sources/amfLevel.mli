@@ -12,6 +12,12 @@ val root_segmentation : level
 val intraradical_structures : level
 (** Intraradical structures (arbuscules, vesicles, hyphae).  *)
 
+val is_root_segm : level -> bool
+(** Indicates whether the given level is root segmentation. *)
+
+val is_ir_struct : level -> bool
+(** Indicates whether the given level is intraradical structures. *)
+
 val to_string : level -> string
 (** [to_string t] returns the textual representation of the level [t]. *)
 

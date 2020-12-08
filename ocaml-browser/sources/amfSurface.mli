@@ -7,7 +7,6 @@ type color = string
 
 module Create : sig
     val rectangle : width:int -> height:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t
-    val square : edge:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t
 end
 
 
@@ -26,8 +25,14 @@ module Square : sig
     val filled : ?symbol:string -> color -> edge -> Cairo.Surface.t
     (** Rounded, filled square with a centered symbol. *)
 
+    val colors : color list -> edge -> Cairo.Surface.t
+    (** Rounded square filled with multiple colors. *)
+
     val dashed : color -> edge -> Cairo.Surface.t
-    (** Square with a dashed stroke. *)
+    (** Square with a dashed stroke and an eye symbol. *)
+    
+    val locked : color -> edge -> Cairo.Surface.t
+    (** Square with a dashed stroke and a red lock. *)
 end
 
 

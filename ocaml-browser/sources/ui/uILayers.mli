@@ -1,4 +1,5 @@
-(* CastANet - uI_Layers.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - ui/uiLayers.mli *)
+
 
 module type PARAMS = sig
   val packing : GObj.widget -> unit

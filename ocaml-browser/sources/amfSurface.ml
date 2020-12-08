@@ -1,7 +1,5 @@
 (* The Automated Mycorrhiza Finder version 1.0 - amfSurface.ml *)
 
-open Scanf
-
 type edge = int
 type color = string
 
@@ -30,7 +28,6 @@ module Create = struct
         Cairo.stroke t;
         t, surface
 
-    let square ~edge ~color () = rectangle ~width:edge ~height:edge ~color ()
 end
 
 
@@ -63,6 +60,30 @@ let circle ?(margin = 2.0) color edge =
 
 
 module Square = struct
+
+    (* See https://www.cairographics.org/samples/rounded_rectangle/ *)
+    let rounded_rectangle t x y ~w ~h =
+        let degrees = pi /. 180.0
+        and corner_radius = h /. 5.0 in
+        Cairo.Path.sub t;
+        Cairo.arc t (x +. w -. corner_radius)  
+                    (y +. corner_radius)
+                    ~r:corner_radius
+                    ~a1:(-90.0 *. degrees) ~a2:0.0;
+        Cairo.arc t (x +. w -. corner_radius)
+                    (y +. h -. corner_radius)
+                    ~r:corner_radius
+                    ~a1:0.0 ~a2:(90.0 *. degrees);
+        Cairo.arc t (x +. corner_radius)
+                    (y +. h -. corner_radius)
+                    ~r:corner_radius
+                    ~a1:(90.0 *. degrees) ~a2:(180.0 *. degrees);
+        Cairo.arc t (x +. corner_radius)
+                    (y +. corner_radius)
+                    ~r:corner_radius
+                    ~a1:(180.0 *. degrees) ~a2:(270.0 *. degrees);
+        Cairo.Path.close t
+
     let draw 
       ?(eye = false)
       ?(lock = false)
@@ -78,7 +99,8 @@ module Square = struct
       ?(dash_color = "#000000FF")
       ?(line_width = 1.5)
       ?(fill = true)
-      ?(fill_color = "#FFFFFFB0") edge =
+      ?(fill_color = "#FFFFFFB0")
+      ?(multicolor = []) edge =
 
         (* Simple checks. Other values may be malformed as well. *)
         assert (font_size > 0.0
@@ -89,37 +111,32 @@ module Square = struct
         let surface = Cairo.Image.(create ARGB32 ~w:edge ~h:edge) in
         let t = Cairo.create surface in
         Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        let edge = float edge -. margin in
-        let half_margin = 0.5 *. margin in
+        let edge = float edge -. margin and half = 0.5 *. margin in
 
         (* Filled rectangle, possibly with rounded corners. *)
         if fill then begin
-            (* See https://www.cairographics.org/samples/rounded_rectangle/ *)
-            if rounded then (
-                let degrees = pi /. 180.0
-                and corner_radius = edge /. 5.0 in
-                Cairo.Path.sub t;
-                Cairo.arc t (half_margin +. edge -. corner_radius)  
-                            (half_margin +. corner_radius)
-                            ~r:corner_radius
-                            ~a1:(-90.0 *. degrees) ~a2:0.0;
-                Cairo.arc t (half_margin +. edge -. corner_radius)
-                            (half_margin +. edge -. corner_radius)
-                            ~r:corner_radius
-                            ~a1:0.0 ~a2:(90.0 *. degrees);
-                Cairo.arc t (half_margin +. corner_radius)
-                            (half_margin +. edge -. corner_radius)
-                            ~r:corner_radius
-                            ~a1:(90.0 *. degrees) ~a2:(180.0 *. degrees);
-                Cairo.arc t (half_margin +. corner_radius)
-                            (half_margin +. corner_radius)
-                            ~r:corner_radius
-                            ~a1:(180.0 *. degrees) ~a2:(270.0 *. degrees);
-                Cairo.Path.close t;                
-            ) else Cairo.rectangle t half_margin half_margin ~w:edge ~h:edge;
-            let r, g, b, a = AmfColor.parse_rgba fill_color in
-            Cairo.set_source_rgba t r g b a;
-            Cairo.fill t;
+            (* Multicolor display for mycorrhiza structures. *)
+            if multicolor <> [] then begin
+                let n = List.length multicolor in
+                let w = edge /. (float n) in
+                (* TODO: First and last should be round rectangles. *)
+                Cairo.set_line_width t 1.0;
+                List.iteri (fun i color ->
+                    rounded_rectangle t (half +. float i *. w) half ~w ~h:edge;
+                    let r, g, b, a = AmfColor.parse_rgba color in
+                    Cairo.set_source_rgba t r g b a;
+                    Cairo.fill t
+                ) multicolor;
+                rounded_rectangle t half half ~w:edge ~h:edge;
+                Cairo.set_source_rgba t 0.3 0.3 0.3 1.0;
+                Cairo.stroke t
+            end else begin
+                if rounded then rounded_rectangle t half half ~w:edge ~h:edge
+                else Cairo.rectangle t half half ~w:edge ~h:edge;
+                let r, g, b, a = AmfColor.parse_rgba fill_color in
+                Cairo.set_source_rgba t r g b a;
+                Cairo.fill t
+            end;
         end;
 
         (* Centered symbol. *)
@@ -141,8 +158,21 @@ module Square = struct
                 Cairo.move_to t (2.0 *. margin) (2.0 *. margin);
                 Cairo.line_to t (edge -. margin) (edge -. margin);
                 Cairo.stroke t;
+            (* Lock symbol for non-editable tiles. *)
             end else if lock then begin
-                (* Not implemented yet. *)
+                Cairo.set_source_rgba t 0.4 0.4 0.4 1.0;
+                Cairo.set_line_width t 2.0;
+                let w = 14.0 and h = 10.0 in
+                let centre = margin +. 0.5 *. edge in
+                Cairo.arc t (centre -. 2.0) (centre -. 0.45 *. h)
+                    ~r:6.0 ~a1:pi ~a2:0.0;
+                rounded_rectangle t
+                    (centre -. 0.65 *. w)
+                    (centre -. 0.45 *. h) ~w ~h;
+                Cairo.stroke t;
+                Cairo.arc t (centre -. 2.0) (centre +. 1.0)
+                    ~r:2.5 ~a1:0.0 ~a2:two_pi;
+                Cairo.fill t;  
             end
         end else begin
             let r, g, b, a = AmfColor.parse_rgba symbol_color in
@@ -150,7 +180,7 @@ module Square = struct
             Cairo.select_font_face t font_face ~weight:font_weight;
             Cairo.set_font_size t font_size;
             let te = Cairo.text_extents t symbol in
-            let centre = half_margin +. 0.5 *. edge in 
+            let centre = half +. 0.5 *. edge in 
             Cairo.move_to t
                 (centre -. Cairo.(te.x_bearing +. 0.5 *. te.width)) 
                 (centre -. Cairo.(te.y_bearing +. 0.5 *. te.height));
@@ -163,19 +193,37 @@ module Square = struct
             Cairo.set_source_rgba t r g b a;
             Cairo.set_line_width t line_width;
             Cairo.set_dash t dash;
-            Cairo.rectangle t half_margin half_margin ~w:edge ~h:edge;
+            Cairo.rectangle t half half ~w:edge ~h:edge;
             Cairo.stroke t
         end;
         surface
 
     (* Specialized versions. *)
-    let cursor dash_color x = 
-        draw ~margin:0.0 ~fill:false ~line_width:5.0 ~stroke:true ~dash_color x
-    let dashed dash_color x = draw ~eye:true ~margin:4.0 ~dash:[|2.0|] ~dash_color x
+    let cursor dash_color x = draw 
+        ~margin:0.0
+        ~fill:false
+        ~line_width:5.0
+        ~stroke:true
+        ~dash_color x
+
+    let dashed dash_color x = draw
+        ~eye:true
+        ~margin:4.0
+        ~dash:[|2.0|]
+        ~dash_color x
+
+    let locked dash_color x = draw
+        ~lock:true
+        ~margin:4.0
+        ~dash:[|2.0|]
+        ~dash_color x
+
     let filled ?symbol fill_color x =
         (* The symbol × is small and needs greater font size. *)
-        let font_size = match symbol with Some "×" -> Some 28.0 | _ -> None in
+        let font_size = match symbol with Some "×" -> Some 24.0 | _ -> None in
         draw ~rounded:true ?symbol ?font_size ~fill_color x
+        
+    let colors t x = draw ~multicolor:t x
 end
 
 

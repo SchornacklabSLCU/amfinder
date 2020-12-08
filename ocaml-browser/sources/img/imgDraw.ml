@@ -23,8 +23,9 @@ class draw
 
     method tile ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then begin
+            (* TODO: Is None a possible case? *)
             match tiles#get ~r ~c with
-            | None -> brush#missing_tile ~sync ~r ~c ()
+            | None -> AmfLog.error ~code:2 "Mising tile at r=%d c=%d" r c
             | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
         end
 
@@ -43,15 +44,25 @@ class draw
                 ) (preds#get ~r ~c)
         )
 
+    (* Draws annotations.
+       (a) Shows all annotation types.
+       (b) Shows a single annotation type.
+       (c) Removes probability, if any, given that the cell has annotation.
+       (d) Ignore cells without annotation at the given level.
+       (e) Shows annotation corresponding to the given layer.
+       (f) Shows a barred eye symbol. An annotation exists at a different layer. 
+     *)
     method private annotation ?sync ~r ~c (mask : AmfAnnot.annot) =
         let level = AmfUI.Levels.current () in
         match AmfUI.Layers.current () with
-        (* Display a digest of all annotations. *)
-        | '*' -> brush#annotation ?sync ~r ~c level (mask#get ())
-        | chr -> if cursor#at ~r ~c then brush#hide_probability ();
-            match mask#mem chr with
-            | true  -> brush#annotation ?sync ~r ~c level (CSet.singleton chr);
-            | false -> brush#annotation_other_layer ?sync ~r ~c ()
+        | '*' (* a *) -> brush#annotation ?sync ~r ~c level (mask#get ())
+        | chr (* b *) ->
+            if cursor#at ~r ~c then (* c *) brush#hide_probability ();
+            if (* d *) not (mask#is_empty ~level ()) then
+                if mask#mem chr then (* e *)
+                    brush#annotation ?sync ~r ~c level (CSet.singleton chr)
+                else (* f *)
+                    brush#annotation_other_layer ?sync ~r ~c ()
 
     (*  *)
     method private prediction ?sync ~r ~c () =
@@ -68,9 +79,12 @@ class draw
     method overlay ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then begin
             let mask = annot#get ~r ~c () in
-            (* Gives priority to annot over preds. *)
-            if mask#is_empty () then self#prediction ~sync ~r ~c ()
-            else self#annotation ~sync ~r ~c mask
+            (* IR mode is only available to tiles with mycorrhiza structures. *)
+            if mask#editable then (
+                (* Gives priority to annotations over predictions. *)
+                if mask#is_empty () then self#prediction ~sync ~r ~c ()
+                else self#annotation ~sync ~r ~c mask
+            ) else brush#locked_tile ~sync ~r ~c ()
         end
 end
 

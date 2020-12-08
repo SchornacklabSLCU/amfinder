@@ -1,4 +1,4 @@
-(* CastANet - uI_Layers.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - ui/uiLayers.ml *)
 
 open Printf
 
@@ -45,9 +45,8 @@ module Toolbox = struct
         and r_label = GMisc.label
             ~markup:"<small><tt>000000</tt></small>" 
             ~packing:hbox#add () in
-        let open AmfIcon in
-        let style = if chr = '*' then RGBA else Grayscale in
-        r_image#set_pixbuf (get chr Small style);
+        let style = AmfIcon.(if chr = '*' then RGBA else Grayscale) in
+        r_image#set_pixbuf AmfIcon.(get chr Small style);
         chr, {r_radio; r_label; r_image}
 
     let make level =
@@ -56,7 +55,7 @@ module Toolbox = struct
             let toolbar = GButton.toolbar
                 ~orientation:`VERTICAL
                 ~style:`ICONS
-                ~width:98 ~height:420 ()
+                ~width:98 ~height:380 ()
             let active = ref true
             let group = ref None
             let packing = toolbar#insert

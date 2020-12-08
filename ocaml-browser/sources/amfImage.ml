@@ -145,7 +145,7 @@ object (self)
                 in AmfUI.Magnifier.set_pixbuf ~r:i ~c:j pixbuf
             done
         done;
-        ui#update ()
+        ui#update_toggles ()
 
     method private update_counters () =
         annotations#statistics ()
@@ -153,7 +153,7 @@ object (self)
 
     method mosaic ?(sync = false) () =
         brush#background ~sync:false ();
-        (** Redraw only the visible tiles. *)
+        (* Redraw only the visible tiles. *)
         let rmin, rmax = brush#r_range
         and cmin, cmax = brush#c_range in
         for r = rmin to rmax do

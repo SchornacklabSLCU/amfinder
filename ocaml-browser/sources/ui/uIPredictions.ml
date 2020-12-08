@@ -1,4 +1,4 @@
-(* CastANet - uI_Predictions.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - ui/uiPredictions.ml *)
 
 open Scanf
 open Printf
@@ -21,6 +21,7 @@ module type S = sig
     val set_palette_update : (unit -> unit) -> unit
     val cams : GButton.toggle_tool_button
     val convert : GButton.tool_button
+    val ambiguities : GButton.tool_button
 end
 
 type palette = string array
@@ -187,7 +188,7 @@ module Make (P : PARAMS) : S = struct
         Aux.markup_toggle_button
             ~sensitive:true
             ~pixbuf:AmfIcon.Misc.show_preds
-            ~label:"Add" 
+            ~label:"Overlay" 
             ~packing ()
 
     let palette =
@@ -197,7 +198,7 @@ module Make (P : PARAMS) : S = struct
             ~spacing:2
             ~packing:btn#set_label_widget () in
         let _ = GMisc.image 
-            ~width:25 
+            ~width:25
             ~pixbuf:AmfIcon.Misc.palette
             ~packing:(box#pack ~expand:false) ()
         and _ = GMisc.label
@@ -225,16 +226,19 @@ module Make (P : PARAMS) : S = struct
         ~icon:AmfIcon.Misc.conv
         ~label:"Convert" ~packing ()
 
+    let ambiguities = Aux.markup_button
+        ~icon:AmfIcon.Misc.ambiguities
+        ~label:"Unclear" ~packing ()
+
     let set_choices t =
         Activate.store#clear ();
-        match t with
-        | [] -> overlay#misc#set_sensitive false
-        | _  ->
-            List.iter (fun x ->
-                let row = Activate.store#append () in
-                Activate.store#set ~row ~column:Activate.data x;     
-            ) t;
-            Activate.combo#set_active 0
+        let has_elements = t <> [] in
+        overlay#misc#set_sensitive has_elements;
+        List.iter (fun x ->
+            let row = Activate.store#append () in
+            Activate.store#set ~row ~column:Activate.data x;     
+        ) t;
+        if has_elements then Activate.combo#set_active 0
 
     let get_active () =
         if overlay#get_active then (
@@ -322,7 +326,8 @@ module Make (P : PARAMS) : S = struct
                     overlay_label#set_label (Aux.small_text "Remove");
                     cams#misc#set_sensitive true;
                     palette#misc#set_sensitive true;
-                    convert#misc#set_sensitive true
+                    convert#misc#set_sensitive true;
+                    ambiguities#misc#set_sensitive true;
                 in Option.iter enable Activate.combo#active_iter
             else overlay#set_active false
 
@@ -331,7 +336,7 @@ module Make (P : PARAMS) : S = struct
             palette#misc#set_sensitive false;
             convert#misc#set_sensitive false;
             overlay_icon#set_pixbuf AmfIcon.Misc.show_preds;
-            overlay_label#set_label (Aux.small_text "Add")
+            overlay_label#set_label (Aux.small_text "Overlay")
     end
 
     let _ =

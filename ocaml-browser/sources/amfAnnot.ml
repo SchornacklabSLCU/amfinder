@@ -39,7 +39,8 @@ object (self)
     method editable = AmfUI.Levels.current () = AmfLevel.RootSegm || self#mem 'Y'
 
     method add ?(level = AmfUI.Levels.current ()) chr =
-        if not (self#mem chr) then begin
+        if chr = '*' then List.iter (self#add ~level) (AmfLevel.to_header level)   
+        else if not (self#mem chr) then begin
             match level with
             | AmfLevel.RootSegm -> assert (CSet.mem chr valid_root_segm);
                 annot <- CSet.singleton chr (* mutually exclusive. *)
@@ -47,7 +48,8 @@ object (self)
                 annot <- CSet.add chr annot (* can be combined. *)
         end
 
-    method remove ?(level = AmfUI.Levels.current ()) chr =
+    method remove ?level chr =
+        let level = Option.value level ~default:(AmfUI.Levels.current ()) in
         if self#mem chr then begin
             match level with
             | AmfLevel.RootSegm when CSet.mem chr valid_root_segm -> 

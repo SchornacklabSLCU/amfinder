@@ -33,7 +33,8 @@ module Predictions = struct
             if radio#active then
                 Option.iter (fun image ->
                     image#predictions#ids level
-                    |> AmfUI.Predictions.set_choices
+                    |> AmfUI.Predictions.set_choices;
+                    image#ui#update_toggles ()
                 ) !image_ref
         in AmfUI.Levels.set_callback callback
 

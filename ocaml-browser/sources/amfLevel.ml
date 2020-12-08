@@ -8,6 +8,9 @@ type level = RootSegm | IRStruct
 let root_segmentation = RootSegm
 let intraradical_structures = IRStruct
 
+let is_root_segm x = x = RootSegm 
+let is_ir_struct x = x = IRStruct
+
 let to_header = function
     | RootSegm -> ['Y'; 'N'; 'X']
     | IRStruct -> ['A'; 'V'; 'H']
@@ -65,7 +68,7 @@ let process = List.map (fun s -> s ^ transparency)
 
 let colors = function
     | RootSegm -> process ["#c217ba"; "#00ffff"; "#5a5b7e"]
-    | IRStruct -> process ["#ffab00"; "#c217ba"; "#119DA4"]
+    | IRStruct -> process ["#00ffff"; "#000000"; "#ffA000"]
 
 module type ANNOTATION_RULES = sig
     val add_add : char -> Morelib.CSet.t

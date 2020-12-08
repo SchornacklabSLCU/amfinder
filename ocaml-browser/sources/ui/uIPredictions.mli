@@ -1,4 +1,4 @@
-(* CastANet - uI_Predictions.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - ui/uiPredictions.mli *)
 
 (** GUI auxiliary module. Loads color palettes. *)
 
@@ -37,6 +37,9 @@ module type S = sig
 
     val convert : GButton.tool_button
     (** Converts predictions to annotations. *)
+
+    val ambiguities : GButton.tool_button
+    (** Emphasizes ambiguities. *)
 
 end
 

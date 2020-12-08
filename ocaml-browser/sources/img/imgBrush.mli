@@ -1,4 +1,4 @@
-(* CastANet Browser - imgPaint.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgBrush.mli *)
 
 (** Image drawing functions. *)
 

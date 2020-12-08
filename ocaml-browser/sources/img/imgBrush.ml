@@ -1,45 +1,16 @@
-(* CastANet Browser - imgPaint.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgBrush.ml *)
 
 open Scanf
 open Printf
 open Morelib
 
-module Memo = struct
-    let memo f color =
-        let rec get = ref (
-            fun edge ->
-                let res = f color edge in
-                get := (fun _ -> res);
-                res
-        ) in
-        fun edge -> !get edge
 
-    let joker = memo AmfSurface.Square.filled "#00dd0099"
-    let cursor = memo AmfSurface.Square.cursor "#cc0000ff"    
 
-    let dashed_square = memo AmfSurface.Square.dashed "#000000FF"
-
-    let margin_square_off = memo AmfSurface.Square.filled "#FFFFFFFF"
-    let margin_square_on = memo AmfSurface.circle "#000000FF"
-
-    let arrowhead = memo AmfSurface.arrowhead "#FF0000FF"
-
-    let palette index edge =
-        let color = (AmfUI.Predictions.get_colors ()).(index) in
-        AmfSurface.circle color edge
-
-    let layers =
-        let make_surface lvl chr clr = 
-            let symbol = List.assoc_opt chr (AmfLevel.icon_text lvl) in
-            chr, memo (AmfSurface.Square.filled ?symbol) clr in
-        let open AmfLevel in
-        List.map (fun level ->
-            level, List.map2 (make_surface level) (to_header level) (colors level)
-        ) all_flags
-
-    let layer level = function
-        | '*' -> joker
-        | chr -> List.(assoc chr (assoc level layers))
+module Aux = struct
+    module Probs = struct
+        let show () = ()
+        let hdie () = ()
+    end
 end
 
 
@@ -64,7 +35,8 @@ object (self)
     val mutable backcolor = "#ffffffff"
 
     method make_visible ~r ~c () =
-        let rlimit = snd self#r_range and climit = snd self#c_range in
+        let rlimit = snd self#r_range
+        and climit = snd self#c_range in
         let res = ref false in
         if r < rbound then (rbound <- r; res := true)
         else if r > rlimit then (rbound <- r - max_tile_h + 1; res := true);
@@ -118,10 +90,8 @@ object (self)
         Cairo.paint t;
         if sync then self#sync "surface" ()
 
-    method missing_tile ?sync ~r ~c () =
-        AmfSurface.Create.square ~edge ~color:"#808080FF" ()
-        |> snd
-        |> self#surface ?sync ~r ~c
+    method locked_tile ?sync ~r ~c () =
+        self#surface ?sync ~r ~c (AmfMemoize.locked_square edge)
 
     method prediction_palette ?(sync = false) () =
         let t = AmfUI.Drawing.cairo ()
@@ -258,7 +228,7 @@ object (self)
         let rem = grid_width - 12 * len in
         let x = float x_origin +. float rem /. 2.0 in
         let x = x +. float index *. 12.0 in
-        let surface = Memo.arrowhead 12 in
+        let surface = AmfMemoize.arrowhead 12 in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Monospace";
@@ -273,18 +243,35 @@ object (self)
         if sync then self#sync "show_probability" ()
 
     method cursor ?sync ~r ~c () =
-        self#surface ~r ~c (Memo.cursor edge);
+        self#surface ~r ~c (AmfMemoize.cursor edge);
         self#coordinates ?sync ~r ~c ()
 
     method annotation ?sync ~r ~c level set =
+        (* One-color square in case of single annotation. *)
+        let simple_square set =
+            assert (CSet.cardinal set = 1);
+            CSet.choose set
+            |> (fun chr -> AmfMemoize.layer level chr edge)
+            |> self#surface ?sync ~r ~c
+        in
         if not (CSet.is_empty set) then begin
-             (* FIXME: what to display in case of multiple annotations? *)
-            let chr = (CSet.to_seq set |> String.of_seq).[0] in
-            self#surface ?sync ~r ~c (Memo.layer level chr edge)
+            if AmfLevel.is_ir_struct level then (
+                (* Multicolor square in case of multiple annotations. *)
+                if AmfUI.Layers.current () = '*' then (
+                    let colors = List.map2 
+                        (fun chr clr ->
+                            if CSet.mem chr set then clr 
+                            else "#FFFFFF00"
+                        ) (AmfLevel.to_header level) (AmfLevel.colors level)
+                    in self#surface ?sync ~r ~c (AmfSurface.Square.colors colors edge)
+                (* Other layers only show one type of annotation. *)
+                ) else simple_square set
+            (* Root segmentation only has single-color annotations. *)
+            ) else simple_square set
         end
 
     method annotation_other_layer ?sync ~r ~c () =
-        self#surface ?sync ~r ~c (Memo.dashed_square edge)
+        self#surface ?sync ~r ~c (AmfMemoize.dashed_square edge)
 
     method pie_chart ?sync ~r ~c t =
         AmfUI.Levels.current ()
@@ -295,7 +282,7 @@ object (self)
     method prediction ?sync ~r ~c (chr : char) x =
         let index = self#index_of_prob x in
         (* self#show_probability x; *)
-        self#surface ?sync ~r ~c (Memo.palette index edge)
+        self#surface ?sync ~r ~c (AmfMemoize.palette index edge)
 end
 
 
