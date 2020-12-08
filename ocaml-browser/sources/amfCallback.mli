@@ -29,6 +29,8 @@ module Predictions : sig
 
     val select_list_item : AmfImage.image option ref -> unit
 
+    val move_to_ambiguous_tile : AmfImage.image option ref -> unit
+
 end
 
 

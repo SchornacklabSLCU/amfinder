@@ -64,6 +64,7 @@ object (self)
         cursor#set_erase self#draw_annotated_tile;
         (* UI update functions. *)
         ui#set_paint self#update_current_tile;
+        ui#set_paint self#update_statistics;
         (* Updates the display if the current palette changes. *)
         AmfUI.Predictions.set_palette_update (fun () -> self#mosaic ~sync:true ());
         AmfUI.Levels.current ()
@@ -78,6 +79,7 @@ object (self)
     method ui = ui
     method file = file
     method brush = brush
+    method draw = draw
     method cursor = cursor
     method source = source
     method pointer = pointer
@@ -115,6 +117,17 @@ object (self)
         draw#overlay ~sync:false ~r ~c ();
         if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ();
         if sync then brush#sync "draw_annotated_tile" ()
+
+    method uncertain_tile () =
+        if predictions#active then begin
+            let rec loop () =
+                match predictions#next_uncertain with
+                | None -> () (* Nothing to do. *)
+                | Some (r, c) -> let mask = annotations#get ~r ~c () in
+                    if mask#is_empty () then ignore (cursor#update_cursor_pos ~r ~c)
+                    else loop ()
+            in loop ()
+        end
 
     method private update_current_tile () =
         let r, c = cursor#get in

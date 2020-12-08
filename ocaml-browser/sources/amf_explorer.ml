@@ -27,7 +27,8 @@ let connect_callbacks () =
     AmfCallback.Predictions.convert Par.image;
     AmfCallback.Predictions.update_list Par.image;
     AmfCallback.Predictions.update_cam Par.image;
-    AmfCallback.Predictions.select_list_item Par.image
+    AmfCallback.Predictions.select_list_item Par.image;
+    AmfCallback.Predictions.move_to_ambiguous_tile Par.image
 
 let connect_image image =
     (* GtkWindow events. *)

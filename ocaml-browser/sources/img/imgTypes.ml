@@ -51,6 +51,7 @@ class type cursor = object
     method mouse_click : GdkEvent.Button.t -> bool
     method set_erase : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
     method set_paint : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
+    method update_cursor_pos : r:int -> c:int -> bool
 end
 
 
@@ -85,6 +86,8 @@ class type predictions = object
     method current : string option
     method set_current : string option -> unit
     method active : bool
+    method count : int
+    method next_uncertain : (int * int) option
     method get : r:int -> c:int -> float list option
     method max_layer : r:int -> c:int -> (char * float) option
     method iter : 

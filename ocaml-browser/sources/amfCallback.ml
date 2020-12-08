@@ -18,7 +18,10 @@ module Annotations = struct
     let update_mosaic image_ref =
         let callback _ radio =
             Option.iter (fun (image : AmfImage.image) ->
-                if radio#active then image#mosaic ~sync:true ()
+                if radio#active then (
+                    image#mosaic ~sync:true ();
+                    image#update_statistics ()
+                )
             ) !image_ref
         in AmfUI.Levels.set_callback callback
 
@@ -53,11 +56,16 @@ module Predictions = struct
     let select_list_item image_ref =
         let callback () =
             Option.iter (fun image ->
-                image#show_predictions ();
-                image#update_statistics ();
-                (*image#ui#update ()*)
+                image#show_predictions ()
             ) !image_ref
         in ignore (AmfUI.Predictions.overlay#connect#after#clicked ~callback)
+
+    let move_to_ambiguous_tile image_ref =
+        let callback () =
+            Option.iter (fun image ->
+                image#uncertain_tile ()
+            ) !image_ref
+        in ignore (AmfUI.Predictions.ambiguities#connect#after#clicked ~callback)  
 
 end
 

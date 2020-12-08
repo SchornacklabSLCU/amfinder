@@ -16,6 +16,9 @@ class type image = object
     method brush : ImgTypes.brush
     (** Drawing toolbox. *)
 
+    method draw : ImgTypes.draw
+    (** Drawing functions. *)
+
     method cursor : ImgTypes.cursor
     (** Cursor position manager. *)
 
@@ -42,6 +45,9 @@ class type image = object
 
     method show : unit -> unit
     (** Displays background, tiles as well as the activate annotation layer. *)
+
+    method uncertain_tile : unit -> unit
+    (** Draw the next uncertain tile image. *)
 
     method mosaic : ?sync:bool -> unit -> unit
     (** Displays the tile matrix. *)

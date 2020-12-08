@@ -48,7 +48,7 @@ class cursor
             else if r' >= nr then r' mod nr else r'
         in (r', c)
 
-    method private update_cursor_pos ~r ~c =
+    method update_cursor_pos ~r ~c =
         if r >= 0 && r < img_source#rows
         && c >= 0 && c < img_source#columns
         && (r, c) <> cursor_pos then begin

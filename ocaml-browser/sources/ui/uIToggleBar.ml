@@ -82,7 +82,9 @@ module Make (P : PARAMS) : S = struct
         (* Check activation of all toggle buttons. *)
         | '*' -> Some (List.for_all (fun (_, (tb, _)) -> tb#active) (items ()))
         (* Check activation of a single toggle button. *)
-        | chr -> Option.map (fun x -> (fst x)#active) (get chr)
+        | chr -> match get chr with
+            | None -> None (* can check other layer! *)
+            | Some x -> Some (fst x)#active
 
     let _ = (* initialization. *)
     (* Setting up expand/fill allows to centre the button box. *)

@@ -1,4 +1,4 @@
-(* CastANet browser - imgActivations.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgActivations.mli *)
 
 (** Class activation maps (CAMs). *)
 

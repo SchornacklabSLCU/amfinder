@@ -34,25 +34,61 @@ module Aux = struct
             |> bprintf buf "%d\t%d\t%s\n" r c
         ) table;
         Buffer.contents buf
+
+    let mean t = List.(fold_left (+.) 0.0 t /. (float (length t)))
+
+    let stdev t = 
+        let m = mean t in
+        let s = List.fold_left (fun r x -> r +. (x -. m) *. (x -. m)) 0.0 t in
+        sqrt (s /. (float (List.length t)))
+    
 end
 
 
 class predictions input = object (self)
 
     val mutable curr : string option = None
+    val mutable sort : (int * int) array = [||]
+    val mutable spos = 0
+
+    method private sort_by_uncertainty id =
+        (* Sort valyes by their standard deviation. *)
+        let coords_sorted_by_sd = List.assoc id input
+            |> snd
+            |> Matrix.fold (fun ~r ~c res t -> ((r, c), Aux.stdev t) :: res) []
+            |> List.sort (fun (_, x) (_, y) -> compare x y)
+            |> List.map fst
+            |> Array.of_list in
+        sort <- coords_sorted_by_sd;
+        spos <- 0
+
+    method next_uncertain =
+        if self#active then (
+            spos <- spos + 1;
+            try Some (Array.get sort spos) with _ -> None
+        ) else None
 
     method current = curr
-    method set_current x = curr <- x
+
+    method set_current = function
+        | None -> curr <- None; sort <- [||]
+        | Some id as some -> curr <- some; self#sort_by_uncertainty id
+
     method active =
         match curr with
         | None -> false
         | Some str -> fst (List.assoc str input) = AmfUI.Levels.current ()
-    
 
     method ids level = 
         List.filter (fun (_, (x, _)) -> x = level) input
         |> List.split
         |> fst
+
+    method count =
+        match self#current with
+        | None -> 0
+        | Some id -> let mat = snd (List.assoc id input) in
+            let r, c = Matrix.dim mat in r * c
 
     method dump och =
         List.iter (fun (id, (level, matrix)) ->

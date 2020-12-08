@@ -1,4 +1,4 @@
-(* CastANet browser - imgActivations.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - img/imgActivations.ml *)
 
 open Printf
 open Morelib

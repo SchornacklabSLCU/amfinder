@@ -65,6 +65,9 @@ class type cursor = object
     method set_paint : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
     (** Sets the function used to paint the cursor. *)
 
+    method update_cursor_pos : r:int -> c:int -> bool
+    (** Updates cursor position. *)
+
 end
 
 
@@ -233,6 +236,12 @@ class type predictions = object
 
     method active : bool
     (** Tells whether predictions are being displayed. *)
+
+    method count : int
+    (** Returns the number of predictions in the current dataset. *)
+
+    method next_uncertain : (int * int) option
+    (** Returns the coordinates of the next most uncertain prediction. *)
 
     method get : r:int -> c:int -> float list option
     (** Return the probabilities at the given coordinates. *)

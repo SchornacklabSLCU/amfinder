@@ -335,6 +335,7 @@ module Make (P : PARAMS) : S = struct
             cams#misc#set_sensitive false;
             palette#misc#set_sensitive false;
             convert#misc#set_sensitive false;
+            ambiguities#misc#set_sensitive false;
             overlay_icon#set_pixbuf AmfIcon.Misc.show_preds;
             overlay_label#set_label (Aux.small_text "Overlay")
     end
