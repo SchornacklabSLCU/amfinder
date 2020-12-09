@@ -12,6 +12,7 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.initializers import he_uniform
 
+import castanet_log as cLog
 import castanet_config as cConfig
 
 
@@ -87,7 +88,7 @@ def core_model(input_shape):
 
 
 
-def colonization(input_shape):
+def root_segm(input_shape):
     """ This function returns a simple model for the less precise level
       of annotation, i.e. 'colonization', which has three mutually 
       exclusive categories: colonized, non-colonized, and background.
@@ -96,7 +97,7 @@ def colonization(input_shape):
 
     model = core_model(input_shape)
 
-    model.add(Dense(3, activation='softmax', name='O',
+    model.add(Dense(3, activation='softmax', name='RS',
                   kernel_initializer=he_uniform()))
 
     model.compile(optimizer='adam',
@@ -107,7 +108,7 @@ def colonization(input_shape):
 
 
 
-def arb_vesicles(input_shape):
+def ir_struct(input_shape):
     """ This function returns a slightly more elaborate model for the
       intermediate level of annotation, i.e. 'arb_vesicles' which has
       four categories: arbuscules, vesicles, non-colonized roots, and
@@ -116,7 +117,7 @@ def arb_vesicles(input_shape):
 
     model = core_model(input_shape)
 
-    model.add(Dense(4, activation='sigmoid', name='O',
+    model.add(Dense(3, activation='sigmoid', name='IS',
                     kernel_initializer=he_uniform()))
 
     model.compile(optimizer='adam',
@@ -131,20 +132,10 @@ def get_input_shape(level):
     """ Retrieves the input shape corresponding to the given
         annotation level. """
 
-    if level == 'colonization':
+    cConfig.set('model_input_size', 126)
+    return (126, 126, 3)
 
-        cConfig.set('model_input_size', 62)
-        return (62, 62, 3)
 
-    elif level == 'arb_vesicles':
-
-        cConfig.set('model_input_size', 62)
-        return (62, 62, 4)
-
-    else:
-
-        cConfig.set('model_input_size', 224)
-        return (224, 224, 7)
 
 
 
@@ -155,18 +146,13 @@ def create():
     level = cConfig.get('level')
     input_shape = get_input_shape(level) 
 
-    if level == 'colonization':
+    if level == 'RootSegm':
 
-        return colonization(input_shape)
+        return root_segm(input_shape)
 
-    elif level == 'arb_vesicles':
+    elif level == 'IRStruct':
 
-        return arb_vesicles(input_shape)
-
-    elif level == 'all_features':
-
-        print('WARNING: Not implemented yet')
-        return None
+        return ir_struct(input_shape)
 
     else:
 
@@ -200,17 +186,14 @@ def pre_trained(path):
         # and 224 pixels for all_features.
         cConfig.set('model_input_size', x)
 
-    if z == 3:
+    if x == 62:
 
-        cConfig.set('level', 'colonization')
+        cConfig.set('level', 'RootSegm')
 
-    elif z == 4:
+    elif x == 126:
 
-        cConfig.set('level', 'arb_vesicles')
+        cConfig.set('level', 'IRStruct')
 
-    elif z == 7:
-
-        cConfig.set('level', 'all_features')
 
     else:
 

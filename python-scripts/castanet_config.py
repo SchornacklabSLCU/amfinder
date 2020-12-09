@@ -7,10 +7,11 @@ import mimetypes
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
+import castanet_log as cLog
+
 HEADERS = {
-  'colonization': ['Y', 'N', 'X'],
-  'arb_vesicles': ['A', 'V', 'N', 'X'],
-  'all_features': ['A', 'V', 'I', 'E', 'H', 'R', 'X']
+  'RootSegm': ['Y', 'N', 'X'],
+  'IRStruct': ['A', 'V', 'H']
 }
 
 PAR = {
@@ -24,7 +25,7 @@ PAR = {
     'drop': None,
     'epochs': None,
     'vfrac': None,
-    'header': HEADERS['colonization'],
+    'header': HEADERS['RootSegm'],
     'outdir': None,
     'generate_cams': None,
     'colormap': None,
@@ -148,10 +149,10 @@ def build_argumentp():
 
   ts.add_argument('-l', '--level',
                   action='store', dest='level', metavar='ID',
-                  type=str, default='colonization',
+                  type=str, default='RootSegm',
                   help='Annotation level identifier.'
-                       '\nchoices: {colonization, arb_vesicles, all_features}'
-                       '\ndefault value: colonization')
+                       '\nchoices: {RootSegm, IRStruct}'
+                       '\ndefault value: RootSegm')
 
   ts.add_argument('-m', '--model',
                   action='store', dest='model', metavar='H5',
@@ -168,7 +169,7 @@ def build_argumentp():
   tp.add_argument('image', nargs='*',
                   default=['*.jpg'],
                   help='plant root scan to be processed.'
-                       '\ndefault value: *jpg')
+                       '\ndefaults to JPEG files in the current directory.')
 
   # Subparser dedicated to prediction of mycorrhizal structures.
   pp = subparsers.add_parser('predict',

@@ -57,7 +57,7 @@ def load_tile(image, drop, data):
     Returns the loaded tile, or None if it was dropped.
     """
 
-    if data['X'] == 1 and drop > 0 and random.uniform(0, 100) < drop:
+    if cConfig.get('level') == 'RootSegm' and drop > 0 and data['X'] == 1 and random.uniform(0, 100) < drop:
 
         return None
 
@@ -110,7 +110,7 @@ def load_annotation_table(level, path):
     # File exists and is a valid archive.
     if os.path.isfile(zip_file) and zf.is_zipfile(zip_file):
 
-        annot_file = f'python/{level}.tsv'
+        annot_file = f'{level}.tsv'
 
         with zf.ZipFile(zip_file, 'r') as z:
 
@@ -158,7 +158,7 @@ def estimate_drop(counts):
     average = round(sum(other_counts.values) / len(other_counts.index))
     
     # Excess background tiles compared to other classes.
-    overhead = background_counts - average
+    overhead = background_count - average
     
     if overhead <= 0:
     
@@ -184,7 +184,7 @@ def load_annotations(input_files):
 
     drop = 0
 
-    if cConfig.get('drop'):
+    if cConfig.get('drop') > 0:
 
         # Remove cases where no pandas.DataFrame was produced
         filtered_tables = [x for x in annot_tables if x is not None]
