@@ -1,16 +1,16 @@
-# CastANet - castanet_predict.py
+# CastANet - amfinder_predict.py
 
 import os
 import pyvips
 import numpy as np
 import pandas as pd
 
-import castanet_log as cLog
-import castanet_save as cSave
-import castanet_model as cModel
-import castanet_config as cConfig
-import castanet_segmentation as cSegm
-import castanet_activation_mapping as cMapping
+import amfinder_log as cLog
+import amfinder_save as cSave
+import amfinder_model as cModel
+import amfinder_config as cConfig
+import amfinder_segmentation as cSegm
+import amfinder_activation_mapping as cMapping
 
 
 

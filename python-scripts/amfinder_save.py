@@ -1,4 +1,4 @@
-# CastANet - castanet_save.py
+# CastANet - amfinder_save.py
 
 import os
 import io
@@ -10,8 +10,8 @@ import numpy as np
 import zipfile as zf
 import matplotlib as plt
 
-import castanet_plot as cPlot
-import castanet_config as cConfig
+import amfinder_plot as cPlot
+import amfinder_config as cConfig
 
 CORRUPTED_ARCHIVE = 30
 

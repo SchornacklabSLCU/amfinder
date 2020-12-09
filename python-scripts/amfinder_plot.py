@@ -1,4 +1,4 @@
-# CastANet - castanet_plot.py
+# CastANet - amfinder_plot.py
 
 import io
 import matplotlib

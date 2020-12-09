@@ -1,11 +1,11 @@
-# CastANet - castanet_segmentation.py
+# CastANet - amfinder_segmentation.py
 
 import random
 import pyvips
 import functools
 import numpy as np
 
-import castanet_config as cConfig
+import amfinder_config as cConfig
 
 INTERP_NEAREST = pyvips.vinterpolate.Interpolate.new('nearest')
 

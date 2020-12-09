@@ -1,4 +1,4 @@
-# CastANet - castanet_config.py
+# CastANet - amfinder_config.py
 
 import os
 import cv2
@@ -7,7 +7,7 @@ import mimetypes
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
-import castanet_log as cLog
+import amfinder_log as cLog
 
 HEADERS = {
   'RootSegm': ['Y', 'N', 'X'],

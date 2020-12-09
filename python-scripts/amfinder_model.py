@@ -1,4 +1,4 @@
-# CastANet - castanet_model.py
+# AMFinder - amfinder_model.py
 
 import os
 import sys
@@ -12,8 +12,8 @@ from keras.layers import Dropout
 from keras.layers import Dense
 from keras.initializers import he_uniform
 
-import castanet_log as cLog
-import castanet_config as cConfig
+import amfinder_log as cLog
+import amfinder_config as cConfig
 
 
 

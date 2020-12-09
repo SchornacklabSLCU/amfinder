@@ -1,4 +1,4 @@
-# CastANet suite - castanet_log.py
+# CastANet suite - amfinder_log.py
 
 """
 CastANet log functions.

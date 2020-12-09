@@ -1,4 +1,4 @@
-# CastANet - castanet_train.py
+# AMFinder - amfinder_train.py
 
 import os
 import io
@@ -18,12 +18,12 @@ from keras.preprocessing.image import ImageDataGenerator
 
 from sklearn.model_selection import train_test_split
 
-import castanet_log as cLog
-import castanet_plot as cPlot
-import castanet_save as cSave
-import castanet_model as cModel
-import castanet_config as cConfig
-import castanet_segmentation as cSegm
+import amfinder_log as cLog
+import amfinder_plot as cPlot
+import amfinder_save as cSave
+import amfinder_model as cModel
+import amfinder_config as cConfig
+import amfinder_segmentation as cSegm
 
 
 
@@ -57,7 +57,8 @@ def load_tile(image, drop, data):
     Returns the loaded tile, or None if it was dropped.
     """
 
-    if cConfig.get('level') == 'RootSegm' and drop > 0 and data['X'] == 1 and random.uniform(0, 100) < drop:
+    if cConfig.get('level') == 'RootSegm' and drop > 0 and \
+       data['X'] == 1 and random.uniform(0, 100) < drop:
 
         return None
 
