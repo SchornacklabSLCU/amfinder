@@ -1,14 +1,12 @@
 # AMFinder - amfinder_segmentation.py
 
-import random
 import pyvips
-import functools
 import numpy as np
-
 import amfinder_config as cConfig
 
 # Interpolation mode, optimized for speed.
 INTERP_NEAREST = pyvips.vinterpolate.Interpolate.new('nearest')
+
 
 def tile(image, r, c):
     """ Extracts a tile from a large image, resizes it to
