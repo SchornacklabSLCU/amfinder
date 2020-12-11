@@ -37,5 +37,6 @@ digraph depend {
 "amf_explorer" -> "amfImage"
 "amf_explorer" -> "amfCallback"
 "cI18n" -> "amfLog"
+"morelib" -> "err"
 "morelib" -> "amfLog"
 }
