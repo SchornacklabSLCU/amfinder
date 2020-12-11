@@ -27,59 +27,58 @@ def core_model(input_shape):
 
     model = Sequential()
 
-    # Input size: 62 pixels; output_size: 60 pixels        126->124
-    model.add(Conv2D(32, kernel_size=3, name='C1', input_shape=input_shape,
+    # 126->124
+    model.add(Conv2D(32, kernel_size=3, name='C11', input_shape=input_shape,
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 60 pixels; output_size: 58 pixels        124->122
-    model.add(Conv2D(32, kernel_size=3, name='C2',
+    # 124->122
+    model.add(Conv2D(32, kernel_size=3, name='C12',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 58 pixels; output_size: 56 pixels        122->120
-    model.add(Conv2D(32, kernel_size=3, name='C3',
+    # 122->120
+    model.add(Conv2D(32, kernel_size=3, name='C13',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 56 pixels; output_size: 28 pixels        120->60
+    # 120->60
     model.add(MaxPooling2D(pool_size=2, name='M1'))
 
-    # Input size: 28 pixels; output_size: 26 pixels         60->58
-    model.add(Conv2D(64, kernel_size=3, name='C4',
+    # 60->58
+    model.add(Conv2D(64, kernel_size=3, name='C21',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 26 pixels; output_size: 24 pixels         58->56
-    model.add(Conv2D(64, kernel_size=3, name='C5',
+    # 58->56
+    model.add(Conv2D(64, kernel_size=3, name='C22',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 24 pixels; output_size: 12 pixels         56->28
+    # 56->28
     model.add(MaxPooling2D(pool_size=2, name='M2'))
 
-    # Input size: 12 pixels; output_size: 10 pixels         28->26
-    model.add(Conv2D(128, kernel_size=3, name='C6',
+    # 28->26
+    model.add(Conv2D(128, kernel_size=3, name='C31',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 10 pixels; output_size: 08 pixels         26->24
-    model.add(Conv2D(128, kernel_size=3, name='C7',
+    # 26->24
+    model.add(Conv2D(128, kernel_size=3, name='C32',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 08 pixels; output_size: 04 pixels         24->12
+    # 24->12
     model.add(MaxPooling2D(pool_size=2, name='M3'))
 
-    # Input size: 04 pixels; output_size: 02 pixels         12->10
-    model.add(Conv2D(128, kernel_size=3, name='C8',
+    # 12->10
+    model.add(Conv2D(128, kernel_size=3, name='C4',
                      activation='relu', kernel_initializer=he_uniform()))
 
-    # Input size: 02 pixels; output_size: 01 pixels         10->5
-    # TODO: replace with average pooling?
+    # 10->5
     model.add(MaxPooling2D(pool_size=2, name='M4'))
 
     model.add(Flatten(name='F'))
 
-    model.add(Dense(64, activation='relu', name='H1',
+    model.add(Dense(64, activation='relu', name='FC1',
                     kernel_initializer=he_uniform()))
 
     model.add(Dropout(0.3, name='D1'))
 
-    model.add(Dense(16, activation='relu', name='H2',
+    model.add(Dense(16, activation='relu', name='FC2',
                     kernel_initializer=he_uniform()))
 
     model.add(Dropout(0.2, name='D2'))
@@ -132,8 +131,9 @@ def get_input_shape(level):
     """ Retrieves the input shape corresponding to the given
         annotation level. """
 
-    cConfig.set('model_input_size', 126)
-    return (126, 126, 3)
+    edge = cConfig.get('model_input_size')
+    # Input images have red, green, and blue channels.
+    return (edge, edge, 3)
 
 
 
@@ -165,7 +165,8 @@ def pre_trained(path):
     """ Loads a pre-trained model and updates the annotation level
         according to its input shape. """
 
-    print('* Loading a pre-trained model.')
+    model_name = os.path.basename(path)
+    print(f'* Pre-trained model: {model_name}')
     
     # Loads model.
     model = keras.models.load_model(path)   

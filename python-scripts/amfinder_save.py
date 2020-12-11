@@ -3,6 +3,7 @@
 import os
 import io
 import sys
+import json
 import h5py
 import pickle
 import datetime
@@ -81,6 +82,16 @@ def save_cams(uniq, z, cams):
 
 
 
+def save_settings(z):
+    """ Saves tile size. """
+
+    with z.open('settings.json', mode='w') as s:
+        edge = cConfig.get('tile_edge')
+        data = '{"tile_edge": %d}' % (edge)
+        s.write(data.encode())
+
+
+
 def prediction_table(results, cams, path):
     """ Saves or append predictions to an archive. """
 
@@ -99,9 +110,11 @@ def prediction_table(results, cams, path):
             if zf.is_zipfile(zipf):
 
                 with zf.ZipFile(zipf, 'a') as z:
+                    save_settings(z)
                     zi = get_zip_info(tsv, cConfig.get('level'))
                     z.writestr(zi, data)
-                    z.comment = b'{level}'
+                    z.comment = b'{level}'                   
+                    
                     if cams is not None:
                         save_cams(uniq, z, cams)
         
@@ -113,6 +126,7 @@ def prediction_table(results, cams, path):
         else:
 
             with zf.ZipFile(zipf, 'w') as z:
+                save_settings(z)
                 zi = get_zip_info(tsv, cConfig.get('level'))
                 z.writestr(zi, data)
                 if cams is not None:

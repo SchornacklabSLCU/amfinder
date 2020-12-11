@@ -2,6 +2,7 @@
 
 import os
 import io
+import yaml
 import random
 import pickle
 import pyvips
@@ -9,6 +10,7 @@ import operator
 import functools
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import zipfile as zf
 
 from keras.callbacks import EarlyStopping
@@ -122,7 +124,10 @@ def load_annotation_table(level, path):
                 annot_table = io.StringIO(annot_table)
                 annot_table = pd.read_csv(annot_table, sep='\t')
                 
-                return annot_table
+                settings = z.read('settings.json').decode('utf-8')
+                settings = yaml.safe_load(settings)
+                
+                return (annot_table, settings)
 
             else:
               
@@ -191,14 +196,14 @@ def load_annotations(input_files):
         filtered_tables = [x for x in annot_tables if x is not None]
         
         # Produces counts (pandas.Series) for each input file.
-        count_list = [x.sum() for x in filtered_tables]
+        count_list = [x[0].sum() for x in filtered_tables]
         
         # Retrieve the grand total.
         counts = functools.reduce(operator.add, count_list)
         
         # Estimate the percentage of background tiles to drop.
         drop = estimate_drop(counts)
-        cLog.info(f'{drop}%% of background tiles will be dropped.', indent=1)
+        cLog.info(f'{drop}% of background tiles will be dropped', indent=1)
 
     tiles = []
     labels = []
@@ -207,17 +212,22 @@ def load_annotations(input_files):
 
     for path, data in zip(input_files, annot_tables):
 
+        # Updates tile edge for this image.
+        tsize = data[1]['tile_edge']
+        cConfig.set('tile_edge', tsize)
         base = os.path.basename(path)
-        cLog.info(f'- {base}... ', indent=1, end='', flush=True)
+        print(f'    - {base} (tile size: {tsize})... ', end='', flush=True)
        
         if data is None:
-            
+
             print('Failed')
             continue
 
         image = pyvips.Image.new_from_file(path, access='random')
 
+
         # Loads tiles, omitting some background tiles if needed.
+        data = data[0]
         data['tile'] = data.apply(lambda x: load_tile(image, drop, x), axis=1)
         data = data[data['tile'].notnull()]
 
@@ -288,6 +298,7 @@ def run(input_files):
     """
 
     model = cModel.load()
+    #print(model.summary())
 
     tiles, labels = load_annotations(input_files)
 

@@ -1,4 +1,4 @@
-# CastANet - amfinder_predict.py
+# AMFinder - amfinder_predict.py
 
 import os
 import pyvips
@@ -51,12 +51,12 @@ def row_wise_processing(image, nrows, ncols, model):
         # Retrieve class activation maps.
         cMapping.generate(cams, model, row, r)
         # Update the progress bar.
-        cLog.progress_bar(r + 1, nrows)
+        cLog.progress_bar(r + 1, nrows, indent=1)
         # Return prediction as Pandas data frame.
         return pd.DataFrame(prd)
 
     # Initialize the progress bar.
-    cLog.progress_bar(0, nrows)
+    cLog.progress_bar(0, nrows, indent=1)
 
     # Retrieve predictions for all rows within the image.
     results = [process_row(r) for r in range(nrows)]

@@ -10,8 +10,8 @@ from argparse import RawTextHelpFormatter
 import amfinder_log as cLog
 
 HEADERS = {
-  'RootSegm': ['Y', 'N', 'X'],
-  'IRStruct': ['A', 'V', 'H']
+  'RootSegm': ['Y', 'N', 'X'],  # colonized root (Y), root (N), background (X). 
+  'IRStruct': ['A', 'V', 'H']   # Arbuscule (A), vesicle (V), hypha (H).
 }
 
 PAR = {
@@ -89,8 +89,8 @@ def set(id, value, create=False):
 
 
 
-def build_argumentp():
-  """ This function builds CastAnet command-line parser. The parser
+def build_arg_parser():
+  """ This function builds AMFinder command-line parser. The parser
       consists of two mutually exclusive sub-parsers: <train> and
       <predict>. The former defines arguments concerning the learning
       step, while the latter defines those associated with the
@@ -160,12 +160,6 @@ def build_argumentp():
                   help='path to the pre-trained model.'
                        '\ndefault value: none')
 
-  tp.add_argument('-v', '--validate',
-                  action='store', dest='vfrac', metavar='N%',
-                  type=int, default=30,
-                  help='percentage of tiles to be used for validation.'
-                       '\ndefault value: 30%%')
-
   tp.add_argument('image', nargs='*',
                   default=['*.jpg'],
                   help='plant root scan to be processed.'
@@ -220,7 +214,7 @@ def get_input_files():
     raw_list = abspath(get('input_files'))
     valid_types = ['image/jpeg', 'image/tiff']
     images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
-    print('* Number of valid input images: {}.'.format(len(images)))
+    print('* Input images: {}'.format(len(images)))
     return images
 
 
@@ -229,7 +223,7 @@ def initialize():
     """ Here is CastANet initialization function. It parses command-line
         arguments, performs type-checking, then updates internal settings
         accordingly. """
-    parser = build_argumentp()
+    parser = build_arg_parser()
     par = parser.parse_known_args()[0]
 
     # Main arguments.
