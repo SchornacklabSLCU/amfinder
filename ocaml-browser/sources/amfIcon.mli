@@ -34,6 +34,12 @@ module Misc : sig
     val palette : GdkPixbuf.pixbuf
     (** Icon for color palettes. *)
 
+    val erase : GdkPixbuf.pixbuf
+    (** Icon for eraser. *)
+
+    val snapshot : GdkPixbuf.pixbuf
+    (** Icon for snapshot. *)
+
     val show_preds : GdkPixbuf.pixbuf
     (** Add predictions. *)
     

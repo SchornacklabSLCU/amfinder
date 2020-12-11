@@ -69,6 +69,6 @@ class type image = object
 
 end
 
-val create : edge:int -> string -> image
+val create : string -> image
 (** [load ~edge:n path] loads image [path], using [n]x[n] squares as tiles.
   * @raise Invalid_argument if the file does not exist. *)

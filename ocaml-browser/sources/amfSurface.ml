@@ -128,7 +128,8 @@ module Square = struct
                     Cairo.fill t
                 ) multicolor;
                 rounded_rectangle t half half ~w:edge ~h:edge;
-                Cairo.set_source_rgba t 0.3 0.3 0.3 1.0;
+                let r, g, b, a = AmfColor.parse_rgba dash_color in
+                Cairo.set_source_rgba t r g b a;
                 Cairo.stroke t
             end else begin
                 if rounded then rounded_rectangle t half half ~w:edge ~h:edge
@@ -160,7 +161,8 @@ module Square = struct
                 Cairo.stroke t;
             (* Lock symbol for non-editable tiles. *)
             end else if lock then begin
-                Cairo.set_source_rgba t 0.4 0.4 0.4 1.0;
+                let r, g, b, a = AmfColor.parse_rgba dash_color in
+                Cairo.set_source_rgba t r g b a;
                 Cairo.set_line_width t 2.0;
                 let w = 14.0 and h = 10.0 in
                 let centre = margin +. 0.5 *. edge in
@@ -172,7 +174,7 @@ module Square = struct
                 Cairo.stroke t;
                 Cairo.arc t (centre -. 2.0) (centre +. 1.0)
                     ~r:2.5 ~a1:0.0 ~a2:two_pi;
-                Cairo.fill t;  
+                Cairo.fill t
             end
         end else begin
             let r, g, b, a = AmfColor.parse_rgba symbol_color in
@@ -216,6 +218,13 @@ module Square = struct
         ~lock:true
         ~margin:4.0
         ~dash:[|2.0|]
+        ~fill_color:"#FFFFFF90"
+        ~dash_color x
+
+    let empty dash_color x = draw
+        ~margin:4.0
+        ~stroke:true
+        ~fill_color:"#FFFFFFFF"
         ~dash_color x
 
     let filled ?symbol fill_color x =

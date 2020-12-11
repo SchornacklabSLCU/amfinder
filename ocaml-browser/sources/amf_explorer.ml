@@ -2,33 +2,20 @@
 
 open Printf
 
-module Par = struct
-  open Arg
-  let edge = ref 40
-  let path = ref None
-  let image = ref None
-  let set_image_path x = if Sys.file_exists x then path := Some x
-  let usage = "castanet_editor.exe [OPTIONS] [IMAGE_PATH]"
-  let specs = align [
-    "--edge", Set_int edge, sprintf " Tile size (default: %d pixels)." !edge;
-  ]
-  let initialize () = parse specs set_image_path usage
-end
-
-
+let image_ref = ref None
 
 let connect_callbacks () =
-    AmfCallback.Window.save Par.image;
+    AmfCallback.Window.save image_ref;
     (* Magnifier events. *)
-    AmfCallback.Magnifier.capture_screenshot Par.image;
+    AmfCallback.Magnifier.capture_screenshot image_ref;
     (* Annotation events. *)
-    AmfCallback.Annotations.update_mosaic Par.image;
+    AmfCallback.Annotations.update_mosaic image_ref;
     (* Prediction events. *)
-    AmfCallback.Predictions.convert Par.image;
-    AmfCallback.Predictions.update_list Par.image;
-    AmfCallback.Predictions.update_cam Par.image;
-    AmfCallback.Predictions.select_list_item Par.image;
-    AmfCallback.Predictions.move_to_ambiguous_tile Par.image
+    AmfCallback.Predictions.convert image_ref;
+    AmfCallback.Predictions.update_list image_ref;
+    AmfCallback.Predictions.update_cam image_ref;
+    AmfCallback.Predictions.select_list_item image_ref;
+    AmfCallback.Predictions.move_to_ambiguous_tile image_ref
 
 let connect_image image =
     (* GtkWindow events. *)
@@ -43,16 +30,15 @@ let connect_image image =
 
 let load_image () =
     (* Retrieves an image path from the command line or from a file chooser. *)
-    Par.initialize ();
-    let image_path = match !Par.path with
+    let image_path = match !AmfPar.path with
         | None -> AmfUI.FileChooser.run ()
         | Some path -> path in
     (* Displays the main window in order to retrieve drawing parameters. *)
     AmfUI.window#show ();
     (* Loads the image, creates tiles and populates the main window. *)
-    let image = AmfImage.create ~edge:!Par.edge image_path in
+    let image = AmfImage.create image_path in
     (* Sets as main image. *)       
-    Par.image := Some image;
+    image_ref := Some image;
     connect_image image;
     image#show ();
     AmfUI.Layers.set_callback (fun _ radio _ _ -> 
@@ -61,8 +47,9 @@ let load_image () =
 
 
 let main () =
-    print_endline "castanet-browser 2.0";
+    print_endline "AMFinder interface version 2.0";
     Printexc.record_backtrace true;
+    AmfPar.initialize ();
     connect_callbacks ();
     load_image ();
     GMain.main ()

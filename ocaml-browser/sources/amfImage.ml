@@ -11,14 +11,18 @@ end
 
 
 
-class image path edge = 
+class image path = 
 
     (* File settings. *)
     let file = ImgFile.create path in
 
+    let zip = match Sys.file_exists file#archive with
+        | true  -> Some (Zip.open_in file#archive)
+        | false -> None in
+
     (* Source object. *)   
     let pixbuf = GdkPixbuf.from_file path in
-    let source = ImgSource.create pixbuf edge in
+    let source = ImgSource.create ?zip pixbuf in
     
     (* Drawing parameters. *)   
     let brush = ImgBrush.create source in
@@ -31,9 +35,6 @@ class image path edge =
 
     (* Annotations, predictions and activations. *)
     let annotations, predictions, activations = 
-        let zip = match Sys.file_exists file#archive with
-            | true  -> Some (Zip.open_in file#archive)
-            | false -> None in
         let annotations = ImgAnnotations.create ?zip source
         and predictions = ImgPredictions.create ?zip source
         and activations = ImgActivations.create ?zip source in
@@ -113,8 +114,8 @@ object (self)
         GdkPixbuf.save ~filename ~typ:"jpeg" screenshot
 
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
-        draw#tile ~sync:false ~r ~c ();
-        draw#overlay ~sync:false ~r ~c ();
+        let tile_exists = draw#tile ~sync:false ~r ~c () in
+        if tile_exists then draw#overlay ~sync:false ~r ~c ();
         if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ();
         if sync then brush#sync "draw_annotated_tile" ()
 
@@ -195,11 +196,12 @@ object (self)
         annotations#dump och;
         predictions#dump och;
         activations#dump och;
+        source#save_settings och;
         Zip.close_out och
 end
 
 
 
-let create ~edge path =
-    if Sys.file_exists path then new image path edge
+let create path =
+    if Sys.file_exists path then new image path
     else invalid_arg "AmfImage.load: File not found"

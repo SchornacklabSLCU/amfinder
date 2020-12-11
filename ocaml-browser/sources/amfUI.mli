@@ -1,4 +1,4 @@
-(* CastANet - cGUI.mli *)
+(* The Automated Mycorrhiza Finder version 1.0 - amfUI.mli *)
 
 (** Graphical user interface. *)
 

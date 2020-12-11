@@ -3,6 +3,6 @@
 (** Source image settings. *)
 
 
-val create : GdkPixbuf.pixbuf -> int -> ImgTypes.source
+val create : ?zip:Zip.in_file -> GdkPixbuf.pixbuf -> ImgTypes.source
 (** Builder. *)
 

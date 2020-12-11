@@ -188,7 +188,7 @@ module Make (P : PARAMS) : S = struct
         Aux.markup_toggle_button
             ~sensitive:true
             ~pixbuf:AmfIcon.Misc.show_preds
-            ~label:"Overlay" 
+            ~label:"Import" 
             ~packing ()
 
     let palette =
@@ -337,7 +337,7 @@ module Make (P : PARAMS) : S = struct
             convert#misc#set_sensitive false;
             ambiguities#misc#set_sensitive false;
             overlay_icon#set_pixbuf AmfIcon.Misc.show_preds;
-            overlay_label#set_label (Aux.small_text "Overlay")
+            overlay_label#set_label (Aux.small_text "Import")
     end
 
     let _ =

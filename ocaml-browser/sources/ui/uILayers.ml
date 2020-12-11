@@ -43,7 +43,7 @@ module Toolbox = struct
         let hbox = GPack.hbox ~spacing:2 ~packing:r_radio#set_icon_widget () in
         let r_image = GMisc.image ~width:24 ~packing:hbox#add ()
         and r_label = GMisc.label
-            ~markup:"<small><tt>000000</tt></small>" 
+            ~markup:(if chr = '*' then "<small>Overlay</small>" else "<small><tt>000000</tt></small>")
             ~packing:hbox#add () in
         let style = AmfIcon.(if chr = '*' then RGBA else Grayscale) in
         r_image#set_pixbuf AmfIcon.(get chr Small style);
@@ -55,7 +55,7 @@ module Toolbox = struct
             let toolbar = GButton.toolbar
                 ~orientation:`VERTICAL
                 ~style:`ICONS
-                ~width:98 ~height:380 ()
+                ~width:92 ~height:185 ()
             let active = ref true
             let group = ref None
             let packing = toolbar#insert
@@ -110,8 +110,8 @@ module Make (P : PARAMS) : S = struct
     let set_image chr = (get_radio_ext chr).r_image#set_pixbuf
 
     let set_label chr num =
-    ksprintf (get_radio_ext chr).r_label#set_label 
-        "<small><tt>%06d</tt></small>" num
+        ksprintf (get_radio_ext chr).r_label#set_label 
+            "<small><tt>%06d</tt></small>" num
   
     let set_callback f =
         List.iter (fun (level, radio) ->

@@ -39,6 +39,9 @@ class type source = object
     method columns : int
     (** Column count. *)
 
+    method save_settings : Zip.out_file -> unit
+    (** Saves settings. *)
+
 end
 
 
@@ -134,6 +137,9 @@ class type brush = object
     method pixbuf : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
     (** [pixbuf ?sync ~r ~c p] draws pixbuf [p] at row [r] and column [c].
       * @param sync defaults to [false]. *)
+
+    method empty : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Draws an empty tile. *)
 
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
     (** [surface ?sync ~r ~c s] draws surface [s] at row [r] and column [c].
@@ -295,7 +301,7 @@ class type draw = object
     method set_update: (unit -> unit) -> unit
     (** Registers a function to update the overall view. *)
 
-    method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method tile : ?sync:bool -> r:int -> c:int -> unit -> bool
     (** Draw tile image at the given coordinates. *)    
 
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit

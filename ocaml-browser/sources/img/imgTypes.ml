@@ -15,6 +15,7 @@ class type source = object
     method edge : int
     method rows : int
     method columns : int
+    method save_settings : Zip.out_file -> unit
 end
 
 
@@ -29,6 +30,7 @@ class type brush = object
     method set_backcolor : string -> unit
     method background : ?sync:bool -> unit -> unit
     method pixbuf : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
+    method empty : ?sync:bool -> r:int -> c:int -> unit -> unit
     method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
     method locked_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
@@ -110,7 +112,7 @@ end
 
 class type draw = object
     method set_update: (unit -> unit) -> unit
-    method tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method tile : ?sync:bool -> r:int -> c:int -> unit -> bool
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method overlay : ?sync:bool -> r:int -> c:int -> unit -> unit
 end

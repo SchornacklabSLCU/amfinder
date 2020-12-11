@@ -33,6 +33,9 @@ module Square : sig
     
     val locked : color -> edge -> Cairo.Surface.t
     (** Square with a dashed stroke and a red lock. *)
+
+    val empty : color -> edge -> Cairo.Surface.t
+    (** Rounded square with a solid stroke and a white background. *)
 end
 
 

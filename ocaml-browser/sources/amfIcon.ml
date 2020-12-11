@@ -44,6 +44,8 @@ module Misc = struct
     let conv = load_pixbuf 24 (Dir.interface "convert.png")
     let ambiguities = load_pixbuf 24 (Dir.interface "ambiguous.png")
     let palette = load_pixbuf 24 (Dir.interface "palette.png")
+    let erase = load_pixbuf 24 (Dir.interface "erase.png")
+    let snapshot = load_pixbuf 24 (Dir.interface "snapshot.png")
     let show_preds = load_pixbuf 24 (Dir.interface "show_preds.png")
     let hide_preds = load_pixbuf 24 (Dir.interface "hide_preds.png")
 end

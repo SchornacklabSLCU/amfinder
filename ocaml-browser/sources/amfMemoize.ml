@@ -12,7 +12,8 @@ let create f =
 let cursor = create (AmfSurface.Square.cursor "#CC0000FF")
 let arrowhead = create (AmfSurface.arrowhead "#FF0000FF")
 let dashed_square = create (AmfSurface.Square.dashed "#000000FF")
-let locked_square = create (AmfSurface.Square.locked "#000000FF")
+let locked_square = create (AmfSurface.Square.locked "#80808090")
+let empty_square = create (AmfSurface.Square.empty "#808080FF")
 
 let palette =
     create (fun index ->

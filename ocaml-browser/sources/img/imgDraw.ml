@@ -22,12 +22,12 @@ class draw
         ) else true
 
     method tile ?(sync = true) ~r ~c () =
-        if self#may_update_view ~r ~c () then begin
+        if self#may_update_view ~r ~c () then (
             (* TODO: Is None a possible case? *)
             match tiles#get ~r ~c with
-            | None -> AmfLog.error ~code:2 "Mising tile at r=%d c=%d" r c
-            | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf
-        end
+            | None -> brush#empty ~sync ~r ~c (); false
+            | Some pixbuf -> brush#pixbuf ~sync ~r ~c pixbuf; true
+        ) else true
 
     method cursor ?(sync = true) ~r ~c () =
         if self#may_update_view ~r ~c () then brush#cursor ~sync ~r ~c ();

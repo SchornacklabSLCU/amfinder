@@ -20,6 +20,9 @@ val dashed_square : AmfSurface.edge -> Cairo.Surface.t
 val locked_square : AmfSurface.edge -> Cairo.Surface.t
 (** Rounded square with a lock. *)
 
+val empty_square : AmfSurface.edge -> Cairo.Surface.t
+(** Empty square. *)
+
 val palette : int -> AmfSurface.edge -> Cairo.Surface.t
 (** Circle filled with color from a given palette. *)
 

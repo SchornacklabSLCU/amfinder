@@ -1,4 +1,4 @@
-(* CastANet - uI_Helper.ml *)
+(* The Automated Mycorrhiza Finder version 1.0 - ui/uiHelper.ml *)
 
 open Printf
 
@@ -14,3 +14,5 @@ let label ?(vspace = true) packing markup =
   let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
   if vspace then morespace packing;
   label
+
+let pango_small = Printf.sprintf "<small>%s</small>"

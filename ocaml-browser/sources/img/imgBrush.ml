@@ -94,6 +94,9 @@ object (self)
             ~y:(self#y ~r) pixbuf;
         if sync then self#sync "brush#pixbuf" ()
 
+    method empty ?sync ~r ~c () =
+        self#surface ?sync ~r ~c (AmfMemoize.empty_square Area.edge)
+
     method surface ?(sync = false) ~r ~c surface =
         let t = AmfUI.Drawing.cairo ()
         and x = float (self#x ~c)
@@ -207,7 +210,7 @@ object (self)
         self#redraw_column_pane c;
         if sync then self#sync "coordinates" ()
 
-    method private index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 25
+    method private index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 24
 
     method hide_probability ?(sync = false) () =
         let ncolors = Array.length (AmfUI.Predictions.get_colors ()) in
@@ -293,7 +296,6 @@ object (self)
 
     method prediction ?sync ~r ~c (chr : char) x =
         let index = self#index_of_prob x in
-        (* self#show_probability x; *)
         self#surface ?sync ~r ~c (AmfMemoize.palette index Area.edge)
 end
 
