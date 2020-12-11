@@ -190,7 +190,8 @@ def load_annotations(input_files):
 
     drop = 0
 
-    if cConfig.get('drop') > 0:
+    # Drop estimation is only active when training root segmentation. 
+    if cConfig.get('level') == 'RootSegm' and cConfig.get('drop') > 0:
 
         # Remove cases where no pandas.DataFrame was produced
         filtered_tables = [x for x in annot_tables if x is not None]
