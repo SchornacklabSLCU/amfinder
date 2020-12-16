@@ -1,236 +1,156 @@
 # AMFinder - amfinder_model.py
 
 import os
-import sys
-
 import keras
-from keras.models import Sequential
+
+from keras.layers import Input
 from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Flatten
-from keras.layers import Dropout
 from keras.layers import Dense
+from keras.layers import Dropout
+from keras.models import Model
 from keras.initializers import he_uniform
 
-import amfinder_log as cLog
-import amfinder_config as cConfig
+import amfinder_log as AMFlog
+import amfinder_config as AMFcfg
 
 
 
+def convolutions():
+    """ Builds convolution blocks. """
 
+    kc = 32
+    input_layer = Input(shape=(126, 126, 3))
 
-def core_model(input_shape):
-    """ This function builds the core models, i.e. the successive
-      convolutions and maximum pooling, as well as the hidden dense
-      layers. The output layer is left undefined and will be tuned
-      to fit the annotation level (see functions below). """
+    # Convolution block 1: 126x126 -> 120x120
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C11')(input_layer)
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C12')(x)
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C13')(x)
 
-    model = Sequential()
+    x = MaxPooling2D(pool_size=2, name='M1')(x)
 
-    # 126->124
-    model.add(Conv2D(32, kernel_size=3, name='C11', input_shape=input_shape,
-                     activation='relu', kernel_initializer=he_uniform()))
+    kc *= 2
 
-    # 124->122
-    model.add(Conv2D(32, kernel_size=3, name='C12',
-                     activation='relu', kernel_initializer=he_uniform()))
+    # Convolution block 2: 60x60 -> 56x56
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C21')(x)
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C22')(x)
 
-    # 122->120
-    model.add(Conv2D(32, kernel_size=3, name='C13',
-                     activation='relu', kernel_initializer=he_uniform()))
+    x = MaxPooling2D(pool_size=2, name='M2')(x)
 
-    # 120->60
-    model.add(MaxPooling2D(pool_size=2, name='M1'))
+    kc *= 2
 
-    # 60->58
-    model.add(Conv2D(64, kernel_size=3, name='C21',
-                     activation='relu', kernel_initializer=he_uniform()))
+    # Convolution block 3: 28x28 -> 24x24
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C31')(x)
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C32')(x)
 
-    # 58->56
-    model.add(Conv2D(64, kernel_size=3, name='C22',
-                     activation='relu', kernel_initializer=he_uniform()))
+    x = MaxPooling2D(pool_size=2, name='M3')(x)
 
-    # 56->28
-    model.add(MaxPooling2D(pool_size=2, name='M2'))
+    # Last convolution: 12x12 -> 10x10
+    x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
+               activation='relu', name='C4')(x)
 
-    # 28->26
-    model.add(Conv2D(128, kernel_size=3, name='C31',
-                     activation='relu', kernel_initializer=he_uniform()))
+    # Final size: 5x5
+    x = MaxPooling2D(pool_size=2, name='M4')(x)
+    flatten = Flatten(name='F')(x)
 
-    # 26->24
-    model.add(Conv2D(128, kernel_size=3, name='C32',
-                     activation='relu', kernel_initializer=he_uniform()))
-
-    # 24->12
-    model.add(MaxPooling2D(pool_size=2, name='M3'))
-
-    # 12->10
-    model.add(Conv2D(128, kernel_size=3, name='C4',
-                     activation='relu', kernel_initializer=he_uniform()))
-
-    # 10->5
-    model.add(MaxPooling2D(pool_size=2, name='M4'))
-
-    model.add(Flatten(name='F'))
-
-    model.add(Dense(64, activation='relu', name='FC1',
-                    kernel_initializer=he_uniform()))
-
-    model.add(Dropout(0.3, name='D1'))
-
-    model.add(Dense(16, activation='relu', name='FC2',
-                    kernel_initializer=he_uniform()))
-
-    model.add(Dropout(0.2, name='D2'))
-
-    return model
+    return (input_layer, flatten)
 
 
 
-def root_segm(input_shape):
-    """ This function returns a simple model for the less precise level
-      of annotation, i.e. 'colonization', which has three mutually 
-      exclusive categories: colonized, non-colonized, and background.
-      As a result, the final layer uses categorical cross-entropy and
-      softmax activation. """
+def fc_layers(x, label, count=1, activation='sigmoid'):
+    """ Builds fully connected layers (with dropout). """
 
-    model = core_model(input_shape)
+    x = Dense(64, kernel_initializer=he_uniform(),
+              activation='relu', name='D1')(x)
 
-    model.add(Dense(3, activation='softmax', name='RS',
-                  kernel_initializer=he_uniform()))
+    x = Dropout(0.3)(x)
 
-    model.compile(optimizer='adam',
-                loss='categorical_crossentropy',
-                metrics=['acc'])
+    x = Dense(16, kernel_initializer=he_uniform(),
+              activation='relu', name='D2')(x)
 
-    return model
+    x = Dropout(0.2)(x)
 
+    output = Dense(count, activation=activation, name=label)(x)
+
+    return output
 
 
-def ir_struct(input_shape):
-    """ This function returns a slightly more elaborate model for the
-      intermediate level of annotation, i.e. 'arb_vesicles' which has
-      four categories: arbuscules, vesicles, non-colonized roots, and
-      background. As a result, the final layer uses binary
-      cross-entropy and sigmoid activation. """
 
-    model = core_model(input_shape)
+def new_root_segmentation_network():
+    """ Builds a single-label, multi-class classifier to discriminate
+        colonized (Y) and non-colonized (N) roots, and background (X). """
 
-    model.add(Dense(3, activation='sigmoid', name='IS',
-                    kernel_initializer=he_uniform()))
+    input_layer, flatten = convolutions()
+    output_layer = fc_layers(flatten, 'RS', count=3, activation='softmax')
 
-    model.compile(optimizer='adam',
-                  loss='binary_crossentropy',
+    model = Model(inputs=input_layer,
+                  outputs=output_layer,
+                  name='RootSegm')
+
+    model.compile(loss='categorical_crossentropy',
+                  optimizer='adam',
                   metrics=['acc'])
 
     return model
 
 
 
-def get_input_shape(level):
-    """ Retrieves the input shape corresponding to the given
-        annotation level. """
+def new_myc_structures_network():
+    """ Builds a multi-label, single-class classifier to identify
+        arbuscules (A), vesicles (V) and intraradical hyphae (IH). """
 
-    edge = cConfig.get('model_input_size')
-    # Input images have red, green, and blue channels.
-    return (edge, edge, 3)
+    input_layer, flatten = convolutions()
+    output_layers = [fc_layers(flatten, lbl) for lbl in AMFcfg.get('header')]
 
+    model = Model(inputs=input_layer,
+                  outputs=output_layers,
+                  name='IRStruct')
 
-
-
-
-def create():
-    """ Returns a fresh model corresponding to the defined
-        annotation level. """
-
-    level = cConfig.get('level')
-    input_shape = get_input_shape(level) 
-
-    if level == 'RootSegm':
-
-        return root_segm(input_shape)
-
-    elif level == 'IRStruct':
-
-        return ir_struct(input_shape)
-
-    else:
-
-        print('WARNING: Unknown annotation level {}'.format(level))
-        return None
-
-
-
-def pre_trained(path):
-    """ Loads a pre-trained model and updates the annotation level
-        according to its input shape. """
-
-    model_name = os.path.basename(path)
-    print(f'* Pre-trained model: {model_name}')
-    
-    # Loads model.
-    model = keras.models.load_model(path)   
-    dim = model.layers[0].input_shape
-    
-    x = dim[1] # tile width
-    y = dim[2] # tile height
-    z = dim[3] # number of annotation classes
-
-    if x != y:
-    
-        cLog.error(f'Rectangular input shape ({x}x{y} pixels)',
-                   exit_code=cLog.ERR_INVALID_MODEL_SHAPE)
-
-    else:
-    
-        # Usual values are 62 pixels for colonization and arb_vesicles,
-        # and 224 pixels for all_features.
-        cConfig.set('model_input_size', x)
-
-    if x == 62:
-
-        cConfig.set('level', 'RootSegm')
-
-    elif x == 126:
-
-        cConfig.set('level', 'IRStruct')
-
-
-    else:
-
-        # Here we have no option but to raise an error and exit.
-        # Pre-trained models must have a valid input shape.
-        print(f'ERROR: Pre-trained model has {dim} dimensions.')
-        sys.exit(INVALID_MODEL_SHAPE)
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam',
+                  metrics=['acc'])
 
     return model
 
 
 
 def load():
-    """ Loads a pre-trained model, or creates a new one when the
-        application runs in training mode. """
+    """ Loads a pre-trained network, or creates a new one. """
 
-    path = cConfig.get('model')
+    path = AMFcfg.get('model')
+    level = AMFcfg.get('level')
 
-    if cConfig.get('run_mode') == 'predict':
-
-        if path is not None and os.path.isfile(path):
-
-            return pre_trained(path)
-
-        else:
-
-            cLog.error('Please provide a pre-trained model',
-                       exit_code=cLog.ERR_NO_PRETRAINED_MODEL)
+    # A pre-trained network file is available.
+    if path is not None and os.path.isfile(path):
+    
+        print('* Pre-trained network: {}'.format(os.path.basename(path)))
+        return keras.models.load_model(path)
 
     else:
 
-        if path is not None and os.path.isfile(path):
+        # Creates a new network if running in training mode.
+        if AMFcfg.get('run_mode') == 'train':
+        
+            print('* Creates a new, untrained network.')
 
-            return pre_trained(path)
+            if level == 1:
 
-        else:
+                return new_root_segmentation_network()
 
-            print('* Creates an untrained model.')
-            return create()
+            else:
+
+                return new_myc_structures_network()
+
+        
+        else: # cannot run predictions without a pre-trained model.
+        
+            AMFlog.error('A pre-trained model is required in prediction mode',
+                       exit_code=AMFlog.ERR_NO_PRETRAINED_MODEL)
