@@ -17,6 +17,19 @@ import amfinder_config as cConfig
 CORRUPTED_ARCHIVE = 30
 
 
+
+def string_of_level():
+
+    if cConfig.get('level') == 1:
+    
+        return 'RootSegm'
+        
+    else:
+    
+        return 'IRStruct'
+
+
+
 def now():
     """ Returns the current date/time in a format 
         suitable for use as file name. """
@@ -43,7 +56,7 @@ def training_data(history, model):
             model.save(h5file)
             h5file.flush()
             bin_data = h5file.id.get_file_image()
-            z.writestr(cConfig.get('level') + '.h5', bin_data)
+            z.writestr(string_of_level() + '.h5', bin_data)
 
         # Saves plots.
         early = cConfig.get('early_stopping').stopped_epoch
@@ -72,7 +85,7 @@ def get_zip_info(path, comment):
 
 def save_cams(uniq, z, cams):
 
-    level = cConfig.get('level')
+    level = string_of_level()
     for label, image in zip(cConfig.get('header'), cams):
         buf = io.BytesIO()
         plt.image.imsave(buf, image, format='jpg')
@@ -85,10 +98,14 @@ def save_cams(uniq, z, cams):
 def save_settings(z):
     """ Saves tile size. """
 
-    with z.open('settings.json', mode='w') as s:
-        edge = cConfig.get('tile_edge')
-        data = '{"tile_edge": %d}' % (edge)
-        s.write(data.encode())
+    # IRStruct predictions require settings.json.
+    # There is no need to create the file again.
+    if cConfig.get('level') == 1:
+
+        with z.open('settings.json', mode='w') as s:
+            edge = cConfig.get('tile_edge')
+            data = '{"tile_edge": %d}' % (edge)
+            s.write(data.encode())
 
 
 
@@ -111,7 +128,8 @@ def prediction_table(results, cams, path):
 
                 with zf.ZipFile(zipf, 'a') as z:
                     save_settings(z)
-                    zi = get_zip_info(tsv, cConfig.get('level'))
+                    level = string_of_level()
+                    zi = get_zip_info(tsv, level)
                     z.writestr(zi, data)
                     z.comment = b'{level}'                   
                     
@@ -127,7 +145,7 @@ def prediction_table(results, cams, path):
 
             with zf.ZipFile(zipf, 'w') as z:
                 save_settings(z)
-                zi = get_zip_info(tsv, cConfig.get('level'))
+                zi = get_zip_info(tsv, string_of_level())
                 z.writestr(zi, data)
                 if cams is not None:
                     save_cams(uniq, z, cams)

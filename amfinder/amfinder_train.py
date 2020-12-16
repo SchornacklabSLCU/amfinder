@@ -115,6 +115,8 @@ def load_annotation_table(level, path):
 
         annot_file = f'{level}.tsv'
 
+        settings = cConfig.import_settings(zip_file)
+
         with zf.ZipFile(zip_file, 'r') as z:
 
             # Check availability of the annotation table at the given level.
@@ -123,9 +125,6 @@ def load_annotation_table(level, path):
                 annot_table = z.read(annot_file).decode('utf-8')
                 annot_table = io.StringIO(annot_table)
                 annot_table = pd.read_csv(annot_table, sep='\t')
-                
-                settings = z.read('settings.json').decode('utf-8')
-                settings = yaml.safe_load(settings)
                 
                 return (annot_table, settings)
 

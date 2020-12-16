@@ -17,7 +17,7 @@ def tile(image, r, c):
     tile = image.crop(c * edge, r * edge, edge, edge)
 
     # Resizes to N x N pixels, N = 126 = cConfig.get('model_input_size')
-    ratio = cConfig.get('model_input_size') / edge
+    ratio = 126 / edge
     resized = tile.resize(ratio, interpolate=INTERP_NEAREST)
 
     # Returns as numpy array.

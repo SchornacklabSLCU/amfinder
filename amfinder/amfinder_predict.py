@@ -1,9 +1,12 @@
 # AMFinder - amfinder_predict.py
 
+import io
 import os
 import pyvips
 import numpy as np
 import pandas as pd
+import zipfile as zf
+from itertools import zip_longest
 
 import amfinder_log as cLog
 import amfinder_save as cSave
@@ -18,6 +21,68 @@ def normalize(t):
     """ Simple normalization function. """
 
     return t / 255.0
+
+
+
+def batch_processing(path, image, nrows, ncols, model):
+    
+    cams = cMapping.initialize(nrows, ncols)
+    
+    # Retrieve existing tile size.
+    zfile = "{}.zip".format(os.path.splitext(path)[0])
+    cConfig.import_settings(zfile)
+    root_segm = 'RootSegm.tsv'
+    
+    with zf.ZipFile(zfile) as z:
+
+        if root_segm in z.namelist():
+
+            annotations = z.read(root_segm).decode('utf-8')
+            annotations = io.StringIO(annotations)
+            annotations = pd.read_csv(annotations, sep='\t')
+            
+            # Keep colonized tiles only.
+            colonized = annotations.loc[annotations["Y"] == 1, ["row", "col"]]
+            # Transform to list of tuples.
+            colonized = [x for x in colonized.values.tolist()]
+            # Split in batches.
+            batches = zip_longest(*(iter(colonized),) * 25)
+
+            def process_batch(batch):
+                batch = [x for x in batch if x is not None]
+                row = [cSegm.tile(image, x[0], x[1]) for x in batch]
+                row = normalize(np.array(row, np.float32))
+                prd = model.predict(row, batch_size=25)
+                #cMapping.generate(cams, model, row, r)
+                #cLog.progress_bar(i + 1, nrows, indent=1)
+                res = [[x[0], x[1], y] for (x, y) in zip(batch, prd)]
+                return pd.DataFrame(res)
+
+            cLog.progress_bar(0, nrows, indent=1)
+            results = [process_batch(x) for x in batches]
+            print(results)
+
+            table = pd.concat(results, ignore_index=True)
+            print(table)
+            table.columns = cConfig.get('header')
+
+            #col_values = list(range(ncols)) * nrows
+            #row_values = [x // ncols for x in range(nrows * ncols)]
+
+            #table.insert(0, column='col', value=col_values)
+            #table.insert(0, column='row', value=row_values)
+
+            return (table, cams)
+
+        else:
+        
+            # Cannot recover from this error. It means the user is trying
+            # to predict intraradical structures (IRStruct) using 
+            # unsegmented images (no RootSegm annotations).
+            image_name = os.path.basename(path)
+            zfile_name = os.path.basename(zfile)
+            cLog.error(f'Image {image_name} has no archive {zipfile_name}',
+                       cLog.ERR_MISSING_ARCHIVE)
 
 
 
@@ -103,8 +168,14 @@ def run(input_images):
             continue
             
         else:
+           
+            if cConfig.get('level') == 1:
+            
+                table, cams = row_wise_processing(image, nrows, ncols, model)
 
-            table, cams = row_wise_processing(image, nrows, ncols, model)
+            else:
+
+                table, cams = batch_processing(path, image, nrows, ncols, model)
 
             # Save predictions (<table>) and class activations maps (<cams>)
             # in a ZIP archive derived from the image name (<path>). 

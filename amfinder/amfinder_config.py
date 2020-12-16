@@ -1,31 +1,29 @@
-# CastANet - amfinder_config.py
+# AMFinder - amfinder_config.py
 
 import os
 import cv2
 import glob
+import yaml
 import mimetypes
+import zipfile as zf
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
-import amfinder_log as cLog
+import amfinder_log as AMFlog
 
-HEADERS = {
-  'RootSegm': ['Y', 'N', 'X'],  # colonized root (Y), root (N), background (X). 
-  'IRStruct': ['A', 'V', 'H']   # Arbuscule (A), vesicle (V), hypha (H).
-}
+HEADERS = [['Y', 'N', 'X'], ['A', 'V', 'H']]
 
 PAR = {
     'run_mode': None,
-    'level': None,
+    'level': 1,
     'model': None,
     'tile_edge': None,
-    'model_input_size': 126,
     'input_files': None,
     'batch_size': None,
     'drop': None,
     'epochs': None,
     'vfrac': None,
-    'header': HEADERS['RootSegm'],
+    'header': HEADERS[0],
     'outdir': None,
     'generate_cams': None,
     'colormap': None,
@@ -51,7 +49,7 @@ def get(id):
     if id in PAR: return PAR[id]
     if id in PAR['monitors']: return PAR['monitors'][id]
 
-    cLog.warning(f'Unknown parameter {id}')
+    AMFlog.warning(f'Unknown parameter {id}')
     return None
 
 
@@ -72,8 +70,10 @@ def set(id, value, create=False):
     if id in PAR:
     
         PAR[id] = value
-        # Automatically adjust header to annotation level.
-        if id == 'level': PAR['header'] = HEADERS[value]
+
+        if id == 'level':
+        
+            PAR['header'] = HEADERS[int(value == 2)] # Ensures 0 or 1.
 
     elif id in PAR['monitors']:
 
@@ -85,12 +85,12 @@ def set(id, value, create=False):
 
     else:
 
-        cLog.warning(f'Unknown parameter {id}')
+        AMFlog.warning(f'Unknown parameter {id}')
 
 
 
 def build_arg_parser():
-  """ This function builds AMFinder command-line parser. The parser
+    """ This function builds AMFinder command-line parser. The parser
       consists of two mutually exclusive sub-parsers: <train> and
       <predict>. The former defines arguments concerning the learning
       step, while the latter defines those associated with the
@@ -98,105 +98,104 @@ def build_arg_parser():
       a specific set of optional arguments. Beside sub-parsers, the
       main parser also defines general arguments such as tile size
       and annotation level. """
-  main = ArgumentParser(description='CastANet command-line arguments.',
+
+    main = ArgumentParser(description='CastANet command-line arguments.',
                         allow_abbrev=False,
                         formatter_class=RawTextHelpFormatter)
 
-  subparsers = main.add_subparsers(dest='run_mode', required=True,
+    subparsers = main.add_subparsers(dest='run_mode', required=True,
                                    help='action to be performed.')
 
-  # Subparser dedicated to network training using pre-annotated images.
-  tp = subparsers.add_parser('train',
+    # Subparser dedicated to network training using pre-annotated images.
+    tp = subparsers.add_parser('train',
                              help='learns how to identify AMF structures.',
                              formatter_class=RawTextHelpFormatter)
 
-  tp.add_argument('-t', '--tile',
+    tp.add_argument('-t', '--tile',
                   action='store', dest='edge',
                   type=int, default=40,
                   help='tile edge (in pixels) used for image segmentation.'
                        '\ndefault value: 40 pixels')
 
-  tp.add_argument('-b', '--batch',
+    tp.add_argument('-b', '--batch',
                   action='store', dest='batch_size', metavar='NUM',
                   type=int, default=32,
                   help='training batch size.'
                        '\ndefault value: 32')
 
-  tp.add_argument('-k', '--keep',
+    tp.add_argument('-k', '--keep',
                   action='store_false', dest='drop', default=True,
                   help='do not drop any background tile.'
                        '\nby default, drops background tiles in excess.')
 
-  tp.add_argument('-e', '--epochs',
+    tp.add_argument('-e', '--epochs',
                   action='store', dest='epochs', metavar='NUM',
                   type=int, default=100,
                   help='number of epochs to run.'
                        '\ndefault value: 100')
 
-  tp.add_argument('-f', '--fraction',
+    tp.add_argument('-f', '--fraction',
                   action='store', dest='vfrac', metavar='N%',
                   type=int, default=15,
                   help='Percentage of tiles used for validation.'
                        '\ndefault value: 15%%')
 
-  tp.add_argument('-o', '--output',
+    tp.add_argument('-o', '--output',
                   action='store', dest='outdir', metavar='DIR',
                   type=str, default='.',
                   help='output directory for training files.'
                        '\ndefaults to current directory.')
 
-  ts = tp.add_mutually_exclusive_group()
+    ts = tp.add_mutually_exclusive_group()
 
-  ts.add_argument('-l', '--level',
-                  action='store', dest='level', metavar='ID',
-                  type=str, default='RootSegm',
-                  help='Annotation level identifier.'
-                       '\nchoices: {RootSegm, IRStruct}'
-                       '\ndefault value: RootSegm')
+    ts.add_argument('-s', '--structures',
+                  action='store_const', dest='level', const=2,
+                  help='Identifies AMF structures (arbuscule, vesicle, hypha).'
+                       '\nBy default, identifies colonized roots.')
 
-  ts.add_argument('-m', '--model',
+    ts.add_argument('-m', '--model',
                   action='store', dest='model', metavar='H5',
                   type=str, default=None,
                   help='path to the pre-trained model.'
                        '\ndefault value: none')
 
-  tp.add_argument('image', nargs='*',
+    tp.add_argument('image', nargs='*',
                   default=['*.jpg'],
                   help='plant root scan to be processed.'
                        '\ndefaults to JPEG files in the current directory.')
 
-  # Subparser dedicated to prediction of mycorrhizal structures.
-  pp = subparsers.add_parser('predict',
+    # Subparser dedicated to prediction of mycorrhizal structures.
+    pp = subparsers.add_parser('predict',
                              help='predicts AMF structures.',
                              formatter_class=RawTextHelpFormatter)
 
-  pp.add_argument('-t', '--tile',
+    pp.add_argument('-t', '--tile',
                   action='store', dest='edge',
                   type=int, default=40,
                   help='tile edge (in pixels) used for image segmentation.'
                        '\ndefault value: 40 pixels')
 
-  pp.add_argument('-a', '--activation_map', action='store_true',
+    pp.add_argument('-a', '--activation_map', action='store_true',
                   dest='generate_cams', default=False,
                   help='Generate class activation map (takes some time).'
                        '\ndefault value: False')
 
-  pp.add_argument('-c', '--colormap',
+    pp.add_argument('-c', '--colormap',
                   action='store', dest='colormap', metavar='N',
                   type=int, default=cv2.COLORMAP_JET,
                   help='OpenCV colormap (see OpenCV documentation).'
                        '\ndefault value: 2 (cv2.COLORMAP_JET)')
 
-  pp.add_argument('model', action='store', metavar='H5',
+    pp.add_argument('model', action='store', metavar='H5',
                   type=str, default=None,
                   help='path to the pre-trained model.')
 
-  pp.add_argument('image', nargs='*',
+    pp.add_argument('image', nargs='*',
                   default=['*.jpg'],
                   help='plant root scan to be processed.'
                        '\ndefaults to JPEG files in the current directory.')
 
-  return main
+    return main
 
 
 
@@ -204,6 +203,29 @@ def abspath(files):
     """Expand wildcards and return absolute paths to input files."""
     files = sum([glob.glob(x) for x in files], [])
     return [os.path.abspath(x) for x in files]
+
+
+
+def import_settings(zfile):
+    """ Import settings stored in settings.json """
+
+    json_file = 'settings.json'
+
+    with zf.ZipFile(zfile) as z:
+
+        if json_file in z.namelist():
+        
+            settings = z.read(json_file).decode('utf-8')
+            settings = yaml.safe_load(settings)
+
+            return settings
+
+        else:
+        
+            zfile_name = os.path.basename(zfile)
+            AMFlog.warning(f'File settings.json not found in {zfile_name}')
+
+            return {'tile_size': get('tile_size')}
 
 
 
