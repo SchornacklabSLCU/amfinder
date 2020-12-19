@@ -21,14 +21,13 @@ def draw(history, epochs, title, x_range, t_name, v_name):
     plt.plot(x_range, v_values, 'g-s', label='Validation')
     plt.xlabel('Epoch')
     plt_ylabel = 'Percentage'
-    plt_title = 'Loss'
+    plt_title = title
     legend_pos = 'upper right'
     padding = 0.1
-    if title == 'Loss':
+    if title[0:4] == 'Loss':
         plt.xlim(-padding, epochs + padding)
     else:
         legend_pos = 'lower right'
-        plt_title = 'Accuracy'
         plt.axis([-padding, epochs + padding, 0, 1])
     plt.ylabel(plt_ylabel)
     plt.title(plt_title)

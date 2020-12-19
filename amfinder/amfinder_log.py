@@ -65,7 +65,7 @@ def progress_bar(iteration, total, indent=0):
     percent = 100.0 * iteration / float(total)
 
     completed = round(50.0 * iteration / total)
-    remaining = 50 - filled
+    remaining = 50 - completed
 
     bar = '█' * completed + '-' * remaining
 

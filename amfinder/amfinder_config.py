@@ -9,7 +9,7 @@ import zipfile as zf
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
-import amfinder_log as AMFlog
+import amfinder_log as AmfLog
 
 HEADERS = [['Y', 'N', 'X'], ['A', 'V', 'H']]
 
@@ -17,16 +17,15 @@ PAR = {
     'run_mode': None,
     'level': 1,
     'model': None,
-    'tile_edge': None,
-    'input_files': None,
-    'batch_size': None,
-    'drop': None,
-    'epochs': None,
-    'vfrac': None,
+    'tile_edge': 40,
+    'input_files': ['*.jpg'],
+    'batch_size': 32,
+    'drop': True,
+    'epochs': 100,
+    'vfrac': 15,
     'header': HEADERS[0],
-    'outdir': None,
-    'generate_cams': None,
-    'colormap': None,
+    'generate_cams': False,
+    'colormap': cv2.COLORMAP_JET,
     'monitors': {
         'csv_logger': None,
         'early_stopping': None,
@@ -38,162 +37,168 @@ PAR = {
 
 
 def get(id):
-    """
-    Retrieve application settings by name.
-    PARAMETER
-        id      The identifier of the application setting to retrieve.
-    """
-
-    id = id.lower()
-
-    if id in PAR: return PAR[id]
-    if id in PAR['monitors']: return PAR['monitors'][id]
-
-    AMFlog.warning(f'Unknown parameter {id}')
-    return None
-
-
-
-def set(id, value, create=False):
-    """
-    Update application settings.
-    PARAMETERS
-        id      The identifier of the application setting to update.
-        value   The value to be stored. 
-        create  Create a new pair should the identifier not exist.
-    """
-
-    if value is None: return
+    """ Retrieves application settings. """
 
     id = id.lower()
 
     if id in PAR:
     
-        PAR[id] = value
-
-        if id == 'level':
-        
-            PAR['header'] = HEADERS[int(value == 2)] # Ensures 0 or 1.
-
+        return PAR[id]
+    
     elif id in PAR['monitors']:
-
-        PAR['monitors'][id] = value
-
-    elif create:
-
-        PAR[id] = value
+    
+        return PAR['monitors'][id]
 
     else:
 
-        AMFlog.warning(f'Unknown parameter {id}')
+        AmfLog.warning(f'Unknown parameter {id}')
+        return None
+
+
+
+def set(id, value, create=False):
+    """ Updates application settings. """
+
+    if value is None:
+    
+        return
+
+    else:
+    
+        id = id.lower()
+
+        if id in PAR:
+        
+            PAR[id] = value
+
+            if id == 'level':
+            
+                PAR['header'] = HEADERS[int(value == 2)] # Ensures 0 or 1.
+
+        elif id in PAR['monitors']:
+
+            PAR['monitors'][id] = value
+
+        elif create:
+
+            PAR[id] = value
+
+        else:
+
+            AmfLog.warning(f'Unknown parameter {id}')
+
+
+
+def training_subparser(subparsers):
+    """ Defines arguments used in training mode. """
+
+    parser = subparsers.add_parser('train',
+        help='learns how to identify AMF structures.',
+        formatter_class=RawTextHelpFormatter)
+
+    x = PAR['tile_edge']
+    parser.add_argument('-t', '--tile_size',
+        action='store', dest='edge', type=int, default=x,
+        help='tile edge (in pixels) used for image segmentation.'
+             '\ndefault value: {} pixels'.format(x))
+
+    x = PAR['batch_size']
+    parser.add_argument('-b', '--batch_size',
+        action='store', dest='batch_size', metavar='NUM', type=int, default=x,
+        help='training batch size.'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['drop']
+    parser.add_argument('-k', '--keep_background_tiles',
+        action='store_false', dest='drop', default=x,
+        help='do not drop any background tile.'
+             '\nby default, skips excess background tiles.')
+
+    x = PAR['epochs']
+    parser.add_argument('-e', '--epochs',
+        action='store', dest='epochs', metavar='NUM', type=int, default=x,
+        help='number of epochs to run.'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['vfrac']
+    parser.add_argument('-f', '--validation_fraction',
+        action='store', dest='vfrac', metavar='N%', type=int, default=x,
+        help='Percentage of tiles used for validation.'
+             '\ndefault value: {}%%'.format(x))
+
+    parser.add_argument('-s', '--myc_structures',
+        action='store_const', dest='level', const=2,
+        help='Identifies AMF structures (arbuscule, vesicle, hypha).'
+             '\nBy default, identifies colonized roots.')
+
+    x = None
+    parser.add_argument('-m', '--model',
+        action='store', dest='model', metavar='H5', type=str, default=x,
+        help='path to the pre-trained model.'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['input_files']
+    parser.add_argument('image', nargs='*',
+        default=x,
+        help='plant root scan to be processed.'
+             '\ndefault value: {}'.format(x))
+
+    return parser
+
+
+
+def prediction_subparser(subparsers):
+    """ Defines arguments used in prediction mode. """
+
+    parser = subparsers.add_parser('predict',
+        help='Runs AMFinder in prediction mode.',
+        formatter_class=RawTextHelpFormatter)
+
+    x = PAR['tile_edge']
+    parser.add_argument('-t', '--tile_size',
+        action='store', dest='edge', type=int, default=x,
+        help='Tile size (in pixels) used for image segmentation.'
+             '\ndefault value: {} pixels'.format(x))
+
+    x = PAR['generate_cams']
+    parser.add_argument('-cam', '--class_activation_maps',
+        action='store_true', dest='generate_cams', default=x,
+        help='Generate class activation map (takes some time).'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['colormap']
+    parser.add_argument('-c', '--opencv_colormap',
+        action='store', dest='colormap', metavar='N', type=int, default=x,
+        help='OpenCV colormap (see OpenCV documentation).'
+             '\ndefault value: {}'.format(x))
+
+    x = 'pre-trained/RootSegm.h5'
+    parser.add_argument('-m', '--pre_trained_model',
+        action='store', dest='model', metavar='H5', type=str, default=x,
+        help='path to the pre-trained model.'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['input_files']
+    parser.add_argument('image', nargs='*', default=x,
+        help='plant root scan to be processed.'
+             '\ndefault value: {}'.format(x))
+
+    return parser
 
 
 
 def build_arg_parser():
-    """ This function builds AMFinder command-line parser. The parser
-      consists of two mutually exclusive sub-parsers: <train> and
-      <predict>. The former defines arguments concerning the learning
-      step, while the latter defines those associated with the
-      prediction of mycorrhizal structures. Each sub-parser comes with
-      a specific set of optional arguments. Beside sub-parsers, the
-      main parser also defines general arguments such as tile size
-      and annotation level. """
+    """ Builds AMFinder command-line parser. """
 
-    main = ArgumentParser(description='CastANet command-line arguments.',
-                        allow_abbrev=False,
-                        formatter_class=RawTextHelpFormatter)
+    main = ArgumentParser(description='AMFinder command-line arguments.',
+                          allow_abbrev=False,
+                          formatter_class=RawTextHelpFormatter)
 
     subparsers = main.add_subparsers(dest='run_mode', required=True,
-                                   help='action to be performed.')
+                                     help='action to be performed.')
 
-    # Subparser dedicated to network training using pre-annotated images.
-    tp = subparsers.add_parser('train',
-                             help='learns how to identify AMF structures.',
-                             formatter_class=RawTextHelpFormatter)
-
-    tp.add_argument('-t', '--tile',
-                  action='store', dest='edge',
-                  type=int, default=40,
-                  help='tile edge (in pixels) used for image segmentation.'
-                       '\ndefault value: 40 pixels')
-
-    tp.add_argument('-b', '--batch',
-                  action='store', dest='batch_size', metavar='NUM',
-                  type=int, default=32,
-                  help='training batch size.'
-                       '\ndefault value: 32')
-
-    tp.add_argument('-k', '--keep',
-                  action='store_false', dest='drop', default=True,
-                  help='do not drop any background tile.'
-                       '\nby default, drops background tiles in excess.')
-
-    tp.add_argument('-e', '--epochs',
-                  action='store', dest='epochs', metavar='NUM',
-                  type=int, default=100,
-                  help='number of epochs to run.'
-                       '\ndefault value: 100')
-
-    tp.add_argument('-f', '--fraction',
-                  action='store', dest='vfrac', metavar='N%',
-                  type=int, default=15,
-                  help='Percentage of tiles used for validation.'
-                       '\ndefault value: 15%%')
-
-    tp.add_argument('-o', '--output',
-                  action='store', dest='outdir', metavar='DIR',
-                  type=str, default='.',
-                  help='output directory for training files.'
-                       '\ndefaults to current directory.')
-
-    ts = tp.add_mutually_exclusive_group()
-
-    ts.add_argument('-s', '--structures',
-                  action='store_const', dest='level', const=2,
-                  help='Identifies AMF structures (arbuscule, vesicle, hypha).'
-                       '\nBy default, identifies colonized roots.')
-
-    ts.add_argument('-m', '--model',
-                  action='store', dest='model', metavar='H5',
-                  type=str, default=None,
-                  help='path to the pre-trained model.'
-                       '\ndefault value: none')
-
-    tp.add_argument('image', nargs='*',
-                  default=['*.jpg'],
-                  help='plant root scan to be processed.'
-                       '\ndefaults to JPEG files in the current directory.')
-
-    # Subparser dedicated to prediction of mycorrhizal structures.
-    pp = subparsers.add_parser('predict',
-                             help='predicts AMF structures.',
-                             formatter_class=RawTextHelpFormatter)
-
-    pp.add_argument('-t', '--tile',
-                  action='store', dest='edge',
-                  type=int, default=40,
-                  help='tile edge (in pixels) used for image segmentation.'
-                       '\ndefault value: 40 pixels')
-
-    pp.add_argument('-a', '--activation_map', action='store_true',
-                  dest='generate_cams', default=False,
-                  help='Generate class activation map (takes some time).'
-                       '\ndefault value: False')
-
-    pp.add_argument('-c', '--colormap',
-                  action='store', dest='colormap', metavar='N',
-                  type=int, default=cv2.COLORMAP_JET,
-                  help='OpenCV colormap (see OpenCV documentation).'
-                       '\ndefault value: 2 (cv2.COLORMAP_JET)')
-
-    pp.add_argument('model', action='store', metavar='H5',
-                  type=str, default=None,
-                  help='path to the pre-trained model.')
-
-    pp.add_argument('image', nargs='*',
-                  default=['*.jpg'],
-                  help='plant root scan to be processed.'
-                       '\ndefaults to JPEG files in the current directory.')
+    _ = training_subparser(subparsers)
+    _ = prediction_subparser(subparsers)
 
     return main
 
@@ -207,25 +212,21 @@ def abspath(files):
 
 
 def import_settings(zfile):
-    """ Import settings stored in settings.json """
-
-    json_file = 'settings.json'
+    """ Import settings. """
 
     with zf.ZipFile(zfile) as z:
 
-        if json_file in z.namelist():
-        
-            settings = z.read(json_file).decode('utf-8')
-            settings = yaml.safe_load(settings)
+        jfile = 'settings.json'
 
-            return settings
+        if jfile in z.namelist():
+        
+            x = z.read(jfile).decode('utf-8')
+            x = yaml.safe_load(x)
+            return x
 
         else:
         
-            zfile_name = os.path.basename(zfile)
-            AMFlog.warning(f'File settings.json not found in {zfile_name}')
-
-            return {'tile_size': get('tile_size')}
+            return {'tile_size': get('tile_edge')}
 
 
 
@@ -242,9 +243,7 @@ def get_input_files():
 
 
 def initialize():
-    """ Here is CastANet initialization function. It parses command-line
-        arguments, performs type-checking, then updates internal settings
-        accordingly. """
+    """ AMFinder initialization function. """
     parser = build_arg_parser()
     par = parser.parse_known_args()[0]
 
@@ -257,10 +256,8 @@ def initialize():
         set('batch_size', par.batch_size)
         set('drop', par.drop)
         set('epochs', par.epochs)
-        set('fraction', par.vfrac)
-        set('level', par.level)
         set('model', par.model)
-        set('outdir', par.outdir)
+        set('level', par.level)
         set('vfrac', par.vfrac)
     else: # par.run_mode == 'predict'
         set('model', par.model)

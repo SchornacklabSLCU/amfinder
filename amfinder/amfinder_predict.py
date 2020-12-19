@@ -8,7 +8,7 @@ import pandas as pd
 import zipfile as zf
 from itertools import zip_longest
 
-import amfinder_log as cLog
+import amfinder_log as AmfLog
 import amfinder_save as cSave
 import amfinder_model as cModel
 import amfinder_config as cConfig
@@ -24,53 +24,58 @@ def normalize(t):
 
 
 
-def batch_processing(path, image, nrows, ncols, model):
+def myc_structures(path, image, nrows, ncols, model):
+    """ Identifies AM fungal structures in colonized root segments. """
     
     cams = cMapping.initialize(nrows, ncols)
     
-    # Retrieve existing tile size.
-    zfile = "{}.zip".format(os.path.splitext(path)[0])
+    zfile = os.path.splitext(path)[0] + '.zip'
+
+    if not zf.is_zipfile(zfile):
+
+        AmfLog.warning(f'The file {path} is not a valid archive')
+        return None
+
     cConfig.import_settings(zfile)
-    root_segm = 'RootSegm.tsv'
     
     with zf.ZipFile(zfile) as z:
 
-        if root_segm in z.namelist():
+        if 'RootSegm.tsv' in z.namelist():
 
-            annotations = z.read(root_segm).decode('utf-8')
+            # Retrieve root segmentation data.
+            annotations = z.read('RootSegm.tsv').decode('utf-8')
             annotations = io.StringIO(annotations)
             annotations = pd.read_csv(annotations, sep='\t')
             
-            # Keep colonized tiles only.
+            # Retrieve tiles corresponding to colonized root segments.
             colonized = annotations.loc[annotations["Y"] == 1, ["row", "col"]]
-            # Transform to list of tuples.
             colonized = [x for x in colonized.values.tolist()]
-            # Split in batches.
-            batches = zip_longest(*(iter(colonized),) * 25)
 
-            def process_batch(batch):
+            # Create tile batches.
+            batches = zip_longest(*(iter(colonized),) * 25)
+            nbatches = len(colonized) // 25 + int(len(colonized) % 25 != 0)
+
+            def process_batch(batch, b):
                 batch = [x for x in batch if x is not None]
                 row = [cSegm.tile(image, x[0], x[1]) for x in batch]
                 row = normalize(np.array(row, np.float32))
+                # Returns three prediction tables (one per class).
                 prd = model.predict(row, batch_size=25)
+                # Converts to a table of predictions.
+                ap = prd[0].tolist()
+                vp = prd[1].tolist()
+                hp = prd[2].tolist()
+                dat = [[a[0], v[0], h[0]] for a, v, h in zip(ap, vp, hp)]
                 #cMapping.generate(cams, model, row, r)
-                #cLog.progress_bar(i + 1, nrows, indent=1)
-                res = [[x[0], x[1], y] for (x, y) in zip(batch, prd)]
+                res = [[x[0], x[1], y[0], y[1], y[2]] for (x, y) in zip(batch, dat)]
+                AmfLog.progress_bar(b, nbatches, indent=1)
                 return pd.DataFrame(res)
 
-            cLog.progress_bar(0, nrows, indent=1)
-            results = [process_batch(x) for x in batches]
-            print(results)
-
+            AmfLog.progress_bar(0, nbatches, indent=1)
+            results = [process_batch(x, b) for x, b in zip(batches, 
+                                                           range(1, nbatches + 1))]
             table = pd.concat(results, ignore_index=True)
-            print(table)
-            table.columns = cConfig.get('header')
-
-            #col_values = list(range(ncols)) * nrows
-            #row_values = [x // ncols for x in range(nrows * ncols)]
-
-            #table.insert(0, column='col', value=col_values)
-            #table.insert(0, column='row', value=row_values)
+            table.columns = ['row', 'col'] + cConfig.get('header')
 
             return (table, cams)
 
@@ -81,12 +86,12 @@ def batch_processing(path, image, nrows, ncols, model):
             # unsegmented images (no RootSegm annotations).
             image_name = os.path.basename(path)
             zfile_name = os.path.basename(zfile)
-            cLog.error(f'Image {image_name} has no archive {zipfile_name}',
-                       cLog.ERR_MISSING_ARCHIVE)
+            AmfLog.error(f'Image {image_name} has no archive {zfile_name}',
+                       AmfLog.ERR_MISSING_ARCHIVE)
 
 
 
-def row_wise_processing(image, nrows, ncols, model):
+def colonization(image, nrows, ncols, model):
     """ Predict mycorrhizal structures row by row. 
         PARAMETERS
         image: pyvips.vimage.Image
@@ -116,12 +121,12 @@ def row_wise_processing(image, nrows, ncols, model):
         # Retrieve class activation maps.
         cMapping.generate(cams, model, row, r)
         # Update the progress bar.
-        cLog.progress_bar(r + 1, nrows, indent=1)
+        AmfLog.progress_bar(r + 1, nrows, indent=1)
         # Return prediction as Pandas data frame.
         return pd.DataFrame(prd)
 
     # Initialize the progress bar.
-    cLog.progress_bar(0, nrows, indent=1)
+    AmfLog.progress_bar(0, nrows, indent=1)
 
     # Retrieve predictions for all rows within the image.
     results = [process_row(r) for r in range(nrows)]
@@ -150,6 +155,21 @@ def run(input_images):
     """
 
     model = cModel.load()
+    
+    # Determines annotation level based on the loaded model.
+    try: 
+
+        model.get_layer('RS')
+        cConfig.set('level', 1)
+        print('* Predicts colonization (Myc+, Myc-, background).')
+
+    except ValueError:
+
+        cConfig.set('level', 2)
+        print('* Predicts AM fungal structures (arbuscules, vesicles, hyphae).')
+
+
+    
     edge = cConfig.get('tile_edge')
 
     for path in input_images:
@@ -164,18 +184,18 @@ def run(input_images):
 
         if nrows == 0 or ncols == 0:
 
-            cLog.warning('Tile size ({edge} pixels) is too large')
+            AmfLog.warning('Tile size ({edge} pixels) is too large')
             continue
             
         else:
            
             if cConfig.get('level') == 1:
             
-                table, cams = row_wise_processing(image, nrows, ncols, model)
+                table, cams = colonization(image, nrows, ncols, model)
 
             else:
 
-                table, cams = batch_processing(path, image, nrows, ncols, model)
+                table, cams = myc_structures(path, image, nrows, ncols, model)
 
             # Save predictions (<table>) and class activations maps (<cams>)
             # in a ZIP archive derived from the image name (<path>). 

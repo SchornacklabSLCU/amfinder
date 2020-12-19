@@ -11,8 +11,8 @@ import numpy as np
 import zipfile as zf
 import matplotlib as plt
 
-import amfinder_plot as cPlot
-import amfinder_config as cConfig
+import amfinder_plot as AMFplot
+import amfinder_config as AMF_config
 
 CORRUPTED_ARCHIVE = 30
 
@@ -20,7 +20,7 @@ CORRUPTED_ARCHIVE = 30
 
 def string_of_level():
 
-    if cConfig.get('level') == 1:
+    if AMF_config.get('level') == 1:
     
         return 'RootSegm'
         
@@ -41,8 +41,8 @@ def now():
 def training_data(history, model):
     """ Saves training weights, history and plots. """
 
-    zipf = os.path.join(cConfig.get('outdir'), now() + '_training.zip')
-    
+    zipf = now() + '_training.zip'
+
     with zf.ZipFile(zipf, 'w') as z:
 
         # Saves history.
@@ -59,16 +59,47 @@ def training_data(history, model):
             z.writestr(string_of_level() + '.h5', bin_data)
 
         # Saves plots.
-        early = cConfig.get('early_stopping').stopped_epoch
-        epochs = early + 1 if early > 0 else cConfig.get('epochs')
+        early = AMF_config.get('early_stopping').stopped_epoch
+        epochs = early + 1 if early > 0 else AMF_config.get('epochs')
         x_range = np.arange(0, epochs)
 
-        cPlot.initialize()
-        data = cPlot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
+        AMFplot.initialize()
+        data = AMFplot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
         z.writestr('loss.png', data.getvalue())
 
-        data = cPlot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
-        z.writestr('accuracy.png', data.getvalue())
+        if AMF_config.get('level') == 1:
+
+            data = AMFplot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
+            z.writestr('accuracy.png', data.getvalue())
+        
+        else:
+        
+            for cls in AMF_config.get('header'):
+            
+                label = 'arbuscules'
+                
+                if cls == 'V':
+                
+                    label = 'vesicles'
+                    
+                elif cls == 'H':
+                
+                    label = 'hyphae'
+            
+                data = AMFplot.draw(history, epochs, 
+                                    f'Accuracy ({label})', x_range,
+                                    f'{cls}_acc', 
+                                    f'val_{cls}_acc')
+
+                z.writestr(f'{cls}_accuracy.png', data.getvalue())
+
+                data = AMFplot.draw(history, epochs, 
+                                    f'Loss ({label})', x_range,
+                                    f'{cls}_loss', 
+                                    f'val_{cls}_loss')
+
+                z.writestr(f'{cls}_loss.png', data.getvalue())
+
 
 
 
@@ -86,7 +117,7 @@ def get_zip_info(path, comment):
 def save_cams(uniq, z, cams):
 
     level = string_of_level()
-    for label, image in zip(cConfig.get('header'), cams):
+    for label, image in zip(AMF_config.get('header'), cams):
         buf = io.BytesIO()
         plt.image.imsave(buf, image, format='jpg')
         zi = get_zip_info(f'activations/{uniq}.{label}.jpg', label)
@@ -100,10 +131,10 @@ def save_settings(z):
 
     # IRStruct predictions require settings.json.
     # There is no need to create the file again.
-    if cConfig.get('level') == 1:
+    if AMF_config.get('level') == 1:
 
         with z.open('settings.json', mode='w') as s:
-            edge = cConfig.get('tile_edge')
+            edge = AMF_config.get('tile_edge')
             data = '{"tile_edge": %d}' % (edge)
             s.write(data.encode())
 
