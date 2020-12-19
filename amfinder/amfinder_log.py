@@ -1,22 +1,30 @@
 # CastANet suite - amfinder_log.py
 
-"""
-CastANet log functions.
+""" Log Functions.
 
-FUNCTIONS
-    - info: print a message on standard output.
-    - warning: print a warning message on standard error.
-    - error: print an error message on standard error, and may terminate.
-    - progress_bar: print a progress bar on standard output.
-    
-CONSTANTS
-    - ERR_INVALID_MODEL: the provided Keras model is invalid.
-    - ERR_NO_PRETRAINED_MODEL: no model, or the given model is not found.
-    - ERR_INVALID_MODEL_SHAPE: the pre-trained model shape is not recognized.
+    Displays information, warnings, errors, and progress bars.
+
+    Constants
+    -----------
+    ERR_INVALID_MODEL - Wrong Keras model.
+    ERR_NO_PRETRAINED_MODEL - A pre-trained model is required but not provided.
+    ERR_INVALID_MODEL_SHAPE - Wrong model input shape.
+    ERR_INVALID_ANNOTATION_LEVEL - 
+    ERR_MISSING_ARCHIVE - Cannot find the zip archive associated with an image.
+
+    Functions
+    -----------
+    info -  print a message.
+    warning - print a warning message.
+    error - print an error message, and closes the application.
+    progress_bar - displays a progress bar.
+
 """
 
 import sys
 import traceback
+
+
 
 ERR_INVALID_MODEL = 40
 ERR_NO_PRETRAINED_MODEL = 20
@@ -27,49 +35,21 @@ ERR_MISSING_ARCHIVE = 30
 
 
 def info(message, indent=0, **kwargs):
-    """
-    Print an message on standard output.
-
-    PARAMETERS
-        - message: the information to be printed on standard output.
-        - indent: indentation level (e.g. `1` means four white spaces).
-        - kwargs: any other argument to be passed to `print`.
-
-    No returned value.
-    """
+    """ Prints an message on standard output. """
 
     print(' ' * 4 * indent + f'INFO: {message}.', **kwargs)
 
 
 
 def warning(message, indent=0, **kwargs):
-    """
-    Print a warning message on standard error.
-    
-    PARAMETERS
-        - message: the warning message to be printed on standard error.
-        - indent: indentation level (e.g. `1` means four white spaces).
-        - kwargs: any other argument to be passed to `print`.
-    
-    No returned value.
-    """
+    """ Prints a warning message on standard error. """
 
     print(' ' * 4 * indent + f'WARNING: {message}.', file=sys.stderr, **kwargs)
 
 
 
 def error(message, exit_code, indent=0, **kwargs):
-    """
-    Print an error message on standard error, and may terminate the application.
-
-    PARAMETERS
-        - message: the error message to be printed on standard error.
-        - exit_code: application exit code (does not exit if `0` or `None`).
-        - indent: indentation level (e.g. `1` means four white spaces).
-        - kwargs: any other argument to be passed to `print`.
-
-    No returned value.
-    """
+    """ Prints an error message on standard error and quits. """
 
     print(' ' * 4 * indent + f'ERROR: {message}.', file=sys.stderr, **kwargs)
 
@@ -80,26 +60,17 @@ def error(message, exit_code, indent=0, **kwargs):
 
 
 def progress_bar(iteration, total, indent=0):
-    """
-    Print a progress bar on standard output.
-    
-    PARAMETERS
-        - iteration: the index of the current iteration.
-        - total: the total number of iterations.
-        - indent: indentation level (e.g. `1` means four white spaces).
-    
-    No returned value.
-    """
+    """ Displays a progress bar. """
 
-    # Determine the percentage of progression.
     percent = 100.0 * iteration / float(total)
 
-    # Generate ASCII progress bar.
-    filled_length = round(50.0 * iteration / total)
-    bar = '█' * filled_length + '-' * (50 - filled_length)
+    completed = round(50.0 * iteration / total)
+    remaining = 50 - filled
+
+    bar = '█' * completed + '-' * remaining
 
     print(' ' * 4 * indent + f'- processing |{bar}| {percent:.1f}%', end='\r')
 
     if iteration == total:
 
-        print()
+        print() # newline
