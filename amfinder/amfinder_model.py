@@ -1,27 +1,46 @@
 # AMFinder - amfinder_model.py
 
+""" ConvNet Builder.
+
+    Builds the convolutional neural networks used by AMFinder.
+    
+    Constants
+    -----------
+    INPUT_SIZE - Size (in pixels) of input images.
+    COLONIZATION_NAME - Name of the root segmentation network.
+    MYC_STRUCTURES_NAME - Name of the AM fungal structure prediction network.
+
+    Functions
+    ------------
+    convolutions - Builds convolution/maxpooling blocks.
+    fc_layers - Builds fully connected/dropout layers.
+    colonization - Builds a network for root segmentation.
+    myc_structures - Builds a network for AM fungal structure prediction.
+    load - main function, to be called from outside.
+"""
+
 import os
 import keras
 
-from keras.layers import Input
-from keras.layers import Conv2D
-from keras.layers import MaxPooling2D
-from keras.layers import Flatten
-from keras.layers import Dense
-from keras.layers import Dropout
 from keras.models import Model
+from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.initializers import he_uniform
 
-import amfinder_log as AMFlog
-import amfinder_config as AMFcfg
+import amfinder_log as AmfLog
+import amfinder_config as AmfConfig
 
+
+
+INPUT_SIZE = 126
+COLONIZATION_NAME = 'RootSegm'
+MYC_STRUCTURES_NAME = 'IRStruct'
 
 
 def convolutions():
-    """ Builds convolution blocks. """
+    """ Builds convolution/maxpooling blocks. """
 
     kc = 32
-    input_layer = Input(shape=(126, 126, 3))
+    input_layer = Input(shape=(INPUT_SIZE, INPUT_SIZE, 3))
 
     # Convolution block 1: 126x126 -> 120x120
     x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
@@ -68,23 +87,19 @@ def convolutions():
 def fc_layers(x, label, count=1, activation='sigmoid'):
     """ Builds fully connected layers (with dropout). """
 
-    x = Dense(64, kernel_initializer=he_uniform(),
-              activation='relu', name='D1')(x)
-
-    x = Dropout(0.3)(x)
-
-    x = Dense(16, kernel_initializer=he_uniform(),
-              activation='relu', name='D2')(x)
-
-    x = Dropout(0.2)(x)
-
+    x = Dense(64, kernel_initializer=he_uniform(), activation='relu',
+              name = f'FC{label}1')(x)
+    x = Dropout(0.3, name = f'D{label}1')(x)
+    x = Dense(16, kernel_initializer=he_uniform(), activation='relu',
+              name = f'FC{label}2')(x)
+    x = Dropout(0.2, name = f'D{label}2')(x)
     output = Dense(count, activation=activation, name=label)(x)
 
     return output
 
 
 
-def new_root_segmentation_network():
+def colonization():
     """ Builds a single-label, multi-class classifier to discriminate
         colonized (Y) and non-colonized (N) roots, and background (X). """
 
@@ -93,7 +108,7 @@ def new_root_segmentation_network():
 
     model = Model(inputs=input_layer,
                   outputs=output_layer,
-                  name='RootSegm')
+                  name=COLONIZATION_NAME)
 
     model.compile(loss='categorical_crossentropy',
                   optimizer='adam',
@@ -103,16 +118,16 @@ def new_root_segmentation_network():
 
 
 
-def new_myc_structures_network():
+def myc_structures():
     """ Builds a multi-label, single-class classifier to identify
         arbuscules (A), vesicles (V) and intraradical hyphae (IH). """
 
     input_layer, flatten = convolutions()
-    output_layers = [fc_layers(flatten, lbl) for lbl in AMFcfg.get('header')]
+    output_layers = [fc_layers(flatten, x) for x in AmfConfig.get('header')]
 
     model = Model(inputs=input_layer,
                   outputs=output_layers,
-                  name='IRStruct')
+                  name=MYC_STRUCTURES_NAME)
 
     model.compile(loss='binary_crossentropy',
                   optimizer='adam',
@@ -123,34 +138,30 @@ def new_myc_structures_network():
 
 
 def load():
-    """ Loads a pre-trained network, or creates a new one. """
+    """ Loads a pre-trained network or initializes a new one. """
 
-    path = AMFcfg.get('model')
-    level = AMFcfg.get('level')
+    path = AmfConfig.get('model')
 
-    # A pre-trained network file is available.
     if path is not None and os.path.isfile(path):
     
-        print('* Pre-trained network: {}'.format(os.path.basename(path)))
+        print(f'* Pre-trained network: {path}')
         return keras.models.load_model(path)
 
     else:
 
-        # Creates a new network if running in training mode.
-        if AMFcfg.get('run_mode') == 'train':
+        if AmfConfig.get('run_mode') == 'train':
         
-            print('* Creates a new, untrained network.')
+            print('* Initializes a new network.')
 
-            if level == 1:
+            if AmfConfig.get('level') == 1:
 
-                return new_root_segmentation_network()
+                return colonization()
 
             else:
 
-                return new_myc_structures_network()
-
+                return myc_structures()
         
-        else: # cannot run predictions without a pre-trained model.
+        else: # cannot run predictions without a pre-trained model!
         
-            AMFlog.error('A pre-trained model is required in prediction mode',
-                       exit_code=AMFlog.ERR_NO_PRETRAINED_MODEL)
+            AmfLog.error('A pre-trained model is required in prediction mode',
+                         exit_code=AmfLog.ERR_NO_PRETRAINED_MODEL)
