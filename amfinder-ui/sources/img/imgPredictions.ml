@@ -5,21 +5,34 @@ open Morelib
 
 
 module Aux = struct
-    let line_to_assoc r c t =
-        String.split_on_char '\t' t
-        |> List.map Float.of_string
-        |> (fun t -> (r, c), t)
+    let is_prediction e = Filename.dirname e.Zip.filename = "predictions" 
 
-    let of_string data =
-        let raw = List.map 
-            (fun s ->
-                Scanf.sscanf s "%d\t%d\t%[^\n]" line_to_assoc
-            ) (List.tl (String.split_on_char '\n' (String.trim data))) in
-        let nr = List.fold_left (fun m ((r, _), _) -> max m r) 0 raw + 1
-        and nc = List.fold_left (fun m ((_, c), _) -> max m c) 0 raw + 1 in
-        let table = Matrix.init nr nc (fun ~r:_ ~c:_ -> []) in  
-        List.iter (fun ((r, c), t) -> table.(r).(c) <- t) raw;
-        table
+    let level_of_header = function
+        | ["row"; "col"; "Y"; "N"; "X"] -> Some AmfLevel.RootSegm
+        | ["row"; "col"; "A"; "V"; "H"] -> Some AmfLevel.IRStruct
+        | _ -> AmfLog.warning "Malformed header in prediction table"; None
+
+    let nrows s = String.split_on_char '\n' s
+    let ncols s = String.split_on_char '\t' s
+    let coord s = Scanf.sscanf s "%d\t%d\t%[^\n]" (fun r c s -> ((r, c), s))
+       
+    let load_table ich source e =
+        let nr = source#rows and nc = source#columns in
+        let id = Filename.(basename (chop_extension e.Zip.filename)) in
+        match nrows (String.trim (Zip.read_entry ich e)) with
+        | [] -> None
+        | hdr :: dat -> match level_of_header (ncols hdr) with
+            | None -> None
+            | Some level -> let dat = List.map coord dat in
+                (* Initialize the matrix. *)
+                let table = Matrix.init nr nc (fun ~r:_ ~c:_ -> None) in
+                (* Populate with values. *)
+                List.iter (fun ((r, c), s) ->
+                    String.split_on_char '\t' s
+                    |> List.map Float.of_string
+                    |> (fun x -> Matrix.set table ~r ~c (Some x))            
+                ) dat;
+                Some (id, (level, table))
 
     let to_string level table =
         let buf = Buffer.create 100 in
@@ -28,10 +41,13 @@ module Aux = struct
             |> List.map (String.make 1)
             |> String.concat "\t" in
         bprintf buf "row\tcol\t%s\n" header;
-        Matrix.iteri (fun ~r ~c t ->
-            List.map Float.to_string t
-            |> String.concat "\t"
-            |> bprintf buf "%d\t%d\t%s\n" r c
+        Matrix.iteri (fun ~r ~c opt ->
+            match opt with
+            | None -> ()
+            | Some t ->
+                List.map Float.to_string t
+                |> String.concat "\t"
+                |> bprintf buf "%d\t%d\t%s\n" r c
         ) table;
         Buffer.contents buf
 
@@ -55,7 +71,10 @@ class predictions input = object (self)
         (* Sort valyes by their standard deviation. *)
         let coords_sorted_by_sd = List.assoc id input
             |> snd
-            |> Matrix.fold (fun ~r ~c res t -> ((r, c), Aux.stdev t) :: res) []
+            |> Matrix.fold (fun ~r ~c res opt -> 
+                match opt with
+                | None -> res
+                | Some t -> ((r, c), Aux.stdev t) :: res) []
             |> List.sort (fun (_, x) (_, y) -> compare x y)
             |> List.map fst
             |> Array.of_list in
@@ -92,10 +111,9 @@ class predictions input = object (self)
 
     method dump och =
         List.iter (fun (id, (level, matrix)) ->
-            Zip.add_entry
-                ~comment:(AmfLevel.to_string level)
-                (Aux.to_string level matrix) och 
-                (sprintf "predictions/%s.tsv" id)
+            let data = Aux.to_string level matrix
+            and file = sprintf "predictions/%s.tsv" id in
+            Zip.add_entry data och file
         ) input
 
     method private current_data = Option.map (fun x -> List.assoc x input) curr
@@ -105,7 +123,9 @@ class predictions input = object (self)
     method get ~r ~c = 
         match self#current_table with
         | None -> None
-        | Some t -> Matrix.get_opt t ~r ~c
+        | Some t -> match Matrix.get_opt t ~r ~c with
+            | None -> None
+            | Some opt -> opt
 
     method exists ~r ~c = (self#get ~r ~c) <> None
 
@@ -117,15 +137,17 @@ class predictions input = object (self)
     method max_layer ~r ~c =
         match self#current_data with
         | None -> None
-        | Some (level, table) -> let opt = Matrix.get_opt table ~r ~c in
-            Option.map (self#max level) opt
+        | Some (level, table) -> match Matrix.get_opt table ~r ~c with
+            | None -> None
+            | Some opt -> Option.map (self#max level) opt
 
     method iter (typ : [ `ALL of (r:int -> c:int -> float list -> unit)
         | `MAX of (r:int -> c:int -> char * float -> unit) ]) =
         Option.iter (fun (level, table) ->
             match typ with
-            | `ALL f -> Matrix.iteri f table
-            | `MAX f -> Matrix.iteri f (Matrix.map (self#max level) table)
+            | `ALL f -> Matrix.iteri (fun ~r ~c -> Option.iter (f ~r ~c)) table
+            | `MAX f -> Matrix.iteri (fun ~r ~c opt ->
+                Option.iter (fun t -> f ~r ~c (self#max level t)) opt) table
         ) self#current_data
 
     method iter_layer chr f =
@@ -162,22 +184,13 @@ class predictions input = object (self)
 end
 
 
-let filter entries =
-    List.filter (fun {Zip.filename; _} ->
-        Filename.dirname filename = "predictions"
-    ) entries
-
-
 let create ?zip source =
-    match zip with
-    | None -> new predictions []
-    | Some ich -> let entries = Zip.entries ich in
-        let assoc =
-            List.map (fun ({Zip.filename; comment; _} as entry) ->
-                let level = AmfLevel.of_string comment
-                and matrix = Aux.of_string (Zip.read_entry ich entry)
-                and id = Filename.(basename (chop_extension filename)) in
-                id, (level, matrix)
-            ) (filter entries)
-        in new predictions assoc
-
+    let inputs = match zip with
+        | None -> []
+        | Some ich -> Zip.entries ich
+            |> List.filter Aux.is_prediction
+            |> List.fold_left (fun r e ->
+                match Aux.load_table ich source e with
+                | None -> r 
+                | Some t -> t :: r) []
+    in new predictions inputs

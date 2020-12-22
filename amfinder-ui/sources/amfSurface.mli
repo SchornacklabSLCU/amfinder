@@ -47,7 +47,10 @@ val annotation_legend : string list -> color list -> Cairo.Surface.t
 (** Annotation legend. *)
 
 val pie_chart : ?margin:float -> float list -> color list -> edge -> Cairo.Surface.t
-(** Pie chart. *)
+(** Pie chart for root segmentation. *)
+
+val radar : ?margin:float -> float list -> color list -> edge -> Cairo.Surface.t
+(** Same, but for prediction of intraradical structures. *)
 
 module Dir : sig
     val top : background:color -> foreground:color -> edge -> Cairo.Surface.t

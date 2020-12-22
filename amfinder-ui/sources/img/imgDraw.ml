@@ -69,11 +69,14 @@ class draw
         if preds#active then
             Option.iter (fun t ->
                 let chr = AmfUI.Layers.current () in
+                brush#prediction ?sync ~r ~c t chr
+                (* let level = AmfUI.Levels.current () in
+                let chr = AmfUI.Layers.current () in
                 if chr = '*' then brush#pie_chart ?sync ~r ~c t else
                     let x = AmfUI.Levels.current ()
                         |> (fun x -> AmfLevel.char_index x chr)
                         |> List.nth t
-                    in (brush#prediction ?sync ~r ~c chr x);
+                    in (brush#prediction ?sync ~r ~c chr x); *)
             ) (preds#get ~r ~c)
 
     method overlay ?(sync = true) ~r ~c () =

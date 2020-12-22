@@ -4,7 +4,11 @@ type edge = int
 type color = string
 
 let pi = acos (-1.0)
-let two_pi = 2.0 *. pi
+let pi2 = pi /. 2.0
+let pi4 = pi /. 4.0
+let twopi = 2.0 *. pi
+let twopi3 = twopi /. 3.0
+let twopi4 = twopi /. 4.0
 
 let initialize color edge =
     assert (edge > 0); 
@@ -52,7 +56,7 @@ let circle ?(margin = 2.0) color edge =
     let edge = float edge -. margin in
     let radius = 0.5 *. edge in
     let centre = 0.5 *. margin +. radius in
-    Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:two_pi;
+    Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:twopi;
     Cairo.fill t;
     Cairo.stroke t;
     surface
@@ -147,12 +151,12 @@ module Square = struct
                 Cairo.set_source_rgba t 0.0 0.0 0.0 1.0;
                 let radius = 4.0 in
                 let centre = margin +. 0.5 *. (edge -. radius) in 
-                Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:two_pi;
+                Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:twopi;
                 Cairo.fill t;
                 Cairo.save t;
                 Cairo.translate t centre centre;
                 Cairo.scale t (16.0 /. 2.0) (10.0 /. 2.0);
-                Cairo.arc t 0.0 0.0 ~r:1.0 ~a1:0.0 ~a2:two_pi;
+                Cairo.arc t 0.0 0.0 ~r:1.0 ~a1:0.0 ~a2:twopi;
                 Cairo.restore t;
                 Cairo.stroke t;
                 Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
@@ -173,7 +177,7 @@ module Square = struct
                     (centre -. 0.45 *. h) ~w ~h;
                 Cairo.stroke t;
                 Cairo.arc t (centre -. 2.0) (centre +. 1.0)
-                    ~r:2.5 ~a1:0.0 ~a2:two_pi;
+                    ~r:2.5 ~a1:0.0 ~a2:twopi;
                 Cairo.fill t
             end
         end else begin
@@ -296,25 +300,96 @@ let annotation_legend symbs colors =
     ) symbs colors;
     surface
 
+
+
 let pie_chart ?(margin = 2.0) prob_list colors edge =
     let t, surface = initialize "#ffffffff" edge in
-    let edge = float edge -. margin in
-    let radius = 0.5 *. edge in
+    Cairo.set_line_width t 1.0;
+    let edge = float edge in
+    let radius = (edge -. 2.0 *. margin) /. 2.0 in
+    let centre = margin +. radius in
     let from = ref 0.0 in
-    List.iter2 (fun x clr ->
-        let rad = two_pi *. x in  
-        Cairo.move_to t radius radius;
-        let a2 = !from +. rad in
-        let centre = 0.5 *. margin +. radius in
-        Cairo.arc t centre centre ~r:radius ~a1:!from ~a2;
-        from := a2;
-        Cairo.Path.close t;
-        let r, g, b = AmfColor.parse_rgb clr in
-        Cairo.set_source_rgba t r g b AmfColor.opacity;
-        Cairo.fill t;
-        Cairo.stroke t;
-    ) prob_list colors;
+    Cairo.set_source_rgba t 0.15 0.15 0.15 AmfColor.opacity;
+    Cairo.arc t centre centre ~r:radius ~a1:0.0 ~a2:twopi;
+    Cairo.stroke t;
+    List.map2 (fun x clr ->
+        let f () = 
+            let rad = twopi *. x in  
+            Cairo.move_to t centre centre;
+            let a2 = !from +. rad in
+            Cairo.arc t centre centre ~r:radius ~a1:!from ~a2;
+            from := a2;
+            let r, g, b = AmfColor.parse_rgb clr in
+            Cairo.set_source_rgba t r g b AmfColor.opacity;
+            Cairo.fill t
+        in (1.0 -. x, f)
+    ) prob_list colors
+    |> List.sort (fun (x, _) (y, _) -> compare x y)
+    |> List.iter (fun (_, f) -> f ()); 
     surface
+
+
+
+module Radar = struct
+    open Cairo
+    (* Draw grey background. *)
+    let draw_grey_background t c r =
+        set_source_rgba t 0.7 0.7 0.7 AmfColor.opacity;
+        arc t c c ~r ~a1:0.0 ~a2:twopi;
+        fill t
+    (* Draw rings corresponding to probabilities of 1/3, 2/3 and 1. *)
+    let draw_rings t c r =
+        set_source_rgba t 0.15 0.15 0.15 AmfColor.opacity; (* #262626 *)
+        for i = 1 to 3 do
+            let r = float i /. 3.0 *. r in
+            arc t c c ~r ~a1:0.0 ~a2:twopi;
+            stroke t;
+        done
+    (* Draw a filled dot at the given coordinates. *)
+    let draw_dot t color x y () =
+        let r, g, b = AmfColor.parse_rgb color in
+        set_source_rgba t r g b 1.0;
+        arc t x y ~r:2.0 ~a1:0.0 ~a2:twopi;
+        fill t
+    (* Draw radar polyline surface. *)
+    let draw_polyline t segm =
+        Path.sub t;
+        set_source_rgba t 0.0 0.0 0.0 AmfColor.opacity;
+        List.iteri (fun i (x, y) ->
+            match i with
+            | 0 -> move_to t x y
+            | _ -> line_to t x y
+        ) segm;
+        Path.close t;
+        set_source_rgba t 1.0 1.0 1.0 0.65;
+        fill t
+end
+
+let radar ?(margin = 2.0) prob_list colors edge =
+    let t, surface = initialize "#000000B0" edge in
+    Cairo.set_line_width t 1.0;
+    let edge = float edge in
+    (* edge = margin + radius + radius + margin. *)
+    let radius = (edge -. 2.0 *. margin) /. 2.0 in
+    let centre = margin +. radius in
+    Radar.draw_grey_background t centre radius;
+    Radar.draw_rings t centre radius;
+    (* Polar coordinates centered at (centre, centre). *)
+    let calc_xy_and_df (segm, dots, angle) color prob =
+        let x = prob *. radius *. cos angle +. centre
+        and y = prob *. radius *. sin angle +. centre in
+        let f = Radar.draw_dot t color x y in
+        ((x, y) :: segm, f :: dots, angle +. twopi4)
+    in
+    let xy, df, _ = List.fold_left2 calc_xy_and_df ([], [], pi4)
+        (colors @ ["#31ff12"])
+        (prob_list @ [1.0]) in
+    (* Draw radar surface, then dots. *)
+    Radar.draw_polyline t xy;
+    List.iter (fun f -> f ()) df;
+    surface
+
+
 
 module Dir = struct
     let top ~background ~foreground edge =

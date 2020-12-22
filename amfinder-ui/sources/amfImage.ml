@@ -7,6 +7,23 @@ module Aux = struct
         let pix = GdkPixbuf.create ~width:180 ~height:180 () in
         GdkPixbuf.fill pix 0l;
         pix
+
+    let crop ~src_x ~src_y ~edge pix =
+        let dest = GdkPixbuf.create ~width:edge ~height:edge () in
+        GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
+        dest
+
+    let resize ?(interp = `NEAREST) edge pixbuf =
+        let width = GdkPixbuf.get_width pixbuf
+        and height = GdkPixbuf.get_height pixbuf in
+        if width = edge && height = edge then pixbuf 
+        else begin 
+            let scale_x = float edge /. (float width)
+            and scale_y = float edge /. (float height) in
+            let dest = GdkPixbuf.create ~width:edge ~height:edge () in
+            GdkPixbuf.scale ~dest ~scale_x ~scale_y ~interp pixbuf;
+            dest
+        end
 end
 
 
@@ -100,7 +117,8 @@ object (self)
             let annot = annotations#get ~r ~c () in
             if annot#is_empty () || erase then annot#add chr
         in predictions#iter (`MAX set_annot);
-        (* Things below should be part of ui. *)
+        (* UI settings. *)
+        self#update_counters ();
         AmfUI.Predictions.overlay#set_active false
     
     method update_statistics () = self#update_counters ()
@@ -198,6 +216,38 @@ object (self)
         activations#dump och;
         source#save_settings och;
         Zip.close_out och
+    
+    (* Use this to export the entire image. *)
+    method private save_image () =
+        let e = source#edge in
+        let h = source#rows * e and w = source#columns * e in
+        let surface = Cairo.Image.(create ARGB32 ~w ~h) in
+        let t = Cairo.create surface in
+        Cairo.set_line_width t 0.0;
+        Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
+        Cairo.set_source_rgba t 1.0 1.0 1.0 1.0;
+        Cairo.rectangle t 0.0 0.0 ~w:(float w) ~h:(float h);
+        Cairo.fill t;
+        for r = 0 to source#rows - 1 do
+            for c = 0 to source#columns -1 do
+                match large_tiles#get ~r ~c with
+                | None -> ()
+                | Some pix -> let x = float (c * e) and y = float (r * e) in
+                    let pix = Aux.resize e pix in
+                    Cairo_gtk.set_source_pixbuf t pix ~x ~y;
+                    Cairo.paint t;
+                    let mask = annotations#get ~r ~c () in
+                    let opt =
+                        if mask#mem 'Y' then Some "#FF00FFB0" else
+                        if mask#mem 'N' then Some "#707070B0" else None in
+                    Option.iter (fun clr ->
+                        let s = AmfSurface.Square.filled clr e in
+                        Cairo.set_source_surface t s ~x ~y;
+                        Cairo.paint t
+                    ) opt    
+            done;
+        done;
+        Cairo.PNG.write surface "output.png"
 end
 
 

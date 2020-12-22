@@ -160,12 +160,9 @@ class type brush = object
     (** Draw the frame of an annotation, for tiles that gets annotated but not
       * in the active layer (to distinguish with non-annotated tiles). *)
 
-    method prediction : ?sync:bool -> r:int -> c:int -> char -> float -> unit
+    method prediction : ?sync:bool -> r:int -> c:int -> float list -> char -> unit
     (** Draws a tile prediction.
       * @param sync defaults to [false]. *)
-
-    method pie_chart : ?sync:bool -> r:int -> c:int -> float list -> unit
-    (** Displays a pie chart (when using the joker layer with predictions). *)
 
     method prediction_palette : ?sync:bool -> unit -> unit
     (** Displays a full palette. *)

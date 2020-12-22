@@ -11,11 +11,14 @@ module Aux = struct
     let resize ?(interp = `NEAREST) edge pixbuf =
         let width = GdkPixbuf.get_width pixbuf
         and height = GdkPixbuf.get_height pixbuf in
-        let scale_x = float edge /. (float width)
-        and scale_y = float edge /. (float height) in
-        let dest = GdkPixbuf.create ~width:edge ~height:edge () in
-        GdkPixbuf.scale ~dest ~scale_x ~scale_y ~interp pixbuf;
-        dest
+        if width = edge && height = edge then pixbuf 
+        else begin 
+            let scale_x = float edge /. (float width)
+            and scale_y = float edge /. (float height) in
+            let dest = GdkPixbuf.create ~width:edge ~height:edge () in
+            GdkPixbuf.scale ~dest ~scale_x ~scale_y ~interp pixbuf;
+            dest
+        end
 end
 
 

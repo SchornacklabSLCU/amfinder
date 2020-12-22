@@ -24,6 +24,9 @@ class type annot = object
     method mem : char -> bool
     (** [mem chr] returns [true] when [chr] is part of the tile annotation. *)
 
+    method all : string
+    (** Returns all assigned annotations, irrespective of annotation level. *)
+
     method hot : ?level:AmfLevel.level -> unit -> int list
     (** Returns a one-hot vector containing tile annotations at a given level.
       * Uses current level when [?level] is [None]. *)

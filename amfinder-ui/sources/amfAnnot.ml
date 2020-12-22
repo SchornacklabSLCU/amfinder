@@ -15,10 +15,8 @@ object (self)
         | None -> CSet.empty
         | Some str -> CSet.of_seq (String.to_seq str)
 
-    method is_empty ?level () = 
-        match level with
-        | None -> CSet.is_empty annot
-        | Some level -> CSet.is_empty (self#get ~level ())
+    method is_empty ?(level = AmfUI.Levels.current ()) () =
+        CSet.is_empty (self#get ~level ())
         
     method has_annot ?level () = not (self#is_empty ?level ())
 
@@ -30,6 +28,8 @@ object (self)
         end
 
     method mem chr = CSet.mem chr annot
+    
+    method all = CSet.to_seq annot |> String.of_seq
 
     method hot ?(level = AmfUI.Levels.current ()) () =
         List.map (fun chr ->

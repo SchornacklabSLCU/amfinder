@@ -9,11 +9,11 @@ let _DEBUGGING_ = false
 
 module Area = struct
     (* Edge of displayed tiles, in pixels.    *)
-    let edge = 32
+    let edge = 37
     (* Maximum number of tiles on the X axis. *)
-    let wmax = 16
+    let wmax = 13
     (* Maximum number of tiles on the Y axis. *)
-    let hmax = 14
+    let hmax = 12
 end
 
 
@@ -288,15 +288,23 @@ object (self)
     method annotation_other_layer ?sync ~r ~c () =
         self#surface ?sync ~r ~c (AmfMemoize.dashed_square Area.edge)
 
-    method pie_chart ?sync ~r ~c t =
-        AmfUI.Levels.current ()
-        |> AmfLevel.colors
-        |> (fun colors -> AmfSurface.pie_chart t colors Area.edge)
-        |> self#surface ?sync ~r ~c
+    method private pie_chart ?sync ~r ~c t =
+        let level = AmfUI.Levels.current () in
+        let palette = AmfLevel.colors level in
+        let f = match level with
+            | AmfLevel.RootSegm -> AmfSurface.pie_chart
+            | AmfLevel.IRStruct -> AmfSurface.radar
+        in self#surface ?sync ~r ~c (f t palette Area.edge)
 
-    method prediction ?sync ~r ~c (chr : char) x =
-        let index = self#index_of_prob x in
-        self#surface ?sync ~r ~c (AmfMemoize.palette index Area.edge)
+    method prediction ?sync ~r ~c t = function
+        | '*' -> self#pie_chart ?sync ~r ~c t
+        | chr -> let level = AmfUI.Levels.current () in
+            AmfLevel.char_index level chr
+            |> List.nth t
+            |> self#index_of_prob
+            |> (fun i -> AmfMemoize.palette i Area.edge)
+            |> self#surface ?sync ~r ~c
+
 end
 
 
