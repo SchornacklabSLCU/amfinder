@@ -112,7 +112,7 @@ object (self)
         let t = AmfUI.Drawing.cairo ()
         and y = float (self#y ~r:(snd self#r_range + 1) + 15) in
         let colors = AmfUI.Predictions.get_colors () in
-        let surface = AmfSurface.prediction_palette colors Area.edge in
+        let surface = AmfSurface.Legend.palette colors Area.edge in
         let rem = Area.wmax * Area.edge - Cairo.Image.get_width surface in
         let x = float x_origin +. float rem /. 2.0 in
         Cairo.set_source_surface t surface x y;
@@ -125,7 +125,7 @@ object (self)
         let level = AmfUI.Levels.current () in
         let colors = AmfLevel.colors level
         and symbols = AmfLevel.symbols level in
-        let surface = AmfSurface.annotation_legend symbols colors in
+        let surface = AmfSurface.Legend.classes symbols colors in
         let rem = Area.wmax * Area.edge - Cairo.Image.get_width surface in
         let x = float x_origin +. float rem /. 2.0 in
         Cairo.set_source_surface t surface x y;
@@ -134,25 +134,23 @@ object (self)
 
     method private draw_window_arrow orientation visible x y =
         let t = AmfUI.Drawing.cairo () in
-        let color = if visible then "#FF0000FF" else "#FFFFFFFF" in
+        let fgcolor = if visible then "#FF0000FF" else "#FFFFFFFF" in
         let f = match orientation with
-            | `TOP -> AmfSurface.Dir.top
-            | `BOTTOM -> AmfSurface.Dir.bottom
-            | `LEFT -> AmfSurface.Dir.left
-            | `RIGHT -> AmfSurface.Dir.right
+            | `TOP -> AmfSurface.Arrowhead.top
+            | `BOTTOM -> AmfSurface.Arrowhead.bottom
+            | `LEFT -> AmfSurface.Arrowhead.left
+            | `RIGHT -> AmfSurface.Arrowhead.right
         in
-        let surface = f
-            ~background:self#backcolor
-            ~foreground:color (Area.edge / 4) in
+        let surface = f ~bgcolor:self#backcolor ~fgcolor (Area.edge / 4) in
         Cairo.set_source_surface t surface x y;
         Cairo.paint t
 
     method private redraw_row_pane r =
         (* Background clean-up. *)
-        let h_area = AmfSurface.Create.rectangle
-            ~width:Area.edge
-            ~height:((Area.hmax + 1) * Area.edge)
-            ~color:backcolor ()
+        let h_area = AmfSurface.rectangle
+            ~rgba:backcolor
+            ~w:Area.edge
+            ~h:((Area.hmax + 1) * Area.edge)
         and t = AmfUI.Drawing.cairo ()
         and x = float x_origin -. 1.25 *. (float Area.edge)
         and y = float y_origin -. 0.50 *. (float Area.edge) in
@@ -178,10 +176,10 @@ object (self)
 
     method private redraw_column_pane c =
         (* Background clean-up. *)
-        let h_area = AmfSurface.Create.rectangle
-            ~width:((Area.wmax + 1) * Area.edge)
-            ~height:Area.edge
-            ~color:backcolor ()
+        let h_area = AmfSurface.rectangle
+            ~w:((Area.wmax + 1) * Area.edge)
+            ~h:Area.edge
+            ~rgba:backcolor
         and t = AmfUI.Drawing.cairo ()
         and x = float x_origin -. 0.50 *. (float Area.edge)
         and y = float y_origin -. 1.25 *. (float Area.edge) in
@@ -243,7 +241,9 @@ object (self)
         let rem = grid_width - 12 * len in
         let x = float x_origin +. float rem /. 2.0 in
         let x = x +. float index *. 12.0 in
-        let surface = AmfMemoize.arrowhead 12 in
+        (* let surface = AmfMemoize.arrowhead 12 in *)
+        let surface = AmfSurface.Arrowhead.top
+            ~bgcolor:self#backcolor 12 in        
         Cairo.set_source_surface t surface x y;
         Cairo.paint t;
         Cairo.select_font_face t "Monospace";
@@ -278,7 +278,7 @@ object (self)
                             if CSet.mem chr set then clr 
                             else "#FFFFFF00"
                         ) (AmfLevel.to_header level) (AmfLevel.colors level)
-                    in self#surface ?sync ~r ~c (AmfSurface.Square.colors colors Area.edge)
+                    in self#surface ?sync ~r ~c (AmfSurface.Annotation.colors colors Area.edge)
                 (* Other layers only show one type of annotation. *)
                 ) else simple_square set
             (* Root segmentation only has single-color annotations. *)
@@ -292,8 +292,8 @@ object (self)
         let level = AmfUI.Levels.current () in
         let palette = AmfLevel.colors level in
         let f = match level with
-            | AmfLevel.RootSegm -> AmfSurface.pie_chart
-            | AmfLevel.IRStruct -> AmfSurface.radar
+            | AmfLevel.RootSegm -> AmfSurface.Prediction.pie_chart
+            | AmfLevel.IRStruct -> AmfSurface.Prediction.radar
         in self#surface ?sync ~r ~c (f t palette Area.edge)
 
     method prediction ?sync ~r ~c t = function

@@ -1,60 +1,113 @@
-(* The Automated Mycorrhiza Finder version 1.0 - amfSurface.mli *)
+(* AMFinder - amfSurface.mli
+ *
+ * MIT License
+ * Copyright (c) 2021 Edouard Evangelisti
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ *)
+
+open Cairo
 
 (** Cairo surfaces for drawing. *)
 
-type edge = int
+type pixels = int
 type color = string
 
-module Create : sig
-    val rectangle : width:int -> height:int -> color:string -> unit -> Cairo.context * Cairo.Surface.t
+
+
+val rectangle : ?rgba:color -> w:pixels -> h:pixels -> context * Surface.t
+(** [rectangle ?rgba:c ~w ~h] draws a rectangle with a width and height of 
+  * [w] and [h] pixels, respectively, filled with color [c]. *)
+
+val square : ?rgba:color -> pixels -> context * Surface.t
+(** [square ?rgba:c ~e] draws a square with an pixels of [e] pixels, filled
+  * with color [c]. *)
+
+
+
+(** Arrowheads. *)
+module Arrowhead : sig
+
+    val top : ?bgcolor:color -> ?fgcolor:color -> pixels -> Surface.t
+    (** Draw an arrowhead toward the top. *)
+    
+    val bottom : ?bgcolor:color -> ?fgcolor:color -> pixels -> Surface.t
+    (** Draw an arrowhead toward the bottom. *)
+
+    val left : ?bgcolor:color -> ?fgcolor:color -> pixels -> Surface.t
+    (** Draw an arrowhead to the left. *)
+
+    val right : ?bgcolor:color -> ?fgcolor:color -> pixels -> Surface.t
+    (** Draw an arrowhead toward the right. *)
+
 end
 
 
-val arrowhead : color -> edge -> Cairo.Surface.t
-    (** Arrowhead oriented to the top. *)
 
-val circle : ?margin:float -> color -> edge -> Cairo.Surface.t
-(** Circle. *)
+(** Square tile drawings corresponding to annotations. *)
+module Annotation : sig
 
-
-(** Squares. *)
-module Square : sig
-    val cursor : color -> edge -> Cairo.Surface.t
+    val cursor : color -> pixels -> Surface.t
     (** Square with a thick stroke. *)
 
-    val filled : ?symbol:string -> color -> edge -> Cairo.Surface.t
+    val filled : ?symbol:string -> color -> pixels -> Surface.t
     (** Rounded, filled square with a centered symbol. *)
 
-    val colors : color list -> edge -> Cairo.Surface.t
+    val colors : color list -> pixels -> Surface.t
     (** Rounded square filled with multiple colors. *)
 
-    val dashed : color -> edge -> Cairo.Surface.t
+    val dashed : color -> pixels -> Surface.t
     (** Square with a dashed stroke and an eye symbol. *)
     
-    val locked : color -> edge -> Cairo.Surface.t
+    val locked : color -> pixels -> Surface.t
     (** Square with a dashed stroke and a red lock. *)
 
-    val empty : color -> edge -> Cairo.Surface.t
+    val empty : color -> pixels -> Surface.t
     (** Rounded square with a solid stroke and a white background. *)
+
 end
 
 
 
-val prediction_palette : ?step:int -> color array -> edge -> Cairo.Surface.t
-(** Color palette. *)
+(** Circular tile drawings corresponding to predictions. *)
+module Prediction : sig
 
-val annotation_legend : string list -> color list -> Cairo.Surface.t
-(** Annotation legend. *)
+    val filled : ?margin:float -> color -> pixels -> Surface.t
+    (** Circle. *)
 
-val pie_chart : ?margin:float -> float list -> color list -> edge -> Cairo.Surface.t
-(** Pie chart for root segmentation. *)
+    val pie_chart : ?margin:float -> float list -> color list -> pixels -> Surface.t
+    (** Pie chart for root segmentation. *)
 
-val radar : ?margin:float -> float list -> color list -> edge -> Cairo.Surface.t
-(** Same, but for prediction of intraradical structures. *)
+    val radar : ?margin:float -> float list -> color list -> pixels -> Surface.t
+    (** Same, but for prediction of intraradical structures. *)
 
-module Dir : sig
-    val top : background:color -> foreground:color -> edge -> Cairo.Surface.t
-    val bottom : background:color -> foreground:color -> edge -> Cairo.Surface.t
-    val left : background:color -> foreground:color -> edge -> Cairo.Surface.t
-    val right : background:color -> foreground:color -> edge -> Cairo.Surface.t
+end
+
+
+
+(** Legends. *)
+module Legend : sig
+
+    val palette : ?step:int -> color array -> pixels -> Surface.t
+    (** Prediction values (continuous color palette). *)
+
+    val classes : string list -> color list -> Surface.t
+    (** Annotation classes (discrete colors). *)
+
 end
