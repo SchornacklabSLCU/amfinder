@@ -1,6 +1,6 @@
 #! /bin/bash
 
-OUT="amf_explorer.exe"
+OUT="amfbrowser.exe"
 
 rm -f "$OUT" 2> /dev/null && \
 cd "sources" && \
