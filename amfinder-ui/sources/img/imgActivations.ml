@@ -24,23 +24,7 @@
 
 open Printf
 open Morelib
-
-(* FIXME: The very same code is in ImgTileMatrix. *)
-module Aux = struct
-    let crop ~src_x ~src_y ~edge pix =
-        let dest = GdkPixbuf.create ~width:edge ~height:edge () in
-        GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
-        dest
-
-    let resize ?(interp = `NEAREST) edge pixbuf =
-        let width = GdkPixbuf.get_width pixbuf
-        and height = GdkPixbuf.get_height pixbuf in
-        let scale_x = float edge /. (float width)
-        and scale_y = float edge /. (float height) in
-        let dest = GdkPixbuf.create ~width:edge ~height:edge () in
-        GdkPixbuf.scale ~dest ~scale_x ~scale_y ~interp pixbuf;
-        dest
-end
+open ImgShared
 
 
 
@@ -66,8 +50,8 @@ class activations
             let pixbuf = List.assoc chr (Hashtbl.find hash id) in
             let src_x = c * source#edge 
             and src_y = r * source#edge in
-            Aux.crop ~src_x ~src_y ~edge:source#edge pixbuf
-            |> Aux.resize edge
+            crop_pixbuf ~src_x ~src_y ~edge:source#edge pixbuf
+            |> resize_pixbuf edge
             |> Option.some
         with exn -> 
             AmfLog.warning "ImgTileMatrix.activations#get \
@@ -99,10 +83,12 @@ let create ?zip source =
         let table = 
             List.map (fun ({Zip.filename; comment; _} as entry) ->
                 let chr = Scanf.sscanf comment "%c" Char.uppercase_ascii
-                and id = Filename.(basename (chop_extension (chop_extension filename))) in
+                and id = Filename.chop_extension filename 
+                    |> Filename.chop_extension
+                    |> Filename.basename in
                 let tmp, och = Filename.open_temp_file
                     ~mode:[Open_binary] 
-                    "castanet" ".jpg" in
+                    "amfinder" ".jpg" in
                 Zip.copy_entry_to_channel ich entry och;
                 close_out och;
                 AmfLog.info "Loading activation map %S" tmp;
