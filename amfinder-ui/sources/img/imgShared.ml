@@ -32,8 +32,10 @@ let crop_pixbuf ~src_x ~src_y ~edge pixbuf =
 let resize_pixbuf ?(interp = `NEAREST) edge pixbuf =
     let width = get_width pixbuf
     and height = get_height pixbuf in
-    let scale_x = float edge /. (float width)
-    and scale_y = float edge /. (float height) in
-    let dest = create ~width:edge ~height:edge () in
-    scale ~dest ~scale_x ~scale_y ~interp pixbuf;
-    dest
+    if width = edge && height = edge then pixbuf else begin
+        let scale_x = float edge /. (float width)
+        and scale_y = float edge /. (float height) in
+        let dest = create ~width:edge ~height:edge () in
+        scale ~dest ~scale_x ~scale_y ~interp pixbuf;
+        dest
+    end

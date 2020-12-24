@@ -23,30 +23,12 @@
  *)
 
 open Printf
+open ImgShared
 
-module Aux = struct
-    let blank =
-        let pix = GdkPixbuf.create ~width:180 ~height:180 () in
-        GdkPixbuf.fill pix 0l;
-        pix
-
-    let crop ~src_x ~src_y ~edge pix =
-        let dest = GdkPixbuf.create ~width:edge ~height:edge () in
-        GdkPixbuf.copy_area ~dest ~src_x ~src_y pix;
-        dest
-
-    let resize ?(interp = `NEAREST) edge pixbuf =
-        let width = GdkPixbuf.get_width pixbuf
-        and height = GdkPixbuf.get_height pixbuf in
-        if width = edge && height = edge then pixbuf 
-        else begin 
-            let scale_x = float edge /. (float width)
-            and scale_y = float edge /. (float height) in
-            let dest = GdkPixbuf.create ~width:edge ~height:edge () in
-            GdkPixbuf.scale ~dest ~scale_x ~scale_y ~interp pixbuf;
-            dest
-        end
-end
+let blank_pixbuf =
+    let pix = GdkPixbuf.create ~width:180 ~height:180 () in
+    GdkPixbuf.fill pix 0l;
+    pix
 
 
 
@@ -194,7 +176,7 @@ object (self)
                 let ri = r + i - 1 and cj = c + j - 1 in
                 let get = self#may_overlay_cam ~i ~j ~r:ri ~c:cj in            
                 let pixbuf = match get ~r:ri ~c:cj with
-                    | None -> Aux.blank
+                    | None -> blank_pixbuf
                     | Some x -> x
                 in AmfUI.Magnifier.set_pixbuf ~r:i ~c:j pixbuf
             done
@@ -217,8 +199,8 @@ object (self)
         done;
         if predictions#active then begin 
             match AmfUI.Layers.current () with
-            | '*' -> brush#annotation_legend ~sync:false ()
-            |  _  -> brush#prediction_palette ~sync:false ()
+            | '*' -> brush#classes ~sync:false ()
+            |  _  -> brush#palette ~sync:false ()
         end;
         if sync then brush#sync "mosaic" ()
 
@@ -255,7 +237,7 @@ object (self)
                 match large_tiles#get ~r ~c with
                 | None -> ()
                 | Some pix -> let x = float (c * e) and y = float (r * e) in
-                    let pix = Aux.resize e pix in
+                    let pix = resize_pixbuf e pix in
                     Cairo_gtk.set_source_pixbuf t pix ~x ~y;
                     Cairo.paint t;
                     let mask = annotations#get ~r ~c () in
