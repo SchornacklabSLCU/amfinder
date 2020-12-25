@@ -2,7 +2,7 @@
 (env
   (release
     (flags (:standard -w s))
-    (ocamlopt_flags (:standard -nodynlink -O3 -principal))
+    (ocamlopt_flags (:standard -nodynlink -O3))
   )
 )
 (profile release)
