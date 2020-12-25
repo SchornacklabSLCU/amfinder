@@ -32,11 +32,27 @@ class ui
 
     val mutable paint_funcs = []
 
+    method private current_annot =
+        let r, c = cursor#get in
+        annotations#get ~r ~c ()
+
+    method private update_annot f chr =
+        let annot = self#current_annot in
+        if annot#editable then begin
+            f annot chr;
+            self#update_toggles ()
+        end
+
+    method private add_annot =
+        self#update_annot (fun (annot : AmfAnnot.annot) -> annot#add) 
+
+    method private rem_annot =
+        self#update_annot (fun (annot : AmfAnnot.annot) -> annot#remove)
+
     method set_paint f = paint_funcs <- f :: paint_funcs
 
     method update_toggles () =
-        let r, c = cursor#get in
-        let annot = annotations#get ~r ~c () in
+        let annot = self#current_annot in
         AmfUI.Toggles.iter_current (fun chr tog img ->
             (* Annotation is there, but toggle is inactive. *)
             if annot#mem chr && not tog#active then (
@@ -48,19 +64,6 @@ class ui
                 img#set_pixbuf AmfIcon.(get chr Large Grayscale)
             )
         )
-    
-    method private update_annot f chr =
-        let r, c = cursor#get in
-        let annot = annotations#get ~r ~c () in
-        if annot#editable then begin
-            f annot chr;
-            self#update_toggles ()
-        end
-
-    method private add_annot =
-        self#update_annot (fun (x : AmfAnnot.annot) c -> x#add c) 
-    method private rem_annot =
-        self#update_annot (fun (x : AmfAnnot.annot) c -> x#remove c)
 
     method key_press ev =
         let raw = GdkEvent.Key.string ev in
