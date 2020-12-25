@@ -119,7 +119,7 @@ object (self)
             | None -> ()
             | Some data -> let lvl_string = AmfLevel.to_string level in
                 Zip.add_entry data och (sprintf "%s.tsv" lvl_string)
-        ) AmfLevel.[RootSegm; IRStruct]
+        ) AmfLevel.all
 
 end
 
@@ -130,8 +130,8 @@ let retrieve_annotations ich entries =
         let path = entry.Zip.filename in
         if Filename.dirname path = "annotations" then
             match Filename.basename path with
-            | "RootSegm.caml" -> root_segm := Some (Zip.read_entry ich entry)
-            | "IRStruct.caml" -> ir_struct := Some (Zip.read_entry ich entry)
+            | "col.caml" -> root_segm := Some (Zip.read_entry ich entry)
+            | "myc.caml" -> ir_struct := Some (Zip.read_entry ich entry)
             | any -> AmfLog.error ~code:Err.Image.unknown_annotation_file
                 "Unknown annotation file %S" any 
     ) entries;

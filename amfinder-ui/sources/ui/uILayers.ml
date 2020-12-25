@@ -77,7 +77,7 @@ module Toolbox = struct
             let toolbar = GButton.toolbar
                 ~orientation:`VERTICAL
                 ~style:`ICONS
-                ~width:92 ~height:185 ()
+                ~width:92 ~height:225 ()
             let active = ref true
             let group = ref None
             let packing = toolbar#insert
@@ -95,7 +95,7 @@ module Make (P : PARAMS) : S = struct
     
     let toolboxes = 
         let make level = level, Toolbox.make level in
-        List.map make AmfLevel.all_flags
+        List.map make AmfLevel.all
 
   let current_widget = ref None
 
@@ -150,7 +150,7 @@ module Make (P : PARAMS) : S = struct
         ) (current_level_radios ()) 
 
     let _ =
-        attach AmfLevel.root_segmentation;
+        attach AmfLevel.col;
         List.iter (fun (level, radio) ->
             let callback () = if radio#active then attach level in
             ignore (radio#connect#toggled ~callback)

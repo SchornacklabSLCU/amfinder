@@ -25,19 +25,22 @@
 
 (** Annotation levels. *)
 
-type level = RootSegm | IRStruct
+type level = bool
 (** Annotation level. *)
 
-val root_segmentation : level
-(** Root segmentation (colonized, non-colonized, background. *) 
+val col : level
+(** Colonization (colonized, non-colonized, background. *) 
 
-val intraradical_structures : level
+val myc : level
 (** Intraradical structures (arbuscules, vesicles, hyphae).  *)
 
-val is_root_segm : level -> bool
+val all : level list
+(** List of available annotation levels, sorted from lowest to highest. *)
+
+val is_col : level -> bool
 (** Indicates whether the given level is root segmentation. *)
 
-val is_ir_struct : level -> bool
+val is_myc : level -> bool
 (** Indicates whether the given level is intraradical structures. *)
 
 val to_string : level -> string
@@ -52,17 +55,11 @@ val to_header : level -> char list
 val of_header : char list -> level
 (** [of_header t] returns the annotation level associated with header [t]. *)
 
-val to_charset : level -> Morelib.CSet.t
-(** Returns the string set containing all available chars at a given level. *)
-
 val chars : level -> Morelib.CSet.t
 (** Returns the string set containing all available chars at a given level. *)
 
 val char_index : level -> char -> int
 (** Index of the given char at the given level. *)
-
-val all_flags : level list
-(** List of available annotation levels, sorted from lowest to highest. *)
 
 val all_chars_list : char list
 (** All available annotations. *)

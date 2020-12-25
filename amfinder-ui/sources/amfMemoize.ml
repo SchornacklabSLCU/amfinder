@@ -53,7 +53,7 @@ let make_surface level chr x =
 let layers =
     List.map AmfLevel.(fun x ->
         List.map2 (make_surface x) (to_header x) (colors x)
-    ) AmfLevel.all_flags
+    ) AmfLevel.all
     |> List.flatten
 
 let layer level chr = List.assoc (level, chr) layers

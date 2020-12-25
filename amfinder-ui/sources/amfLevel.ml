@@ -25,36 +25,37 @@
 open Printf
 open Morelib
 
-type level = RootSegm | IRStruct
+type level = bool
 
-let root_segmentation = RootSegm
-let intraradical_structures = IRStruct
+let col = true
+let myc = false
 
-let is_root_segm x = x = RootSegm 
-let is_ir_struct x = x = IRStruct
+let col_header = ['Y'; 'N'; 'X']
+let myc_header = ['A'; 'V'; 'H'; 'I']
+
+let is_col x = x 
+let is_myc x = not x
 
 let to_header = function
-    | RootSegm -> ['Y'; 'N'; 'X']
-    | IRStruct -> ['A'; 'V'; 'H']
-
-let to_charset lvl = CSet.of_list (to_header lvl) 
+    | true  -> col_header
+    | false -> myc_header
 
 let to_string = function
-    | RootSegm -> "RootSegm"
-    | IRStruct -> "IRStruct"
+    | true  -> "col"
+    | false -> "myc"
 
 let of_string str =
-    match String.uppercase_ascii str with (* case-insensitive. *)
-    | "ROOTSEGM" | "COLONIZATION" -> RootSegm
-    | "IRSTRUCT" -> IRStruct
+    match String.lowercase_ascii str with
+    | "col" -> true
+    | "myc" -> false
     | unknown -> AmfLog.error ~code:Err.Level.unknown_level
         "(AmfLevel.of_string) Wrong annotation level %S" unknown
 
 let of_header t =
-    match List.map Char.uppercase_ascii t with (* case-insensitive. *)
-    | ['Y'; 'N'; 'X'] -> RootSegm
-    | ['A'; 'V'; 'H'] -> IRStruct
-    | _ -> AmfLog.error ~code:Err.Level.invalid_level_header
+    let t = List.map Char.uppercase_ascii t in
+    if t = col_header then true else
+    if t = myc_header then false else
+    AmfLog.error ~code:Err.Level.invalid_level_header
         "(AmfLevel.of_header) Malformed table header"
 
 let chars lvl = CSet.of_list (to_header lvl)
@@ -64,62 +65,59 @@ let char_index lvl chr = to_header lvl
     |> String.of_seq
     |> (fun str -> String.index str chr)
 
-let all_chars_list =
-    chars RootSegm
-    |> CSet.union (chars IRStruct)
-    |> CSet.elements
+let all_chars_list = CSet.elements (CSet.union (chars true) (chars false))
 
-let all_flags = [RootSegm; IRStruct]
-let lowest = RootSegm
-let highest = IRStruct
+let all = [true; false]
+let lowest = true
+let highest = false
 
 let others = function
-    | RootSegm -> [IRStruct]
-    | IRStruct -> [RootSegm]
+    | true  -> [false]
+    | false -> [true]
 
 let symbols = function
-    | RootSegm -> ["AM fungi (M+)"; "Plant root (M−)"; "Background (×)"]
-    | IRStruct -> ["Arbuscule (A)";  "Vesicle (V)";        "Hypha (H)"]
+    | true  -> ["AM fungi (M+)"; "Plant root (M−)"; "Background (×)"]
+    | false -> ["Arbuscule (A)";  "Vesicle (V)";        "Hypha (H)"]
 
 let icon_text = function
-    | RootSegm -> [('Y', "M+"); ('N', "M−"); ('X', "×")]
-    | IRStruct -> [('A', "A");  ('V', "V");  ('H', "H")]
+    | true  -> List.combine col_header ["M+"; "M−"; "×"]
+    | false -> [('A', "A");  ('V', "V");  ('H', "H"); ('I', "IH")]
 
 let transparency = "B0"
 let process = List.map (fun s -> s ^ transparency)
 
 let colors = function
-    | RootSegm -> process ["#c217ba"; "#00ffff"; "#5a5b7e"]
-    | IRStruct -> process ["#ff00ff"; "#0055FF"; "#FFA000"]
+    | true  -> process ["#c217ba"; "#00ffff"; "#5a5b7e"]
+    | false -> process ["#ff00ff"; "#0055FF"; "#FFA000"; "#31FF12"]
 
 module type ANNOTATION_RULES = sig
-    val add_add : char -> Morelib.CSet.t
-    val add_rem : char -> Morelib.CSet.t
-    val rem_add : char -> Morelib.CSet.t
-    val rem_rem : char -> Morelib.CSet.t
+    val add_add : char -> CSet.t
+    val add_rem : char -> CSet.t
+    val rem_add : char -> CSet.t
+    val rem_rem : char -> CSet.t
 end
 
 let cset_of_string str = CSet.of_seq (String.to_seq str)
 
 module RootSegm = struct
-    let add_add _ = Morelib.CSet.empty
+    let add_add _ = CSet.empty
     let add_rem = function
         | 'Y' -> cset_of_string "NX"
         | 'N' -> cset_of_string "YX"
         | 'X' -> cset_of_string "YN"
         | chr -> AmfLog.error ~code:Err.invalid_argument 
-            "AmfLevel.RootSegm.add_rem: Invalid argument %C" chr
-    let rem_add _ = Morelib.CSet.empty
-    let rem_rem _ = Morelib.CSet.empty
+            "AmfLevel.true.add_rem: Invalid argument %C" chr
+    let rem_add _ = CSet.empty
+    let rem_rem _ = CSet.empty
 end
 
 module IRStruct = struct
-    let add_add _ = Morelib.CSet.empty
-    let add_rem _ = Morelib.CSet.empty
-    let rem_add _ = Morelib.CSet.empty
-    let rem_rem _ = Morelib.CSet.empty
+    let add_add _ = CSet.empty
+    let add_rem _ = CSet.empty
+    let rem_add _ = CSet.empty
+    let rem_rem _ = CSet.empty
 end
 
 let rules = function
-    | RootSegm -> (module RootSegm : ANNOTATION_RULES)
-    | IRStruct -> (module IRStruct : ANNOTATION_RULES)
+    | true  -> (module RootSegm : ANNOTATION_RULES)
+    | false -> (module IRStruct : ANNOTATION_RULES)

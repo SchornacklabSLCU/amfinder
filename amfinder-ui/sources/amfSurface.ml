@@ -391,21 +391,22 @@ module Prediction = struct
             let f () = draw_dot ~color context x y in
             ((x, y) :: segm, f :: dots, angle +. twopi4)
         in
-        let xy, df, _ = List.fold_left2 calc_xy_and_df ([], [], pi4)
-            (colors @ ["#31ff12"])
-            (prob_list @ [1.0]) in
+        let xy, df, _ =
+            List.fold_left2 calc_xy_and_df
+            ([], [], pi4) colors prob_list
+        in
         (* Draw radar surface, then dots. *)
         draw_polyline context xy;
         List.iter (fun f -> f ()) df;
         surface
-
 end
 
 
 
 module Legend = struct
 
-    let palette ?(step = 12) colors edge =
+    let palette ?(step = 12) edge =
+        let colors = AmfUI.Predictions.get_colors () in
         let len = Array.length colors in
         let surface = Image.(create ARGB32 ~w:(step * len + 100) ~h:edge) in
         let t = create surface in
@@ -434,8 +435,10 @@ module Legend = struct
         show_text t "high";
         surface
 
-    let classes symbs colors =
-        assert List.(length symbs = length colors);
+    let classes () =
+        let level = AmfUI.Levels.current () in
+        let symbs = AmfLevel.symbols level
+        and colors = AmfLevel.colors level in
         let len = List.length colors in
         let margin = 8 in
         let w = 140 * len + 2 * margin and h = 30 + 2 * margin in

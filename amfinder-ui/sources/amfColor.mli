@@ -29,7 +29,7 @@ type blue = float
 type green = float
 type alpha = float
 
-val opacity : float
+val opacity : alpha
 (** Alpha channel value used for annotations and predictions. *)
 
 val parse_rgb : string -> red * green * blue

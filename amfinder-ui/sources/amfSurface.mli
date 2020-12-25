@@ -104,10 +104,11 @@ end
 (** Legends. *)
 module Legend : sig
 
-    val palette : ?step:int -> color array -> pixels -> Surface.t
-    (** Prediction values (continuous color palette). *)
+    val palette : ?step:int -> pixels -> Surface.t
+    (** Prediction values (continuous color palette). Colors are retrieved from
+      * [AmfUI.Predictions.get_colors ()]. *)
 
-    val classes : string list -> color list -> Surface.t
+    val classes : unit -> Surface.t
     (** Annotation classes (discrete colors). *)
 
 end

@@ -59,7 +59,7 @@ end
 
 module Levels = UILevels.Make (
     struct
-        let init_level = AmfLevel.root_segmentation
+        let init_level = AmfLevel.col
         let packing = Box.b#add
     end )
 
@@ -122,14 +122,6 @@ module Params = struct
             ~left:0 ~top:2
             ~expand:`NONE ~fill:`Y obj
     end
-    module TileSet = struct
-        let parent = window
-        let spacing = spacing
-        let border_width = border_width
-        let window_width = 320
-        let window_height = 500
-        let window_title = "Tile Set"
-    end
     module FileChooser = struct
         let parent = window
         let title = "CastANet Image Chooser"
@@ -143,5 +135,4 @@ module Drawing = UIDrawing.Make(Params.Drawing)
 module Predictions = UIPredictions.Make(Params.Predictions)
 module Layers = UILayers.Make(Params.Layers)
 module Tools = UITools.Make(Params.Tools)
-module TileSet = UITileSet.Make(Params.TileSet)
 module FileChooser = UIFileChooser.Make(Params.FileChooser)

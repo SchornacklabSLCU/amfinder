@@ -49,9 +49,6 @@ module Layers : UILayers.S
 module Predictions : UIPredictions.S
 (** Prediction manager. *)
 
-module TileSet : UITileSet.S
-(** Auxiliary window to display all tiles sharing a given annotation. *)
-
 module FileChooser : UIFileChooser.S
 (** File chooser dialog to allow for selection of the JPEG/TIFF image to open
   * within the CastAnet editor. This dialog shows at startup (unless an image is

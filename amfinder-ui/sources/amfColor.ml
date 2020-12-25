@@ -32,22 +32,26 @@ type alpha = float
 let opacity = float 0xB0 /. 255.0
 
 let rgb_from_name = function
-    | "cyan"    -> "#00FFFF" 
+    | "cyan"    -> "#00FFFF"
+    | "green"   -> "#00FF00"
     | "white"   -> "#FFFFFF"
     | "yellow"  -> "#FFFF00"
     | "magenta" -> "#FF00FF"
     | other     -> other
 
-let rgba_from_name x = 
-    let res = rgb_from_name x in
-    if res = x then res else (* was a name *) res ^ "FF"
+let rgba_from_name raw_color = 
+    let color = rgb_from_name raw_color in
+    if color = raw_color then color 
+    else (* was a name *) color ^ "FF"
 
 let normalize n = max 0.0 (min 1.0 (float n /. 255.0))
 
 let parse_rgb s =
+    assert (String.length s >= 7);
     sscanf (rgb_from_name s) "#%02x%02x%02x"
         (fun r g b -> normalize r, normalize g, normalize b)
 
 let parse_rgba s =
+    assert (String.length s >= 9);
     sscanf (rgba_from_name s) "#%02x%02x%02x%02x" 
         (fun r g b a -> normalize r, normalize g, normalize b, normalize a)

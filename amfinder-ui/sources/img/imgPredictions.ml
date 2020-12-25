@@ -30,8 +30,8 @@ module Aux = struct
     let is_prediction e = Filename.dirname e.Zip.filename = "predictions" 
 
     let level_of_header = function
-        | ["row"; "col"; "Y"; "N"; "X"] -> Some AmfLevel.RootSegm
-        | ["row"; "col"; "A"; "V"; "H"] -> Some AmfLevel.IRStruct
+        | ["row"; "col"; "Y"; "N"; "X"] -> Some AmfLevel.col
+        | ["row"; "col"; "A"; "V"; "H"] -> Some AmfLevel.myc
         | _ -> AmfLog.warning "Malformed header in prediction table"; None
 
     let nrows s = String.split_on_char '\n' s

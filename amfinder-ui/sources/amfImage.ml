@@ -113,6 +113,7 @@ object (self)
     method show_predictions () =
         let preds = AmfUI.Predictions.get_active () in
         predictions#set_current preds;
+        (* TODO: only updates what is needed! *)
         self#mosaic ~sync:true ()
 
     method predictions_to_annotations ?(erase = false) () =

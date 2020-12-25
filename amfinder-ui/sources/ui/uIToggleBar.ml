@@ -46,7 +46,9 @@ end
 module Make (P : PARAMS) : S = struct
 
     (* Add horizontal space between toggle buttons. *)
-    let hspace = 134
+    let hspace level =
+        if AmfLevel.is_col level then 134
+        else 65
 
     let add_item (table : GPack.table) left chr =
         let toggle = GButton.toggle_button
@@ -66,13 +68,13 @@ module Make (P : PARAMS) : S = struct
             let tb_table = GPack.table
                 ~rows:1
                 ~columns:(List.length categories)
-                ~col_spacings:hspace
+                ~col_spacings:(hspace level)
                 ~homogeneous:true () in
             let toggle_bar = {
                 tb_table;
                 tb_items = List.mapi (add_item tb_table) categories
             } in (level, toggle_bar)
-        ) AmfLevel.[RootSegm; IRStruct]
+        ) AmfLevel.all
 
     let current_widget = ref None
     let detach () = Option.iter P.remove !current_widget
@@ -92,7 +94,7 @@ module Make (P : PARAMS) : S = struct
     let iter_current f = iter_any (P.current ()) f
 
     let iter_all f =
-        List.iter (fun x -> iter_any x (f x)) AmfLevel.[RootSegm; IRStruct]
+        List.iter (fun x -> iter_any x (f x)) AmfLevel.all
 
     let items ?(level = P.current ()) () =
         (List.assoc level toolboxes).tb_items
@@ -110,7 +112,7 @@ module Make (P : PARAMS) : S = struct
 
     let _ = (* initialization. *)
     (* Setting up expand/fill allows to centre the button box. *)
-    attach AmfLevel.root_segmentation;
+    attach AmfLevel.col;
     List.iter (fun (level, radio) ->
         let callback () = if radio#active then attach level in
         ignore (radio#connect#toggled ~callback)

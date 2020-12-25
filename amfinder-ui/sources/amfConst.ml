@@ -30,4 +30,4 @@ let _HMAX_ = 12
 
 let _DEBUG_ = false
 
-
+let _BGCOLOR_ = "#FFFFFFFF"

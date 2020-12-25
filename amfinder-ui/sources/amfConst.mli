@@ -37,7 +37,8 @@ val _HMAX_ : int
 val _DEBUG_ : bool
 (** Tells whether the application runs in debugging mode. *)
 
-
+val _BGCOLOR_ : string
+(** Background color used in the GtkDrawingArea. *)
 
 
 
