@@ -25,8 +25,10 @@
 let _EDGE_ = 37
 
 let _WMAX_ = 13
-
 let _HMAX_ = 12
+
+let _WMAT_ = _WMAX_ * _EDGE_
+let _HMAT_ = _HMAX_ * _EDGE_
 
 let _DEBUG_ = false
 

@@ -34,6 +34,12 @@ val _WMAX_ : int
 val _HMAX_ : int
 (* Number of tiles to be displayed on the Y axis. *)
 
+val _WMAT_ : int
+(* Width of the displayed tile matrix, in pixels. *)
+
+val _HMAT_ : int
+(* Height of the displayed tile matrix, in pixels. *)
+
 val _DEBUG_ : bool
 (** Tells whether the application runs in debugging mode. *)
 
