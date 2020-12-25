@@ -24,13 +24,16 @@
 
 (** Logging functions. *)
 
-val info : ('a, out_channel, unit, unit, unit, unit) format6 -> 'a
+val info : ('a, unit, string, string, string, unit) format6 -> 'a
 (** Prints a piece of information to [stdout]. *)
 
-val warning : ('a, out_channel, unit, unit, unit, unit) format6 -> 'a
+val info_debug : ('a, unit, string, string, string, unit) format6 -> 'a
+(** Same, but only prints when [_DEBUG_] is set to [true]. *)
+
+val warning : ('a, unit, string, string, string, unit) format6 -> 'a
 (** Prints a warning message to [stderr]. *)
 
-val error : ?code:int -> ('a, out_channel, unit, unit, unit, 'b) format6 -> 'a
+val error : ?code:int -> ('a, unit, string, string, string, 'b) format6 -> 'a
 (** Prints an error message to [stderr] and terminates with the given code. *)
 
 val usage : unit -> 'a

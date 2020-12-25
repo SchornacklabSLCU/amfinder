@@ -23,40 +23,37 @@
  *)
 
 
-
-let message ~action ~channel ~label format =
-
-    let printer = "(CastANet) %s: " ^^ format ^^ ".\n%!" in
-    
-    Printf.kfprintf action channel printer label
+open AmfConst
 
 
+let message ~action ~label format =
+    let printer = "(amfbrowser) %s: " ^^ format ^^ "." in
+    Printf.ksprintf action printer label
 
-let info format =
-  message
-    ~action:ignore
-    ~channel:stdout
+
+let info format = message
+    ~action:print_endline
     ~label:"Info"
     format
 
 
+let info_debug format = message
+    ~action:(if _DEBUG_ then print_endline else ignore)
+    ~label:"Info"
+    format
 
-let warning format =
-  message
-    ~action:ignore
-    ~channel:stderr
+
+let warning format = message
+    ~action:prerr_endline
     ~label:"Warning"
     format
 
 
 
-let error ?(code = 2) format =
-  message
-    ~action:(fun _ -> exit code)
-    ~channel:stderr
+let error ?(code = 2) format = message
+    ~action:(fun msg -> prerr_endline msg; exit code)
     ~label:"Error"
     format
 
 
-
-let usage () = error "%s" "castanet-editor [OPTIONS] <IMAGE>"
+let usage () = error "%s" "amfbrowser [OPTIONS] <IMAGE>"
