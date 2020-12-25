@@ -59,8 +59,8 @@ class type brush = object
     method annotation : ?sync:bool -> r:int -> c:int -> AmfLevel.level -> CSet.t -> unit
     method annotation_other_layer : ?sync:bool -> r:int -> c:int -> unit -> unit
     method prediction : ?sync:bool -> r:int -> c:int -> float list -> char -> unit
-    method prediction_palette : ?sync:bool -> unit -> unit
-    method annotation_legend : ?sync:bool -> unit -> unit
+    method palette : ?sync:bool -> unit -> unit
+    method classes : ?sync:bool -> unit -> unit
     method show_probability : ?sync:bool -> float -> unit
     method hide_probability : ?sync:bool -> unit -> unit
     method sync : string -> unit -> unit
@@ -144,5 +144,5 @@ class type ui = object
     method update_toggles : unit -> unit
     method key_press : GdkEvent.Key.t -> bool
     method mouse_click : GdkEvent.Button.t -> bool
-    method toggle : GButton.toggle_button -> char -> GdkEvent.Button.t -> bool
+    method toggle : GButton.toggle_button -> GMisc.image -> char -> GdkEvent.Button.t -> bool
 end

@@ -186,10 +186,10 @@ class type brush = object
     (** Draws a tile prediction.
       * @param sync defaults to [false]. *)
 
-    method prediction_palette : ?sync:bool -> unit -> unit
+    method palette : ?sync:bool -> unit -> unit
     (** Displays a full palette. *)
 
-    method annotation_legend : ?sync:bool -> unit -> unit
+    method classes : ?sync:bool -> unit -> unit
     (** Displays the annotations. *)
 
     method show_probability : ?sync:bool -> float -> unit
@@ -343,7 +343,7 @@ class type ui = object
     method update_toggles : unit -> unit
     (** Update annotations at the current cursor position. *)
 
-    method toggle : GButton.toggle_button -> char -> GdkEvent.Button.t -> bool
+    method toggle : GButton.toggle_button -> GMisc.image -> char -> GdkEvent.Button.t -> bool
     (** Update annotations when a toggle button is toggled. *)
 
     method key_press : GdkEvent.Key.t -> bool

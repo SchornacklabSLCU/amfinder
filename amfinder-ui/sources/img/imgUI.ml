@@ -57,8 +57,10 @@ class ui
             self#update_toggles ()
         end
 
-    method private add_annot = self#update_annot (fun x c -> x#add ?level:None c) 
-    method private rem_annot = self#update_annot (fun x c -> x#remove ?level:None c)
+    method private add_annot =
+        self#update_annot (fun (x : AmfAnnot.annot) c -> x#add c) 
+    method private rem_annot =
+        self#update_annot (fun (x : AmfAnnot.annot) c -> x#remove c)
 
     method key_press ev =
         let raw = GdkEvent.Key.string ev in
@@ -77,10 +79,20 @@ class ui
         self#update_toggles ();
         false
 
-    method toggle (toggle : GButton.toggle_button) chr (_ : GdkEvent.Button.t) =      
-        if toggle#active then self#add_annot chr 
-        else self#rem_annot chr;
-        false
+    method toggle
+      (tog : GButton.toggle_button)
+      (ico : GMisc.image) chr (_ : GdkEvent.Button.t) =
+        (* Edits annotation. *)   
+        begin match tog#active with
+            | true  -> self#rem_annot chr
+            | false -> self#add_annot chr
+        end;
+        (* Update the toggle buttons. *)
+        self#update_toggles ();
+        (* Refresh the tile display. *)
+        List.iter (fun f -> f ()) paint_funcs;
+        (* Nothing else to do, changes have been made. *)
+        true
 
 end
 
