@@ -36,69 +36,62 @@ class ui
         let r, c = cursor#get in
         annotations#get ~r ~c ()
 
-    method private update_annot f chr =
-        let annot = self#current_annot in
-        if annot#editable then begin
-            f annot chr;
-            self#update_toggles ()
+    method private update_and_redraw ~is_add chr =
+        let cur = self#current_annot in
+        if cur#editable then begin
+            (* Edits annotation.       *)
+            if is_add then cur#add chr else cur#remove chr;
+            (* Updates toggle buttons. *)
+            self#update_toggles ();
+            (* Redraws current tile.   *)
+            List.iter (fun f -> f ()) paint_funcs
         end
-
-    method private add_annot =
-        self#update_annot (fun (annot : AmfAnnot.annot) chr -> annot#add chr) 
-
-    method private rem_annot =
-        self#update_annot (fun (annot : AmfAnnot.annot) chr -> annot#remove chr)
 
     method set_paint f = paint_funcs <- f :: paint_funcs
 
     method update_toggles () =
-        let annot = self#current_annot in
-        AmfUI.Toggles.iter_current (fun chr tog img ->
-            (* Annotation is there, but toggle is inactive. *)
-            if annot#mem chr && not tog#active then (
+        let update_toggle chr tog img =
+            (* Annotation is set but toggle is inactive. *)
+            if not tog#active && self#current_annot#mem chr  then
+            begin
                 tog#set_active true;
                 img#set_pixbuf AmfIcon.(get chr Large RGBA)
-            (* Annotation is missing, but toggle is active. *)
-            ) else if not (annot#mem chr) && tog#active then (
+            end
+            (* Annotation is not set but toggle is active. *)
+            else if tog#active && not (self#current_annot#mem chr) then
+            begin
                 tog#set_active false;
                 img#set_pixbuf AmfIcon.(get chr Large Grayscale)
-            )
-        )
+            end
+        in AmfUI.Toggles.iter_current update_toggle
 
     method key_press ev =
         let raw = GdkEvent.Key.string ev in
+        (* Edits annotation. *)
         if String.length raw > 0 then begin
             let chr = Scanf.sscanf raw "%c" Char.uppercase_ascii in
-            Option.iter (fun is_active ->
-                if is_active then self#rem_annot chr
-                else self#add_annot chr
+            Option.iter (fun active ->
+                self#update_and_redraw ~is_add:(not active) chr
             ) (AmfUI.Toggles.is_active chr)
         end;
-        List.iter (fun f -> f ()) paint_funcs;
-        true (* We do not want focus to move. *)
-
-    method mouse_click (_ : GdkEvent.Button.t) =
-        (* Nothing special to do here - cursor has been updated already. *)
-        self#update_toggles ();
-        false
+        (* We do not want focus to move. *)
+        true
 
     method toggle
       (tog : GButton.toggle_button)
       (ico : GMisc.image) chr (_ : GdkEvent.Button.t) =
-        (* Edits annotation. *)   
-        begin match tog#active with
-            | true  -> self#rem_annot chr
-            | false -> self#add_annot chr
-        end;
-        (* Update the toggle buttons. *)
-        self#update_toggles ();
-        (* Refresh the tile display. *)
-        List.iter (fun f -> f ()) paint_funcs;
+        (* Edits annotation. *)
+        self#update_and_redraw ~is_add:(not tog#active) chr;
         (* Nothing else to do, changes have been made. *)
         true
+
+    method mouse_click (_ : GdkEvent.Button.t) =
+        (* There is no need to redraw the current tile. *)
+        self#update_toggles ();
+        false
 
 end
 
 
 
-let create x y z = new ui x y z
+let create c a p = new ui c a p

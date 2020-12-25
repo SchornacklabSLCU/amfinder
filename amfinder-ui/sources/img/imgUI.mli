@@ -27,3 +27,4 @@
 open ImgTypes
 
 val create : cursor -> annotations -> predictions -> ui
+(** UI object generator. *)
