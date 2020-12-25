@@ -24,65 +24,69 @@
 
 (** Event manager. *)
 
+type image_ref = AmfImage.image option ref
+
+
 (** Magnifier. *)
 module Magnifier : sig
 
-    val capture_screenshot : AmfImage.image option ref -> unit
-
+    val capture_screenshot : image_ref -> unit
+    (** Captures a snapshot of the magnified view. *)
 end
-
-
-
-(** Annotations. *)
-module Annotations : sig
-    val update_mosaic : AmfImage.image option ref -> unit
-end
-
 
 
 (** Predictions. *)
 module Predictions : sig
 
-    val update_list : AmfImage.image option ref -> unit
+    val update_list : image_ref -> unit
 
-    val update_cam: AmfImage.image option ref -> unit
+    val update_cam: image_ref -> unit
 
-    val convert : AmfImage.image option ref -> unit
+    val convert : image_ref -> unit
 
-    val select_list_item : AmfImage.image option ref -> unit
+    val select_list_item : image_ref -> unit
 
-    val move_to_ambiguous_tile : AmfImage.image option ref -> unit
+    val move_to_ambiguous_tile : image_ref -> unit
 
 end
-
 
 
 (** Window events. *)
 module Window : sig
 
-    val cursor : AmfImage.image -> unit
+    val cursor : image_ref -> unit
     (** Arrow keys move cursor. *)
 
-    val annotate : AmfImage.image -> unit
+    val annotate : image_ref -> unit
     (** Letter change annotations. *)
 
-    val save : AmfImage.image option ref -> unit
+    val save : image_ref -> unit
     (** Saves current image. *)
 
 end
 
 
+(** Events affecting the current tile displayed in the drawing area. *)
 module DrawingArea : sig
 
-    val cursor : AmfImage.image -> unit
+    val cursor : image_ref -> unit
+    (** Updates the current tile after a mouse click. *)
 
-    val annotate : AmfImage.image -> unit
+    val annotate : image_ref -> unit
+    (** Updates the interface to reflect current tile change. *)
+
+    val repaint : image_ref -> unit
+    (** Redraws the current mosaic when the active layer changes. *)
+
+    val repaint_and_count : image_ref -> unit
+    (** Same as [repaint], but also computes statistics. *)
 
 end
 
 
+(* Events triggered by the toggle buttons. *)
 module ToggleBar : sig
 
-    val annotate : AmfImage.image -> unit
+    val annotate : image_ref -> unit
 
 end

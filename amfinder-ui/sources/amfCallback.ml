@@ -22,30 +22,23 @@
  * IN THE SOFTWARE.
  *)
 
+
+type image_ref = AmfImage.image option ref
+
+let may f opt =
+    match !opt with
+    | None -> ()
+    | Some img -> f img
+
+
 module Magnifier = struct
 
-    let capture_screenshot image_ref =
+    let capture_screenshot imgr =
         let callback _ =
-            Option.iter (fun image -> image#screenshot ()) !image_ref;
+            may (fun image -> image#screenshot ()) imgr;
             false
         and center = AmfUI.Magnifier.event_boxes.(1).(1) in 
         ignore (center#event#connect#button_press ~callback)
-
-end
-
-
-
-module Annotations = struct
-
-    let update_mosaic image_ref =
-        let callback _ radio =
-            Option.iter (fun (image : AmfImage.image) ->
-                if radio#active then (
-                    image#mosaic ~sync:true ();
-                    image#update_statistics ()
-                )
-            ) !image_ref
-        in AmfUI.Levels.set_callback callback
 
 end
 
@@ -96,19 +89,23 @@ module Window = struct
 
     let widget = AmfUI.window#as_widget
 
-    let cursor image =
-        let callback = image#cursor#key_press in
-        let id = AmfUI.window#event#connect#key_press ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+    let cursor imgr =
+        let callback x =
+            match !imgr with
+            | None -> false
+            | Some img -> img#cursor#key_press x 
+        in ignore (AmfUI.window#event#connect#key_press ~callback)
 
-    let annotate image =
-        let callback = image#ui#key_press in
-        let id = AmfUI.window#event#connect#key_press ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+    let annotate imgr =
+        let callback x =
+            match !imgr with
+             | None -> false
+             | Some img -> img#ui#key_press x
+        in ignore (AmfUI.window#event#connect#key_press ~callback)
 
-    let save image_ref =
+    let save imgr =
         let callback _ =
-            Option.iter (fun image -> image#save ()) !image_ref;
+            Option.iter (fun image -> image#save ()) !imgr;
             false
         in ignore (AmfUI.window#event#connect#delete ~callback)
         
@@ -119,34 +116,50 @@ module DrawingArea = struct
 
     let widget = AmfUI.Drawing.area#as_widget
 
-    let cursor image =
-        let callback = image#cursor#mouse_click in
-        let id = AmfUI.Drawing.area#event#connect#button_press ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id)
-        (*
-        let callback = image#pointer#track in
-        let id = AmfUI.Drawing.area#event#connect#motion_notify ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id);
-        let callback = image#pointer#leave in
-        let id = AmfUI.Drawing.area#event#connect#leave_notify ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id)
-        *)
+    let cursor imgr =
+        let callback x =
+            match !imgr with
+            | None -> false
+            | Some img -> img#cursor#mouse_click x
+        in ignore (AmfUI.Drawing.area#event#connect#button_press ~callback)
 
-    let annotate image =
-        let callback = image#ui#mouse_click in
-        let id = AmfUI.Drawing.area#event#connect#button_press ~callback in
-        image#at_exit (fun () -> GtkSignal.disconnect widget id)
+    let annotate imgr =
+        let callback x =
+            match !imgr with
+            | None -> false
+            | Some img -> img#ui#mouse_click x
+        in ignore (AmfUI.Drawing.area#event#connect#button_press ~callback)
+
+    let repaint imgr =
+        let may_repaint _ radio _ _ =
+            if radio#get_active then
+                match !imgr with
+                | None -> ()
+                | Some img -> img#mosaic ?sync:(Some true) ()
+        in AmfUI.Layers.set_callback may_repaint
+
+    let repaint_and_count imgr =
+        let may_repaint_and_count _ radio =
+            if radio#active then
+                match !imgr with
+                | None -> ()
+                | Some img -> img#mosaic ?sync:(Some true) ();
+                    img#update_statistics ()
+        in AmfUI.Levels.set_callback may_repaint_and_count
 
 end
 
 
 module ToggleBar = struct
 
-    let annotate image =
-        AmfUI.Toggles.iter_all (fun _ chr toggle _ ->
-            let callback = image#ui#toggle toggle chr in
-            let id = toggle#event#connect#button_press ~callback in
-            image#at_exit (fun () -> GtkSignal.disconnect toggle#as_widget id)
+    let annotate imgr =
+        AmfUI.Toggles.iter_all (fun _ chr tog ico ->
+            let callback x =
+                match !imgr with
+                | None -> false
+                | Some img -> img#ui#toggle tog ico chr x          
+            in
+            ignore (tog#event#connect#button_press ~callback)
         )
 
 end

@@ -22,58 +22,52 @@
  * IN THE SOFTWARE.
  *)
 
-open Printf
+let imgr = ref None
 
-let image_ref = ref None
-
+(* Callbacks apply to the active image. It is given as
+ * a reference so changes won't affect callback behavior. *)
 let connect_callbacks () =
-    AmfCallback.Window.save image_ref;
-    (* Magnifier events. *)
-    AmfCallback.Magnifier.capture_screenshot image_ref;
-    (* Annotation events. *)
-    AmfCallback.Annotations.update_mosaic image_ref;
-    (* Prediction events. *)
-    AmfCallback.Predictions.convert image_ref;
-    AmfCallback.Predictions.update_list image_ref;
-    AmfCallback.Predictions.update_cam image_ref;
-    AmfCallback.Predictions.select_list_item image_ref;
-    AmfCallback.Predictions.move_to_ambiguous_tile image_ref
-
-let connect_image image =
+    let open AmfCallback in
+    AmfLog.info_debug "Setting up GTK callbacks";
     (* GtkWindow events. *)
-    AmfCallback.Window.cursor image;
-    AmfCallback.Window.annotate image;
-    (* GtkDrawingArea events. *)
-    AmfCallback.DrawingArea.cursor image;
-    AmfCallback.DrawingArea.annotate image;
+    Window.save imgr;
+    Window.cursor imgr;
+    Window.annotate imgr;
+    (* Magnifier events. *)
+    Magnifier.capture_screenshot imgr;
+    (* Prediction events. *)
+    Predictions.convert imgr;
+    Predictions.update_list imgr;
+    Predictions.update_cam imgr;
+    Predictions.select_list_item imgr;
+    Predictions.move_to_ambiguous_tile imgr;
     (* GtkToggleButtons. *)
-    AmfCallback.ToggleBar.annotate image
-
+    ToggleBar.annotate imgr;
+    (* GtkDrawingArea events. *)
+    DrawingArea.cursor imgr;
+    DrawingArea.annotate imgr;
+    DrawingArea.repaint imgr;
+    DrawingArea.repaint_and_count imgr
 
 let load_image () =
-    (* Retrieves an image path from the command line or from a file chooser. *)
-    let image_path = match !AmfPar.path with
+    (* Retrieve input image. *)
+    let path = match !AmfPar.path with
         | None -> AmfUI.FileChooser.run ()
         | Some path -> path in
-    (* Displays the main window in order to retrieve drawing parameters. *)
+    AmfLog.info_debug "Input image: %s" path;
+    (* Displays the main window and sets UI drawing parameters. *)
     AmfUI.window#show ();
-    (* Loads the image, creates tiles and populates the main window. *)
-    let image = AmfImage.create image_path in
-    (* Sets as main image. *)       
-    image_ref := Some image;
-    connect_image image;
-    image#show ();
-    AmfUI.Layers.set_callback (fun _ radio _ _ -> 
-        if radio#get_active then image#mosaic ~sync:true ()
-    )
+    (* Loads the image based on UI drawing parameters. *)
+    let image = AmfImage.create path in   
+    imgr := Some image;
+    image#show ()
 
 
-let main () =
-    print_endline "AMFinder interface version 2.0";
+let _ =
+    print_endline "amfbrowser version 2.0";
+    AmfLog.info_debug "Running in verbose mode (debugging)";
     Printexc.record_backtrace true;
     AmfPar.initialize ();
     connect_callbacks ();
     load_image ();
     GMain.main ()
-
-let _ = main ()
