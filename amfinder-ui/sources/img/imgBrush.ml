@@ -27,9 +27,15 @@ open Printf
 open Morelib
 open AmfConst
 
+
+
 type orientation = Top | Bottom | Left | Right
 
-class coords x_origin y_origin = object(self)
+
+
+(* Display row/column coordinate values in the margin.
+ * Draw arrowheads indicating valid directions. *)
+class coords (source : ImgTypes.source) x_origin y_origin = object(self)
 
     method paint_background ?(row = true) () =
         let w, h = match row with
@@ -60,7 +66,7 @@ class coords x_origin y_origin = object(self)
         and y = float y +. 0.50 *. e -. ext.Cairo.y_bearing /. 2.0 in
         Cairo.move_to context x y;
         Cairo.show_text context s;
-        x, y, ext.Cairo.width, ext.Cairo.height
+        self#draw_row_arrows r x y ext.Cairo.width ext.Cairo.height
 
     method write_column_index c x =
         self#initialize_font ();
@@ -73,9 +79,9 @@ class coords x_origin y_origin = object(self)
         and y = float y_origin -. 0.25 *. e in
         Cairo.move_to context x y;
         Cairo.show_text context s;
-        x, y, ext.Cairo.width, ext.Cairo.height
+        self#draw_column_arrows c x y ext.Cairo.width ext.Cairo.height
 
-    method draw_window_arrow orientation visible x y =
+    method private draw_window_arrow orientation visible x y =
         let fgcolor = match visible with
             | true  -> None 
             | false -> Some "#FFFFFFFF"
@@ -91,6 +97,98 @@ class coords x_origin y_origin = object(self)
         let context = AmfUI.Drawing.cairo () in
         Cairo.set_source_surface context surface x y;
         Cairo.paint context  
+
+    method private draw_row_arrows r x y width height =
+        self#draw_window_arrow Top (r > 0) 
+            (x +. width /. 2.0 -. float _EDGE_ /. 8.0)
+            (y -. height -. float _EDGE_ /. 4.0 -. 2.0);
+        self#draw_window_arrow Bottom (r < source#rows - 1) 
+            (x +. width /. 2.0 -. float _EDGE_ /. 8.0)
+            (y +. 1.0 +. 2.0);
+
+    method private draw_column_arrows c x y width height =
+        self#draw_window_arrow Left (c > 0) 
+            (x -. float _EDGE_ /. 4.0 -. 2.0)
+            (y -. height);
+        self#draw_window_arrow Right (c < source#columns - 1) 
+            (x +. width +. 2.0)
+            (y -. height)
+
+end
+
+
+
+(* Display prediction legend (either a color palette or individual classes).
+ * Show/hide probability values when displaying a color palette. *)
+class legend x_origin y_max = 
+
+    let legend_pos_y = float (y_max + 10 + _EDGE_ + 5) in
+
+object(self)
+
+    method private center_horiz surface =
+        let hspace = _WMAT_ - Cairo.Image.get_width surface in
+        float x_origin +. 0.5 *. float hspace
+
+    method palette () =
+        let surface = AmfSurface.Legend.palette _EDGE_ in
+        let x = self#center_horiz surface 
+        and y = float (y_max + 10)
+        and context = AmfUI.Drawing.cairo () in       
+        Cairo.set_source_surface context surface x y;
+        Cairo.paint context
+
+    method classes () =
+        let surface = AmfSurface.Legend.classes () in
+        let x = self#center_horiz surface 
+        and y = float (y_max + 10)
+        and context = AmfUI.Drawing.cairo () in
+        Cairo.set_source_surface context surface x y;
+        Cairo.paint context
+
+    method index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 24
+
+    method hide_probability () =
+        let w = AmfUI.Predictions.get_colors ()
+            |> Array.length
+            |> (fun n -> (n + 2) * 12) in
+        (* Draw a filled rectangle to hide any previous value. *)
+        let surface = Cairo.Image.(create ARGB32 ~w ~h:_EDGE_) in
+        let context = Cairo.create surface in
+        let r, g, b = AmfColor.parse_rgb _BGCOLOR_ in
+        Cairo.set_source_rgb context r g b;
+        Cairo.rectangle context 0.0 0.0
+            ~w:(float _WMAT_)
+            ~h:(float _EDGE_);
+        Cairo.fill context;
+        (* Paint the rectangle on the drawing area. *)
+        let context = AmfUI.Drawing.cairo () in
+        Cairo.set_source_surface context surface
+            (float x_origin +. float (_WMAT_ - w) /. 2.0)
+            legend_pos_y;
+        Cairo.paint context
+
+    method show_probability pr =
+        let index = self#index_of_prob pr in
+        let x = AmfUI.Predictions.get_colors ()
+            |> Array.length
+            |> (fun n -> float x_origin +. float (_WMAT_ - 12 * n) /. 2.0)
+            |> (+.) (float index *. 12.0) in
+        (* Draw a vertical arrowhead below the color associated with pr. *)
+        let surface = AmfSurface.Arrowhead.top ~bgcolor:_BGCOLOR_ 12 in    
+        let context = AmfUI.Drawing.cairo () in
+        Cairo.set_source_surface context surface x legend_pos_y;
+        Cairo.paint context;
+        (* Write the probability value below the arrowhead. *)
+        Cairo.select_font_face context "Monospace";
+        Cairo.set_font_size context 12.0;
+        Cairo.set_source_rgb context 1.0 0.0 0.0;
+        let text = sprintf "%.02f" pr in
+        let te = Cairo.text_extents context text in
+        Cairo.move_to context
+            (x +. 6.0 -. te.Cairo.width /. 2.0)
+            (legend_pos_y +. 10.0 +. te.Cairo.height +. 5.0);
+        Cairo.show_text context text
 
 end
 
@@ -108,11 +206,12 @@ class brush (source : ImgTypes.source) =
 
 object (self)
 
-    val mutable rbound = 0                  (* Index of the topmost row.     *)
-    val mutable cbound = 0                  (* Index of the leftmost column. *)
-    val mutable backcolor = "#ffffffff"     (* Background color.             *)
+    val mutable rbound = 0            (* Index of the topmost row.     *)
+    val mutable cbound = 0            (* Index of the leftmost column. *)
+    val mutable backcolor = _BGCOLOR_ (* Background color.             *)
 
-    val coords = new coords x_origin y_origin
+    val coords = new coords source x_origin y_origin
+    val legend = new legend x_origin (y_origin + _HMAT_)
 
     (* Adjust the displayed area to the cursor coordinates. *)
     method make_visible ~r ~c () =
@@ -137,12 +236,12 @@ object (self)
     method x_origin = x_origin
     method y_origin = y_origin
 
-    (* Converts a column index (c) to pixels (X axis). *)
+    (* Column index (c) to pixels (X axis). *)
     method private x ~c =
         assert (c >= cbound);
         x_origin + (c - cbound) * _EDGE_
 
-    (* Converts a row index (r) to pixels (Y axis). *)
+    (* Row index (r) to pixels (Y axis). *)
     method private y ~r =
         assert (r >= rbound);
         y_origin + (r - rbound) * _EDGE_
@@ -165,7 +264,7 @@ object (self)
         if sync then self#sync "brush#background" ()
 
     method pixbuf ?(sync = false) ~r ~c pixbuf =
-        assert (GdkPixbuf.get_width pixbuf = _EDGE_);
+        assert GdkPixbuf.(get_width pixbuf = _EDGE_);
         assert (GdkPixbuf.get_height pixbuf = _EDGE_);
         let pixmap = AmfUI.Drawing.pixmap () in
         pixmap#put_pixbuf
@@ -174,13 +273,12 @@ object (self)
         if sync then AmfUI.Drawing.synchronize ()
 
     method surface ?(sync = false) ~r ~c surface =
-        AmfLog.info_debug "brush#surface ~sync:%b ~r:%d ~c:%d" sync r c;
         let context = AmfUI.Drawing.cairo () in
         Cairo.set_source_surface context surface
             (float (self#x ~c))
             (float (self#y ~r));
         Cairo.paint context;
-        if sync then AmfUI.Drawing.synchronize ()
+        if sync then self#sync "brush#surface" ()
 
     method private surface_from_func ?sync ~r ~c f =
         self#surface ?sync ~r ~c (f _EDGE_)
@@ -198,107 +296,31 @@ object (self)
         self#surface_from_func ~r ~c AmfMemoize.cursor;
         self#coordinates ?sync ~r ~c ()
 
-    (* Center horizontally. *)
-    method private legend_x surface =
-        let hspace = _WMAX_ * _EDGE_ - Cairo.Image.get_width surface in
-        float x_origin +. 0.5 *. float hspace
-
-    (* Y position: after the last row, with 10 pixel vertical margin. *)
-    method private legend_y =
-        float (self#y ~r:(snd self#r_range + 1) + 10)
-
     method palette ?(sync = false) () =
-        AmfLog.info_debug "brush#palette ~sync:%b" sync;
-        let surface = AmfSurface.Legend.palette _EDGE_ in
-        let x = self#legend_x surface 
-        and y = self#legend_y
-        and context = AmfUI.Drawing.cairo () in       
-        Cairo.set_source_surface context surface x y;
-        Cairo.paint context;
-        if sync then AmfUI.Drawing.synchronize ()
-
+        legend#palette ();
+        if sync then self#sync "brush#palette" ()
+        
     method classes ?(sync = false) () =
-        AmfLog.info_debug "brush#classes ~sync:%b" sync;
-        let surface = AmfSurface.Legend.classes () in
-        let x = self#legend_x surface 
-        and y = self#legend_y
-        and context = AmfUI.Drawing.cairo () in
-        Cairo.set_source_surface context surface x y;
-        Cairo.paint context;
-        if sync then AmfUI.Drawing.synchronize ()
-
-    method private redraw_row_pane r =
-        coords#paint_background ();
-        let x, y, width, height = coords#write_row_index r (self#y ~r) in
-        (* Adding arrows. *)
-        coords#draw_window_arrow Top (r > 0) 
-            (x +. width /. 2.0 -. float _EDGE_ /. 8.0)
-            (y -. height -. float _EDGE_ /. 4.0 -. 2.0);
-        coords#draw_window_arrow Bottom (r < source#rows - 1) 
-            (x +. width /. 2.0 -. float _EDGE_ /. 8.0)
-            (y +. 1.0 +. 2.0);
-
-    method private redraw_column_pane c =
-        coords#paint_background ~row:false ();
-        let x, y, width, height = coords#write_column_index c (self#x ~c) in
-        (* Adding arrows. *)
-        coords#draw_window_arrow Left (c > 0) 
-            (x -. float _EDGE_ /. 4.0 -. 2.0)
-            (y -. height);
-        coords#draw_window_arrow Right (c < source#columns - 1) 
-            (x +. width +. 2.0)
-            (y -. height)
+        legend#classes ();
+        if sync then self#sync "brush#classes" ()
 
     method private coordinates ?(sync = false) ~r ~c () =
-        self#redraw_row_pane r;
-        self#redraw_column_pane c;
-        if sync then self#sync "coordinates" ()
-
-    method private index_of_prob x = truncate (25.0 *. x) |> max 0 |> min 24
+        (* Row index. *)
+        coords#paint_background ();
+        coords#write_row_index r (self#y ~r);
+        (* Column index. *)
+        coords#paint_background ~row:false ();
+        coords#write_column_index c (self#x ~c);
+        if sync then self#sync "brush#coordinates" ()
 
     method hide_probability ?(sync = false) () =
-        let ncolors = Array.length (AmfUI.Predictions.get_colors ()) in
-        let grid_width = _WMAX_ * _EDGE_
-        and prob_width = (ncolors + 2) * 12 in
-        let surface = Cairo.Image.(create ARGB32 ~w:prob_width ~h:_EDGE_) in
-        let t = Cairo.create surface in
-        Cairo.set_antialias t Cairo.ANTIALIAS_SUBPIXEL;
-        let r, g, b, a = AmfColor.parse_rgba backcolor in
-        Cairo.set_source_rgba t r g b a;
-        Cairo.rectangle t 0.0 0.0 ~w:(float grid_width) ~h:(float _EDGE_);
-        Cairo.fill t;
-        Cairo.stroke t;
-        let y = float (self#y ~r:(snd self#r_range + 1) + 10 + _EDGE_ + 5) in
-        let t = AmfUI.Drawing.cairo () in
-        let grid_width = _WMAX_ * _EDGE_ in
-        Cairo.set_source_surface t surface
-            (float x_origin +. float (grid_width - 12 * (ncolors + 2)) /. 2.0)
-            y;
-        Cairo.paint t;
-        if sync then self#sync "hide_probability" ()
+        legend#hide_probability ();
+        if sync then self#sync "brush#hide_probability" ()
 
-    method show_probability ?(sync = false) prob =
-        self#hide_probability ();
-        let t = AmfUI.Drawing.cairo () in
-        let index = self#index_of_prob prob in
-        let y = float (self#y ~r:(snd self#r_range + 1) + 10 + _EDGE_ + 5) in
-        let len = Array.length (AmfUI.Predictions.get_colors ()) in
-        let rem = _WMAX_ * _EDGE_ - 12 * len in
-        let x = float x_origin +. float rem /. 2.0 in
-        let x = x +. float index *. 12.0 in
-        let surface = AmfSurface.Arrowhead.top ~bgcolor:self#backcolor 12 in        
-        Cairo.set_source_surface t surface x y;
-        Cairo.paint t;
-        Cairo.select_font_face t "Monospace";
-        Cairo.set_font_size t 12.0;
-        Cairo.set_source_rgba t 1.0 0.0 0.0 1.0;
-        let text = sprintf "%.02f" prob in
-        let te = Cairo.text_extents t text in
-        Cairo.move_to t
-            (x +. 6.0 -. te.Cairo.width /. 2.0)
-            (y +. 10.0 +. te.Cairo.height +. 5.0);
-        Cairo.show_text t text;
-        if sync then self#sync "show_probability" ()
+    method show_probability ?(sync = false) pr =
+        legend#hide_probability ();
+        legend#show_probability pr;
+        if sync then self#sync "brush#show_probability" ()
 
     method private simple_square ?sync ~r ~c level set =
         assert (CSet.cardinal set = 1);
@@ -309,18 +331,17 @@ object (self)
     method annotation ?sync ~r ~c level set =
         (* One-color square in case of single annotation. *)
         if not (CSet.is_empty set) then begin
-            if AmfLevel.is_myc level then (
-                (* Multicolor square in case of multiple annotations. *)
-                if AmfUI.Layers.current () = '*' then (
-                    let colors = List.map2 
-                        (fun chr clr ->
-                            if CSet.mem chr set then clr 
-                            else "#FFFFFF00"
-                        ) (AmfLevel.to_header level) (AmfLevel.colors level)
-                    in self#surface ?sync ~r ~c (AmfSurface.Annotation.colors colors _EDGE_)
-                (* Other layers only show one type of annotation. *)
-                ) else self#simple_square ?sync ~r ~c level set
-            (* Root segmentation only has single-color annotations. *)
+            (* Multicolor square in case of multiple annotations. *)
+            if AmfLevel.is_myc level && AmfUI.Layers.current () = '*' then (
+                let colors = List.map2 
+                    (fun chr clr ->
+                        if CSet.mem chr set then clr 
+                        else "#FFFFFF00"
+                    ) (AmfLevel.to_header level) (AmfLevel.colors level)
+                in
+                self#surface_from_func ?sync ~r ~c 
+                    (AmfSurface.Annotation.colors colors)
+            (* Simple squares in all other situations. *)
             ) else self#simple_square ?sync ~r ~c level set
         end
 
@@ -338,7 +359,7 @@ object (self)
         | chr -> let level = AmfUI.Levels.current () in
             AmfLevel.char_index level chr
             |> List.nth t
-            |> self#index_of_prob
+            |> legend#index_of_prob
             |> (fun i -> AmfMemoize.palette i _EDGE_)
             |> self#surface ?sync ~r ~c
 
