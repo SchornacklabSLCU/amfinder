@@ -27,8 +27,8 @@ open Morelib
 
 class annot ?init () =
 
-    let valid_root_segm = AmfLevel.(to_charset root_segmentation)
-    and valid_ir_struct = AmfLevel.(to_charset intraradical_structures) in
+    let valid_root_segm = AmfLevel.(chars col)
+    and valid_ir_struct = AmfLevel.(chars myc) in
 
 object (self)
 
@@ -44,9 +44,8 @@ object (self)
 
     method get ?(level = AmfUI.Levels.current ()) () =
         CSet.inter annot begin
-            match level with 
-            | AmfLevel.RootSegm -> valid_root_segm
-            | AmfLevel.IRStruct -> valid_ir_struct
+            if AmfLevel.is_col level then valid_root_segm
+            else valid_ir_struct
         end
 
     method mem chr = CSet.mem chr annot
@@ -58,15 +57,16 @@ object (self)
             if self#mem chr then 1 else 0
         ) (AmfLevel.to_header level)
 
-    method editable = AmfUI.Levels.current () = AmfLevel.RootSegm || self#mem 'Y'
+    method editable =
+        AmfLevel.is_col (AmfUI.Levels.current ()) || self#mem 'Y'
 
     method add ?(level = AmfUI.Levels.current ()) chr =
         if chr = '*' then List.iter (self#add ~level) (AmfLevel.to_header level)   
         else if not (self#mem chr) then begin
             match level with
-            | AmfLevel.RootSegm -> assert (CSet.mem chr valid_root_segm);
+            | true  -> assert (CSet.mem chr valid_root_segm);
                 annot <- CSet.singleton chr (* mutually exclusive. *)
-            | AmfLevel.IRStruct -> assert (CSet.mem chr valid_ir_struct);
+            | false -> assert (CSet.mem chr valid_ir_struct);
                 annot <- CSet.add chr annot (* can be combined. *)
         end
 
@@ -74,9 +74,9 @@ object (self)
         let level = Option.value level ~default:(AmfUI.Levels.current ()) in
         if self#mem chr then begin
             match level with
-            | AmfLevel.RootSegm when CSet.mem chr valid_root_segm -> 
+            | true when CSet.mem chr valid_root_segm -> 
                 annot <- CSet.empty (* Also removes intraradical structures. *)
-            | AmfLevel.IRStruct when CSet.mem chr valid_ir_struct ->
+            | false when CSet.mem chr valid_ir_struct ->
                 annot <- CSet.remove chr annot
             | _ -> AmfLog.error ~code:Err.Annot.invalid_character
                 "Invalid character %C at annotation level %s" chr
