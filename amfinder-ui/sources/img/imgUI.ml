@@ -44,10 +44,10 @@ class ui
         end
 
     method private add_annot =
-        self#update_annot (fun (annot : AmfAnnot.annot) -> annot#add) 
+        self#update_annot (fun (annot : AmfAnnot.annot) chr -> annot#add chr) 
 
     method private rem_annot =
-        self#update_annot (fun (annot : AmfAnnot.annot) -> annot#remove)
+        self#update_annot (fun (annot : AmfAnnot.annot) chr -> annot#remove chr)
 
     method set_paint f = paint_funcs <- f :: paint_funcs
 
