@@ -1,4 +1,4 @@
-(* AMFinder - amf_explorer.ml
+(* AMFinder - amfbrowser.ml
  *
  * MIT License
  * Copyright (c) 2021 Edouard Evangelisti
