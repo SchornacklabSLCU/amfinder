@@ -80,9 +80,8 @@ object (self)
 
     initializer
         (* Cursor drawing functions. *)
-        cursor#set_paint draw#cursor;
-        cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
         cursor#set_paint self#draw_annotated_tile;
+        cursor#set_paint (fun ?sync:_ ~r:_ ~c:_ -> self#magnified_view);
         cursor#set_erase self#draw_annotated_tile;
         (* UI update functions. *)
         ui#set_paint self#update_current_tile;
@@ -94,7 +93,7 @@ object (self)
         |> AmfUI.Predictions.set_choices;
         (* When the active r/c range changes, the entire mosaic is redraw to
          * the backing pixmap, then synchronized with the drawing area. *)
-        draw#set_update (fun () -> self#mosaic ~sync:true ())
+        brush#set_update (fun () -> self#mosaic ~sync:true ())
 
     method at_exit f = exit_funcs <- f :: exit_funcs
 
@@ -140,7 +139,7 @@ object (self)
         let tile_exists = draw#tile ~sync:false ~r ~c () in
         if tile_exists then draw#overlay ~sync:false ~r ~c ();
         if cursor#at ~r ~c then draw#cursor ~sync:false ~r ~c ();
-        if sync then brush#sync "draw_annotated_tile" ()
+        if sync then brush#sync "image#draw_annotated_tile" ()
 
     method uncertain_tile () =
         if predictions#active then begin
@@ -148,7 +147,8 @@ object (self)
                 match predictions#next_uncertain with
                 | None -> () (* Nothing to do. *)
                 | Some (r, c) -> let mask = annotations#get ~r ~c () in
-                    if mask#is_empty () then ignore (cursor#update_cursor_pos ~r ~c)
+                    if mask#is_empty () then
+                        ignore (cursor#update_cursor_pos ~r ~c)
                     else loop ()
             in loop ()
         end
@@ -203,7 +203,7 @@ object (self)
             | '*' -> brush#classes ~sync:false ()
             |  _  -> brush#palette ~sync:false ()
         end;
-        if sync then brush#sync "mosaic" ()
+        if sync then brush#sync "image#mosaic" ()
 
     method show () =
         (* No need to synchronize here. The #expose event (see ui/uIDrawing.ml

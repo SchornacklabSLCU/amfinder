@@ -39,7 +39,7 @@ let info format = message
 
 let info_debug format = message
     ~action:(if _DEBUG_ then print_endline else ignore)
-    ~label:"Info"
+    ~label:"Debug"
     format
 
 

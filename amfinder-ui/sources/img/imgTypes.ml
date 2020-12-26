@@ -45,7 +45,8 @@ class type brush = object
     method edge : int
     method x_origin : int
     method y_origin : int
-    method make_visible : r:int -> c:int -> unit -> bool
+    method set_update: (unit -> unit) -> unit
+    method has_unchanged_boundaries : r:int -> c:int -> unit -> bool
     method r_range : int * int
     method c_range : int * int
     method backcolor : string
@@ -132,7 +133,6 @@ end
 
 
 class type draw = object
-    method set_update: (unit -> unit) -> unit
     method tile : ?sync:bool -> r:int -> c:int -> unit -> bool
     method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
     method overlay : ?sync:bool -> r:int -> c:int -> unit -> unit

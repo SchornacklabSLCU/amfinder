@@ -213,8 +213,12 @@ object (self)
     val coords = new coords source x_origin y_origin
     val legend = new legend x_origin (y_origin + _HMAT_)
 
+    val mutable update_funcs : (unit -> unit) list = []
+
+    method set_update f = update_funcs <- f :: update_funcs
+
     (* Adjust the displayed area to the cursor coordinates. *)
-    method make_visible ~r ~c () =
+    method has_unchanged_boundaries ~r ~c () =
         let res = ref false
         and rlimit = snd self#r_range 
         and climit = snd self#c_range in
@@ -226,8 +230,10 @@ object (self)
         if c < cbound then (cbound <- c; res := true) else
         (* The area should be moved to the left. *)
         if c > climit then (cbound <- c - _WMAX_ + 1; res := true);
-        (* Tells whether the area has moved. *)
-        !res
+        (* Runs update functions when the visible window changes. *)
+        if !res then List.iter (fun f ->  f ()) update_funcs;
+        (* Tells whether the visibe window was left unchanged. *)
+        not !res
  
     method r_range = rbound, min source#rows (rbound + _HMAX_ - 1)
     method c_range = cbound, min source#columns (cbound + _WMAX_ - 1)
@@ -250,7 +256,7 @@ object (self)
     method set_backcolor x = backcolor <- x
 
     method sync caller () =
-        AmfLog.info_debug "brush#sync (triggered by %s)" caller;
+        AmfLog.info_debug "brush#sync (caller: %s)" caller;
         AmfUI.Drawing.synchronize ()
 
     method background ?(sync = true) () =

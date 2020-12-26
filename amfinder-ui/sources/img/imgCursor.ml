@@ -76,8 +76,10 @@ class cursor
         && (r, c) <> cursor_pos then begin
             let old_r, old_c = cursor_pos in
             cursor_pos <- (r, c);
+            if img_brush#has_unchanged_boundaries ~r ~c () then begin 
             List.iter (fun f -> f ?sync:(Some false) ~r:old_r ~c:old_c ()) erase;
             List.iter (fun f -> f ?sync:(Some true) ~r ~c ()) paint;
+            end;
         end;
         false (* same event has to go to image#ui. *)
 

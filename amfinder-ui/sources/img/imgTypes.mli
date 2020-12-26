@@ -136,7 +136,10 @@ class type brush = object
     method y_origin : int
     (** Returns drawing origin on Y axis. *)
 
-    method make_visible : r:int -> c:int -> unit -> bool
+    method set_update: (unit -> unit) -> unit
+    (** Registers a function to update the overall view. *)
+
+    method has_unchanged_boundaries : r:int -> c:int -> unit -> bool
     (** Ensure the given tile is within the visible window.
       * @return True when drawing has to be updated. *)
 
@@ -316,9 +319,6 @@ end
 (** {2 High-level tile drawing} *)
 
 class type draw = object
-
-    method set_update: (unit -> unit) -> unit
-    (** Registers a function to update the overall view. *)
 
     method tile : ?sync:bool -> r:int -> c:int -> unit -> bool
     (** Draw tile image at the given coordinates. *)    
