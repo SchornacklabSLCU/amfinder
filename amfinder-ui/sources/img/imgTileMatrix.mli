@@ -24,7 +24,15 @@
 
 (** Tile matrices. *)
 
-open ImgTypes
+class type cls = object
 
-val create : GdkPixbuf.pixbuf -> source -> int -> tile_matrix
+    method get : r:int -> c:int -> GdkPixbuf.pixbuf option
+    (** Retrieves a specific tile. *)
+
+    method iter : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> unit
+    (** Iterates over tiles. *)
+
+end
+
+val create : GdkPixbuf.pixbuf -> ImgSource.cls -> int -> cls
 (** Builder. *)

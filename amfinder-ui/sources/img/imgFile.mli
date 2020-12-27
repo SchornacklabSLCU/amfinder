@@ -24,5 +24,18 @@
 
 (** File settings. *)
 
-val create : string -> ImgTypes.file
+class type cls = object
+
+    method path : string
+    (** Path to the input image. *)
+
+    method base : string
+    (** File base name. *)
+
+    method archive : string
+    (** Name of the output archive. *)
+
+end
+
+val create : string -> cls
 (** Builder. *)

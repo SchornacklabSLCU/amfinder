@@ -25,6 +25,25 @@
 open Printf
 open Morelib
 
+class type cls = object
+    method ids : AmfLevel.level -> string list
+    method current : string option
+    method set_current : string option -> unit
+    method active : bool
+    method count : int
+    method next_uncertain : (int * int) option
+    method get : r:int -> c:int -> float list option
+    method max_layer : r:int -> c:int -> (char * float) option
+    method iter : 
+        [ `ALL of (r:int -> c:int -> float list -> unit)
+        | `MAX of (r:int -> c:int -> char * float -> unit) ] -> unit
+    method iter_layer : char -> (r:int -> c:int -> float -> unit) -> unit
+    method statistics : (char * int) list
+    method to_string : unit -> string
+    method exists : r:int -> c:int -> bool
+    method dump : Zip.out_file -> unit
+end
+
 
 module Aux = struct
     let is_prediction e = Filename.dirname e.Zip.filename = "predictions" 

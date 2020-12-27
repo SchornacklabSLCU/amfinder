@@ -22,9 +22,17 @@
  * IN THE SOFTWARE.
  *)
 
-class pointer 
-  (img_source : ImgTypes.source)
-  (img_brush : ImgTypes.brush)
+class type cls = object
+    method get : (int * int) option
+    method at : r:int -> c:int -> bool
+    method track : GdkEvent.Motion.t -> bool
+    method leave : GdkEvent.Crossing.t -> bool
+    method set_erase : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
+    method set_paint : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
+end
+
+
+class pointer (source : ImgSource.cls) (brush : ImgBrush.cls)
 
 = object (self)
 
@@ -42,8 +50,8 @@ class pointer
         | Some (cr, cc) -> r = cr && c = cc
 
     method private update_pointer_pos ~r ~c =
-        let rmin, rmax = img_brush#r_range 
-        and cmin, cmax = img_brush#c_range in
+        let rmin, rmax = brush#r_range 
+        and cmin, cmax = brush#c_range in
         if r >= rmin && r <= rmax 
         && c >= cmin && c <= cmax then
             begin 
@@ -58,20 +66,23 @@ class pointer
         else Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos
 
     method track ev =
-        let rmin, _ = img_brush#r_range 
-        and cmin, _ = img_brush#c_range in
-        let x = GdkEvent.Motion.x ev -. float img_brush#x_origin
-        and y = GdkEvent.Motion.y ev -. float img_brush#y_origin in
+        let rmin, _ = brush#r_range 
+        and cmin, _ = brush#c_range in
+        let x = GdkEvent.Motion.x ev -. float brush#x_origin
+        and y = GdkEvent.Motion.y ev -. float brush#y_origin in
         let r, c =
             if x < 0.0 || y < 0.0 then (-1, -1) else
-                let edge = float img_brush#edge in
+                let edge = float brush#edge in
                 (rmin + truncate (y /. edge), cmin + truncate (x /. edge))
         in 
         self#update_pointer_pos ~r ~c;
         false
 
     method leave (_ : GdkEvent.Crossing.t)  =
-        Option.iter (fun (r, c) -> pos <- None; erase ~sync:true ~r ~c ()) pos;
+        Option.iter (fun (r, c) ->
+            pos <- None;
+            erase ~sync:true ~r ~c ()
+        ) pos;
         false
 
 end

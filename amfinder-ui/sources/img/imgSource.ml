@@ -25,6 +25,16 @@
 open Scanf
 open Printf
 
+class type cls = object
+    method width : int
+    method height : int
+    method edge : int
+    method rows : int
+    method columns : int
+    method save_settings : Zip.out_file -> unit
+end
+
+
 class source ?zip pixbuf =
 
     let edge =

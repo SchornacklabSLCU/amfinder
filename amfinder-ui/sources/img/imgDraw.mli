@@ -24,7 +24,21 @@
 
 (** High-level drawing functions. *)
 
-open ImgTypes
+class type cls = object
 
-val create : tile_matrix -> brush -> cursor -> annotations -> predictions -> draw
+    method tile : ?sync:bool -> r:int -> c:int -> unit -> bool
+    (** Draw tile image at the given coordinates. *)    
+
+    method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Draw cursor at the given coordinates. *)
+
+    method overlay : ?sync:bool -> r:int -> c:int -> unit -> unit
+    (** Draw annotation/prediction at the given coordinates. *)
+
+end
+
+val create :
+    ImgTileMatrix.cls ->
+    ImgBrush.cls ->
+    ImgCursor.cls -> ImgAnnotations.cls -> ImgPredictions.cls -> cls
 (** Builder. *)

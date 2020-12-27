@@ -26,6 +26,15 @@ open Scanf
 open Printf
 open Morelib
 
+class type cls = object
+    method get : r:int -> c:int -> unit -> AmfAnnot.annot
+    method iter : (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method iter_layer : char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    method statistics : ?level:AmfLevel.level -> unit -> (char * int) list  
+    method has_annot : ?level:AmfLevel.level -> r:int -> c:int -> unit -> bool
+    method dump : Zip.out_file -> unit   
+end
+
 module Aux = struct
     let of_string data =
         String.split_on_char '\n' data
@@ -67,7 +76,7 @@ module Aux = struct
 end
 
 
-class annotations (source : ImgTypes.source) root_segm ir_struct =
+class annotations (source : ImgSource.cls) root_segm ir_struct =
 
     let table =
         match root_segm with

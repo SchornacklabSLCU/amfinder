@@ -27,15 +27,42 @@ open Printf
 open Morelib
 open AmfConst
 
-
-
 type orientation = Top | Bottom | Left | Right
 
+class type cls = object
+    method edge : int
+    method x_origin : int
+    method y_origin : int
+    method set_update: (unit -> unit) -> unit
+    method has_unchanged_boundaries : r:int -> c:int -> unit -> bool
+    method r_range : int * int
+    method c_range : int * int
+    method backcolor : string
+    method set_backcolor : string -> unit
+    method background : ?sync:bool -> unit -> unit
+    method pixbuf : ?sync:bool -> r:int -> c:int -> GdkPixbuf.pixbuf -> unit
+    method empty : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method surface : ?sync:bool -> r:int -> c:int -> Cairo.Surface.t -> unit
+    method locked_tile : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method annotation :
+        ?sync:bool ->
+        r:int -> c:int -> AmfLevel.level -> Morelib.CSet.t -> unit
+    method annotation_other_layer :
+        ?sync:bool -> r:int -> c:int -> unit -> unit
+    method prediction :
+        ?sync:bool -> r:int -> c:int -> float list -> char -> unit
+    method palette : ?sync:bool -> unit -> unit
+    method classes : ?sync:bool -> unit -> unit
+    method show_probability : ?sync:bool -> float -> unit
+    method hide_probability : ?sync:bool -> unit -> unit
+    method sync : string -> unit -> unit
+end
 
 
 (* Display row/column coordinate values in the margin.
  * Draw arrowheads indicating valid directions. *)
-class coords (source : ImgTypes.source) x_origin y_origin = object(self)
+class coords (source : ImgSource.cls) x_origin y_origin = object(self)
 
     method paint_background ?(row = true) () =
         let w, h = match row with
@@ -194,7 +221,7 @@ end
 
 
 
-class brush (source : ImgTypes.source) =
+class brush (source : ImgSource.cls) =
 
     (* GtkDrawingArea dimensions, in pixels (allocated at startup).  *)
     let ui_width = AmfUI.Drawing.width ()

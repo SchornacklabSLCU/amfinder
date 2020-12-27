@@ -26,37 +26,37 @@
 
 class type image = object
 
-    method ui : ImgTypes.ui
+    method ui : ImgUI.cls
     (** User interface. *)
 
-    method file : ImgTypes.file
+    method file : ImgFile.cls
     (** File settings. *)
 
-    method source : ImgTypes.source
+    method source : ImgSource.cls
     (** Source image settings. *)
 
-    method brush : ImgTypes.brush
+    method brush : ImgBrush.cls
     (** Drawing toolbox. *)
 
-    method draw : ImgTypes.draw
+    method draw : ImgDraw.cls
     (** Drawing functions. *)
 
-    method cursor : ImgTypes.cursor
+    method cursor : ImgCursor.cls
     (** Cursor position manager. *)
 
-    method pointer : ImgTypes.pointer
+    method pointer : ImgPointer.cls
     (** Mouse pointer tracker. *)
 
-    method small_tiles : ImgTypes.tile_matrix
+    method small_tiles : ImgTileMatrix.cls
     (** Small-sized tiles to be used in the right pane. *)
 
-    method large_tiles : ImgTypes.tile_matrix
+    method large_tiles : ImgTileMatrix.cls
     (** Large-sized tiles to be used in the left pane. *)
 
-    method annotations : ImgTypes.annotations
+    method annotations : ImgAnnotations.cls
     (** User-defined annotations. *)
 
-    method predictions : ImgTypes.predictions
+    method predictions : ImgPredictions.cls
     (** Computer-generated predictions (probabilities). *)
 
     method predictions_to_annotations : ?erase:bool -> unit -> unit

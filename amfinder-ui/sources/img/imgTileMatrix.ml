@@ -26,8 +26,13 @@ open Morelib
 open ImgShared
 
 
+class type cls = object
+    method get : r:int -> c:int -> GdkPixbuf.pixbuf option
+    method iter : (r:int -> c:int -> GdkPixbuf.pixbuf -> unit) -> unit
+end
 
-class tile_matrix pixbuf (source : ImgTypes.source) edge =
+
+class tile_matrix pixbuf (source : ImgSource.cls) edge =
 
 object (self)
 

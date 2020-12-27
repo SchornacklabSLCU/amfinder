@@ -26,10 +26,15 @@ open Printf
 open Morelib
 open ImgShared
 
+class type cls = object
+    method active : bool
+    method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option   
+    method dump : Zip.out_file -> unit
+end
 
 
 class activations
-    (source : ImgTypes.source) 
+    (source : ImgSource.cls) 
     (input : (string * (char * GdkPixbuf.pixbuf)) list) edge 
 
 = object

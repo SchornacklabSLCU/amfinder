@@ -24,7 +24,18 @@
 
 (** Class activation maps (CAMs). *)
 
-open ImgTypes
+class type cls = object
 
-val create : ?zip:Zip.in_file -> source -> activations
+    method active : bool
+    (** Indicates whether class activation maps are to be displayed. *)
+    
+    method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option
+    (** Return the CAM associated with a given tile. *)
+    
+    method dump : Zip.out_file -> unit
+    (** Saves activations. *)
+
+end
+
+val create : ?zip:Zip.in_file -> ImgSource.cls -> cls
 (** Builder. *)

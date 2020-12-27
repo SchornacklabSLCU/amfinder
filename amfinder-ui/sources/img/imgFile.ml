@@ -22,6 +22,13 @@
  * IN THE SOFTWARE.
  *)
 
+class type cls = object
+    method path : string
+    method base : string
+    method archive : string
+end
+
+
 class file path = object 
     method path = path
     method base = Filename.basename path

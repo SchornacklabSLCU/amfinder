@@ -22,11 +22,21 @@
  * IN THE SOFTWARE.
  *)
 
+class type cls = object
+    method set_paint : (unit -> unit) -> unit
+    method update_toggles : unit -> unit
+    method toggle :
+        GButton.toggle_button ->
+        GMisc.image -> char -> GdkEvent.Button.t -> bool
+    method key_press : GdkEvent.Key.t -> bool
+    method mouse_click : GdkEvent.Button.t -> bool
+end
+
 
 class ui 
-  (cursor : ImgTypes.cursor)
-  (annotations : ImgTypes.annotations)
-  (predictions : ImgTypes.predictions)
+  (cursor : ImgCursor.cls)
+  (annotations : ImgAnnotations.cls)
+  (predictions : ImgPredictions.cls)
    
 = object (self)
 

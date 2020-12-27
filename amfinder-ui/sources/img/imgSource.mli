@@ -24,7 +24,30 @@
 
 (** Source image settings. *)
 
+(** {2 Image source} *)
 
-val create : ?zip:Zip.in_file -> GdkPixbuf.pixbuf -> ImgTypes.source
+class type cls = object
+
+    method width : int
+    (** Image width, in pixels. *)
+
+    method height : int
+    (** Image height, in pixels. *) 
+ 
+    method edge : int
+    (** Tile size (in pixels) used to segment the source image. *)
+
+    method rows : int
+    (** Row count. *)
+
+    method columns : int
+    (** Column count. *)
+
+    method save_settings : Zip.out_file -> unit
+    (** Saves settings. *)
+
+end
+
+val create : ?zip:Zip.in_file -> GdkPixbuf.pixbuf -> cls
 (** Builder. *)
 

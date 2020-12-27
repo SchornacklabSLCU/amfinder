@@ -24,7 +24,28 @@
 
 (** Interaction with the user interface. *)
 
-open ImgTypes
+class type cls = object
 
-val create : cursor -> annotations -> predictions -> ui
+    method set_paint : (unit -> unit) -> unit
+    (** Painting functions to update the current tile. *)
+
+    method update_toggles : unit -> unit
+    (** Update annotations at the current cursor position. *)
+
+    method toggle :
+        GButton.toggle_button ->
+        GMisc.image -> char -> GdkEvent.Button.t -> bool
+    (** Update annotations when a toggle button is toggled. *)
+
+    method key_press : GdkEvent.Key.t -> bool
+    (** Update annotations based on key press. *)
+
+    method mouse_click : GdkEvent.Button.t -> bool
+    (** Update annotations based on mouse click. *)
+
+end
+
+val create :
+    ImgCursor.cls ->
+    ImgAnnotations.cls -> ImgPredictions.cls -> cls
 (** UI object generator. *)

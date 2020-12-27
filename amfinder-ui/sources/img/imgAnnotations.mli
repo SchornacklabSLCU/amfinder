@@ -24,6 +24,29 @@
 
 (** Annotation manager. *)
 
-val create : ?zip:Zip.in_file -> ImgTypes.source -> ImgTypes.annotations
+class type cls = object
+
+    method get : r:int -> c:int -> unit -> AmfAnnot.annot
+    (** Returns the item at the given coordinates and annotation level. *)
+
+    method iter : (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    (** Iterates over items at the given coordinates and annotation level. *)
+
+    method iter_layer : char -> (r:int -> c:int -> AmfAnnot.annot -> unit) -> unit
+    (** Iterates over items at the given coordinates and annotation level. *)
+
+    method statistics : ?level:AmfLevel.level -> unit -> (char * int) list
+    (** Returns the current statistics. *)
+   
+    method has_annot : ?level:AmfLevel.level -> r:int -> c:int -> unit -> bool
+    (** Indicates whether the given tile has annotation. By default, checks the
+      * current annotation layer. *)
+
+    method dump : Zip.out_file -> unit
+    (** Saves annotations. *)
+    
+end
+
+val create : ?zip:Zip.in_file -> ImgSource.cls -> cls
 (** Builder. *)
 

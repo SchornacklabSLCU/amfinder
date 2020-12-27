@@ -24,12 +24,18 @@
 
 open Morelib
 
+class type cls = object
+    method tile : ?sync:bool -> r:int -> c:int -> unit -> bool
+    method cursor : ?sync:bool -> r:int -> c:int -> unit -> unit
+    method overlay : ?sync:bool -> r:int -> c:int -> unit -> unit
+end
+
 class draw 
-  (tiles : ImgTypes.tile_matrix)
-  (brush : ImgTypes.brush)
-  (cursor : ImgTypes.cursor)
-  (annot : ImgTypes.annotations)
-  (preds : ImgTypes.predictions) 
+  (tiles : ImgTileMatrix.cls)
+  (brush : ImgBrush.cls)
+  (cursor : ImgCursor.cls)
+  (annot : ImgAnnotations.cls)
+  (preds : ImgPredictions.cls) 
 
 = object (self)
 
