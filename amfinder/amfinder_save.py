@@ -1,4 +1,29 @@
-# CastANet - amfinder_save.py
+# AMFinder - amfinder_save.py
+#
+# MIT License
+# Copyright (c) 2021 Edouard Evangelisti, Carl Turner
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+""" 
+
+"""
 
 import os
 import io
@@ -11,8 +36,9 @@ import numpy as np
 import zipfile as zf
 import matplotlib as plt
 
-import amfinder_plot as AMFplot
-import amfinder_config as AMF_config
+import amfinder_plot as AmfPlot
+import amfinder_model as AmfModel
+import amfinder_config as AmfConfig
 
 CORRUPTED_ARCHIVE = 30
 
@@ -20,13 +46,13 @@ CORRUPTED_ARCHIVE = 30
 
 def string_of_level():
 
-    if AMF_config.get('level') == 1:
+    if AmfConfig.get('level') == 1:
     
-        return 'RootSegm'
+        return AmfModel.COLONIZATION_NAME
         
     else:
     
-        return 'IRStruct'
+        return AmfModel.MYC_STRUCTURES_NAME
 
 
 
@@ -59,22 +85,22 @@ def training_data(history, model):
             z.writestr(string_of_level() + '.h5', bin_data)
 
         # Saves plots.
-        early = AMF_config.get('early_stopping').stopped_epoch
-        epochs = early + 1 if early > 0 else AMF_config.get('epochs')
+        early = AmfConfig.get('early_stopping').stopped_epoch
+        epochs = early + 1 if early > 0 else AmfConfig.get('epochs')
         x_range = np.arange(0, epochs)
 
-        AMFplot.initialize()
-        data = AMFplot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
+        AmfPlot.initialize()
+        data = AmfPlot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
         z.writestr('loss.png', data.getvalue())
 
-        if AMF_config.get('level') == 1:
+        if AmfConfig.get('level') == 1:
 
-            data = AMFplot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
+            data = AmfPlot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
             z.writestr('accuracy.png', data.getvalue())
         
         else:
         
-            for cls in AMF_config.get('header'):
+            for cls in AmfConfig.get('header'):
             
                 label = 'arbuscules'
                 
@@ -86,14 +112,14 @@ def training_data(history, model):
                 
                     label = 'hyphae'
             
-                data = AMFplot.draw(history, epochs, 
+                data = AmfPlot.draw(history, epochs, 
                                     f'Accuracy ({label})', x_range,
                                     f'{cls}_acc', 
                                     f'val_{cls}_acc')
 
                 z.writestr(f'{cls}_accuracy.png', data.getvalue())
 
-                data = AMFplot.draw(history, epochs, 
+                data = AmfPlot.draw(history, epochs, 
                                     f'Loss ({label})', x_range,
                                     f'{cls}_loss', 
                                     f'val_{cls}_loss')
@@ -117,7 +143,7 @@ def get_zip_info(path, comment):
 def save_cams(uniq, z, cams):
 
     level = string_of_level()
-    for label, image in zip(AMF_config.get('header'), cams):
+    for label, image in zip(AmfConfig.get('header'), cams):
         buf = io.BytesIO()
         plt.image.imsave(buf, image, format='jpg')
         zi = get_zip_info(f'activations/{uniq}.{label}.jpg', label)
@@ -129,12 +155,12 @@ def save_cams(uniq, z, cams):
 def save_settings(z):
     """ Saves tile size. """
 
-    # IRStruct predictions require settings.json.
+    # Prediction of mycorrhizal structures requires settings.json.
     # There is no need to create the file again.
-    if AMF_config.get('level') == 1:
+    if AmfConfig.get('level') == 1:
 
         with z.open('settings.json', mode='w') as s:
-            edge = AMF_config.get('tile_edge')
+            edge = AmfConfig.get('tile_edge')
             data = '{"tile_edge": %d}' % (edge)
             s.write(data.encode())
 

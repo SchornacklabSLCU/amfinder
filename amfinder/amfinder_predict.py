@@ -1,4 +1,25 @@
 # AMFinder - amfinder_predict.py
+#
+# MIT License
+# Copyright (c) 2021 Edouard Evangelisti, Carl Turner
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
 
 import io
 import os
@@ -40,10 +61,10 @@ def myc_structures(path, image, nrows, ncols, model):
     
     with zf.ZipFile(zfile) as z:
 
-        if 'RootSegm.tsv' in z.namelist():
+        if 'col.tsv' in z.namelist():
 
             # Retrieve root segmentation data.
-            annotations = z.read('RootSegm.tsv').decode('utf-8')
+            annotations = z.read('col.tsv').decode('utf-8')
             annotations = io.StringIO(annotations)
             annotations = pd.read_csv(annotations, sep='\t')
             
@@ -83,7 +104,7 @@ def myc_structures(path, image, nrows, ncols, model):
         
             # Cannot recover from this error. It means the user is trying
             # to predict intraradical structures (IRStruct) using 
-            # unsegmented images (no RootSegm annotations).
+            # unsegmented images (no col annotations).
             image_name = os.path.basename(path)
             zfile_name = os.path.basename(zfile)
             AmfLog.error(f'Image {image_name} has no archive {zfile_name}',
