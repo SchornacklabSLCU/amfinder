@@ -48,7 +48,7 @@ module Make (P : PARAMS) : S = struct
     (* Add horizontal space between toggle buttons. *)
     let hspace level =
         if AmfLevel.is_col level then 134
-        else 65
+        else 68
 
     let add_item (table : GPack.table) left chr =
         let toggle = GButton.toggle_button

@@ -66,8 +66,8 @@ class coords (source : ImgSource.cls) x_origin y_origin = object(self)
 
     method paint_background ?(row = true) () =
         let w, h = match row with
-            | true  -> _EDGE_, (_HMAX_ + 1) * _EDGE_
-            | false -> (_WMAX_ + 1) * _EDGE_, _EDGE_
+            | true  -> _EDGE_ + 1, (_HMAX_ + 1) * _EDGE_
+            | false -> (_WMAX_ + 1) * _EDGE_, _EDGE_ + 1
         and xmul = if row then 1.25 else 0.50
         and ymul = if row then 0.50 else 1.25
         and context = AmfUI.Drawing.cairo () in

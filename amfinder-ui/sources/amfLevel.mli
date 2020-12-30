@@ -23,16 +23,22 @@
  *)
 
 
-(** Annotation levels. *)
+(** Annotation levels. The first level corresponds to root segmentation into 
+  * colonized versus non-colonized areas, and background. The second levels aims
+  * to predict AM fungal structures (arbuscules, vesicles, intraradical hyphae,
+  * and hyphopodia) within colonized root areas. *)
 
 type level = bool
-(** Annotation level. *)
+(** The type alias for annotation levels. Value [true] corresponds to root 
+  * segmentation, while [false] is used for mycorrhizal structures. *)
 
 val col : level
-(** Colonization (colonized, non-colonized, background. *) 
+(** Root segmentation into colonized versus non-colonized areas, and 
+  * background. *) 
 
 val myc : level
-(** Intraradical structures (arbuscules, vesicles, hyphae).  *)
+(** Mycorrhizal structures (arbuscules, vesicles, hyphopodia, intraradicular
+  * hyphae). *)
 
 val all : level list
 (** List of available annotation levels, sorted from lowest to highest. *)

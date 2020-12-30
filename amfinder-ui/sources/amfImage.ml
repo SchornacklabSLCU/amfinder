@@ -23,12 +23,8 @@
  *)
 
 open Printf
+open AmfConst
 open ImgShared
-
-let blank_pixbuf =
-    let pix = GdkPixbuf.create ~width:180 ~height:180 () in
-    GdkPixbuf.fill pix 0l;
-    pix
 
 
 
@@ -52,7 +48,7 @@ class image path =
     
     (* Image segmentation. *)   
     let small_tiles = ImgTileMatrix.create pixbuf source brush#edge
-    and large_tiles = ImgTileMatrix.create pixbuf source 180 in
+    and large_tiles = ImgTileMatrix.create pixbuf source _MAGN_ in
 
     (* Annotations, predictions and activations. *)
     let annotations, predictions, activations = 
@@ -93,7 +89,8 @@ object (self)
         |> AmfUI.Predictions.set_choices;
         (* When the active r/c range changes, the entire mosaic is redraw to
          * the backing pixmap, then synchronized with the drawing area. *)
-        brush#set_update (fun () -> self#mosaic ~sync:true ())
+        brush#set_update (fun () -> self#mosaic ~sync:true ());
+        brush#set_update self#magnified_view;
 
     method at_exit f = exit_funcs <- f :: exit_funcs
 
@@ -177,7 +174,7 @@ object (self)
                 let ri = r + i - 1 and cj = c + j - 1 in
                 let get = self#may_overlay_cam ~i ~j ~r:ri ~c:cj in            
                 let pixbuf = match get ~r:ri ~c:cj with
-                    | None -> blank_pixbuf
+                    | None -> _BLANK_
                     | Some x -> x
                 in AmfUI.Magnifier.set_pixbuf ~r:i ~c:j pixbuf
             done

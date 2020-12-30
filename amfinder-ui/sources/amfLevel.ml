@@ -87,8 +87,8 @@ let transparency = "B0"
 let process = List.map (fun s -> s ^ transparency)
 
 let colors = function
-    | true  -> process ["#c217ba"; "#00ffff"; "#5a5b7e"]
-    | false -> process ["#ff00ff"; "#0055FF"; "#FFA000"; "#31FF12"]
+    | true  -> process ["#ff00ff"; "#0099FF"; "#909090"]
+    | false -> process ["#0055FF"; "#ff00ff"; "#31FF12"; "#FFA000"]
 
 module type ANNOTATION_RULES = sig
     val add_add : char -> CSet.t

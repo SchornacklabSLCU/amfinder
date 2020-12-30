@@ -58,6 +58,9 @@ class type annot = object
       * always editable at the root segmentation level. Otherwise, they have to
       * carry the annotation flag ['Y']. *)
 
+    method erase : ?level:AmfLevel.level -> unit -> unit
+    (** Removes all annotations at the given level. *)
+
 end
 
 

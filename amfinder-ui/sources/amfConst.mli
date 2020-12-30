@@ -46,5 +46,9 @@ val _DEBUG_ : bool
 val _BGCOLOR_ : string
 (** Background color used in the GtkDrawingArea. *)
 
+val _MAGN_ : int
+(** Edge (in pixels) of the tiles displayed in the magnified view. *)
 
+val _BLANK_ : GdkPixbuf.pixbuf
+(** Blank tile to be displayed in the magnified view where appropriate. *)
 

@@ -46,15 +46,17 @@ class ui
         let r, c = cursor#get in
         annotations#get ~r ~c ()
 
+    method private redraw () =
+        List.iter (fun f -> f ()) paint_funcs
+
     method private update_and_redraw ~is_add chr =
         let cur = self#current_annot in
         if cur#editable then begin
             (* Edits annotation.       *)
             if is_add then cur#add chr else cur#remove chr;
-            (* Updates toggle buttons. *)
+            (* Updates toggle buttons and redraws current tile. *)
             self#update_toggles ();
-            (* Redraws current tile.   *)
-            List.iter (fun f -> f ()) paint_funcs
+            self#redraw ();
         end
 
     method set_paint f = paint_funcs <- f :: paint_funcs
@@ -75,16 +77,27 @@ class ui
             end
         in AmfUI.Toggles.iter_current update_toggle
 
-    method key_press ev =
-        let raw = GdkEvent.Key.string ev in
-        (* Edits annotation. *)
-        if String.length raw > 0 then begin
-            let chr = Scanf.sscanf raw "%c" Char.uppercase_ascii in
-            Option.iter (fun active ->
-                self#update_and_redraw ~is_add:(not active) chr
-            ) (AmfUI.Toggles.is_active chr)
-        end;
-        (* We do not want focus to move. *)
+    method key_press ev = 
+        if self#current_annot#editable then (
+            if GdkEvent.Key.keyval ev = 65535 (* delete *) then (   
+                self#current_annot#erase (); 
+                self#update_toggles ();
+                self#redraw ()
+            ) else (
+                let raw = GdkEvent.Key.string ev in
+                (* Edits annotation. *)
+                if String.length raw > 0 then (
+                    let chr = Scanf.sscanf raw "%c" Char.uppercase_ascii in
+                    Option.iter (fun active ->
+                        if active then self#current_annot#remove chr
+                        else self#current_annot#add chr;
+                        self#update_toggles ();
+                        self#redraw ();
+                    ) (AmfUI.Toggles.is_active chr);
+                )
+            )
+        );
+        (* To make sure focus does not move. *)
         true
 
     method toggle

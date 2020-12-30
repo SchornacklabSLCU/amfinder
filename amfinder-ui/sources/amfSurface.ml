@@ -107,9 +107,9 @@ end
 module Annotation = struct
 
     (* See https://www.cairographics.org/samples/rounded_rectangle/ *)
-    let rounded_rectangle context x y ~w ~h =
+    let rounded_rectangle context ?(rad = 5.0) x y ~w ~h =
         let degrees = pi /. 180.0
-        and corner_radius = h /. 5.0 in
+        and corner_radius = h /. rad in
         Path.sub context;
         arc context (x +. w -. corner_radius)  
                     (y +. corner_radius)
@@ -132,7 +132,7 @@ module Annotation = struct
     let draw 
       ?(eye = false)
       ?(lock = false)
-      ?(margin = 2.0)
+      ?(margin = 4.0)
       ?(rounded = false)
       ?(symbol = "")
       ?(symbol_color = "#FFFFFFFF")
@@ -142,7 +142,7 @@ module Annotation = struct
       ?(dash = [||])
       ?(stroke = false)
       ?(dash_color = "#000000FF")
-      ?(line_width = 1.5)
+      ?(line_width = 1.0)
       ?(fill = true)
       ?(fill_color = "#FFFFFFB0")
       ?(multicolor = []) edge =
@@ -162,20 +162,15 @@ module Annotation = struct
         if fill then begin
             (* Multicolor display for mycorrhiza structures. *)
             if multicolor <> [] then begin
-                let n = List.length multicolor in
-                let w = edge /. (float n) in
-                (* TODO: First and last should be round rectangles. *)
-                set_line_width t 1.0;
+                let w = edge *. 0.5 in
                 List.iteri (fun i color ->
-                    rounded_rectangle t (half +. float i *. w) half ~w ~h:edge;
+                    rounded_rectangle ~rad:2.5 t
+                        (half +. float (i / 2) *. w)
+                        (half +. float (i mod 2) *. w) ~w ~h:w;
                     let r, g, b, a = AmfColor.parse_rgba color in
                     set_source_rgba t r g b a;
                     Cairo.fill t
                 ) multicolor;
-                rounded_rectangle t half half ~w:edge ~h:edge;
-                let r, g, b, a = AmfColor.parse_rgba dash_color in
-                set_source_rgba t r g b a;
-                Cairo.stroke t
             end else begin
                 if rounded then rounded_rectangle t half half ~w:edge ~h:edge
                 else Cairo.rectangle t half half ~w:edge ~h:edge;
@@ -240,7 +235,7 @@ module Annotation = struct
             set_source_rgba t r g b a;
             set_line_width t line_width;
             set_dash t dash;
-            Cairo.rectangle t half half ~w:edge ~h:edge;
+            rounded_rectangle t half half ~w:edge ~h:edge;
             Cairo.stroke t
         end;
         surface
@@ -255,29 +250,31 @@ module Annotation = struct
 
     let dashed dash_color x = draw
         ~eye:true
-        ~margin:4.0
         ~dash:[|2.0|]
+        ~line_width:1.5
         ~dash_color x
 
     let locked dash_color x = draw
         ~lock:true
-        ~margin:4.0
         ~dash:[|2.0|]
         ~fill_color:"#FFFFFF90"
+        ~line_width:1.5
         ~dash_color x
 
     let empty dash_color x = draw
-        ~margin:4.0
         ~stroke:true
         ~fill_color:"#FFFFFFFF"
+        ~line_width:1.5
         ~dash_color x
 
     let filled ?symbol fill_color x =
-        (* The symbol × is small and needs greater font size. *)
-        let font_size = match symbol with Some "×" -> Some 24.0 | _ -> None in
-        draw ~rounded:true ?symbol ?font_size ~fill_color x
+        let f = draw ~rounded:true ~stroke:true in
+        match symbol with 
+        | Some "×" -> f ~fill_color:"#FFFFFF90" ~dash_color:"#80808090"
+            ~dash:[|2.0|] ~line_width:1.5 x
+        | _ -> f ~fill_color ?symbol x
         
-    let colors t x = draw ~multicolor:t x
+    let colors t x = draw ~multicolor:t ~stroke:true  x
 
 end
 
@@ -313,7 +310,7 @@ module Prediction = struct
     let draw_dot ?(color = "#606060") context x y =
         let r, g, b = AmfColor.parse_rgb color in
         set_source_rgba context r g b 1.0;
-        arc context x y ~r:2.0 ~a1:0.0 ~a2:twopi;
+        arc context x y ~r:1.0 ~a1:0.0 ~a2:twopi;
         fill context
 
     (* Draw radar polyline surface. *)

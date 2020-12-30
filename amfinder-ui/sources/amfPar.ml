@@ -25,7 +25,7 @@
 open Arg
 open Printf
 
-let edge = ref 40
+let edge = ref 126
 let path = ref None
 
 let set_image_path x = if Sys.file_exists x then path := Some x
