@@ -21,6 +21,33 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+
+
+""" Training module.
+    Trains a convolutional neural network on a set of ink-stained root
+    images annotated to highlight fungal colonization (ConvNet I) or
+    intraradical fungal structures (ConvNet II). Annotations are stored
+    in an auxiliary zip file.
+    
+    Class
+    ------------
+    ImageDataGeneratorMO - Custom data generator for multiple single-variable
+        outputs. Used with ConvNet II.
+        Reference: https://github.com/keras-team/keras/issues/3761
+    
+    Functions
+    ------------
+    load_tile - Load a tile (may return None for background tiles).
+    print_statistics - Print tile count/percentage for each annotation class.
+    read_tsv - Reads the annotation table from the auxiliary zip archive.
+    estimate_drop - Estimate background tiles to omit to reduce class imbalance.
+    load_dataset - Load training dataset (i.e. tiles and annotations).
+    get_callbacks - Set up Keras callbacks.
+    run - Run the training session.
+"""
+
+
+
 import os
 import io
 import random
@@ -48,19 +75,14 @@ import amfinder_segmentation as AmfSegm
 
 def load_tile(image, drop, data):
     """
-    Load a tile, and drop some background tiles.
-
-    PARAMETERS
-        -drop: Percentage of background tiles to drop.
-        -image: Source image (mosaic).
-        -data: Tile coordinates (row/column) and annotations.
-    
-    Returns the loaded tile, or None if it was dropped.
+    Loads a tile. The function may return None to prevent
+    overrepresentation of the background annotation class.
     """
 
     if AmfConfig.get('level') == 1 and drop > 0 and \
        data['X'] == 1 and random.uniform(0, 100) < drop:
 
+        # Drop the background tile.
         return None
 
     else:
@@ -70,7 +92,9 @@ def load_tile(image, drop, data):
 
 
 def print_statistics(labels):
-    """ Prints statistics irrespective of the annotation level. """
+    """
+    Prints the tile count and percentage for each annotation class.
+    """
 
     header = AmfConfig.get('header')
     hrange = range(len(header))
@@ -94,35 +118,31 @@ def print_statistics(labels):
 
 
 
-def load_annotation_table(level, path):
+def read_tsv(level, path):
     """
-    Retrieve annotations from a ZIP archive.
-
-    PARAMETERS
-        - level: Annotation level.
-        - path: Path to the annotated input image.
-
-    RETURNS
-        - a Pandas DataFrame containing annotations, or
-        - `None` when annotations are not available.
+    Retrieve manual annotations from the ZIP archive associated
+    with the input image. Returns a Pandas DataFrame containing
+    annotations, `None` in case of error.
     """
 
+    # foo.jpg should come with an auxiliary file foo.zip.
     zfile = os.path.splitext(path)[0] + '.zip'
 
     if os.path.isfile(zfile) and zf.is_zipfile(zfile):
 
-        annot_file = 'RootSegm.tsv' if level == 1 else 'IRStruct.tsv'
+        # Return the tsv filename to read (either 'col.tsv' or 'myc.tsv').
+        tsv = AmConfig.tsv_name()
 
         with zf.ZipFile(zfile, 'r') as z:
 
-            # Check availability of the annotation table at the given level.
-            if annot_file in z.namelist():
+            # Check availability of the annotation table.
+            if tsv in z.namelist():
 
-                t = z.read(annot_file).decode('utf-8')
-                t = io.StringIO(t)
-                t = pd.read_csv(t, sep='\t')
+                dat = z.read(tsv).decode('utf-8')
+                dat = io.StringIO(dat)
+                dat = pd.read_csv(dat, sep='\t')
                 
-                return (t, AmfConfig.import_settings(zfile))
+                return (dat, AmfConfig.import_settings(zfile))
 
             else:
               
@@ -136,17 +156,10 @@ def load_annotation_table(level, path):
 
 def estimate_drop(counts):
     """
-    Determine the percentage of background tiles to be dropped to avoid
-    their overrepresentation compared to other annotation classes.
-
-    PARAMETERS
-        - counts (pandas.Series): Total number of tiles for each annotation
-          class, considering all input images.
-
-    RETURNS
-        - the percentage of background tiles to drop, or
-        - 0 if background tiles are not overrepresented compared to other
-          annotation classes.    
+    Determine the percentage of background tiles to skip to avoid
+    overrepresentation of this annotation class. Roots are well
+    spaced in most pictures, resulting in large amount of background
+    tiles.
     """
 
     # Number of background tiles.
@@ -171,22 +184,22 @@ def estimate_drop(counts):
 
 
 
-def load_annotations(input_files):
-    """ Builds the training dataset by extracting tiles from
-        large images, removing some background images where
-        appropriate. """
-
+def load_dataset(input_files):
+    """
+    Loads the full training dataset by generating tables containing
+    tiles and their corresponding annotations.
+    """
 
     print('* Image segmentation.')
 
     # Load annotation tables for all input images.
     level = AmfConfig.get('level')
-    annot_tables = [load_annotation_table(level, x) for x in input_files]
+    annot_tables = [read_tsv(level, x) for x in input_files]
 
     drop = 0
 
-    # Drop estimation is only active when training root segmentation. 
-    if AmfConfig.get('level') == 'RootSegm' and AmfConfig.get('drop') > 0:
+    # Skipping background tiles only applies in training level 1. 
+    if AmfConfig.get('level') == 1 and AmfConfig.get('drop') > 0:
 
         # Remove cases where no pandas.DataFrame was produced
         filtered_tables = [x for x in annot_tables if x is not None]
@@ -208,19 +221,19 @@ def load_annotations(input_files):
 
     for path, data in zip(input_files, annot_tables):
 
-        # Updates tile edge for this image.
-        tsize = data[1]['tile_edge']
-        AmfConfig.set('tile_edge', tsize)
-        base = os.path.basename(path)
-        print(f'    - {base} (tile size: {tsize})... ', end='', flush=True)
-       
         if data is None:
 
             print('Failed')
             continue
 
-        image = pyvips.Image.new_from_file(path, access='random')
+        # Updates tile edge for this image.
+        tsize = data[1]['tile_edge']
+        AmfConfig.set('tile_edge', tsize)
+        base = os.path.basename(path)
+        print(f'    - {base} (tile size: {tsize} pixels)... ',
+              end='', flush=True)
 
+        image = pyvips.Image.new_from_file(path, access='random')
 
         # Loads tiles, omitting some background tiles if needed.
         data = data[0]
@@ -253,33 +266,27 @@ def load_annotations(input_files):
 def get_callbacks():
     """
     Configure Keras callbacks to enable early stopping and learning rate
-    reduction on plateau.
-
-    No parameter.
-
-    Returns a list of callback monitors.
+    reduction when reaching a plateau.
     """
 
-    callbacks = []
-
-    cb = EarlyStopping(monitor='val_loss',
+    # Prevent overfitting and restores best weights.
+    e = EarlyStopping(monitor='val_loss',
            min_delta=0,
-           patience=10,
+           patience=8,
            verbose=1,
            mode='auto',
            restore_best_weights=True)
-    AmfConfig.set('early_stopping', cb)
-    callbacks.append(cb)
+    AmfConfig.set('early_stopping', e)
 
-    cb = ReduceLROnPlateau(monitor='val_loss',
-           factor=0.1,
+    # Reduce learning rate for fine tuning.
+    r = ReduceLROnPlateau(monitor='val_loss',
+           factor=0.2,
            patience=2,
            verbose=1,
-           min_lr=0.0005)
-    AmfConfig.set('reduce_lr_on_plateau', cb)
-    callbacks.append(cb)
+           min_lr=0.000001)
+    AmfConfig.set('reduce_lr_on_plateau', r)
 
-    return callbacks
+    return [e, r]
 
 
 
@@ -288,6 +295,7 @@ class ImageDataGeneratorMO(ImageDataGenerator):
     Patched version of Keras's ImageDataGenerator to support multiple
     single-variable outputs. This requires output data to be a list of 
     identical-length 1D NumPy arrays. Any inefficiency is negligible.
+    Reference: https://github.com/keras-team/keras/issues/3761
     """
 
     def flow(self, x, y=None, **kwargs):
@@ -313,18 +321,15 @@ class ImageDataGeneratorMO(ImageDataGenerator):
 
 def run(input_files):
     """
-    Train a model with a set of input images.
-    
-    PARAMETER
-        - input_files: list of input image paths.
-    
-    No returned value.
+    Creates or loads a convolutional neural network, and trains it
+    with the annotated tiles extracted from input images.
     """
 
+    # Input model (either new or pre-trained).
     model = AmfModel.load()
-    #print(model.summary())
 
-    tiles, labels = load_annotations(input_files)
+    # Input tiles and their corresponding annotations.
+    tiles, labels = load_dataset(input_files)
 
     # Generates training and validation datasets.
     xt, xc, yt, yc = train_test_split(tiles, labels,
@@ -338,21 +343,23 @@ def run(input_files):
     if AmfConfig.get('level') == 1:
 
         # Root segmentation (colonized vs non-colonized vs background).
-        # ConvNet I has a standard single input/single output architecture.
+        # ConvNet I has a standard, single input/single output architecture,
+        # and can use ImageDataGenerator.
         t_gen = ImageDataGenerator(horizontal_flip=True, vertical_flip=True)
         v_gen = ImageDataGenerator()
 
     else:
 
         # AM fungal structures (arbuscules, vesicles, hyphae).
-        # ConvII has multiple outputs and ImageDataGenerator is not suitable.
+        # ConvNet II has multiple outputs. ImageDataGenerator is not suitable.
         # Reference: https://github.com/keras-team/keras/issues/3761
         t_gen = ImageDataGeneratorMO(horizontal_flip=True, vertical_flip=True)
         v_gen = ImageDataGeneratorMO()
         # Reshape one-hot data in a way suitable for ImageDataGeneratorMO:
         # [[a1 v1 h1]...[aN vN hN]] -> [[a1...aN] [v1...vN] [h1...hN]]
-        yt = [np.array([x[i] for x in yt]) for i in range(3)]
-        yc = [np.array([x[i] for x in yc]) for i in range(3)]
+        nclasses = len(AmfConfig.get('header')) # (= 4)
+        yt = [np.array([x[i] for x in yt]) for i in range(nclasses)]
+        yc = [np.array([x[i] for x in yc]) for i in range(nclasses)]
 
     bs = AmfConfig.get('batch_size')
 

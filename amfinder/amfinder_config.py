@@ -38,7 +38,7 @@ PAR = {
     'run_mode': None,
     'level': 1,
     'model': None,
-    'tile_edge': 40,
+    'tile_edge': 126,
     'input_files': ['*.jpg'],
     'batch_size': 32,
     'drop': True,
@@ -54,6 +54,18 @@ PAR = {
         'model_checkpoint': None,
     }
 }
+
+
+
+def tsv_name():
+
+    if PAR['level'] == 1:
+    
+        return 'col.tsv'
+    
+    else:
+
+        return 'myc.tsv'
 
 
 

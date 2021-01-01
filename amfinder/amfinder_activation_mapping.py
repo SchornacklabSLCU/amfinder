@@ -37,8 +37,8 @@ from keras import Model
 from keras.layers import Conv2D
 from keras.layers import Dense
 
-import amfinder_log as cLog
-import amfinder_config as cConfig
+import amfinder_log as AmfLog
+import amfinder_config as AmfConfig
 
 
 
@@ -51,17 +51,17 @@ def initialize(nrows, ncols):
         - ncols: number of tiles on X axis (image width).
 
     Returns a list containing as many blank images as annotation classes
-    at the current level (cf. `cConfig.get('header')`).
+    at the current level (cf. `AmfConfig.get('header')`).
     """
 
-    if cConfig.get('generate_cams'):
+    if AmfConfig.get('generate_cams'):
 
         # Create an empty image, to be used as template.
-        edge = cConfig.get('tile_edge')
+        edge = AmfConfig.get('tile_edge')
         blank = np.zeros((nrows * edge, ncol * edge, 3), np.uint8)
        
         # Create copies of the template blank image for each class.
-        return [blank.copy() for _ in cConfig.get('header')]
+        return [blank.copy() for _ in AmfConfig.get('header')]
 
 
 
@@ -87,7 +87,7 @@ def get_conv_model(model):
             return (last_conv, conv_model)
 
     # We could not find any convolutional layer in the input model.
-    cLog.failwith(f'{model} has no Conv2D layer', cLog.ERR_INVALID_MODEL)
+    AmfLog.failwith(f'{model} has no Conv2D layer', AmfLog.ERR_INVALID_MODEL)
 
 
 
@@ -178,11 +178,11 @@ def make_heatmap(cam, top_pred):
 
     :param cam: class activation map tensor.
     :param top_pred: tells whether the class has highest support for this tile.
-    :return: a false-colored heatmap (``cConfig.get('colormap')``).
+    :return: a false-colored heatmap (``AmfConfig.get('colormap')``).
     """
 
     # Resize the heatmap to input tile size.
-    edge = cConfig.get('tile_edge')
+    edge = AmfConfig.get('tile_edge')
     heatmap = cv2.resize(cam.numpy(), (edge, edge))
 
     # Normalize heatmap values.
@@ -194,7 +194,7 @@ def make_heatmap(cam, top_pred):
     heatmap = (heatmap * 255).astype('uint8')
 
     # Apply colormap.
-    colormap = cConfig.get('colormap') if top_pred else cv2.COLORMAP_BONE
+    colormap = AmfConfig.get('colormap') if top_pred else cv2.COLORMAP_BONE
     color_heatmap = cv2.applyColorMap(heatmap, colormap)
 
     return color_heatmap
@@ -210,9 +210,9 @@ def generate(mosaics, model, row, r):
     :param r: row index.
     """
 
-    if cConfig.get('generate_cams'):
+    if AmfConfig.get('generate_cams'):
 
-        edge = cConfig.get('tile_edge')
+        edge = AmfConfig.get('tile_edge')
 
         # Map the input tile to the activations of the last Conv2D layer.
         last_conv, conv_model = get_conv_model(model)
@@ -226,7 +226,7 @@ def generate(mosaics, model, row, r):
             # The function <compute_cam> returns a boolean which indicates
             # whether the given class is the best match.    
             cams = [compute_cam(i, tile, conv_model, classifier_model)
-                    for i, _ in enumerate(cConfig.get('header'))]
+                    for i, _ in enumerate(AmfConfig.get('header'))]
         
 
             for (cam, is_best_match), mosaic in zip(cams, mosaics):

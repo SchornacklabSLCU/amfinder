@@ -53,8 +53,8 @@ import amfinder_config as AmfConfig
 
 
 INPUT_SIZE = 126
-COLONIZATION_NAME = 'RootSegm'
-MYC_STRUCTURES_NAME = 'IRStruct'
+COLONIZATION_NAME = 'col'
+MYC_STRUCTURES_NAME = 'myc'
 
 
 def convolutions():
@@ -166,7 +166,25 @@ def load():
     if path is not None and os.path.isfile(path):
     
         print(f'* Pre-trained network: {path}')
-        return keras.models.load_model(path)
+        model = keras.models.load_model(path)
+
+        # Updates annotation level based on the structure of the
+        # pre-trained model. The structure is determined by checking
+        # the layer RS (Root Segmentation) and catching error, if any.
+        try:
+
+            model.get_layer('RS')
+            AmfConfig.set('level', 1)
+            print('* Classes: colonized (Myc+), '
+                  'non-colonized (Myc-), background.')
+
+        except ValueError:
+
+            AmfConfig.set('level', 2)
+            print('* Classes: arbuscule, vesicle, '
+                  'hyphopodium, intraradical hypha.')
+
+        return model
 
     else:
 

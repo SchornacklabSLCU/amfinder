@@ -53,10 +53,12 @@ def tile(image, r, c):
 
     edge = AmfConfig.get('tile_edge')
     tile = image.crop(c * edge, r * edge, edge, edge)
+   
+    if AmfModel.INPUT_SIZE != edge:
 
-    ratio = AmfModel.INPUT_SIZE / edge
-    resized = tile.resize(ratio, interpolate=INTERPOLATION)
+        ratio = AmfModel.INPUT_SIZE / edge    
+        tile = tile.resize(ratio, interpolate=INTERPOLATION)
 
-    return np.ndarray(buffer=resized.write_to_memory(),
+    return np.ndarray(buffer=tile.write_to_memory(),
                       dtype=np.uint8,
-                      shape=[resized.height, resized.width, resized.bands])
+                      shape=[tile.height, tile.width, tile.bands])
