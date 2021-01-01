@@ -21,8 +21,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-""" ConvNet Builder.
 
+
+""" ConvNet Builder.
     Builds the convolutional neural networks used by AMFinder.
     
     Constants
@@ -39,6 +40,8 @@
     myc_structures - Builds a network for AM fungal structure prediction.
     load - main function, to be called from outside.
 """
+
+
 
 import os
 import keras
@@ -58,7 +61,9 @@ MYC_STRUCTURES_NAME = 'myc'
 
 
 def convolutions():
-    """ Builds convolution/maxpooling blocks. """
+    """
+    Builds convolution/maxpooling blocks.
+    """
 
     kc = 32
     input_layer = Input(shape=(INPUT_SIZE, INPUT_SIZE, 3))
@@ -106,7 +111,9 @@ def convolutions():
 
 
 def fc_layers(x, label, count=1, activation='sigmoid'):
-    """ Builds fully connected layers (with dropout). """
+    """
+    Builds fully connected layers (with dropout).
+    """
 
     x = Dense(64, kernel_initializer=he_uniform(), activation='relu',
               name = f'FC{label}1')(x)
@@ -121,8 +128,10 @@ def fc_layers(x, label, count=1, activation='sigmoid'):
 
 
 def colonization():
-    """ Builds a single-label, multi-class classifier to discriminate
-        colonized (Y) and non-colonized (N) roots, and background (X). """
+    """
+    Builds a single-label, multi-class classifier to discriminate
+    colonized (Y) and non-colonized (N) roots, and background (X).
+    """
 
     input_layer, flatten = convolutions()
     output_layer = fc_layers(flatten, 'RS', count=3, activation='softmax')
@@ -140,8 +149,11 @@ def colonization():
 
 
 def myc_structures():
-    """ Builds a multi-label, single-class classifier to identify
-        arbuscules (A), vesicles (V) and intraradical hyphae (IH). """
+    """
+    Builds a multi-label, single-class classifier to identify
+    arbuscules (A), vesicles (V), hyphopodia (H), and
+    intraradical hyphae (IH).
+    """
 
     input_layer, flatten = convolutions()
     output_layers = [fc_layers(flatten, x) for x in AmfConfig.get('header')]
@@ -159,7 +171,9 @@ def myc_structures():
 
 
 def load():
-    """ Loads a pre-trained network or initializes a new one. """
+    """
+    Loads a pre-trained network or initializes a new one.
+    """
 
     path = AmfConfig.get('model')
 
@@ -176,20 +190,20 @@ def load():
             model.get_layer('RS')
             AmfConfig.set('level', 1)
             print('* Classes: colonized (Myc+), '
-                  'non-colonized (Myc-), background.')
+                  'non-colonized (Myc-), background (X).')
 
         except ValueError:
 
             AmfConfig.set('level', 2)
-            print('* Classes: arbuscule, vesicle, '
-                  'hyphopodium, intraradical hypha.')
+            print('* Classes: arbuscule (A), vesicle (V), '
+                  'hyphopodium (H), intraradical hypha (I).')
 
         return model
 
     else:
 
         if AmfConfig.get('run_mode') == 'train':
-        
+
             print('* Initializes a new network.')
 
             if AmfConfig.get('level') == 1:
@@ -200,7 +214,7 @@ def load():
 
                 return myc_structures()
         
-        else: # cannot run predictions without a pre-trained model!
+        else: # missing pre-trained model
         
             AmfLog.error('A pre-trained model is required in prediction mode',
                          exit_code=AmfLog.ERR_NO_PRETRAINED_MODEL)
