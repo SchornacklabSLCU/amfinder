@@ -24,8 +24,25 @@
 
 
 """
+AMFinder configuration module.
+Read command-line arguments and store user settings.
 
+Variables
+------------
+HEADERS - Table headers for the different annotation levels. 
+PAR - User settings.
 
+Functions
+------------
+tsv_name - Return the TSV file corresponding to the current annotation level.
+get - Retrieve the value associated with the given parameter ID.
+set - Assign a new value to the given parameter ID.
+training_subparser - Define the command-line parser used in training mode.
+prediction_subparser - Define the command-line parser used in prediction mode.
+build_arg_parser - Build the full command-line parser.
+import_settings - Read tile size from `settings.json`.
+get_input_files - Return the list of vaid input images (based on MIME type).
+initialize - Read command-line arguments and store user-defined values.
 """
 
 
@@ -39,6 +56,8 @@ from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
 import amfinder_log as AmfLog
+
+
 
 HEADERS = [['Y', 'N', 'X'], ['A', 'V', 'H', 'I']]
 
@@ -66,6 +85,9 @@ PAR = {
 
 
 def tsv_name():
+    """
+    Return the TSV file corresponding to the current annotation level. 
+    """
 
     if PAR['level'] == 1:
     
@@ -78,7 +100,9 @@ def tsv_name():
 
 
 def get(id):
-    """ Retrieves application settings. """
+    """
+    Retrieve application settings.
+    """
 
     id = id.lower()
 
@@ -98,7 +122,9 @@ def get(id):
 
 
 def set(id, value, create=False):
-    """ Updates application settings. """
+    """
+    Updates application settings.
+    """
 
     if value is None:
     
@@ -131,7 +157,9 @@ def set(id, value, create=False):
 
 
 def training_subparser(subparsers):
-    """ Defines arguments used in training mode. """
+    """
+    Defines arguments used in training mode.
+    """
 
     parser = subparsers.add_parser('train',
         help='learns how to identify AMF structures.',
@@ -189,7 +217,9 @@ def training_subparser(subparsers):
 
 
 def prediction_subparser(subparsers):
-    """ Defines arguments used in prediction mode. """
+    """
+    Defines arguments used in prediction mode.
+    """
 
     parser = subparsers.add_parser('predict',
         help='Runs AMFinder in prediction mode.',
@@ -229,7 +259,9 @@ def prediction_subparser(subparsers):
 
 
 def build_arg_parser():
-    """ Builds AMFinder command-line parser. """
+    """
+    Builds AMFinder command-line parser.
+    """
 
     main = ArgumentParser(description='AMFinder command-line arguments.',
                           allow_abbrev=False,
@@ -246,14 +278,19 @@ def build_arg_parser():
 
 
 def abspath(files):
-    """Expand wildcards and return absolute paths to input files."""
+    """
+    Expand wildcards and return absolute paths to input files.
+    """
+
     files = sum([glob.glob(x) for x in files], [])
     return [os.path.abspath(x) for x in files]
 
 
 
 def import_settings(zfile):
-    """ Import settings. """
+    """
+    Import settings.
+    """
 
     with zf.ZipFile(zfile) as z:
 
@@ -272,9 +309,10 @@ def import_settings(zfile):
 
 
 def get_input_files():
-    """ This function analyses the input file list and retains
-        images based on their MIME type (files must be either
-        JPEG or TIFF). """
+    """
+    Filter input file list and keep valid JPEG or TIFF images.
+    """
+
     raw_list = abspath(get('input_files'))
     valid_types = ['image/jpeg', 'image/tiff']
     images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
@@ -284,7 +322,10 @@ def get_input_files():
 
 
 def initialize():
-    """ AMFinder initialization function. """
+    """
+    Read command line and store user settings.
+    """
+
     parser = build_arg_parser()
     par = parser.parse_known_args()[0]
 
@@ -292,15 +333,19 @@ def initialize():
     set('run_mode', par.run_mode)
     set('tile_edge', par.edge)
     set('input_files', par.image)
+
     # Sub-parser specific arguments.
     if par.run_mode == 'train':
+
         set('batch_size', par.batch_size)
         set('drop', par.drop)
         set('epochs', par.epochs)
         set('model', par.model)
         set('level', par.level)
         set('vfrac', par.vfrac)
+    
     else: # par.run_mode == 'predict'
+
         set('model', par.model)
         set('generate_cams', par.generate_cams)
         set('colormap', par.colormap)
