@@ -23,27 +23,28 @@
 
 
 
-""" Training module.
-    Trains a convolutional neural network on a set of ink-stained root
-    images annotated to highlight fungal colonization (ConvNet I) or
-    intraradical fungal structures (ConvNet II). Annotations are stored
-    in an auxiliary zip file.
-    
-    Class
-    ------------
-    ImageDataGeneratorMO - Custom data generator for multiple single-variable
-        outputs. Used with ConvNet II.
-        Reference: https://github.com/keras-team/keras/issues/3761
-    
-    Functions
-    ------------
-    load_tile - Load a tile (may return None for background tiles).
-    print_statistics - Print tile count/percentage for each annotation class.
-    read_tsv - Reads the annotation table from the auxiliary zip archive.
-    estimate_drop - Estimate background tiles to omit to reduce class imbalance.
-    load_dataset - Load training dataset (i.e. tiles and annotations).
-    get_callbacks - Set up Keras callbacks.
-    run - Run the training session.
+"""
+Training module.
+Trains a convolutional neural network on a set of ink-stained root
+images annotated to highlight fungal colonization (ConvNet I) or
+intraradical fungal structures (ConvNet II). Annotations are stored
+in an auxiliary zip file.
+
+Class
+------------
+ImageDataGeneratorMO - Custom data generator for multiple single-variable
+    outputs. Used with ConvNet II.
+    Reference: https://github.com/keras-team/keras/issues/3761
+
+Functions
+------------
+load_tile - Load a tile (may return None for background tiles).
+print_statistics - Print tile count/percentage for each annotation class.
+read_tsv - Reads the annotation table from the auxiliary zip archive.
+estimate_drop - Estimate background tiles to omit to reduce class imbalance.
+load_dataset - Load training dataset (i.e. tiles and annotations).
+get_callbacks - Set up Keras callbacks.
+run - Run the training session.
 """
 
 

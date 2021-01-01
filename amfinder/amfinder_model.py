@@ -23,22 +23,23 @@
 
 
 
-""" ConvNet Builder.
-    Builds the convolutional neural networks used by AMFinder.
-    
-    Constants
-    -----------
-    INPUT_SIZE - Size (in pixels) of input images.
-    COLONIZATION_NAME - Name of the root segmentation network.
-    MYC_STRUCTURES_NAME - Name of the AM fungal structure prediction network.
+"""
+ConvNet Builder.
+Builds the convolutional neural networks used by AMFinder.
 
-    Functions
-    ------------
-    convolutions - Builds convolution/maxpooling blocks.
-    fc_layers - Builds fully connected/dropout layers.
-    colonization - Builds a network for root segmentation.
-    myc_structures - Builds a network for AM fungal structure prediction.
-    load - main function, to be called from outside.
+Constants
+-----------
+INPUT_SIZE - Size (in pixels) of input images.
+COLONIZATION_NAME - Name of the root segmentation network.
+MYC_STRUCTURES_NAME - Name of the AM fungal structure prediction network.
+
+Functions
+------------
+convolutions - Builds convolution/maxpooling blocks.
+fc_layers - Builds fully connected/dropout layers.
+colonization - Builds a network for root segmentation.
+myc_structures - Builds a network for AM fungal structure prediction.
+load - main function, to be called from outside.
 """
 
 
