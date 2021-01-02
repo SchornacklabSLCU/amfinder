@@ -36,6 +36,8 @@ Functions
 ------------
 tsv_name - Return the TSV file corresponding to the current annotation level.
 get - Retrieve the value associated with the given parameter ID.
+colonization - Indicate whether the current level is level 1 (colonization).
+intra_struct - Indicate whether the current level is level 2 (structures).
 set - Assign a new value to the given parameter ID.
 training_subparser - Define the command-line parser used in training mode.
 prediction_subparser - Define the command-line parser used in prediction mode.
@@ -118,6 +120,24 @@ def get(id):
 
         AmfLog.warning(f'Unknown parameter {id}')
         return None
+
+
+
+def colonization():
+    """
+    Indicate whether the current level is level 1 (colonization).
+    """
+
+    return get('level') == 1
+
+
+
+def intra_struct():
+    """
+    Indicate whether the current level is level 2 (AM fungal structures).
+    """
+
+    return get('level') == 2
 
 
 
