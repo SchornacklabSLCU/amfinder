@@ -39,7 +39,7 @@ ImageDataGeneratorMO - Custom data generator for multiple single-variable
 Functions
 ------------
 load_tile - Load a tile (may return None for background tiles).
-print_statistics - Print tile count/percentage for each annotation class.
+class_weights - Compute class weights and display statistics.
 read_tsv - Reads the annotation table from the auxiliary zip archive.
 estimate_drop - Estimate background tiles to omit to reduce class imbalance.
 load_dataset - Load training dataset (i.e. tiles and annotations).
@@ -63,7 +63,9 @@ pd.options.mode.chained_assignment = None
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
+
 from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
 
 import amfinder_log as AmfLog
 import amfinder_plot as AmfPlot
@@ -92,30 +94,50 @@ def load_tile(image, drop, data):
 
 
 
-def print_statistics(labels):
+def class_weights(one_hot_labels):
     """
-    Prints the tile count and percentage for each annotation class.
+    Compute weights to counteract class imbalance and display statistics.
+    Note: this functions requires Tensorflow 2.1 (and Keras 2.3.1). Indeed,
+    a bug in TF makes it impossible to se class_weights to models with
+    multiple outputs. This bug is active on January 2021. 
+    Reference: https://github.com/tensorflow/tensorflow/issues/40457
     """
 
-    header = AmfConfig.get('header')
-    hrange = range(len(header))
-    counts = [0] * len(header)
+    if AmfConfig.colonization():
+        
+        # For instance, [[0, 0, 1], [1, 0 , 0]] returns [2, 0]
+        hot_indexes = np.argmax(one_hot_labels, axis=1)
+        class_weights = compute_class_weight('balanced', 
+                                             classes=np.unique(hot_indexes),
+                                             y=hot_indexes)
 
-    for hot in labels:
+        for cls, num, w  in zip(AmfConfig.get('header'), 
+                                np.bincount(hot_indexes),
+                                class_weights):
+        
+            frac = int(round(100.0 * num / len(one_hot_labels)))
+            print(f'    - Class {cls}: {num} tiles ({frac}% of total).')
+            print(f'    - Training weight: {w}')
 
-        for i in hrange:
+        return dict(enumerate(class_weights))
 
-            if hot[i] == 1:
-
-                counts[i] += 1
-
-    print('* Statistics')
-
-    for i in hrange:
-        cls = header[i]
-        num = counts[i]
-        pct = int(round(100.0 * num / sum(counts)))
-        print(f'    - Class {cls}: {num} tiles ({pct}%)')
+    else:
+    
+        class_weights = [compute_class_weight('balanced', 
+                                              classes=np.unique(y),
+                                              y=y) for y in one_hot_labels]
+   
+        sums = [np.bincount(x) for x in one_hot_labels]
+        for cls, ws, sums in zip(AmfConfig.get('header'), class_weights, sums):
+           
+            print('    - ConvNet %s: %d active (weight: %.2f), '
+                  '%d inactive (weight: %.2f).' % (cls, sums[1], ws[1],
+                                                   sums[0], ws[0]))
+    
+        # Output format: {'A': {0: wA0, 1: wA1}, 'V': {0: wV0, 1:wV1}, ...}
+        # where wA0, w1A, wV0, and wV1 are weights (cf. compute_class_weight). 
+        return {x: dict(enumerate(y)) for x, y in zip(AmfConfig.get('header'),
+                                                      class_weights)}
 
 
 
@@ -132,7 +154,7 @@ def read_tsv(level, path):
     if os.path.isfile(zfile) and zf.is_zipfile(zfile):
 
         # Return the tsv filename to read (either 'col.tsv' or 'myc.tsv').
-        tsv = AmConfig.tsv_name()
+        tsv = AmfConfig.tsv_name()
 
         with zf.ZipFile(zfile, 'r') as z:
 
@@ -205,8 +227,15 @@ def load_dataset(input_files):
         # Remove cases where no pandas.DataFrame was produced
         filtered_tables = [x for x in annot_tables if x is not None]
         
+        # This happens when auxiliary zip files do not contain annotations.
+        if len(filtered_tables) == 0:
+        
+            AmfLog.error('Input images do not contain tile annotations. '
+                         'Use amfbrowser to annotate tiles before training',
+                         AmfLog.ERR_NO_DATA)
+        
         # Produces counts (pandas.Series) for each input file.
-        count_list = [x[0].sum() for x in filtered_tables]
+        count_list = [x[0].sum() for x in filtered_tables]       
         
         # Retrieve the grand total.
         counts = functools.reduce(operator.add, count_list)
@@ -222,15 +251,17 @@ def load_dataset(input_files):
 
     for path, data in zip(input_files, annot_tables):
 
+        base = os.path.basename(path)
+
         if data is None:
 
-            print('Failed')
+            print(f'    - {base}... Failed')
             continue
 
         # Updates tile edge for this image.
         tsize = data[1]['tile_edge']
         AmfConfig.set('tile_edge', tsize)
-        base = os.path.basename(path)
+
         print(f'    - {base} (tile size: {tsize} pixels)... ',
               end='', flush=True)
 
@@ -252,8 +283,6 @@ def load_dataset(input_files):
         print('OK')
 
         del image
-
-    print_statistics(labels)
 
     # Preprocessing and conversion to NumPy arrays.
     preprocess = lambda x: x / 255.0
@@ -328,7 +357,8 @@ def run(input_files):
 
     # Input model (either new or pre-trained).
     model = AmfModel.load()
-
+    #model.summary()
+    
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)
 
@@ -362,10 +392,14 @@ def run(input_files):
         yt = [np.array([x[i] for x in yt]) for i in range(nclasses)]
         yc = [np.array([x[i] for x in yc]) for i in range(nclasses)]
 
+    # Determine weights to counteract class imbalance.
+    weights = class_weights(yt)
+
     bs = AmfConfig.get('batch_size')
 
     his = model.fit(t_gen.flow(xt, yt, batch_size=bs),
                     steps_per_epoch=len(xt) // bs,
+                    class_weight=weights,
                     epochs=AmfConfig.get('epochs'),
                     validation_data=v_gen.flow(xc, yc, batch_size=bs),
                     validation_steps=len(xc) // bs,
