@@ -77,7 +77,7 @@ let others = function
 
 let symbols = function
     | true  -> ["AM fungi (M+)"; "Plant root (M−)"; "Background (×)"]
-    | false -> ["Arbuscule (A)";  "Vesicle (V)";        "Hypha (H)"]
+    | false -> ["Arbuscule"; "Vesicle"; "Hyphopodium"; "Hypha"]
 
 let icon_text = function
     | true  -> List.combine col_header ["M+"; "M−"; "×"]
@@ -87,8 +87,20 @@ let transparency = "B0"
 let process = List.map (fun s -> s ^ transparency)
 
 let colors = function
-    | true  -> process ["#ff00ff"; "#0099FF"; "#909090"]
-    | false -> process ["#0055FF"; "#ff00ff"; "#31FF12"; "#FFA000"]
+    | true  -> process ["#0099FF"; "#e8c775"; "#f0f0f0"]
+    | false -> process ["#0055FF"; "#FF00FF"; "#31FF12"; "#FFA000"]
+
+let tip = function
+    | 'Y' -> "Colonized root section (keyboard: Y or +)"
+    | 'N' -> "Non-colonized root section (keyboard: N or -)"
+    | 'X' -> "Non-root tile (keyboard: X)"
+    | 'A' -> "Arbuscule (keyboard: A)"
+    | 'V' -> "Vesicle (keyboard: V)"
+    | 'H' -> "Hyphopodium (keyboard: H)"
+    | 'I' -> "Intraradical hypha (keyboard: I)"
+    |  _  -> assert false
+
+
 
 module type ANNOTATION_RULES = sig
     val add_add : char -> CSet.t

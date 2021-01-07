@@ -22,20 +22,28 @@
  * IN THE SOFTWARE.
  *)
 
+open AmfConst
 
-
+(* Description:
+ * (a) Creates an empty association table for memoization (<store>).
+ * (b) Defines the initial function returned by <create>.
+ * (c) If the input value <x> is absent from the table <store>. 
+ * (d) Computes the actual result (<y = f x>).
+ * (e) Stores the result in <store> using <x> as key.
+ * (f) Returns the result.
+ * (g) If <x> is part of <store>, returns the saved result. *)
 let create f =
-    let tbl = ref [] in
-    fun x ->
-        match List.assoc_opt x !tbl with
-        | None -> let res = f x in
-            tbl := (x, res) :: !tbl;
-            res
-        | Some res -> res
+    let store = ref [] (* a *) in
+    fun x -> (* b *)
+        match List.assoc_opt x !store with
+        | None (* c *)-> let y = f x (* d *) in
+            store := (x, y) :: !store; (* e *)
+            y (* f *)
+        | Some y (* g *) -> y
 
-let cursor = create (AmfSurface.Annotation.cursor "#CC0000FF")
-let dashed_square = create (AmfSurface.Annotation.dashed "#000000FF")
-let locked_square = create (AmfSurface.Annotation.locked "#80808090")
+let cursor = create AmfSurface.Annotation.cursor
+let dashed_square = create AmfSurface.Annotation.dashed
+let locked_square = create AmfSurface.Annotation.locked
 let empty_square = create (AmfSurface.Annotation.empty "#808080FF")
 
 let palette =
@@ -45,14 +53,21 @@ let palette =
         |> (fun color -> create (AmfSurface.Prediction.filled color))
     )
 
-let make_surface level chr x =
+let make_surface ?grayscale level chr x =
     AmfLevel.icon_text level
     |> List.assoc_opt chr
-    |> (fun symbol -> (level, chr), create (AmfSurface.Annotation.filled ?symbol x))
+    |> (fun symbol -> (level, chr),
+        create (AmfSurface.Annotation.filled ?symbol ?grayscale x))
 
 let layers =
     List.map AmfLevel.(fun x ->
         List.map2 (make_surface x) (to_header x) (colors x)
+    ) AmfLevel.all
+    |> List.flatten
+
+let gray_layers =
+    List.map AmfLevel.(fun x ->
+        List.map2 (make_surface ~grayscale:true x) (to_header x) (colors x)
     ) AmfLevel.all
     |> List.flatten
 

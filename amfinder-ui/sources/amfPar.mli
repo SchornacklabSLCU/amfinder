@@ -22,8 +22,15 @@
  * IN THE SOFTWARE.
  *)
 
+(** Command-line settings. *)
+
 val edge : int ref
 
 val path : string option ref
 
+val verbose : unit -> bool
+(** [verbose ()] indicates whether the application runs in verbose mode.
+  * It is recommended to switch on this mode for debugging. *)
+
 val initialize : unit -> unit 
+(** [initialize ()] reads command-line arguments. *)

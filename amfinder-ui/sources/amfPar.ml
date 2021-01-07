@@ -27,15 +27,23 @@ open Printf
 
 let edge = ref 126
 let path = ref None
+let debug = ref false
+
+let verbose () = !debug
 
 let set_image_path x = if Sys.file_exists x then path := Some x
 
-let usage = "amfinder.exe [OPTIONS] [IMAGE_PATH]"
+let usage = "amfbrowser.exe [OPTIONS] [[IMAGE] ...]"
 
 let specs = align [
     "-t", Set_int edge, sprintf 
         " Tile size used for image segmentation (default: %d pixels)." !edge;
     "--tile", Set_int edge,
         sprintf " Tile size used for image segmentation (default: %d pixels)." !edge;
+    "-v", Set debug, sprintf 
+        " Runs the application in verbose/debugging mode (default: %b)." !debug;
+    "--verbose", Set debug, sprintf 
+        " Runs the application in verbose/debugging mode (default: %b)." !debug;
 ]
+
 let initialize () = parse specs set_image_path usage

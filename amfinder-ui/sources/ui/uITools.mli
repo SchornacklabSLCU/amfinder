@@ -24,16 +24,29 @@
 
 (** Toolbox *)
 
+(** Input module. *)
 module type PARAMS = sig
     val packing : GObj.widget -> unit
     val border_width : int
+    val tooltips : GData.tooltips
 end
 
+(** Output module. *)
 module type S = sig
     val toolbar : GButton.toolbar
-    val erase : GButton.tool_button
+    (** GtkToolbar widget containing shared tools. *)
+
+    val config : GButton.tool_button
+    (** User settings. *)
+
+    val export : GButton.tool_button
+    (** Export button. *)
+
     val snapshot : GButton.tool_button
+    (** Snapshot button. *)
+
 end
+
 
 module Make : PARAMS -> S
 (** Generator. *)

@@ -25,26 +25,30 @@
 (** AMFinder constants. *)
 
 
+
+(** {1 Grid settings} *)
+
 val _EDGE_ : int
 (** Edge of a tile when displayed in the interface, in pixels. *)
 
 val _WMAX_ : int
-(* Number of tiles to be displayed on the X axis. *)
+(** Number of tiles to be displayed on the X axis. *)
 
 val _HMAX_ : int
-(* Number of tiles to be displayed on the Y axis. *)
+(** Number of tiles to be displayed on the Y axis. *)
 
 val _WMAT_ : int
-(* Width of the displayed tile matrix, in pixels. *)
+(** Width of the displayed tile matrix, in pixels. *)
 
 val _HMAT_ : int
-(* Height of the displayed tile matrix, in pixels. *)
-
-val _DEBUG_ : bool
-(** Tells whether the application runs in debugging mode. *)
+(** Height of the displayed tile matrix, in pixels. *)
 
 val _BGCOLOR_ : string
 (** Background color used in the GtkDrawingArea. *)
+
+
+
+(** {1 Magnified view} *)
 
 val _MAGN_ : int
 (** Edge (in pixels) of the tiles displayed in the magnified view. *)
@@ -52,3 +56,12 @@ val _MAGN_ : int
 val _BLANK_ : GdkPixbuf.pixbuf
 (** Blank tile to be displayed in the magnified view where appropriate. *)
 
+
+
+(** {1 Icon size} *)
+
+val _LARGE_ : int
+(** Edge of a large icon, in pixels. *)
+
+val _SMALL_ : int
+(** Edge of a small icon, in pixels. *)

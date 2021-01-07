@@ -30,8 +30,6 @@ let _HMAX_ = 12
 let _WMAT_ = _WMAX_ * _EDGE_
 let _HMAT_ = _HMAX_ * _EDGE_
 
-let _DEBUG_ = false
-
 let _BGCOLOR_ = "#FFFFFFFF"
 
 let _MAGN_ = 180
@@ -40,3 +38,6 @@ let _BLANK_ =
     let pix = GdkPixbuf.create ~width:_MAGN_ ~height:_MAGN_ () in
     GdkPixbuf.fill pix 0l;
     pix
+
+let _LARGE_ = 48
+let _SMALL_ = 24

@@ -33,26 +33,26 @@ let message ~action ~label format =
 
 let info format = message
     ~action:print_endline
-    ~label:"Info"
+    ~label:"INFO"
     format
 
 
 let info_debug format = message
-    ~action:(if _DEBUG_ then print_endline else ignore)
-    ~label:"Debug"
+    ~action:(if AmfPar.verbose () then print_endline else ignore)
+    ~label:"DEBUG"
     format
 
 
 let warning format = message
     ~action:prerr_endline
-    ~label:"Warning"
+    ~label:"WARNING"
     format
 
 
 
 let error ?(code = 2) format = message
     ~action:(fun msg -> prerr_endline msg; exit code)
-    ~label:"Error"
+    ~label:"ERROR"
     format
 
 

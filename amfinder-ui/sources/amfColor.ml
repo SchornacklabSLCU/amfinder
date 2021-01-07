@@ -23,6 +23,7 @@
  *)
 
 open Scanf
+open Printf
 
 type red = float
 type blue = float
@@ -32,11 +33,12 @@ type alpha = float
 let opacity = float 0xB0 /. 255.0
 
 let rgb_from_name = function
-    | "cyan"    -> "#00FFFF"
-    | "green"   -> "#00FF00"
-    | "white"   -> "#FFFFFF"
-    | "yellow"  -> "#FFFF00"
-    | "magenta" -> "#FF00FF"
+    | "cyan"    -> "#00ffff"
+    | "green"   -> "#00ff00"
+    | "white"   -> "#ffffff"
+    | "black"   -> "#000000"
+    | "yellow"  -> "#ffff00"
+    | "magenta" -> "#ff00ff"
     | other     -> other
 
 let rgba_from_name raw_color = 
@@ -55,3 +57,12 @@ let parse_rgba s =
     assert (String.length s >= 9);
     sscanf (rgba_from_name s) "#%02x%02x%02x%02x" 
         (fun r g b a -> normalize r, normalize g, normalize b, normalize a)
+
+let parse_desaturate s =
+    let r, g, b, a = match String.length s with
+        | 7 -> let r, g, b = parse_rgb s in (r, g, b, 1.0)
+        | 9 -> parse_rgba s
+        | _ -> AmfLog.warning "Invalid color %s" s; (1.0, 1.0, 1.0, 1.0)
+    in
+    let g = max 0.0 (min 1.0 (r *. 0.30 +. g *. 0.59 +. b *. 0.11)) in
+    (g, g, g, a)

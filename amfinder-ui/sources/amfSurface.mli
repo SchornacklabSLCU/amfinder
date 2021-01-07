@@ -63,19 +63,26 @@ end
 (** Square tile drawings corresponding to annotations. *)
 module Annotation : sig
 
-    val cursor : color -> pixels -> Surface.t
+    val cursor : pixels -> Surface.t
     (** Square with a thick stroke. *)
 
-    val filled : ?symbol:string -> color -> pixels -> Surface.t
+    val filled :
+        ?symbol:string ->
+        ?force_symbol:bool ->
+        ?base_font_size:float -> 
+        ?grayscale:bool -> color -> pixels -> Surface.t
     (** Rounded, filled square with a centered symbol. *)
 
-    val colors : color list -> pixels -> Surface.t
+    val colors :
+        ?symbol:string ->
+        ?symbol_color:string ->
+        ?base_font_size:float -> color list -> pixels -> Surface.t
     (** Rounded square filled with multiple colors. *)
 
-    val dashed : color -> pixels -> Surface.t
+    val dashed : pixels -> Surface.t
     (** Square with a dashed stroke and an eye symbol. *)
     
-    val locked : color -> pixels -> Surface.t
+    val locked : pixels -> Surface.t
     (** Square with a dashed stroke and a red lock. *)
 
     val empty : color -> pixels -> Surface.t

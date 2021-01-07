@@ -42,7 +42,7 @@ val get : char -> size -> style -> GdkPixbuf.pixbuf
   * valid character. *)
 
 
-(** Miscellaneous icons. *)
+(** Misc icons. *)
 module Misc : sig
     val cam : style -> GdkPixbuf.pixbuf
     (** Icon for class activation maps. *)
@@ -56,15 +56,21 @@ module Misc : sig
     val palette : GdkPixbuf.pixbuf
     (** Icon for color palettes. *)
 
-    val erase : GdkPixbuf.pixbuf
-    (** Icon for eraser. *)
+    val config : GdkPixbuf.pixbuf
+    (** Icon to decorate the user settings button. *)
+
+    val export : GdkPixbuf.pixbuf
+    (** Icon to decorate the export button. *)
 
     val snapshot : GdkPixbuf.pixbuf
-    (** Icon for snapshot. *)
+    (** Icon to decorate the snapshot button. *)
 
     val show_preds : GdkPixbuf.pixbuf
     (** Add predictions. *)
     
     val hide_preds : GdkPixbuf.pixbuf
     (** Remove predictions. *)
+    
+    val amfbrowser : GdkPixbuf.pixbuf
+    (** Main application icon. *)
 end

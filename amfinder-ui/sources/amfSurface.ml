@@ -23,6 +23,7 @@
  *)
 
 open Cairo
+open AmfConst
 
 type pixels = int
 type color = string
@@ -33,7 +34,6 @@ let pi4 = pi /. 4.0
 let twopi = 2.0 *. pi
 let twopi3 = twopi /. 3.0
 let twopi4 = twopi /. 4.0
-
 
 
 let rectangle ?rgba ~w ~h =
@@ -136,22 +136,32 @@ module Annotation = struct
       ?(rounded = false)
       ?(symbol = "")
       ?(symbol_color = "#FFFFFFFF")
-      ?(font_size = 16.0)
       ?(font_face = "Arial")
+      ?(base_font_size = 16.0)
       ?(font_weight = Bold)
       ?(dash = [||])
       ?(stroke = false)
-      ?(dash_color = "#000000FF")
+      ?(dash_color = "#808080ff")
       ?(line_width = 1.0)
       ?(fill = true)
       ?(fill_color = "#FFFFFFB0")
-      ?(multicolor = []) edge =
+      ?(multicolor = [])
+      ?(desaturate = false)
+      ?(grayscale = false) edge =
 
         (* Simple checks. Other values may be malformed as well. *)
-        assert (font_size > 0.0
-                 && line_width > 0.0
-                 && margin >= 0.0
-                 && mod_float margin 2.0 = 0.0);
+        assert (line_width > 0.0
+             && margin >= 0.0
+             && mod_float margin 2.0 = 0.0);
+
+        (* Select color parser based on color/gray mode. *)
+        let color_parser = match desaturate with
+            | true -> AmfColor.parse_desaturate
+            | false -> AmfColor.parse_rgba 
+        in
+
+        (* Make font size relative to tile edge. *)
+        let font_size = float edge *. base_font_size /. (float _EDGE_) in
 
         let surface = Image.(create ARGB32 ~w:edge ~h:edge) in
         let t = create surface in
@@ -163,18 +173,19 @@ module Annotation = struct
             (* Multicolor display for mycorrhiza structures. *)
             if multicolor <> [] then begin
                 let w = edge *. 0.5 in
+                let ys = [|0; 1; 1; 0|] in
                 List.iteri (fun i color ->
                     rounded_rectangle ~rad:2.5 t
                         (half +. float (i / 2) *. w)
-                        (half +. float (i mod 2) *. w) ~w ~h:w;
-                    let r, g, b, a = AmfColor.parse_rgba color in
+                        (half +. float ys.(i) *. w) ~w ~h:w;
+                    let r, g, b, a = color_parser color in
                     set_source_rgba t r g b a;
                     Cairo.fill t
                 ) multicolor;
             end else begin
-                if rounded then rounded_rectangle t half half ~w:edge ~h:edge
-                else Cairo.rectangle t half half ~w:edge ~h:edge;
-                let r, g, b, a = AmfColor.parse_rgba fill_color in
+                rounded_rectangle t half half ~w:edge ~h:edge;
+                let clr = if grayscale then "#B0B0B0FF" else fill_color in
+                let r, g, b, a = color_parser clr in
                 set_source_rgba t r g b a;
                 Cairo.fill t
             end;
@@ -182,9 +193,10 @@ module Annotation = struct
 
         (* Centered symbol. *)
         if symbol = "" then begin
+            (* TODO: make this an optional parameter? *)
+            set_source_rgba t 0.6 0.6 0.6 1.0;
             (* Eye symbol for masked annotations. *)
             if eye then begin
-                set_source_rgba t 0.0 0.0 0.0 1.0;
                 let radius = 4.0 in
                 let centre = margin +. 0.5 *. (edge -. radius) in 
                 arc t centre centre ~r:radius ~a1:0.0 ~a2:twopi;
@@ -195,14 +207,11 @@ module Annotation = struct
                 arc t 0.0 0.0 ~r:1.0 ~a1:0.0 ~a2:twopi;
                 restore t;
                 Cairo.stroke t;
-                set_source_rgba t 1.0 0.0 0.0 1.0;
-                move_to t (2.0 *. margin) (2.0 *. margin);
-                line_to t (edge -. margin) (edge -. margin);
+                move_to t (2.5 *. margin) (2.5 *. margin);
+                line_to t (edge -. 1.5 *. margin) (edge -. 1.5 *. margin);
                 Cairo.stroke t;
             (* Lock symbol for non-editable tiles. *)
             end else if lock then begin
-                let r, g, b, a = AmfColor.parse_rgba dash_color in
-                set_source_rgba t r g b a;
                 set_line_width t 2.0;
                 let w = 14.0 and h = 10.0 in
                 let centre = margin +. 0.5 *. edge in
@@ -220,6 +229,7 @@ module Annotation = struct
             let r, g, b, a = AmfColor.parse_rgba symbol_color in
             set_source_rgba t r g b a;
             select_font_face t font_face ~weight:font_weight;
+            AmfLog.info "Symbol=%s font_size=%.1f" symbol font_size;
             set_font_size t font_size;
             let te = text_extents t symbol in
             let centre = half +. 0.5 *. edge in 
@@ -231,7 +241,7 @@ module Annotation = struct
 
         (* Solid or dashed stroke. *)
         if stroke || Array.length dash > 0 then begin
-            let r, g, b, a = AmfColor.parse_rgba dash_color in
+            let r, g, b, a = color_parser dash_color in
             set_source_rgba t r g b a;
             set_line_width t line_width;
             set_dash t dash;
@@ -241,25 +251,23 @@ module Annotation = struct
         surface
 
     (* Specialized versions. *)
-    let cursor dash_color x = draw 
+    let cursor x = draw 
         ~margin:0.0
         ~fill:false
         ~line_width:5.0
         ~stroke:true
-        ~dash_color x
+        ~dash_color:"#ff0000ff" x
 
-    let dashed dash_color x = draw
+    let dashed x = draw
         ~eye:true
         ~dash:[|2.0|]
-        ~line_width:1.5
-        ~dash_color x
+        ~line_width:1.5 x
 
-    let locked dash_color x = draw
+    let locked x = draw
         ~lock:true
         ~dash:[|2.0|]
-        ~fill_color:"#FFFFFF90"
-        ~line_width:1.5
-        ~dash_color x
+        ~fill_color:"#f8f8f7ff"
+        ~line_width:1.5 x
 
     let empty dash_color x = draw
         ~stroke:true
@@ -267,14 +275,16 @@ module Annotation = struct
         ~line_width:1.5
         ~dash_color x
 
-    let filled ?symbol fill_color x =
-        let f = draw ~rounded:true ~stroke:true in
+    let filled ?symbol ?(force_symbol = false) ?base_font_size ?grayscale fill_color x =
+        let f = draw ?base_font_size ?grayscale ~rounded:true ~stroke:true in
         match symbol with 
-        | Some "×" -> f ~fill_color:"#FFFFFF90" ~dash_color:"#80808090"
+        | Some "×" -> let symbol = if force_symbol then symbol else None in
+            f ?symbol ~fill_color ~dash_color:"#808080ff"
             ~dash:[|2.0|] ~line_width:1.5 x
         | _ -> f ~fill_color ?symbol x
         
-    let colors t x = draw ~multicolor:t ~stroke:true  x
+    let colors ?symbol ?symbol_color ?base_font_size t x =
+        draw ?symbol ?symbol_color ?base_font_size ~multicolor:t ~stroke:true x
 
 end
 
@@ -289,14 +299,16 @@ module Prediction = struct
     let centre ?(margin = 2.0) edge = margin +. (radius ~margin edge)
 
     (* Draw filled background of any color (defaults to light grey). *)
-    let draw_background ?(color = "#B3B3B3") context centre radius =
+    let draw_background
+      ?(color = "#B3B3B3")
+      ?(opacity = AmfColor.opacity) context centre radius =
         let r, g, b = AmfColor.parse_rgb color in
-        set_source_rgba context r g b AmfColor.opacity;
+        set_source_rgba context r g b opacity;
         arc context centre centre ~r:radius ~a1:0.0 ~a2:twopi;
         fill context
 
     (* Draw rings corresponding to probabilities of 1/3, 2/3 and 1. *)
-    let draw_rings ?(color = "#606060") ?(init = 1) context centre radius =
+    let draw_rings ?(color = "#000000") ?(init = 1) context centre radius =
         assert (init >= 0 && init <= 3);
         let r, g, b = AmfColor.parse_rgb color in
         set_source_rgba context r g b 1.0;
@@ -307,10 +319,11 @@ module Prediction = struct
         done
 
     (* Draw a filled dot at the given coordinates. *)
-    let draw_dot ?(color = "#606060") context x y =
+    let draw_dot ?(color = "#000000") context x y =
         let r, g, b = AmfColor.parse_rgb color in
         set_source_rgba context r g b 1.0;
-        arc context x y ~r:1.0 ~a1:0.0 ~a2:twopi;
+        arc context x y ~r:3.0 ~a1:0.0 ~a2:twopi;
+        set_line_width context 2.0;
         fill context
 
     (* Draw radar polyline surface. *)
@@ -323,7 +336,7 @@ module Prediction = struct
             | _ -> line_to t x y
         ) segm;
         Path.close t;
-        set_source_rgba t 1.0 1.0 1.0 0.65;
+        set_source_rgba t 0.5 0.5 0.5 0.75;
         fill t
 
     (* Circle filled with a uniform color. *)
@@ -373,24 +386,38 @@ module Prediction = struct
         draw_dot context centre centre;
         surface
 
+    let radar_singleton ?(margin = 2.0) pos color edge =
+        let context, surface = square edge in
+        let edge = float edge in
+        (* edge = margin + radius + radius + margin. *)
+        let radius = radius ~margin edge
+        and centre = centre ~margin edge in
+        draw_background ~color:"#f8f8f7" ~opacity:1.0 context centre radius;
+        draw_rings ~color:"#303030" context centre radius;
+        let angle = -. 3.0 *. pi4 -. float pos *. twopi4 in
+        let x = radius *. cos angle +. centre
+        and y = radius *. sin angle +. centre in
+        draw_dot ~color context x y;
+        surface
+
     let radar ?(margin = 2.0) prob_list colors edge =
         let context, surface = square edge in
         let edge = float edge in
         (* edge = margin + radius + radius + margin. *)
         let radius = radius ~margin edge
         and centre = centre ~margin edge in
-        draw_background context centre radius;
-        draw_rings context centre radius;
+        draw_background ~color:"#f8f8f7" ~opacity:1.0 context centre radius;
+        draw_rings ~color:"#303030" context centre radius;
         (* Polar coordinates centered at (centre, centre). *)
         let calc_xy_and_df (segm, dots, angle) color prob =
             let x = prob *. radius *. cos angle +. centre
             and y = prob *. radius *. sin angle +. centre in
             let f () = draw_dot ~color context x y in
-            ((x, y) :: segm, f :: dots, angle +. twopi4)
+            ((x, y) :: segm, f :: dots, angle -. twopi4)
         in
         let xy, df, _ =
             List.fold_left2 calc_xy_and_df
-            ([], [], pi4) colors prob_list
+            ([], [], -.3.0 *. pi4) colors prob_list
         in
         (* Draw radar surface, then dots. *)
         draw_polyline context xy;
@@ -432,13 +459,25 @@ module Legend = struct
         show_text t "high";
         surface
 
+    let sum ?(lim = -1) t =
+        Array.fold_left (fun (j, s) n ->
+            if lim = -1 then (-1, s + n) else
+            if j < lim then (j + 1, s + n)
+            else (j, s) 
+        ) (0, 0) t |> snd
+
+    let hspaces = function
+        | true  -> [|140; 140; 140|]
+        | false -> [|105; 85; 130; 75|]
+
     let classes () =
         let level = AmfUI.Levels.current () in
         let symbs = AmfLevel.symbols level
         and colors = AmfLevel.colors level in
         let len = List.length colors in
         let margin = 8 in
-        let w = 140 * len + 2 * margin and h = 30 + 2 * margin in
+        let uni = hspaces (len = 3) in
+        let w = sum uni + 2 * margin and h = 30 + 2 * margin in
         let surface = Image.(create ARGB32 ~w ~h) in
         let t = create surface in
         set_antialias t ANTIALIAS_SUBPIXEL;
@@ -452,10 +491,17 @@ module Legend = struct
         List.iter2 (fun symb color ->
             let r, g, b = AmfColor.parse_rgb color in
             set_source_rgba t r g b AmfColor.opacity;
-            let x = float (margin + 140 * !index) in
-            arc t (x +. 15.0) (float margin +. 15.0) ~r:15.0 ~a1:0.0 ~a2:twopi;
-            fill t;
-            stroke t;
+            let x = float (margin + sum ~lim:!index uni)
+            and y = float margin in
+            if AmfUI.Levels.current () = AmfLevel.col then (
+                arc t (x +. 15.0) (y +. 15.0) ~r:15.0 ~a1:0.0 ~a2:twopi;
+                fill t
+            ) else (
+                (* Pseudo-radar with just one dot. *)
+                let surface = Prediction.radar_singleton !index color 30 in
+                set_source_surface t surface ~x ~y;
+                paint t
+            );
             set_source_rgba t 0.0 0.0 0.0 1.0;
             let x = x +. 32.0 and y = float margin +. 15.0 +. te.height /. 2.0 in
             move_to t x y;
@@ -464,4 +510,76 @@ module Legend = struct
         ) symbs colors;
         surface
  
+end
+
+
+
+module Icons = struct
+
+    let filename ?(grayscale = false) chr =
+        let suf = if grayscale then "grey" else "rgba" in
+        Printf.sprintf "data/icons/annotations/%c_%s.png" chr suf
+
+    let myc_surface_from_char ?(grayscale = false) elt =
+        let open AmfLevel in
+        let symbs = AmfLevel.icon_text myc in
+        let colors = List.map2 (fun chr clr ->
+            if chr = elt then
+                (if grayscale then "#B0B0B0FF" else clr)
+            else "#FFFFFF00"
+        ) (to_header myc) (colors myc)
+        in Annotation.colors
+            ~symbol:(List.assoc elt symbs)
+            ~symbol_color:"#808080FF"
+            ~base_font_size:24.0
+            colors _LARGE_
+
+    let make_surface () =
+        let surface = Image.create Image.ARGB32 ~w:_LARGE_ ~h:_LARGE_ in
+        let context = create surface in
+        set_line_width context 1.0;
+        set_antialias context ANTIALIAS_SUBPIXEL;
+        set_source_rgba context 0.0 0.0 0.0 0.0;
+        Cairo.rectangle context 0.0 0.0 ~w:(float _LARGE_) ~h:(float _LARGE_);
+        fill context;
+        surface, context
+
+    let make_png ?(grayscale = false) level chr color =
+        let surface, context = make_surface ()
+        and symbs = AmfLevel.icon_text level in
+        let icon =
+            if AmfLevel.is_col level then
+                Annotation.filled
+                    ~symbol:(List.assoc chr symbs)
+                    ~force_symbol:true
+                    ~base_font_size:(if chr = 'X' then 40.0 else 20.0)
+                    ~grayscale color _LARGE_
+            else myc_surface_from_char ~grayscale chr
+        in
+        Cairo.set_source_surface context icon ~x:0.0 ~y:0.0;
+        Cairo.paint context;
+        Cairo.PNG.write surface (filename ~grayscale chr)
+
+    let make_frame color png_file =
+        let surface, context = make_surface () in
+        let icon = Annotation.filled color _LARGE_ in
+        Cairo.set_source_surface context icon ~x:0.0 ~y:0.0;
+        Cairo.paint context;
+        Cairo.PNG.write surface png_file
+
+    let make ?grayscale () =
+        List.iter (fun level ->
+            List.iter2 (make_png ?grayscale level)
+                (AmfLevel.to_header level)
+                (AmfLevel.colors level)
+        ) AmfLevel.[col; myc]
+
+    let generate () =
+        make ();
+        make ~grayscale:true ();
+        make_frame "#88aa00ff" "add.png";
+        make_frame "#aa0000ff" "remove.png";
+        make_frame "#b0b0b0ff" "inactive.png"
+
+    (* let _ = generate () *)
 end

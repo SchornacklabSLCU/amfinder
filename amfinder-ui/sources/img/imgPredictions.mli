@@ -32,6 +32,9 @@ class type cls = object
     method current : string option
     (** Return the identifier of the active prediction table. *)
 
+    method current_level : AmfLevel.level option
+    (** Returns the level of the active predictions. *)
+
     method set_current : string option -> unit
     (** Define the active prediction table. *)
 

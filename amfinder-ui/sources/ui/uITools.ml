@@ -25,11 +25,13 @@
 module type PARAMS = sig
     val packing : GObj.widget -> unit
     val border_width : int
+    val tooltips : GData.tooltips
 end
 
 module type S = sig
     val toolbar : GButton.toolbar
-    val erase : GButton.tool_button
+    val config : GButton.tool_button
+    val export : GButton.tool_button
     val snapshot : GButton.tool_button
 end
 
@@ -46,22 +48,6 @@ module Make (P : PARAMS) : S = struct
     let _ = UIHelper.separator packing
     let _ = UIHelper.label packing "<b><small>Toolbox</small></b>"
 
-    let erase = 
-        let btn = GButton.tool_button ~packing () in
-        let box = GPack.hbox
-            ~spacing:2
-            ~packing:btn#set_label_widget () in
-        let _ = GMisc.image 
-            ~width:25
-            ~pixbuf:AmfIcon.Misc.erase
-            ~packing:(box#pack ~expand:false) ()
-        and _ = GMisc.label
-            ~markup:(UIHelper.pango_small "Eraser")
-            ~xalign:0.0
-            ~yalign:0.5
-            ~packing:box#add () in
-        btn
-    
     let snapshot = 
         let btn = GButton.tool_button ~packing () in
         let box = GPack.hbox
@@ -73,6 +59,39 @@ module Make (P : PARAMS) : S = struct
             ~packing:(box#pack ~expand:false) ()
         and _ = GMisc.label
             ~markup:(UIHelper.pango_small "Snap")
+            ~xalign:0.0
+            ~yalign:0.5
+            ~packing:box#add () in
+        btn
+
+    let export = 
+        let btn = GButton.tool_button ~packing () in
+        let box = GPack.hbox
+            ~spacing:2
+            ~packing:btn#set_label_widget () in
+        let _ = GMisc.image 
+            ~width:25
+            ~pixbuf:AmfIcon.Misc.export
+            ~packing:(box#pack ~expand:false) ()
+        and _ = GMisc.label
+            ~markup:(UIHelper.pango_small "Export")
+            ~xalign:0.0
+            ~yalign:0.5
+            ~packing:box#add () in
+        btn
+
+    let config = 
+        let btn = GButton.tool_button ~packing () in
+        P.tooltips#set_tip ~text:"Application settings" btn#coerce;
+        let box = GPack.hbox
+            ~spacing:2
+            ~packing:btn#set_label_widget () in
+        let _ = GMisc.image 
+            ~width:25
+            ~pixbuf:AmfIcon.Misc.config
+            ~packing:(box#pack ~expand:false) ()
+        and _ = GMisc.label
+            ~markup:(UIHelper.pango_small "Settings")
             ~xalign:0.0
             ~yalign:0.5
             ~packing:box#add () in

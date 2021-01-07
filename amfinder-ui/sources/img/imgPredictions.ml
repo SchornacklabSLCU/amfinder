@@ -28,6 +28,7 @@ open Morelib
 class type cls = object
     method ids : AmfLevel.level -> string list
     method current : string option
+    method current_level : AmfLevel.level option
     method set_current : string option -> unit
     method active : bool
     method count : int
@@ -50,7 +51,7 @@ module Aux = struct
 
     let level_of_header = function
         | ["row"; "col"; "Y"; "N"; "X"] -> Some AmfLevel.col
-        | ["row"; "col"; "A"; "V"; "H"] -> Some AmfLevel.myc
+        | ["row"; "col"; "A"; "V"; "H"; "I"] -> Some AmfLevel.myc
         | _ -> AmfLog.warning "Malformed header in prediction table"; None
 
     let nrows s = String.split_on_char '\n' s
@@ -159,7 +160,7 @@ class predictions input = object (self)
 
     method private current_data = Option.map (fun x -> List.assoc x input) curr
     method private current_table = Option.map (fun (_, y) -> y) self#current_data
-    method private current_level = Option.map (fun (x, _) -> x) self#current_data
+    method current_level = Option.map (fun (x, _) -> x) self#current_data
 
     method get ~r ~c = 
         match self#current_table with

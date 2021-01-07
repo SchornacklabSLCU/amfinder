@@ -42,3 +42,8 @@ val parse_rgba : string -> red * green * blue * alpha
   * corresponding to the red, green, blue, and alpha components of the input
   * color. *)
 
+val parse_desaturate : string -> red * green * blue * alpha
+(** [parse_desaturate "#rrggbbaa"] returns normalized floating-point values
+  * corresponding to the closest grayscale value to color ["#rrggbbaa"].
+  * Conversion relies on the standard luminosity formula
+  * (i.e. [0.30 * r + 0.59 * g + 0.11 * b]). *)

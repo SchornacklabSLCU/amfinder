@@ -250,7 +250,7 @@ module Make (P : PARAMS) : S = struct
 
     let ambiguities = Aux.markup_button
         ~icon:AmfIcon.Misc.ambiguities
-        ~label:"Unclear" ~packing ()
+        ~label:"Validate" ~packing ()
 
     let set_choices t =
         Activate.store#clear ();

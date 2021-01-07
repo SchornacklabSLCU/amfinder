@@ -113,14 +113,28 @@ object (self)
         self#mosaic ~sync:true ()
 
     method predictions_to_annotations ?(erase = false) () =
-        assert predictions#active;
-        let set_annot ~r ~c (chr, _) =
-            let annot = annotations#get ~r ~c () in
-            if annot#is_empty () || erase then annot#add chr
-        in predictions#iter (`MAX set_annot);
-        (* UI settings. *)
-        self#update_counters ();
-        AmfUI.Predictions.overlay#set_active false
+        match predictions#current_level with
+        | None -> ()
+        | Some level ->
+            (* Level 1 predictions, i.e. root segmentation. *)
+            if AmfLevel.is_col level then begin
+                let set_annot ~r ~c (chr, _) =
+                    let annot = annotations#get ~r ~c () in
+                    if annot#is_empty () || erase then annot#add chr
+                in predictions#iter (`MAX set_annot)
+            (* Level 2 predictions, i.e. mycorrhizal structures. *)
+            end else begin
+                let set_annot ~r ~c t =
+                    let annot = annotations#get ~r ~c () in
+                    if annot#is_empty () || erase then
+                        List.iter2 (fun chr x ->
+                            if x > 0.5 (* threshold! *) then annot#add chr
+                        ) (AmfLevel.to_header level) t
+                in predictions#iter (`ALL set_annot)
+            end;
+            (* UI settings. *)
+            self#update_counters ();
+            AmfUI.Predictions.overlay#set_active false
     
     method update_statistics () = self#update_counters ()
 

@@ -83,6 +83,9 @@ val colors : level -> string list
 (** [colors t] returns the list of RGB colors to use to display annotations at
   * level [t]. *)
 
+val tip : char -> string
+(** Keyboard shortcuts for the given annotation class. *) 
+
 val symbols : level -> string list
 (** Short symbols for annotation legend. *) 
 

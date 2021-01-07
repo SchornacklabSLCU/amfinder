@@ -26,11 +26,17 @@ let _ = GMain.init ()
 
 let window =
     let wnd = GWindow.window
-        ~title:"AMFinder 2.0"
+        ~decorated:true
+        ~title:"amfbrowser 2.0"
+        ~icon:AmfIcon.Misc.amfbrowser
         ~resizable:false
-        ~position:`CENTER ()
+        ~position:`CENTER_ALWAYS ()
     in wnd#connect#destroy GMain.quit;
     wnd
+
+let status_icon = GMisc.status_icon_from_pixbuf
+    ~visible:true
+    AmfIcon.Misc.amfbrowser
 
 let spacing = 5
 let border_width = spacing
@@ -91,7 +97,8 @@ module Params = struct
     module Toggles = struct
         include Levels
         let packing x = left_pane#attach ~top:0 ~left:0 ~expand:`X ~fill:`NONE x
-        let remove = left_pane#remove  
+        let remove = left_pane#remove
+        let tooltips = tooltips
     end
     module Magnifier = struct
         let rows = 3
@@ -117,6 +124,7 @@ module Params = struct
         let remove = container#remove
     end
     module Tools = struct
+        let tooltips = tooltips
         let border_width = border_width
         let packing obj = container#attach
             ~left:0 ~top:2

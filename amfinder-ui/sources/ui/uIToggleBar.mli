@@ -34,6 +34,8 @@ module type PARAMS = sig
   val set_current : AmfLevel.level -> unit
   
   val radios : (AmfLevel.level * GButton.radio_button) list
+  
+  val tooltips : GData.tooltips
 end
 
 

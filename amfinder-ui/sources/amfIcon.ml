@@ -60,14 +60,17 @@ let get chr typ clr =
     | chr -> List.assoc (chr, typ, clr) annotation_icons
 
 module Misc = struct
+    let intf_pbuf24 s = load_pixbuf 24 (Dir.interface s)
     let cam = function
-        | RGBA -> load_pixbuf 24 (Dir.interface "CAMs_rgba.png")
-        | Grayscale -> load_pixbuf 24 (Dir.interface "CAMs_grey.png")
-    let conv = load_pixbuf 24 (Dir.interface "convert.png")
-    let ambiguities = load_pixbuf 24 (Dir.interface "ambiguous.png")
-    let palette = load_pixbuf 24 (Dir.interface "palette.png")
-    let erase = load_pixbuf 24 (Dir.interface "erase.png")
-    let snapshot = load_pixbuf 24 (Dir.interface "snapshot.png")
-    let show_preds = load_pixbuf 24 (Dir.interface "show_preds.png")
-    let hide_preds = load_pixbuf 24 (Dir.interface "hide_preds.png")
+        | RGBA -> intf_pbuf24 "CAMs_rgba.png"
+        | Grayscale -> intf_pbuf24 "CAMs_grey.png"
+    let conv = intf_pbuf24 "convert.png"
+    let ambiguities = intf_pbuf24 "ambiguous.png"
+    let palette = intf_pbuf24 "palette.png"
+    let config = intf_pbuf24 "config.png"
+    let export = intf_pbuf24 "export.png"
+    let snapshot = intf_pbuf24 "snapshot.png"
+    let show_preds = intf_pbuf24 "show_preds.png"
+    let hide_preds = intf_pbuf24 "hide_preds.png"
+    let amfbrowser = intf_pbuf24 "amfbrowser.png"
 end
