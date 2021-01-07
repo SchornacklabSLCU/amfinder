@@ -60,7 +60,7 @@ module Make (P : PARAMS) : S = struct
         (* Toggle button icon. *)
         let image = GMisc.image
             ~width:48
-            ~pixbuf:AmfIcon.(get chr Large Grayscale)
+            ~pixbuf:(AmfIcon.get (`CLASS (chr, `LARGE, `GRAY)))
             ~packing:toggle#set_image () in
         (chr, (toggle, image))
 

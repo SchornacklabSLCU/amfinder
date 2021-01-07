@@ -38,3 +38,19 @@ let label ?(vspace = true) packing markup =
   label
 
 let pango_small = Printf.sprintf "<small>%s</small>"
+
+let custom_tool_button ?packing icon label = 
+    let btn = GButton.tool_button ?packing () in
+    let box = GPack.hbox
+        ~spacing:2
+        ~packing:btn#set_label_widget () in
+    let _ = GMisc.image 
+        ~width:25
+        ~pixbuf:(AmfIcon.get icon)
+        ~packing:(box#pack ~expand:false) ()
+    and _ = GMisc.label
+        ~markup:(pango_small label)
+        ~xalign:0.0
+        ~yalign:0.5
+        ~packing:box#add () in
+    btn

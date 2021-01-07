@@ -28,12 +28,14 @@ module type PARAMS = sig
     val tooltips : GData.tooltips
 end
 
+
 module type S = sig
     val toolbar : GButton.toolbar
-    val config : GButton.tool_button
+    val snap : GButton.tool_button
     val export : GButton.tool_button
-    val snapshot : GButton.tool_button
+    val settings : GButton.tool_button
 end
+
 
 module Make (P : PARAMS) : S = struct
 
@@ -48,52 +50,7 @@ module Make (P : PARAMS) : S = struct
     let _ = UIHelper.separator packing
     let _ = UIHelper.label packing "<b><small>Toolbox</small></b>"
 
-    let snapshot = 
-        let btn = GButton.tool_button ~packing () in
-        let box = GPack.hbox
-            ~spacing:2
-            ~packing:btn#set_label_widget () in
-        let _ = GMisc.image 
-            ~width:25
-            ~pixbuf:AmfIcon.Misc.snapshot
-            ~packing:(box#pack ~expand:false) ()
-        and _ = GMisc.label
-            ~markup:(UIHelper.pango_small "Snap")
-            ~xalign:0.0
-            ~yalign:0.5
-            ~packing:box#add () in
-        btn
-
-    let export = 
-        let btn = GButton.tool_button ~packing () in
-        let box = GPack.hbox
-            ~spacing:2
-            ~packing:btn#set_label_widget () in
-        let _ = GMisc.image 
-            ~width:25
-            ~pixbuf:AmfIcon.Misc.export
-            ~packing:(box#pack ~expand:false) ()
-        and _ = GMisc.label
-            ~markup:(UIHelper.pango_small "Export")
-            ~xalign:0.0
-            ~yalign:0.5
-            ~packing:box#add () in
-        btn
-
-    let config = 
-        let btn = GButton.tool_button ~packing () in
-        P.tooltips#set_tip ~text:"Application settings" btn#coerce;
-        let box = GPack.hbox
-            ~spacing:2
-            ~packing:btn#set_label_widget () in
-        let _ = GMisc.image 
-            ~width:25
-            ~pixbuf:AmfIcon.Misc.config
-            ~packing:(box#pack ~expand:false) ()
-        and _ = GMisc.label
-            ~markup:(UIHelper.pango_small "Settings")
-            ~xalign:0.0
-            ~yalign:0.5
-            ~packing:box#add () in
-        btn
+    let snap = UIHelper.custom_tool_button ~packing `SNAP "Snap"   
+    let export = UIHelper.custom_tool_button ~packing `EXPORT "Export"
+    let settings = UIHelper.custom_tool_button ~packing `SETTINGS "Settings"
 end

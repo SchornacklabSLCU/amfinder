@@ -24,8 +24,22 @@
 
 open Printf
 
-type size = Small | Large
-type style = Grayscale | RGBA
+type size = [ `SMALL | `LARGE ]
+type style = [ `GRAY | `RGB ]
+
+type id = [
+    | `APP
+    | `ATTACH
+    | `CAM of style
+    | `CONVERT
+    | `DETACH
+    | `EXPORT
+    | `LOW_QUALITY
+    | `PALETTE
+    | `SETTINGS
+    | `SNAP
+    | `CLASS of char * size * style
+]
 
 module Dir = struct
     let main = "data/icons"
@@ -40,21 +54,21 @@ let annotation_icons =
     List.fold_left (fun res c ->
         let rgba = Dir.annotations (sprintf "%c_rgba.png" c)
         and grey = Dir.annotations (sprintf "%c_grey.png" c) in
-        ((c, Small, RGBA), load_pixbuf 24 rgba) ::
-        ((c, Small, Grayscale), load_pixbuf 24 grey) ::
-        ((c, Large, RGBA), load_pixbuf 48 rgba) ::
-        ((c, Large, Grayscale), load_pixbuf 48 grey) :: res      
+        ((c, `SMALL, `RGB), load_pixbuf 24 rgba) ::
+        ((c, `SMALL, `GRAY), load_pixbuf 24 grey) ::
+        ((c, `LARGE, `RGB), load_pixbuf 48 rgba) ::
+        ((c, `LARGE, `GRAY), load_pixbuf 48 grey) :: res      
     ) [] AmfLevel.all_chars_list
 
 let overlay_icons =
     let overlay_rgba = Dir.interface "Overlay_rgba.png"
     and overlay_grey = Dir.interface "Overlay_grey.png" in
-    [ (Small, RGBA), load_pixbuf 24 overlay_rgba;
-      (Small, Grayscale), load_pixbuf 24 overlay_grey;
-      (Large, RGBA), load_pixbuf 48 overlay_rgba;
-      (Large, Grayscale), load_pixbuf 48 overlay_grey ] 
+    [ (`SMALL, `RGB), load_pixbuf 24 overlay_rgba;
+      (`SMALL, `GRAY), load_pixbuf 24 overlay_grey;
+      (`LARGE, `RGB), load_pixbuf 48 overlay_rgba;
+      (`LARGE, `GRAY), load_pixbuf 48 overlay_grey ] 
 
-let get chr typ clr =
+let get_class_icon chr typ clr =
     match chr with
     | '*' -> List.assoc (typ, clr) overlay_icons
     | chr -> List.assoc (chr, typ, clr) annotation_icons
@@ -62,8 +76,8 @@ let get chr typ clr =
 module Misc = struct
     let intf_pbuf24 s = load_pixbuf 24 (Dir.interface s)
     let cam = function
-        | RGBA -> intf_pbuf24 "CAMs_rgba.png"
-        | Grayscale -> intf_pbuf24 "CAMs_grey.png"
+        | `RGB -> intf_pbuf24 "CAMs_rgba.png"
+        | `GRAY -> intf_pbuf24 "CAMs_grey.png"
     let conv = intf_pbuf24 "convert.png"
     let ambiguities = intf_pbuf24 "ambiguous.png"
     let palette = intf_pbuf24 "palette.png"
@@ -74,3 +88,17 @@ module Misc = struct
     let hide_preds = intf_pbuf24 "hide_preds.png"
     let amfbrowser = intf_pbuf24 "amfbrowser.png"
 end
+
+let get = function
+    | `APP -> Misc.amfbrowser
+    | `ATTACH -> Misc.show_preds
+    | `CAM style -> Misc.cam style
+    | `CONVERT -> Misc.conv
+    | `DETACH -> Misc.hide_preds
+    | `EXPORT -> Misc.export
+    | `LOW_QUALITY -> Misc.ambiguities
+    | `PALETTE -> Misc.palette
+    | `SETTINGS -> Misc.config
+    | `SNAP -> Misc.snapshot
+    | `CLASS (chr, size, style) -> get_class_icon chr size style
+

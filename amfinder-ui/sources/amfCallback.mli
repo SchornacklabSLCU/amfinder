@@ -95,10 +95,10 @@ end
 (** Misc tools, and application settings. *)
 module Toolbox : sig
 
+    val snap : image_ref -> unit
+    (** Take a snapshot of the current window. *)
+
     val export : image_ref -> unit
     (** Copy statistics to clipboard. *)
-
-    val snapshot : image_ref -> unit
-    (** Snapshot of the current window. *)
 
 end

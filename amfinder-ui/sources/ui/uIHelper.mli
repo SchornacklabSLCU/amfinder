@@ -35,3 +35,8 @@ val label : ?vspace:bool -> (GButton.tool_item_o -> unit) -> string -> GMisc.lab
 
 val pango_small : string -> string
 (** Pango small text *)
+
+val custom_tool_button :
+    ?packing:(GButton.tool_item_o -> unit) ->
+    AmfIcon.id ->  string -> GButton.tool_button
+(** Custom tool button with a GdkPixbuf icon. *)

@@ -31,20 +31,21 @@ module type PARAMS = sig
     val tooltips : GData.tooltips
 end
 
+
+
 (** Output module. *)
 module type S = sig
     val toolbar : GButton.toolbar
     (** GtkToolbar widget containing shared tools. *)
 
-    val config : GButton.tool_button
-    (** User settings. *)
+    val snap : GButton.tool_button
+    (** Snapshot button. *)
 
     val export : GButton.tool_button
     (** Export button. *)
 
-    val snapshot : GButton.tool_button
-    (** Snapshot button. *)
-
+    val settings : GButton.tool_button
+    (** User settings. *)
 end
 
 

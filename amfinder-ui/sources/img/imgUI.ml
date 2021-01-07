@@ -67,13 +67,13 @@ class ui
             if not tog#active && self#current_annot#mem chr  then
             begin
                 tog#set_active true;
-                img#set_pixbuf AmfIcon.(get chr Large RGBA);
+                img#set_pixbuf (AmfIcon.get (`CLASS (chr, `LARGE, `RGB)));
             end
             (* Annotation is not set but toggle is active. *)
             else if tog#active && not (self#current_annot#mem chr) then
             begin
                 tog#set_active false;
-                img#set_pixbuf AmfIcon.(get chr Large Grayscale);
+                img#set_pixbuf (AmfIcon.get (`CLASS (chr, `LARGE, `GRAY)));
             end
         in AmfUI.Toggles.iter_current update_toggle
 

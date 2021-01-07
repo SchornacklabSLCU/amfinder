@@ -49,8 +49,9 @@ let connect_callbacks () =
     DrawingArea.repaint imgr;
     DrawingArea.repaint_and_count imgr;
     (* Toolbox events. *)
-    Toolbox.export imgr;
-    Toolbox.snapshot imgr
+    Toolbox.snap imgr;
+    Toolbox.export imgr
+
 
 let load_image () =
     (* Retrieve input image. *)

@@ -209,7 +209,7 @@ module Make (P : PARAMS) : S = struct
     let overlay, overlay_label, overlay_icon = 
         Aux.markup_toggle_button
             ~sensitive:true
-            ~pixbuf:AmfIcon.Misc.show_preds
+            ~pixbuf:(AmfIcon.get `ATTACH)
             ~label:"Import" 
             ~packing ()
 
@@ -221,7 +221,7 @@ module Make (P : PARAMS) : S = struct
             ~packing:btn#set_label_widget () in
         let _ = GMisc.image 
             ~width:25
-            ~pixbuf:AmfIcon.Misc.palette
+            ~pixbuf:(AmfIcon.get `PALETTE)
             ~packing:(box#pack ~expand:false) ()
         and _ = GMisc.label
             ~markup:(Aux.small_text "Palette")
@@ -235,21 +235,21 @@ module Make (P : PARAMS) : S = struct
 
     let cams =
         let btn, lbl, ico = Aux.markup_toggle_button
-            ~pixbuf:AmfIcon.(Misc.cam Grayscale)
+            ~pixbuf:(AmfIcon.get (`CAM `GRAY))
             ~label:"CAMs" ~packing () in 
         btn#connect#toggled (fun () ->
             match btn#get_active with
-            | true  -> ico#set_pixbuf AmfIcon.(Misc.cam RGBA)
-            | false -> ico#set_pixbuf AmfIcon.(Misc.cam Grayscale)
+            | true  -> ico#set_pixbuf (AmfIcon.get (`CAM `RGB))
+            | false -> ico#set_pixbuf (AmfIcon.get (`CAM `GRAY))
         );
         btn
 
     let convert = Aux.markup_button
-        ~icon:AmfIcon.Misc.conv
+        ~icon:(AmfIcon.get `CONVERT)
         ~label:"Convert" ~packing ()
 
     let ambiguities = Aux.markup_button
-        ~icon:AmfIcon.Misc.ambiguities
+        ~icon:(AmfIcon.get `LOW_QUALITY)
         ~label:"Validate" ~packing ()
 
     let set_choices t =
@@ -344,7 +344,7 @@ module Make (P : PARAMS) : S = struct
             Activate.dialog#misc#hide ();
             if result = `OK then
                 let enable row =
-                    overlay_icon#set_pixbuf AmfIcon.Misc.hide_preds;
+                    overlay_icon#set_pixbuf (AmfIcon.get `DETACH);
                     overlay_label#set_label (Aux.small_text "Remove");
                     cams#misc#set_sensitive true;
                     palette#misc#set_sensitive true;
@@ -358,7 +358,7 @@ module Make (P : PARAMS) : S = struct
             palette#misc#set_sensitive false;
             convert#misc#set_sensitive false;
             ambiguities#misc#set_sensitive false;
-            overlay_icon#set_pixbuf AmfIcon.Misc.show_preds;
+            overlay_icon#set_pixbuf (AmfIcon.get `ATTACH);
             overlay_label#set_label (Aux.small_text "Import")
     end
 

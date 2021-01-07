@@ -67,8 +67,8 @@ module Toolbox = struct
         and r_label = GMisc.label
             ~markup:(if chr = '*' then "<small>Overlay</small>" else "<small><tt>000000</tt></small>")
             ~packing:hbox#add () in
-        let style = AmfIcon.(if chr = '*' then RGBA else Grayscale) in
-        r_image#set_pixbuf AmfIcon.(get chr Small style);
+        let style = if chr = '*' then `RGB else `GRAY in
+        r_image#set_pixbuf (AmfIcon.get (`CLASS (chr, `SMALL, style)));
         chr, {r_radio; r_label; r_image}
 
     let make level =
@@ -156,8 +156,7 @@ module Make (P : PARAMS) : S = struct
             ignore (radio#connect#toggled ~callback)
         ) P.radios;
         let callback chr radio _ icon =
-            let open AmfIcon in
-            let style = if radio#get_active then RGBA else Grayscale in
-            icon#set_pixbuf (get chr Small style)
+            let style = if radio#get_active then `RGB else `GRAY in
+            icon#set_pixbuf (AmfIcon.get (`CLASS (chr, `SMALL, style)))
         in set_callback callback
 end

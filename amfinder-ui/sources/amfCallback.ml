@@ -25,8 +25,8 @@
 
 type image_ref = AmfImage.image option ref
 
-let may f opt =
-    match !opt with
+let may f imgr () =
+    match !imgr with
     | None -> ()
     | Some img -> f img
 
@@ -35,7 +35,7 @@ module Magnifier = struct
 
     let capture_screenshot imgr =
         let callback _ =
-            may (fun image -> image#screenshot ()) imgr;
+            may (fun image -> image#screenshot ()) imgr ();
             false
         and center = AmfUI.Magnifier.event_boxes.(1).(1) in 
         ignore (center#event#connect#button_press ~callback)
@@ -165,41 +165,41 @@ module ToggleBar = struct
 end
 
 
+
 module Toolbox = struct
 
     open Printf
 
-    let snapshot imgr =
-        let callback () =
-            match !imgr with
-            | None -> ()
-            | Some (img : AmfImage.image) ->
-                (* Size of the overview window. *)
-                let width, height = AmfUI.Drawing.(width (), height ()) in
-                let dest = GdkPixbuf.create ~width ~height () in
-                (* Retrieve current drawing *)
-                let pixmap = AmfUI.Drawing.pixmap () in
-                GdkPixbuf.get_from_drawable ~dest pixmap#pixmap;
-                (* Generate filename *)
-                let r = fst img#brush#r_range and c = fst img#brush#c_range in
-                let base = Filename.remove_extension img#file#base in
-                let filename = sprintf "Snapshot_%s_R%04dC%04d.png" base r c in
-                (* Save snapshot. *)
-                GdkPixbuf.save ~filename ~typ:"png" ~options:[] dest
-        in ignore (AmfUI.Tools.snapshot#connect#clicked ~callback)
-            
+    let snap imgr =
+        let snap (img : AmfImage.image) =
+            (* Size of the overview window. *)
+            let width, height = AmfUI.Drawing.(width (), height ()) in
+            let dest = GdkPixbuf.create ~width ~height () in
+            (* Retrieve current drawing *)
+            let pixmap = AmfUI.Drawing.pixmap () in
+            GdkPixbuf.get_from_drawable ~dest pixmap#pixmap;
+            (* Generate filename *)
+            let r = fst img#brush#r_range and c = fst img#brush#c_range in
+            let base = Filename.remove_extension img#file#base in
+            let s = AmfLevel.to_string (AmfUI.Levels.current ()) in
+            let filename = sprintf "Snapshot_%s_%s_R%d_C%d.png" base s r c in
+            (* Save snapshot. *)
+            GdkPixbuf.save ~filename ~typ:"png" ~options:[] dest
+        in
+        let callback = may snap imgr in
+        ignore (AmfUI.Tools.snap#connect#clicked ~callback)
+
     let export imgr =
-        let callback () =
-            match !imgr with
-            | None -> ()
-            | Some (img : AmfImage.image) -> 
-                let level = AmfUI.Levels.current ()
-                and to_string = sprintf "%s\n%c\t%s\t%d" in
-                let symbols = AmfLevel.symbols level in
-                img#annotations#statistics ~level ()
-                |> List.fold_left2 (fun r s (c, n) -> to_string r c s n) "" symbols
-                |> sprintf "Class\tDescription\tCount%s"
-                |> GMain.clipboard#set_text
-        in ignore (AmfUI.Tools.export#connect#clicked ~callback)
+        let copy (img : AmfImage.image) =
+            let level = AmfUI.Levels.current ()
+            and to_string = sprintf "%s\n%c\t%s\t%d" in
+            let symbols = AmfLevel.symbols level in
+            img#annotations#statistics ~level ()
+            |> List.fold_left2 (fun r s (c, n) -> to_string r c s n) "" symbols
+            |> sprintf "Class\tDescription\tCount%s"
+            |> GMain.clipboard#set_text
+        in
+        let callback = may copy imgr in
+        ignore (AmfUI.Tools.export#connect#clicked ~callback)
 
 end
