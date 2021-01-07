@@ -90,3 +90,15 @@ module ToggleBar : sig
     val annotate : image_ref -> unit
 
 end
+
+
+(** Misc tools, and application settings. *)
+module Toolbox : sig
+
+    val export : image_ref -> unit
+    (** Copy statistics to clipboard. *)
+
+    val snapshot : image_ref -> unit
+    (** Snapshot of the current window. *)
+
+end

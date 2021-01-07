@@ -58,3 +58,6 @@ module FileChooser : UIFileChooser.S
   * provided on the command line) as well as when the main window is closed.
   * Users can therefore load successive images without closing the application,
   * but only one image is active at a time. *)
+
+module Tools : UITools.S
+(** Misc tools such as snapshot or export, and application settings. *)

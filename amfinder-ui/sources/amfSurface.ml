@@ -229,7 +229,6 @@ module Annotation = struct
             let r, g, b, a = AmfColor.parse_rgba symbol_color in
             set_source_rgba t r g b a;
             select_font_face t font_face ~weight:font_weight;
-            AmfLog.info "Symbol=%s font_size=%.1f" symbol font_size;
             set_font_size t font_size;
             let te = text_extents t symbol in
             let centre = half +. 0.5 *. edge in 
