@@ -61,8 +61,8 @@ module Make (P : PARAMS) : S = struct
       let radio = make_radio !group step text lvl in
       if !group = None then group := Some radio#group;
       lvl, radio
-    ) AmfLevel.all ["Stage 1", "Root colonization"; 
-                    "Stage 2", "AM fungal structures"]
+    ) AmfLevel.all AmfLang.[en_stage_A, en_stage_A_label; 
+                            en_stage_B, en_stage_B_label]
     
   let set_callback f =
     List.iter (fun (level, radio) ->

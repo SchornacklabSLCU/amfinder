@@ -181,8 +181,12 @@ module Toolbox = struct
             (* Generate filename *)
             let r = fst img#brush#r_range and c = fst img#brush#c_range in
             let base = Filename.remove_extension img#file#base in
-            let s = AmfLevel.to_string (AmfUI.Levels.current ()) in
-            let filename = sprintf "Snapshot_%s_%s_R%d_C%d.png" base s r c in
+            let level = AmfLevel.to_string (AmfUI.Levels.current ()) in
+            let layer = match AmfUI.Layers.current () with
+                | '*' -> "Overlay"
+                | chr -> String.make 1 chr in
+            let filename = sprintf "Snapshot_%s_%s_%s_R%d_C%d.png"
+                base level layer r c in
             (* Save snapshot. *)
             GdkPixbuf.save ~filename ~typ:"png" ~options:[] dest
         in

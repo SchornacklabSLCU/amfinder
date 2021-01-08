@@ -22,7 +22,9 @@
  * IN THE SOFTWARE.
  *)
 
-(** Interface icons. *)
+(** Interface icons. Icons are stored as PNG files and loaded as GdkPixbuf
+  * objects at startup. Some of them have two states (type [style]), while
+  * others also occur in small and large sizes (type [size]).  *)
 
 (** Icon size.  *)
 type size = [

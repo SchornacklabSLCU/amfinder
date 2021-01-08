@@ -24,6 +24,7 @@
 
 class type cls = object
     method set_paint : (unit -> unit) -> unit
+    method set_refresh : (unit -> unit) -> unit
     method update_toggles : unit -> unit
     method toggle :
         GButton.toggle_button ->
@@ -40,6 +41,7 @@ class ui
    
 = object (self)
 
+    val mutable refresh = None
     val mutable paint_funcs = []
 
     method private current_annot =
@@ -60,6 +62,7 @@ class ui
         end
 
     method set_paint f = paint_funcs <- f :: paint_funcs
+    method set_refresh f = refresh <- Some f
 
     method update_toggles () =
         let update_toggle chr tog img =
@@ -77,22 +80,49 @@ class ui
             end
         in AmfUI.Toggles.iter_current update_toggle
 
-    method key_press ev = 
+    method private remove_current_annot chr =
+        self#current_annot#remove chr;
+        self#update_toggles ();
+        self#redraw ()
+
+    method private add_current_annot chr =
+        self#current_annot#add chr;
+        self#update_toggles ();
+        self#redraw ()
+
+    method private fill_empty_tiles_with_annot chr =
+        let fill ~r:_ ~c:_ (annot : AmfAnnot.annot) =
+            if annot#is_empty () then annot#add chr
+        in
+        annotations#iter fill;
+        Option.iter (fun f -> f ()) refresh
+
+    (* Disabled for the moment. *)
+    method private remove_all_annot chr =
+        let remove ~r:_ ~c:_ (annot : AmfAnnot.annot) =
+            if annot#editable then annot#remove chr
+        in
+        annotations#iter remove;
+        Option.iter (fun f -> f ()) refresh
+
+    method key_press ev =
         if self#current_annot#editable then (
             if GdkEvent.Key.keyval ev = 65535 (* delete *) then (   
                 self#current_annot#erase (); 
                 self#update_toggles ();
                 self#redraw ()
             ) else (
-                let raw = GdkEvent.Key.string ev in
+                let raw = GdkEvent.Key.string ev
+                and modi = GdkEvent.Key.state ev in
                 (* Edits annotation. *)
-                if String.length raw > 0 then (
+                if String.length raw > 0 then (                   
                     let chr = Scanf.sscanf raw "%c" Char.uppercase_ascii in
                     Option.iter (fun active ->
-                        if active then self#current_annot#remove chr
-                        else self#current_annot#add chr;
-                        self#update_toggles ();
-                        self#redraw ();
+                        let f = match active with
+                            | true -> self#remove_current_annot
+                            | false -> if modi = [`SHIFT]  then self#fill_empty_tiles_with_annot
+                                else self#add_current_annot
+                        in f chr
                     ) (AmfUI.Toggles.is_active chr);
                 )
             )

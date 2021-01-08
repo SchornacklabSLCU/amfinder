@@ -43,9 +43,6 @@ module type S = sig
 
     val export : GButton.tool_button
     (** Export button. *)
-
-    val settings : GButton.tool_button
-    (** User settings. *)
 end
 
 

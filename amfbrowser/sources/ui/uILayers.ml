@@ -65,7 +65,8 @@ module Toolbox = struct
         let hbox = GPack.hbox ~spacing:2 ~packing:r_radio#set_icon_widget () in
         let r_image = GMisc.image ~width:24 ~packing:hbox#add ()
         and r_label = GMisc.label
-            ~markup:(if chr = '*' then "<small>Overlay</small>" else "<small><tt>000000</tt></small>")
+            ~markup:(if chr = '*' then (sprintf "<small>%s</small>" AmfLang.en_overlay)
+                     else "<small><tt>000000</tt></small>")
             ~packing:hbox#add () in
         let style = if chr = '*' then `RGB else `GRAY in
         r_image#set_pixbuf (AmfIcon.get (`CLASS (chr, `SMALL, style)));
@@ -83,7 +84,7 @@ module Toolbox = struct
             let packing = toolbar#insert
             let radios = 
                 UIHelper.separator packing;
-                UIHelper.label packing "<b><small>Layer</small></b>";
+                UIHelper.label packing (sprintf "<b><small>%s</small></b>" AmfLang.en_layer);
                 List.mapi (add_item packing active group) code_list
         end in (module T : RADIO)
 
@@ -97,9 +98,9 @@ module Make (P : PARAMS) : S = struct
         let make level = level, Toolbox.make level in
         List.map make AmfLevel.all
 
-  let current_widget = ref None
+    let current_widget = ref None
 
-  let detach () = Option.iter (fun widget -> P.remove widget) !current_widget
+    let detach () = Option.iter (fun widget -> P.remove widget) !current_widget
 
     let attach level =
         detach ();

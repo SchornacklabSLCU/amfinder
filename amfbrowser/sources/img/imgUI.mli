@@ -29,6 +29,9 @@ class type cls = object
     method set_paint : (unit -> unit) -> unit
     (** Painting functions to update the current tile. *)
 
+    method set_refresh : (unit -> unit) -> unit
+    (** Sets the painting function to refresh the whole drawing area. *)
+
     method update_toggles : unit -> unit
     (** Update annotations at the current cursor position. *)
 

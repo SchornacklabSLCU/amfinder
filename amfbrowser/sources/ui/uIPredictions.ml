@@ -200,7 +200,8 @@ module Make (P : PARAMS) : S = struct
 
     let _ = UIHelper.separator packing
 
-    let _ = UIHelper.label packing "<b><small>Predictions</small></b>"
+    let _ = UIHelper.label packing
+        (sprintf "<b><small>%s</small></b>" AmfLang.en_predictions)
 
     let container =
         let item = GButton.tool_item ~packing () in
@@ -237,11 +238,10 @@ module Make (P : PARAMS) : S = struct
         let btn, lbl, ico = Aux.markup_toggle_button
             ~pixbuf:(AmfIcon.get (`CAM `GRAY))
             ~label:"CAMs" ~packing () in 
-        btn#connect#toggled (fun () ->
-            match btn#get_active with
-            | true  -> ico#set_pixbuf (AmfIcon.get (`CAM `RGB))
-            | false -> ico#set_pixbuf (AmfIcon.get (`CAM `GRAY))
-        );
+        let callback () =
+            let style = if btn#get_active then `RGB else `GRAY in
+            ico#set_pixbuf (AmfIcon.get (`CAM style))
+        in ignore (btn#connect#toggled ~callback);
         btn
 
     let convert = Aux.markup_button
@@ -345,7 +345,7 @@ module Make (P : PARAMS) : S = struct
             if result = `OK then
                 let enable row =
                     overlay_icon#set_pixbuf (AmfIcon.get `DETACH);
-                    overlay_label#set_label (Aux.small_text "Remove");
+                    overlay_label#set_label (Aux.small_text AmfLang.en_attach);
                     cams#misc#set_sensitive true;
                     palette#misc#set_sensitive true;
                     convert#misc#set_sensitive true;
@@ -359,7 +359,7 @@ module Make (P : PARAMS) : S = struct
             convert#misc#set_sensitive false;
             ambiguities#misc#set_sensitive false;
             overlay_icon#set_pixbuf (AmfIcon.get `ATTACH);
-            overlay_label#set_label (Aux.small_text "Import")
+            overlay_label#set_label (Aux.small_text AmfLang.en_attach)
     end
 
     let _ =

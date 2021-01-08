@@ -318,10 +318,10 @@ module Prediction = struct
         done
 
     (* Draw a filled dot at the given coordinates. *)
-    let draw_dot ?(color = "#000000") context x y =
+    let draw_dot ?(color = "#000000") ?(radius = 3.0) context x y =
         let r, g, b = AmfColor.parse_rgb color in
         set_source_rgba context r g b 1.0;
-        arc context x y ~r:3.0 ~a1:0.0 ~a2:twopi;
+        arc context x y ~r:radius ~a1:0.0 ~a2:twopi;
         set_line_width context 2.0;
         fill context
 
@@ -382,7 +382,7 @@ module Prediction = struct
         (* Draw sectors. *)
         List.iter (fun x -> snd x ()) sorted_sectors;
         (* Draw pie chart decoration (a small centered dot). *)
-        draw_dot context centre centre;
+        draw_dot ~radius:1.0 context centre centre;
         surface
 
     let radar_singleton ?(margin = 2.0) pos color edge =

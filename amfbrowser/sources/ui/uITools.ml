@@ -33,7 +33,6 @@ module type S = sig
     val toolbar : GButton.toolbar
     val snap : GButton.tool_button
     val export : GButton.tool_button
-    val settings : GButton.tool_button
 end
 
 
@@ -52,5 +51,4 @@ module Make (P : PARAMS) : S = struct
 
     let snap = UIHelper.custom_tool_button ~packing `SNAP "Snap"   
     let export = UIHelper.custom_tool_button ~packing `EXPORT "Export"
-    let settings = UIHelper.custom_tool_button ~packing `SETTINGS "Settings"
 end

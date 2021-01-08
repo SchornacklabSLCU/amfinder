@@ -26,7 +26,7 @@
 
 
 
-(** {1 Grid settings} *)
+(** {2 Grid settings} *)
 
 val _EDGE_ : int
 (** Edge of a tile when displayed in the interface, in pixels. *)
@@ -48,7 +48,7 @@ val _BGCOLOR_ : string
 
 
 
-(** {1 Magnified view} *)
+(** {2 Magnified view} *)
 
 val _MAGN_ : int
 (** Edge (in pixels) of the tiles displayed in the magnified view. *)
@@ -58,7 +58,7 @@ val _BLANK_ : GdkPixbuf.pixbuf
 
 
 
-(** {1 Icon size} *)
+(** {2 Icon size} *)
 
 val _LARGE_ : int
 (** Edge of a large icon, in pixels. *)

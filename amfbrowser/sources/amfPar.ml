@@ -28,6 +28,7 @@ open Printf
 let edge = ref 126
 let path = ref None
 let debug = ref false
+let threshold = ref 0.5
 
 let verbose () = !debug
 
@@ -38,8 +39,12 @@ let usage = "amfbrowser.exe [OPTIONS] [[IMAGE] ...]"
 let specs = align [
     "-t", Set_int edge, sprintf 
         " Tile size used for image segmentation (default: %d pixels)." !edge;
-    "--tile", Set_int edge,
-        sprintf " Tile size used for image segmentation (default: %d pixels)." !edge;
+    "--tile", Set_int edge, sprintf
+        " Tile size used for image segmentation (default: %d pixels)." !edge;
+    "-th", Set_float threshold, sprintf 
+        " Annotation probability threshold (default: %.1f)." !threshold;
+    "--threshold", Set_float threshold, sprintf
+        " Annotation probability threshold (default: %.1f)." !threshold;
     "-v", Set debug, sprintf 
         " Runs the application in verbose/debugging mode (default: %b)." !debug;
     "--verbose", Set debug, sprintf 

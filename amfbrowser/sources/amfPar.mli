@@ -25,8 +25,12 @@
 (** Command-line settings. *)
 
 val edge : int ref
+(** Edge size, in pixels. *)
 
 val path : string option ref
+
+val threshold : float ref
+(** Annotation probability threshold. *)
 
 val verbose : unit -> bool
 (** [verbose ()] indicates whether the application runs in verbose mode.

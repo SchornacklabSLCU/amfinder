@@ -82,6 +82,7 @@ object (self)
         (* UI update functions. *)
         ui#set_paint self#update_current_tile;
         ui#set_paint self#update_statistics;
+        ui#set_refresh (fun () -> self#mosaic ~sync:true ());
         (* Updates the display if the current palette changes. *)
         AmfUI.Predictions.set_palette_update (fun () -> self#mosaic ~sync:true ());
         AmfUI.Levels.current ()
@@ -128,7 +129,7 @@ object (self)
                     let annot = annotations#get ~r ~c () in
                     if annot#is_empty () || erase then
                         List.iter2 (fun chr x ->
-                            if x > 0.5 (* threshold! *) then annot#add chr
+                            if x >= !AmfPar.threshold then annot#add chr
                         ) (AmfLevel.to_header level) t
                 in predictions#iter (`ALL set_annot)
             end;
