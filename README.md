@@ -78,6 +78,10 @@ The standalone interface `amfbrowser` allows to browse, amend and validate
 `amf` predictions. Installation instructions are detailed below for the main
 platforms.
 
+![](doc/amfbrowser.png)
+
+### Installation instructions
+
 #### Linux
 
 #### MacOS
