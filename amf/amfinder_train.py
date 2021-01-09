@@ -103,6 +103,8 @@ def class_weights(one_hot_labels):
     Reference: https://github.com/tensorflow/tensorflow/issues/40457
     """
 
+    print('* Class weights')
+
     if AmfConfig.colonization():
         
         # For instance, [[0, 0, 1], [1, 0 , 0]] returns [2, 0]
@@ -117,7 +119,7 @@ def class_weights(one_hot_labels):
         
             frac = int(round(100.0 * num / len(one_hot_labels)))
             print(f'    - Class {cls}: {num} tiles ({frac}% of total).')
-            print(f'    - Training weight: {w}')
+            print(f'    - Training weight: %.2f' % (w))
 
         return dict(enumerate(class_weights))
 
