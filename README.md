@@ -80,10 +80,68 @@ platforms.
 
 ![](doc/amfbrowser.png)
 
-### Installation instructions
+### Installation instructions<a name="amfbrowseronlinux"></a>
 
 #### Linux
 
+1. Download and install the OCaml package manager
+[OPAM](https://opam.ocaml.org/doc/Install.html).
+
+2. Using [`opam switch`](https://opam.ocaml.org/doc/Usage.html#opam-switch),
+install **OCaml 4.08.0** (older versions won't work).
+
+3. Install `amfbrowser` dependencies:
+```bash
+$ opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip
+```
+You may be required to install development packages, including
+`libgtk2.0-dev` and `libgtksourceview2.0-dev`.
+
+4. Retrieve `amfbrowser` sources and build:
+```
+$ git clone git@github.com:SchornacklabSLCU/amfinder.git
+$ cd amfinder/amfbrowser
+$ ./build.sh
+```
+
+5. The binary `amfbrowser.exe` is ready to use (see [next section](#amfbrowserhelp)).
+
+
+
 #### MacOS
 
-#### Windows
+#### Windows 10
+
+`amfbrowser` can be installed and run on Windows 10 after activation of the
+Windows Subsystem for Linux (WSL). WSL runs a a GNU/Linux environment directly
+on Windows, unmodified. **Admin rights are required to activate WSL**.
+
+1. Activate the [Windows Subsystem for Linux
+(WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10). Then, go to
+Windows App store and install a Linux distribution
+(recommended distributions are [Ubuntu](https://ubuntu.com/) and
+[Debian](https://www.debian.org/index.html), but many others should work too).
+
+2. Install an OCaml build system based on the `brew` package manager:
+```bash
+$ sudo apt update
+$ sudo apt upgrade
+$ sudo apt autoclean
+$ sudo apt install curl build-essential git
+$ sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+$ test -d ~/.linuxbrew && eval $(~/.linuxbrew/bin/brew shellenv)
+$ test -d /home/linuxbrew/.linuxbrew && eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+$ test -r ~/.bash_profile && echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.bash_profile
+$ echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.profile
+$ brew install gpatch opam gtk+ cairo
+```
+
+3. Follow the [Linux installation instructions](#amfbrowseronlinux). Please note
+that sandboxing does not work on Windows. OPAM should be initialized using
+`opam init --disable-sandboxing`.
+
+4.
+
+
+
+### Introduction to `amfbrowser`<a name="amfbrowserhelp"></a>
