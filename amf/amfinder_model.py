@@ -141,8 +141,9 @@ def colonization():
                   outputs=output_layer,
                   name=COLONIZATION_NAME)
 
+    opt = keras.optimizers.Adam(learning_rate=AmfConfig.get('learning_rate'))
     model.compile(loss='categorical_crossentropy',
-                  optimizer='adam',
+                  optimizer=opt,
                   metrics=['acc'])
 
     return model
@@ -163,8 +164,9 @@ def myc_structures():
                   outputs=output_layers,
                   name=MYC_STRUCTURES_NAME)
 
+    opt = keras.optimizers.Adam(learning_rate=AmfConfig.get('learning_rate'))
     model.compile(loss='binary_crossentropy',
-                  optimizer='adam',
+                  optimizer=opt,
                   metrics=['acc'])
 
     return model

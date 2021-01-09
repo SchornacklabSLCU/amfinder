@@ -70,6 +70,7 @@ PAR = {
     'tile_edge': 126,
     'input_files': ['*.jpg'],
     'batch_size': 32,
+    'learning_rate': 0.01,
     'drop': True,
     'epochs': 100,
     'vfrac': 15,
@@ -192,13 +193,13 @@ def training_subparser(subparsers):
              '\ndefault value: {} pixels'.format(x))
 
     x = PAR['batch_size']
-    parser.add_argument('-b', '--batch_size',
+    parser.add_argument('-bs', '--batch_size',
         action='store', dest='batch_size', metavar='NUM', type=int, default=x,
         help='training batch size.'
              '\ndefault value: {}'.format(x))
 
     x = PAR['drop']
-    parser.add_argument('-k', '--keep_background_tiles',
+    parser.add_argument('-k', '--keep_background',
         action='store_false', dest='drop', default=x,
         help='do not drop any background tile.'
              '\nby default, skips excess background tiles.')
@@ -209,19 +210,26 @@ def training_subparser(subparsers):
         help='number of epochs to run.'
              '\ndefault value: {}'.format(x))
 
+    x = PAR['learning_rate']
+    parser.add_argument('-lr', '--learning_rate',
+        action='store', dest='learning_rate', metavar='NUM',
+        type=int, default=x,
+        help='learning rate used with adam optimizer.'
+             '\ndefault value: {}'.format(x))
+
     x = PAR['vfrac']
-    parser.add_argument('-f', '--validation_fraction',
+    parser.add_argument('-vf', '--validation_fraction',
         action='store', dest='vfrac', metavar='N%', type=int, default=x,
         help='Percentage of tiles used for validation.'
              '\ndefault value: {}%%'.format(x))
 
-    parser.add_argument('-s', '--myc_structures',
+    parser.add_argument('-myc', '--hyphal_structures',
         action='store_const', dest='level', const=2,
-        help='Identifies AMF structures (arbuscule, vesicle, hypha).'
-             '\nBy default, identifies colonized roots.')
+        help='Train for fungal hyphal structures (arbuscule, vesicle, hypha).'
+             '\nBy default, train for fungal root colonization.')
 
     x = None
-    parser.add_argument('-m', '--model',
+    parser.add_argument('-net', '--trained_network',
         action='store', dest='model', metavar='H5', type=str, default=x,
         help='path to the pre-trained model.'
              '\ndefault value: {}'.format(x))
@@ -264,7 +272,7 @@ def prediction_subparser(subparsers):
              '\ndefault value: {}'.format(x))
 
     x = 'pre-trained/RootSegm.h5'
-    parser.add_argument('-m', '--pre_trained_model',
+    parser.add_argument('-net', '--trained_network',
         action='store', dest='model', metavar='H5', type=str, default=x,
         help='path to the pre-trained model.'
              '\ndefault value: {}'.format(x))
