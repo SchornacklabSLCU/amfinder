@@ -58,7 +58,7 @@ def initialize(nrows, ncols):
 
         # Create an empty image, to be used as template.
         edge = AmfConfig.get('tile_edge')
-        blank = np.zeros((nrows * edge, ncol * edge, 3), np.uint8)
+        blank = np.zeros((nrows * edge, ncols * edge, 3), np.uint8)
        
         # Create copies of the template blank image for each class.
         return [blank.copy() for _ in AmfConfig.get('header')]
@@ -201,7 +201,39 @@ def make_heatmap(cam, top_pred):
 
 
 
-def generate(mosaics, model, row, r):
+def process_tile(conv_model, classifier_model, mosaics, edge, r, c, tile):
+
+    # Generate class activation maps for all annotations classes
+    # The function <compute_cam> returns a boolean which indicates
+    # whether the given class is the best match.
+    cams = [compute_cam(i, tile, conv_model, classifier_model)
+            for i, _ in enumerate(AmfConfig.get('header'))]
+
+
+    for (cam, is_best_match), mosaic in zip(cams, mosaics):
+
+        # Generats the heatmap.
+        heatmap = make_heatmap(cam, is_best_match)
+
+        # Resize the tile to its original size, desaturate
+        # and increase the contrast (better overlay rendition).
+        resized = np.uint8(cv2.resize(tile, (edge, edge)) * 255)
+        #resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+        #resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
+        #resized = cv2.convertScaleAbs(resized, alpha=1.5, beta=0.8)
+
+        # Overlay the heatmap on top of the desaturated tile.
+        output = cv2.addWeighted(heatmap, 0.4, resized, 0.6, 0.0)
+        output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
+        
+        # Inserts the overlay on the large map.
+        rpos = r
+        cpos = c
+        mosaic[rpos:rpos + edge, cpos:cpos + edge] = output    
+
+
+
+def generate(mosaics, model, row, input_data):
     """
     Generate a mosaic of class activation maps for an array of tiles.
 
@@ -220,32 +252,16 @@ def generate(mosaics, model, row, r):
         # Map the activations of <last_conv> to the final class predictions.
         classifier_model = get_classifier_model(model, last_conv)
         
-        for c, tile in enumerate(row):
+        if isinstance(input_data, int):
+               
+            for c, tile in enumerate(row):
+            
+                process_tile(conv_model, classifier_model, mosaics, edge,
+                             input_data, c, tile)
 
-            # Generate class activation maps for all annotations classes
-            # The function <compute_cam> returns a boolean which indicates
-            # whether the given class is the best match.    
-            cams = [compute_cam(i, tile, conv_model, classifier_model)
-                    for i, _ in enumerate(AmfConfig.get('header'))]
+        else:
         
-
-            for (cam, is_best_match), mosaic in zip(cams, mosaics):
-
-                # Generats the heatmap.
-                heatmap = make_heatmap(cam, is_best_match)
-
-                # Resize the tile to its original size, desaturate
-                # and increase the contrast (better overlay rendition).
-                resized = np.uint8(cv2.resize(tile, (edge, edge)) * 255)
-                #resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-                #resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
-                #resized = cv2.convertScaleAbs(resized, alpha=1.5, beta=0.8)
-
-                # Overlay the heatmap on top of the desaturated tile.
-                output = cv2.addWeighted(heatmap, 0.4, resized, 0.6, 0.0)
-                output = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)
-                
-                # Inserts the overlay on the large map.
-                rpos = r# edge
-                cpos = c# edge
-                mosaic[rpos:rpos + edge, cpos:cpos + edge] = output           
+            for x, tile in zip(input_data, row):
+       
+                process_tile(conv_model, classifier_model, mosaics, edge,
+                             x[0], x[1], tile)

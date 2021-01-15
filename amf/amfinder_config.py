@@ -69,7 +69,7 @@ PAR = {
     'model': None,
     'tile_edge': 126,
     'input_files': ['*.jpg'],
-    'batch_size': 64,
+    'batch_size': 32,
     'learning_rate': 0.001,
     'drop': True,
     'epochs': 100,
@@ -189,7 +189,7 @@ def training_subparser(subparsers):
     x = PAR['tile_edge']
     parser.add_argument('-t', '--tile_size',
         action='store', dest='edge', type=int, default=x,
-        help='tile edge (in pixels) used for image segmentation.'
+        help='edge size of a single tile, in pixels.'
              '\ndefault value: {} pixels'.format(x))
 
     x = PAR['batch_size']
@@ -201,8 +201,8 @@ def training_subparser(subparsers):
     x = PAR['drop']
     parser.add_argument('-k', '--keep_background',
         action='store_false', dest='drop', default=x,
-        help='do not drop any background tile.'
-             '\nby default, skips excess background tiles.')
+        help='keep all background tiles.'
+             '\nby default, downscale background to equilibrate classes.')
 
     x = PAR['epochs']
     parser.add_argument('-e', '--epochs',
@@ -214,7 +214,7 @@ def training_subparser(subparsers):
     parser.add_argument('-lr', '--learning_rate',
         action='store', dest='learning_rate', metavar='NUM',
         type=int, default=x,
-        help='learning rate used with adam optimizer.'
+        help='learning rate used by the Adam optimizer.'
              '\ndefault value: {}'.format(x))
 
     x = PAR['vfrac']
@@ -225,19 +225,19 @@ def training_subparser(subparsers):
 
     parser.add_argument('-myc', '--hyphal_structures',
         action='store_const', dest='level', const=2,
-        help='Train for fungal hyphal structures (arbuscule, vesicle, hypha).'
+        help='Train for fungal hyphal structures (arbuscules, vesicles, hyphae).'
              '\nBy default, train for fungal root colonization.')
 
     x = None
     parser.add_argument('-net', '--trained_network',
         action='store', dest='model', metavar='H5', type=str, default=x,
-        help='path to the pre-trained model.'
+        help='path to the pre-trained neural network.'
              '\ndefault value: {}'.format(x))
 
     x = PAR['input_files']
     parser.add_argument('image', nargs='*',
         default=x,
-        help='plant root scan to be processed.'
+        help='plant root image to process.'
              '\ndefault value: {}'.format(x))
 
     return parser
@@ -315,6 +315,27 @@ def abspath(files):
 
 
 
+def update_tile_edge(path):
+    """
+    Import settings.
+    """
+
+    zfile = os.path.splitext(path)[0] + '.zip'
+
+    if zf.is_zipfile(zfile):
+
+        with zf.ZipFile(zfile) as z:
+
+            if 'settings.json' in z.namelist():
+            
+                x = z.read('settings.json').decode('utf-8')
+                x = yaml.safe_load(x)
+                set('tile_edge', x['tile_edge'])
+
+    return get('tile_edge')
+
+
+
 def import_settings(zfile):
     """
     Import settings.
@@ -332,8 +353,7 @@ def import_settings(zfile):
 
         else:
         
-            return {'tile_size': get('tile_edge')}
-
+            return {'tile_edge': get('tile_edge')}
 
 
 def get_input_files():

@@ -79,7 +79,7 @@ def convolutions():
 
     x = MaxPooling2D(pool_size=2, name='M1')(x)
 
-    kc *= 2
+    kc *= 2 # 64
 
     # Convolution block 2: 60x60 -> 56x56
     x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
@@ -89,7 +89,7 @@ def convolutions():
 
     x = MaxPooling2D(pool_size=2, name='M2')(x)
 
-    kc *= 2
+    kc *= 2 # 128
 
     # Convolution block 3: 28x28 -> 24x24
     x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
@@ -98,6 +98,8 @@ def convolutions():
                activation='relu', name='C32')(x)
 
     x = MaxPooling2D(pool_size=2, name='M3')(x)
+
+    kc *= 2 # 256
 
     # Last convolution: 12x12 -> 10x10
     x = Conv2D(kc, kernel_size=3, kernel_initializer=he_uniform(),
@@ -116,10 +118,10 @@ def fc_layers(x, label, count=1, activation='sigmoid'):
     Builds fully connected layers (with dropout).
     """
 
-    x = Dense(64, kernel_initializer=he_uniform(), activation='relu',
+    x = Dense(128, kernel_initializer=he_uniform(), activation='relu',
               name = f'FC{label}1')(x)
     x = Dropout(0.3, name = f'D{label}1')(x)
-    x = Dense(16, kernel_initializer=he_uniform(), activation='relu',
+    x = Dense(64, kernel_initializer=he_uniform(), activation='relu',
               name = f'FC{label}2')(x)
     x = Dropout(0.2, name = f'D{label}2')(x)
     output = Dense(count, activation=activation, name=label)(x)

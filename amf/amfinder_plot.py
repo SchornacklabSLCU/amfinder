@@ -60,11 +60,11 @@ def draw(history, epochs, title, x_range, t_name, v_name):
 
     t_values = history[t_name]
     v_values = history[v_name]
-    pyplot.plot(x_range, t_values, 'b-o', label='Training')
-    pyplot.plot(x_range, v_values, 'g-s', label='Validation')
+    pyplot.plot(x_range, t_values, 'b-o', label='Test set')
+    pyplot.plot(x_range, v_values, 'g-s', label='Validation set')
 
     pyplot.xlabel('Epoch')
-    pyplot.ylabel('Percentage')
+    pyplot.ylabel('Value')
     pyplot.title(title)
 
     padding = 0.1

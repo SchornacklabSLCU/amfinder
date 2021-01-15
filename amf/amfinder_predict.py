@@ -56,9 +56,7 @@ def myc_structures(path, image, nrows, ncols, model):
 
         AmfLog.warning(f'The file {path} is not a valid archive')
         return None
-
-    AmfConfig.import_settings(zfile)
-    
+   
     with zf.ZipFile(zfile) as z:
 
         if 'col.tsv' in z.namelist():
@@ -88,7 +86,7 @@ def myc_structures(path, image, nrows, ncols, model):
                 hp = prd[2].tolist()       
                 ip = prd[3].tolist()
                 dat = [[a[0], v[0], h[0], i[0]] for a, v, h, i in zip(ap, vp, hp, ip)]
-                #AmfMapping.generate(cams, model, row, r)
+                AmfMapping.generate(cams, model, row, batch)
                 res = [[x[0], x[1], y[0], y[1], y[2], y[3]] for (x, y) in zip(batch, dat)]
                 AmfLog.progress_bar(b, nbatches, indent=1)
                 return pd.DataFrame(res)
@@ -106,10 +104,10 @@ def myc_structures(path, image, nrows, ncols, model):
             # Cannot recover from this error. It means the user is trying
             # to predict intraradical structures (IRStruct) using 
             # unsegmented images (no col annotations).
-            image_name = os.path.basename(path)
             zfile_name = os.path.basename(zfile)
-            AmfLog.error(f'Image {image_name} has no archive {zfile_name}',
-                       AmfLog.ERR_MISSING_ARCHIVE)
+            AmfLog.error(f'The archive {zfile_name} does not contain '
+                         'stage 1 annotations (fungal colonisation)',
+                         AmfLog.ERR_MISSING_ANNOTATIONS)
 
 
 
@@ -176,13 +174,14 @@ def run(input_images):
             Images on which to predict mycorrhizal structures.
     """
 
-    model = AmfModel.load()   
-    edge = AmfConfig.get('tile_edge')
-
+    model = AmfModel.load()
+       
     for path in input_images:
 
         base = os.path.basename(path)
         print(f'* Image {base}')
+
+        edge = AmfConfig.update_tile_edge(path)
 
         image = pyvips.Image.new_from_file(path, access='random')
 
