@@ -52,6 +52,7 @@ run - Run the training session.
 import os
 import io
 import random
+random.seed(42)
 import pyvips
 import operator
 import functools
@@ -248,7 +249,7 @@ def load_dataset(input_files):
 
     tiles = []
     labels = []
-    random.seed(42)
+
     headers = AmfConfig.get('header')
 
     for path, data in zip(input_files, annot_tables):
