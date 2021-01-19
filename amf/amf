@@ -27,29 +27,28 @@ import os
 # Disables tensorflow messages/warnings.
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
-import amfinder_log as cLog
-import amfinder_train as cTrain
-import amfinder_config as cConfig
-import amfinder_predict as cPredict
+import amfinder_train as AmfTrain
+import amfinder_config as AmfConfig
+import amfinder_predict as AmfPredict
 
 
 
 def main():
 
     print('AMFinder script version 2.0')
-    cConfig.initialize()
-    run_mode = cConfig.get('run_mode')
-    input_files = cConfig.get_input_files()
+    AmfConfig.initialize()
+    run_mode = AmfConfig.get('run_mode')
+    input_files = AmfConfig.get_input_files()
 
     if run_mode == 'train':
 
         print('* Running in training mode')
-        cTrain.run(input_files)
+        AmfTrain.run(input_files)
 
     elif run_mode == 'predict':
 
         print('* Running in prediction mode')
-        cPredict.run(input_files)
+        AmfPredict.run(input_files)
 
     else:
 
