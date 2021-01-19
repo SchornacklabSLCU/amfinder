@@ -65,7 +65,7 @@ def tile(image, r, c):
         # other angle values to make sure no structure is lost.
         # This will be combined with tile flipping by the image
         # generator (see amfinder_train.py).
-        if AmfConfig.colonization() and random.uniform(0, 100) < 50:
+        if AmfConfig.get('run_mode') == 'train' and random.uniform(0, 100) < 50:
 
             tile = tile.rotate(90, interpolate=INTERPOLATION)
 
