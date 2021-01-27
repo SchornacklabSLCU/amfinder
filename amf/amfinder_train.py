@@ -107,7 +107,7 @@ def class_weights(one_hot_labels):
     print('* Class weights')
 
     if AmfConfig.colonization():
-        
+
         # For instance, [[0, 0, 1], [1, 0 , 0]] returns [2, 0]
         hot_indexes = np.argmax(one_hot_labels, axis=1)
         class_weights = compute_class_weight('balanced', 
@@ -117,7 +117,7 @@ def class_weights(one_hot_labels):
         for cls, num, w  in zip(AmfConfig.get('header'), 
                                 np.bincount(hot_indexes),
                                 class_weights):
-        
+
             frac = int(round(100.0 * num / len(one_hot_labels)))
             print(f'    - Class {cls}: {num} tiles ({frac}% of total).')
             print(f'    - Training weight: %.2f' % (w))
@@ -125,18 +125,18 @@ def class_weights(one_hot_labels):
         return dict(enumerate(class_weights))
 
     else:
-    
+
         class_weights = [compute_class_weight('balanced', 
                                               classes=np.unique(y),
                                               y=y) for y in one_hot_labels]
-   
+
         sums = [np.bincount(x) for x in one_hot_labels]
         for cls, ws, sums in zip(AmfConfig.get('header'), class_weights, sums):
-           
+
             print('    - ConvNet %s: %d active (weight: %.2f), '
                   '%d inactive (weight: %.2f).' % (cls, sums[1], ws[1],
                                                    sums[0], ws[0]))
-    
+
         # Output format: {'A': {0: wA0, 1: wA1}, 'V': {0: wV0, 1:wV1}, ...}
         # where wA0, w1A, wV0, and wV1 are weights (cf. compute_class_weight). 
         return {x: dict(enumerate(y)) for x, y in zip(AmfConfig.get('header'),
@@ -167,15 +167,15 @@ def read_tsv(level, path):
                 dat = z.read(tsv).decode('utf-8')
                 dat = io.StringIO(dat)
                 dat = pd.read_csv(dat, sep='\t')
-                
+
                 return (dat, AmfConfig.import_settings(zfile))
 
             else:
-              
+
                 return None
 
     else:
-    
+
         return None
 
 
@@ -196,16 +196,16 @@ def estimate_drop(counts):
 
     # Average tile count per annotation class.
     average = round(sum(other_counts.values) / len(other_counts.index))
-    
+
     # Excess background tiles compared to other classes.
     overhead = background_count - average
-    
+
     if overhead <= 0:
-    
+
         return 0
-    
+
     else:
-    
+
         return round(overhead * 100 / background_count)
 
 
@@ -229,20 +229,20 @@ def load_dataset(input_files):
 
         # Remove cases where no pandas.DataFrame was produced
         filtered_tables = [x for x in annot_tables if x is not None]
-        
+
         # This happens when auxiliary zip files do not contain annotations.
         if len(filtered_tables) == 0:
-        
+
             AmfLog.error('Input images do not contain tile annotations. '
                          'Use amfbrowser to annotate tiles before training',
                          AmfLog.ERR_NO_DATA)
-        
+
         # Produces counts (pandas.Series) for each input file.
         count_list = [x[0].sum() for x in filtered_tables]       
-        
+
         # Retrieve the grand total.
         counts = functools.reduce(operator.add, count_list)
-        
+
         # Estimate the percentage of background tiles to drop.
         drop = estimate_drop(counts)
         AmfLog.info(f'{drop}% of background tiles will be dropped', indent=1)
@@ -360,10 +360,12 @@ def run(input_files):
 
     # Input model (either new or pre-trained).
     model = AmfModel.load()
-    #model.summary()
-    
+    model.summary()
+
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)
+
+    AmfSegm.print_memory_usage()
 
     # Generates training and validation datasets.
     xt, xc, yt, yc = train_test_split(tiles, labels,

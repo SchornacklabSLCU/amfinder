@@ -32,12 +32,16 @@
     Functions
     ------------
     tile - crops a tile at the given coordinates within a large input image.
+    print_memory_usage - prints total memory usage.
 """
 
+import os
+import sys
+import pyvips
 import random
 random.seed(42)
-import pyvips
 import numpy as np
+import psutil
 
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
@@ -55,20 +59,31 @@ def tile(image, r, c):
 
     edge = AmfConfig.get('tile_edge')
     tile = image.crop(c * edge, r * edge, edge, edge)
-   
+
     if AmfModel.INPUT_SIZE != edge:
 
-        ratio = AmfModel.INPUT_SIZE / edge    
+        ratio = AmfModel.INPUT_SIZE / edge
         tile = tile.resize(ratio, interpolate=INTERPOLATION)
 
-        # Add 90 degrees rotations to some tiles. We do not use
-        # other angle values to make sure no structure is lost.
-        # This will be combined with tile flipping by the image
-        # generator (see amfinder_train.py).
-        if AmfConfig.get('run_mode') == 'train' and random.uniform(0, 100) < 50:
-
-            tile = tile.rotate(90, interpolate=INTERPOLATION)
-
-    return np.ndarray(buffer=tile.write_to_memory(),
+    data = np.ndarray(buffer=tile.write_to_memory(),
                       dtype=np.uint8,
                       shape=[tile.height, tile.width, tile.bands])
+
+    # Add 90 degrees rotations to some tiles. We do not use
+    # other angle values to make sure no structure is lost.
+    # This will be combined with tile flipping by the image
+    # generator (see amfinder_train.py).
+    if AmfConfig.get('run_mode') == 'train' and random.uniform(0, 100) < 50:
+
+        data = np.rot90(data)
+
+    return data
+
+
+
+def print_memory_usage():
+    """ Prints amf memory usage. """
+
+    process = psutil.Process(os.getpid())
+    mb = process.memory_info().rss / (1024 * 1024)
+    print(f"* Total memory used: {mb} Mb.")
