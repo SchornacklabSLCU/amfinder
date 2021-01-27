@@ -24,6 +24,15 @@
 
 (** Lightweight extension of the OCaml standard library. *)
 
+(* Extended list operations. *)
+module List : sig
+    include module type of List
+    (* Insert the original [List] for existing functions remain visible. *)
+
+    val iteri2 : (int -> 'a -> 'b -> unit) -> 'a t -> 'b t -> unit
+    (** Same as [iter2], except that the index is received as first argument. *)
+end
+
 module CSet : Set.S with type elt = char
 
 (** String sets. *)

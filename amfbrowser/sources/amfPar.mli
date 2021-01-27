@@ -27,7 +27,11 @@
 val edge : int ref
 (** Edge size, in pixels. *)
 
+val print_large_maps : bool ref
+(** Indicate whether amfbrowser prints large maps. *)
+
 val path : string option ref
+(** Deprecated? *)
 
 val threshold : float ref
 (** Annotation probability threshold. *)

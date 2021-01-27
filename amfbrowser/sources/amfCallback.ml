@@ -176,8 +176,10 @@ module Toolbox = struct
             let width, height = AmfUI.Drawing.(width (), height ()) in
             let dest = GdkPixbuf.create ~width ~height () in
             (* Retrieve current drawing *)
+            img#cursor#hide ();
             let pixmap = AmfUI.Drawing.pixmap () in
             GdkPixbuf.get_from_drawable ~dest pixmap#pixmap;
+            img#cursor#show ();
             (* Generate filename *)
             let r = fst img#brush#r_range and c = fst img#brush#c_range in
             let base = Filename.remove_extension img#file#base in

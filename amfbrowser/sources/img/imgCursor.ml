@@ -25,6 +25,8 @@
 class type cls = object
     method get : int * int
     method at : r:int -> c:int -> bool
+    method hide : unit -> unit
+    method show : unit -> unit 
     method key_press : GdkEvent.Key.t -> bool
     method mouse_click : GdkEvent.Button.t -> bool
     method set_erase : (?sync:bool -> r:int -> c:int -> unit -> unit) -> unit
@@ -36,6 +38,7 @@ class cursor (source : ImgSource.cls) (brush : ImgBrush.cls)
 
 = object (self)
 
+    val mutable mem_cursor = None
     val mutable cursor_pos = (0, 0)
     val mutable erase = []
     val mutable paint = []
@@ -44,6 +47,19 @@ class cursor (source : ImgSource.cls) (brush : ImgBrush.cls)
     method at ~r ~c = cursor_pos = (r, c)
     method set_erase f = erase <- f :: erase
     method set_paint f = paint <- f :: paint
+
+    method show () =
+        match mem_cursor with
+        | None -> ()
+        | Some (r, c) -> cursor_pos <- (r, c);
+            let sync = Some true in
+            List.iter (fun f -> f ?sync ~r ~c ()) paint
+
+    method hide () =
+        let r, c = self#get and sync = Some true in
+        mem_cursor <- Some (r, c);
+        cursor_pos <- (-1, -1);
+        List.iter (fun f -> f ?sync ~r ~c ()) erase
 
     method private move_left ?(jump = 1) () =
         let r, c = cursor_pos in

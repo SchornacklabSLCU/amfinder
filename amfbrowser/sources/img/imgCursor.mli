@@ -32,6 +32,12 @@ class type cls = object
     method at : r:int -> c:int -> bool
     (** Indicates whether the cursor is at the given coordinates. *)
 
+    method hide : unit -> unit
+    (** Hide cursor. *)
+    
+    method show : unit -> unit
+    (** Show cursor. *)
+
     method key_press : GdkEvent.Key.t -> bool
     (** Monitors key press. *)
 

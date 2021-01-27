@@ -22,6 +22,22 @@
  * IN THE SOFTWARE.
  *)
 
+
+module List = struct
+    include List
+
+    let iteri2 f =
+        let rec loop i x y =
+            match x, y with
+            | [], [] -> ()
+            | a :: x, b :: y -> let () = f i a b in
+                loop (i + 1) x y
+            | _ -> invalid_arg "List.iteri2"
+        in loop 0
+end
+
+
+
 module CSet = Set.Make(Char)
 
 module StringSet = struct
@@ -76,6 +92,8 @@ module File = struct
         let str = Buffer.contents buf in
         if trim then String.trim str else str
 end
+
+
 
 external id : 'a -> 'a = "%identity"
 
@@ -157,15 +175,6 @@ module Text = struct
     let implode t = concat "" (List.map (String.make 1) t)
 end
 
-
-(*
-let time f x =
-  let t_1 = Unix.gettimeofday () in
-  let res = f x in
-  let t_2 = Unix.gettimeofday () in
-  AmfLog.info "Elapsed time: %.1f s" (t_2 -. t_1);
-  res
-*)
 
 
 (* Memoized values with possible reinitialization. *)

@@ -26,6 +26,7 @@ open Arg
 open Printf
 
 let edge = ref 126
+let print_large_maps = ref false
 let path = ref None
 let debug = ref false
 let threshold = ref 0.5
@@ -41,6 +42,10 @@ let specs = align [
         " Tile size used for image segmentation (default: %d pixels)." !edge;
     "--tile", Set_int edge, sprintf
         " Tile size used for image segmentation (default: %d pixels)." !edge;
+    "-m", Set print_large_maps, sprintf
+        " Print colonisation map (default: %b)." !print_large_maps;
+    "--map", Set print_large_maps, sprintf
+        " Print colonisation map (default: %b)." !print_large_maps;
     "-th", Set_float threshold, sprintf 
         " Annotation probability threshold (default: %.1f)." !threshold;
     "--threshold", Set_float threshold, sprintf

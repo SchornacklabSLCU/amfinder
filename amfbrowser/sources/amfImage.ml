@@ -232,9 +232,11 @@ object (self)
         predictions#dump och;
         activations#dump och;
         source#save_settings och;
+        (* Export the entire image. *)
+        if !AmfPar.print_large_maps then self#save_image ();
         Zip.close_out och
     
-    (* Use this to export the entire image. *)
+
     method private save_image () =
         let e = source#edge in
         let h = source#rows * e and w = source#columns * e in
@@ -264,7 +266,8 @@ object (self)
                     ) opt    
             done;
         done;
-        Cairo.PNG.write surface "output.png"
+        let png = sprintf "%s_map.png" (Filename.remove_extension file#path) in
+        Cairo.PNG.write surface png
 end
 
 

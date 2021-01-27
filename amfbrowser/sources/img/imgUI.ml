@@ -92,7 +92,9 @@ class ui
 
     method private fill_empty_tiles_with_annot chr =
         let fill ~r:_ ~c:_ (annot : AmfAnnot.annot) =
-            if annot#is_empty () then annot#add chr
+            (* Multiple annotations can occur simultaneously at MYC level. *)
+            if AmfUI.Levels.current () = AmfLevel.myc 
+            || annot#is_empty () then annot#add chr
         in
         annotations#iter fill;
         Option.iter (fun f -> f ()) refresh
@@ -120,7 +122,7 @@ class ui
                     Option.iter (fun active ->
                         let f = match active with
                             | true -> self#remove_current_annot
-                            | false -> if modi = [`SHIFT]  then self#fill_empty_tiles_with_annot
+                            | false -> if List.mem `SHIFT modi then self#fill_empty_tiles_with_annot
                                 else self#add_current_annot
                         in f chr
                     ) (AmfUI.Toggles.is_active chr);

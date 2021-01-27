@@ -23,6 +23,7 @@
  *)
 
 open Cairo
+open Morelib
 open AmfConst
 
 type pixels = int
@@ -515,9 +516,9 @@ end
 
 module Icons = struct
 
-    let filename ?(grayscale = false) chr =
+    let filename ?(grayscale = false) ?(prefix = "") chr =
         let suf = if grayscale then "grey" else "rgba" in
-        Printf.sprintf "data/icons/annotations/%c_%s.png" chr suf
+        Printf.sprintf "%s%c_%s.png" prefix chr suf
 
     let myc_surface_from_char ?(grayscale = false) elt =
         let open AmfLevel in
@@ -526,8 +527,8 @@ module Icons = struct
             if chr = elt then
                 (if grayscale then "#B0B0B0FF" else clr)
             else "#FFFFFF00"
-        ) (to_header myc) (colors myc)
-        in Annotation.colors
+        ) (to_header myc) (colors myc) in
+        Annotation.colors
             ~symbol:(List.assoc elt symbs)
             ~symbol_color:"#808080FF"
             ~base_font_size:24.0
@@ -543,21 +544,29 @@ module Icons = struct
         fill context;
         surface, context
 
-    let make_png ?(grayscale = false) level chr color =
+    let make_any_png f ?prefix ?(grayscale = false) level index chr color =
         let surface, context = make_surface ()
         and symbs = AmfLevel.icon_text level in
-        let icon =
-            if AmfLevel.is_col level then
-                Annotation.filled
-                    ~symbol:(List.assoc chr symbs)
-                    ~force_symbol:true
-                    ~base_font_size:(if chr = 'X' then 40.0 else 20.0)
-                    ~grayscale color _LARGE_
-            else myc_surface_from_char ~grayscale chr
-        in
+        let icon = f index level symbs grayscale chr color in
         Cairo.set_source_surface context icon ~x:0.0 ~y:0.0;
         Cairo.paint context;
-        Cairo.PNG.write surface (filename ~grayscale chr)
+        Cairo.PNG.write surface (filename ?prefix ~grayscale chr)
+
+    let get_annotation_icon _ level symbs grayscale chr color =
+        if AmfLevel.is_col level then
+            Annotation.filled
+                ~symbol:(List.assoc chr symbs)
+                ~force_symbol:true
+                ~base_font_size:(if chr = 'X' then 40.0 else 20.0)
+                ~grayscale color _LARGE_
+        else myc_surface_from_char ~grayscale chr
+
+    let get_prediction_icon index level _ _ _ color =
+        if AmfLevel.is_col level then Prediction.pie_chart [1.0] [color] _LARGE_
+        else Prediction.radar_singleton index color _LARGE_
+
+    let make_pred_png = make_any_png get_prediction_icon
+    let make_annot_png = make_any_png get_annotation_icon
 
     let make_frame color png_file =
         let surface, context = make_surface () in
@@ -566,16 +575,31 @@ module Icons = struct
         Cairo.paint context;
         Cairo.PNG.write surface png_file
 
+    let make_lock png_file =
+        let surface, context = make_surface () in
+        let icon = Annotation.locked _LARGE_ in
+        Cairo.set_source_surface context icon ~x:0.0 ~y:0.0;
+        Cairo.paint context;
+        Cairo.PNG.write surface png_file
+
     let make ?grayscale () =
+        (* Annotations. *)
         List.iter (fun level ->
-            List.iter2 (make_png ?grayscale level)
+            List.iteri2 (make_annot_png ?grayscale level)
                 (AmfLevel.to_header level)
                 (AmfLevel.colors level)
+        ) AmfLevel.[col; myc];
+        (* Predictions. *)
+        List.iter (fun level ->
+            List.iteri2 (make_pred_png ~prefix:"Pred" ?grayscale level)
+                AmfLevel.(to_header level)
+                AmfLevel.(colors level)
         ) AmfLevel.[col; myc]
 
     let generate () =
         make ();
         make ~grayscale:true ();
+        make_lock "lock.png";
         make_frame "#88aa00ff" "add.png";
         make_frame "#aa0000ff" "remove.png";
         make_frame "#b0b0b0ff" "inactive.png"

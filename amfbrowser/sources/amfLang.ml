@@ -23,10 +23,10 @@
  *)
 
 let en_stage_A = "Stage 1"
-let en_stage_A_label = "Fungal root colonization"
+let en_stage_A_label = "Root colonisation"
 
 let en_stage_B = "Stage 2"
-let en_stage_B_label = "Fungal hyphal structures"
+let en_stage_B_label = "AM fungal structures"
 
 let en_layer = "Layer"
 let en_overlay = "Overlay"
