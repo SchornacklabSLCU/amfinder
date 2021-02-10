@@ -253,8 +253,8 @@ object (self)
                 | None -> ()
                 | Some pix -> let x = float (c * e) and y = float (r * e) in
                     let pix = resize_pixbuf e pix in
-                    Cairo_gtk.set_source_pixbuf t pix ~x ~y;
-                    Cairo.paint t;
+                    (* Cairo_gtk.set_source_pixbuf t pix ~x ~y;
+                    Cairo.paint t; *)
                     let mask = annotations#get ~r ~c () in
                     let opt =
                         if mask#mem 'Y' then Some "#FF00FFB0" else
