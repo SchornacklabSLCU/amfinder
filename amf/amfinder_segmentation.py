@@ -65,6 +65,33 @@ def tile(image, r, c):
         ratio = AmfModel.INPUT_SIZE / edge
         tile = tile.resize(ratio, interpolate=INTERPOLATION)
 
+    # perform various types of data augmentation (grayscale, hue, blur)
+    if AmfConfig.get('run_mode') == 'train':
+
+        tmp = tile
+
+        # Changes chroma and hue.
+        if random.uniform(0, 100) < 50:
+
+            tmp = tile.colourspace("lch") * [1,
+                                             random.uniform(0.5, 1.5),
+                                             random.uniform(0.5, 1.5)]
+                          
+        # turn to grayscale.                   
+        elif random.uniform(0, 100) < 50:
+
+            tmp = tile.colourspace("b-w")
+
+        # Negative.
+        elif  random.uniform(0, 100) < 50:
+
+            tmp = tile.invert()
+                                            
+        tile = tmp.colourspace("srgb")
+
+    # Debug only, in case we want to have a look at tiles.
+    # tile.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))
+
     data = np.ndarray(buffer=tile.write_to_memory(),
                       dtype=np.uint8,
                       shape=[tile.height, tile.width, tile.bands])
@@ -76,6 +103,7 @@ def tile(image, r, c):
     if AmfConfig.get('run_mode') == 'train' and random.uniform(0, 100) < 50:
 
         data = np.rot90(data)
+        
 
     return data
 
