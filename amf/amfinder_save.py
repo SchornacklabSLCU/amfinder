@@ -48,11 +48,11 @@ def string_of_level():
 
     if AmfConfig.get('level') == 1:
     
-        return AmfModel.COLONIZATION_NAME
+        return AmfModel.CNN1_NAME
         
     else:
     
-        return AmfModel.MYC_STRUCTURES_NAME
+        return AmfModel.CNN2_NAME
 
 
 
@@ -157,7 +157,7 @@ def save_settings(z):
 
     # Prediction of mycorrhizal structures requires settings.json.
     # There is no need to create the file again.
-    if AmfConfig.get('level') == 1:
+    if AmfConfig.get('level') == 1 and 'settings.json' not in z.namelist():
 
         with z.open('settings.json', mode='w') as s:
             edge = AmfConfig.get('tile_edge')

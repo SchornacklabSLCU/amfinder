@@ -34,7 +34,9 @@ import amfinder_save as AmfSave
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
 import amfinder_segmentation as AmfSegm
-#import amfinder_activation_mapping as AmfMapping
+
+# FIXME: Deactivated due to probable issues with TF 2.1
+# import amfinder_activation_mapping as AmfMapping
 
 
 
@@ -163,7 +165,7 @@ def colonization(image, nrows, ncols, model):
     table.insert(0, column='col', value=col_values)
     table.insert(0, column='row', value=row_values)
 
-    return (table, cams)
+    return (table, None) # was cams
 
 
 
