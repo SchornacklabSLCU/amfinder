@@ -34,7 +34,7 @@ import amfinder_save as AmfSave
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
 import amfinder_segmentation as AmfSegm
-import amfinder_activation_mapping as AmfMapping
+#import amfinder_activation_mapping as AmfMapping
 
 
 
@@ -48,7 +48,7 @@ def normalize(t):
 def myc_structures(path, image, nrows, ncols, model):
     """ Identifies AM fungal structures in colonized root segments. """
     
-    cams = AmfMapping.initialize(nrows, ncols)
+    #cams = AmfMapping.initialize(nrows, ncols)
     
     zfile = os.path.splitext(path)[0] + '.zip'
 
@@ -86,7 +86,7 @@ def myc_structures(path, image, nrows, ncols, model):
                 hp = prd[2].tolist()       
                 ip = prd[3].tolist()
                 dat = [[a[0], v[0], h[0], i[0]] for a, v, h, i in zip(ap, vp, hp, ip)]
-                AmfMapping.generate(cams, model, row, batch)
+                #AmfMapping.generate(cams, model, row, batch)
                 res = [[x[0], x[1], y[0], y[1], y[2], y[3]] for (x, y) in zip(batch, dat)]
                 AmfLog.progress_bar(b, nbatches, indent=1)
                 return pd.DataFrame(res)
@@ -125,7 +125,7 @@ def colonization(image, nrows, ncols, model):
     """
 
     # Creates the images to save the class activation maps.
-    cams = AmfMapping.initialize(nrows, ncols)
+    #cams = AmfMapping.initialize(nrows, ncols)
 
     bs = AmfConfig.get('batch_size')
     c_range = range(ncols)
@@ -139,7 +139,7 @@ def colonization(image, nrows, ncols, model):
         # Predict mycorrhizal structures.
         prd = model.predict(row, batch_size=bs)
         # Retrieve class activation maps.
-        AmfMapping.generate(cams, model, row, r)
+        #AmfMapping.generate(cams, model, row, r)
         # Update the progress bar.
         AmfLog.progress_bar(r + 1, nrows, indent=1)
         # Return prediction as Pandas data frame.
