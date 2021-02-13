@@ -128,6 +128,7 @@ def compute_cam(index, tile, conv_model, classifier):
     # Transform the tile array into a batch.
     # <tile_batch> shape is (1, model_input_size, model_input_size, 3).
     tile_batch = np.expand_dims(tile, axis=0)
+    tile_batch = tf.convert_to_tensor(tile_batch, dtype=tf.float32)
 
     # Compute the output of the last convolutional layer.
     last_conv_output = conv_model(tile_batch)
@@ -252,7 +253,7 @@ def generate(mosaics, model, row, input_data):
         # Map the activations of <last_conv> to the final class predictions.
         classifier_model = get_classifier_model(model, last_conv)
         
-        if isinstance(input_data, int):
+        if AmfConfig.colonization():
                
             for c, tile in enumerate(row):
             
