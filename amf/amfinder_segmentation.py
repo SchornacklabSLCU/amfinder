@@ -53,6 +53,29 @@ INTERPOLATION = pyvips.vinterpolate.Interpolate.new('nearest')
 
 
 
+def data_augmentation(tile):
+    """ Modify tile pixels and preserve all information. """
+
+    tmp = tile
+
+    if random.uniform(0, 100) < 50:
+
+        chroma = random.uniform(0.5, 1.5)
+        hue = random.uniform(0.5, 1.5)
+        tmp = tile.colourspace("lch") * [1, chroma, hue]
+     
+    elif random.uniform(0, 100) < 50:
+
+        tmp = tile.colourspace("b-w") # grayscale
+
+    elif random.uniform(0, 100) < 50:
+
+        tmp = tile.invert() # complementary color
+                                        
+    return tmp.colourspace("srgb")
+
+
+
 def tile(image, r, c):
     """ Extracts a tile from a large image, resizes it to
         model input size, and returns it as a numpy array. """
@@ -65,29 +88,10 @@ def tile(image, r, c):
         ratio = AmfModel.INPUT_SIZE / edge
         tile = tile.resize(ratio, interpolate=INTERPOLATION)
 
-    # perform various types of data augmentation (grayscale, hue, blur)
-    if AmfConfig.get('run_mode') == 'train':
-
-        tmp = tile
-
-        # Changes chroma and hue.
-        if random.uniform(0, 100) < 50:
-
-            tmp = tile.colourspace("lch") * [1,
-                                             random.uniform(0.5, 1.5),
-                                             random.uniform(0.5, 1.5)]
-                          
-        # turn to grayscale.                   
-        elif random.uniform(0, 100) < 50:
-
-            tmp = tile.colourspace("b-w")
-
-        # Negative.
-        elif  random.uniform(0, 100) < 50:
-
-            tmp = tile.invert()
-                                            
-        tile = tmp.colourspace("srgb")
+    # Perform various types of data augmentation (grayscale, hue, blur)
+    if AmfConfig.get('run_mode') == 'train' and AmfConfig.get('data_augm'):
+      
+        tile = data_augmentation(tile)
 
     # Debug only, in case we want to have a look at tiles.
     # tile.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))

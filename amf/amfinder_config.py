@@ -74,6 +74,7 @@ PAR = {
     'drop': True,
     'epochs': 100,
     'vfrac': 15,
+    'data_augm': False,
     'summary': False,
     'header': HEADERS[0],
     #'generate_cams': False,
@@ -204,6 +205,12 @@ def training_subparser(subparsers):
         action='store_false', dest='drop', default=x,
         help='keep all background tiles.'
              '\nby default, downscale background to equilibrate classes.')
+
+    x = PAR['data_augm']
+    parser.add_argument('-a', '--data_augmentation',
+        action='store_true', dest='data_augm', default=x,
+        help='apply data augmentation (hue, chroma, saturation, etc.)'
+             '\nby default, does not apply data augmentation.')
 
     x = PAR['summary']
     parser.add_argument('-s', '--summary',
@@ -398,6 +405,7 @@ def initialize():
         set('model', par.model)
         set('level', par.level)
         set('vfrac', par.vfrac)
+        set('data_augm', par.data_augm)
         set('summary', par.summary)
 
     else: # elif par.run_mode == 'predict'
