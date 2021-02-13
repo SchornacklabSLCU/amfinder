@@ -99,7 +99,7 @@ def class_weights(one_hot_labels):
     """
     Compute weights to counteract class imbalance and display statistics.
     Note: this functions requires Tensorflow 2.1 (and Keras 2.3.1). Indeed,
-    a bug in TF makes it impossible to se class_weights to models with
+    a bug in TF makes it impossible to use class_weights to models with
     multiple outputs. This bug is active on January 2021. 
     Reference: https://github.com/tensorflow/tensorflow/issues/40457
     """
@@ -360,9 +360,9 @@ def run(input_files):
 
     # Input model (either new or pre-trained).
     model = AmfModel.load()
-    
-    # TODO: add an option to print network information.
-    if False:
+
+    # Save model information (layers and graph) upon user request.
+    if AmfConfig.get('summary'):
         cnn = 'CNN%d' % (AmfConfig.get('level'))
         with open(f'{cnn}_summary.txt', 'w') as sf:
             with redirect_stdout(sf):

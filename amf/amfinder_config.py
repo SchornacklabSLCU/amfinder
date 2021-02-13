@@ -74,8 +74,9 @@ PAR = {
     'drop': True,
     'epochs': 100,
     'vfrac': 15,
+    'summary': False,
     'header': HEADERS[0],
-    'generate_cams': False,
+    #'generate_cams': False,
     'colormap': cv2.COLORMAP_JET,
     'monitors': {
         'csv_logger': None,
@@ -204,6 +205,12 @@ def training_subparser(subparsers):
         help='keep all background tiles.'
              '\nby default, downscale background to equilibrate classes.')
 
+    x = PAR['summary']
+    parser.add_argument('-s', '--summary',
+        action='store_true', dest='summary', default=x,
+        help='save CNN architecture (CNN graph and model summary)'
+             '\nby default, does not save any information.')
+
     x = PAR['epochs']
     parser.add_argument('-e', '--epochs',
         action='store', dest='epochs', metavar='NUM', type=int, default=x,
@@ -259,11 +266,11 @@ def prediction_subparser(subparsers):
         help='Tile size (in pixels) used for image segmentation.'
              '\ndefault value: {} pixels'.format(x))
 
-    x = PAR['generate_cams']
-    parser.add_argument('-cam', '--class_activation_maps',
-        action='store_true', dest='generate_cams', default=x,
-        help='Generate class activation map (takes some time).'
-             '\ndefault value: {}'.format(x))
+   #x = PAR['generate_cams']
+   #parser.add_argument('-cam', '--class_activation_maps',
+   #    action='store_true', dest='generate_cams', default=x,
+   #    help='Generate class activation map (takes some time).'
+   #         '\ndefault value: {}'.format(x))
 
     x = PAR['colormap']
     parser.add_argument('-c', '--opencv_colormap',
@@ -391,9 +398,10 @@ def initialize():
         set('model', par.model)
         set('level', par.level)
         set('vfrac', par.vfrac)
-    
-    else: # par.run_mode == 'predict'
+        set('summary', par.summary)
+
+    else: # elif par.run_mode == 'predict'
 
         set('model', par.model)
-        set('generate_cams', par.generate_cams)
+       #set('generate_cams', par.generate_cams)
         set('colormap', par.colormap)

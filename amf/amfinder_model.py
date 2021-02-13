@@ -30,15 +30,15 @@ Builds the convolutional neural networks used by AMFinder.
 Constants
 -----------
 INPUT_SIZE - Size (in pixels) of input images.
-COLONIZATION_NAME - Name of the root segmentation network.
-MYC_STRUCTURES_NAME - Name of the AM fungal structure prediction network.
+CNN1_NAME - Name of the root segmentation network.
+CNN2_NAME - Name of the AM fungal structure prediction network.
 
 Functions
 ------------
 convolutions - Builds convolution/maxpooling blocks.
 fc_layers - Builds fully connected/dropout layers.
-colonization - Builds a network for root segmentation.
-myc_structures - Builds a network for AM fungal structure prediction.
+create_cnn1 - Builds a network for root segmentation.
+create_cnn2 - Builds a network for AM fungal structure prediction.
 load - main function, to be called from outside.
 """
 
@@ -57,8 +57,8 @@ import amfinder_config as AmfConfig
 
 
 INPUT_SIZE = 126
-COLONIZATION_NAME = 'col'
-MYC_STRUCTURES_NAME = 'myc'
+CNN1_NAME = 'col'
+CNN2_NAME = 'myc'
 
 
 def convolutions():
@@ -130,7 +130,7 @@ def fc_layers(x, label, count=1, activation='sigmoid'):
 
 
 
-def colonization():
+def create_cnn1():
     """
     Builds a single-label, multi-class classifier to discriminate
     colonized (Y) and non-colonized (N) roots, and background (X).
@@ -141,7 +141,7 @@ def colonization():
 
     model = Model(inputs=input_layer,
                   outputs=output_layer,
-                  name=COLONIZATION_NAME)
+                  name=CNN1_NAME)
 
     opt = keras.optimizers.Adam(learning_rate=AmfConfig.get('learning_rate'))
     model.compile(loss='categorical_crossentropy',
@@ -152,7 +152,7 @@ def colonization():
 
 
 
-def myc_structures():
+def create_cnn2():
     """
     Builds a multi-label, single-class classifier to identify
     arbuscules (A), vesicles (V), hyphopodia (H), and
@@ -164,7 +164,7 @@ def myc_structures():
 
     model = Model(inputs=input_layer,
                   outputs=output_layers,
-                  name=MYC_STRUCTURES_NAME)
+                  name=CNN2_NAME)
 
     opt = keras.optimizers.Adam(learning_rate=AmfConfig.get('learning_rate'))
     model.compile(loss='binary_crossentropy',
@@ -176,9 +176,7 @@ def myc_structures():
 
 
 def load():
-    """
-    Loads a pre-trained network or initializes a new one.
-    """
+    """ Load or initialise a convolutional neural network. """
 
     path = AmfConfig.get('model')
 
@@ -187,21 +185,16 @@ def load():
         print(f'* Pre-trained network: {path}')
         model = keras.models.load_model(path)
 
-        # Updates annotation level based on the structure of the
-        # pre-trained model. The structure is determined by checking
-        # the layer RS (Root Segmentation) and catching error, if any.
-        try:
+        if model.name == CNN1_NAME:
 
-            model.get_layer('RS')
             AmfConfig.set('level', 1)
-            print('* Classes: colonized (Myc+), '
-                  'non-colonized (Myc-), background (X).')
+            print('* Classes: colonised (M+), non-colonised (M-), other (X).')
 
-        except ValueError:
+        else: # elif model.name == CNN2_NAME
 
             AmfConfig.set('level', 2)
-            print('* Classes: arbuscule (A), vesicle (V), '
-                  'hyphopodium (H), intraradical hypha (I).')
+            print('* Classes: arbuscules (A), vesicles (V), '
+                  'hyphopodia (H), intraradical hyphae (IH).')
 
         return model
 
@@ -213,13 +206,13 @@ def load():
 
             if AmfConfig.get('level') == 1:
 
-                return colonization()
+                return create_cnn1()
 
             else:
 
-                return myc_structures()
+                return create_cnn2()
         
-        else: # missing pre-trained model
+        else: # missing pre-trained model in prediction mode.
         
             AmfLog.error('A pre-trained model is required in prediction mode',
                          exit_code=AmfLog.ERR_NO_PRETRAINED_MODEL)

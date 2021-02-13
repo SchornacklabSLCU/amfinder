@@ -36,6 +36,7 @@ from keras import Input
 from keras import Model
 from keras.layers import Conv2D
 from keras.layers import Dense
+from tensorflow.keras import backend as K
 
 import amfinder_log as AmfLog
 import amfinder_config as AmfConfig
@@ -65,111 +66,58 @@ def initialize(nrows, ncols):
 
 
 
-def get_conv_model(model):
-    """
-    Map the model input to its last convolutional layer.
+def compute_cam(model, classifier_layer_names, tile):
+    # First, we create a model that maps the input image to the activations
+    # of the last conv layer
+    last_conv_layer = model.get_layer('C4')
+    last_conv_input = Input
+    last_conv_layer_model = Model(model.inputs, last_conv_layer.output)
 
-    PARAMETER
-        - model: Pre-trained model used for predictions.
-    
-    Returns the last convolutional layer (`last_conv`) of the input model,
-    and a fresh model mapping `model` input to `last_conv` output.
-    """
-
-    # The last convolutional layer occurs first on the reversed layer list.
-    for layer in reversed(model.layers):
-
-        if isinstance(layer, Conv2D):
-
-            last_conv = layer
-            conv_model = Model(model.inputs, last_conv.output)
-
-            return (last_conv, conv_model)
-
-    # We could not find any convolutional layer in the input model.
-    AmfLog.failwith(f'{model} has no Conv2D layer', AmfLog.ERR_INVALID_MODEL)
-
-
-
-def get_classifier_model(model, last_conv):
-    """
-    Map the output of the last convolutional layer to model predictions.
-
-    :param model: pre-trained model used for predictions.
-    :param last_conv: last convolutional layer of ``model``.
-    """
-
-    classifier_input = Input(shape=last_conv.output.shape[1:])
+    # Second, we create a model that maps the activations of the last conv
+    # layer to the final class predictions
+    classifier_input = Input(shape=last_conv_layer.output.shape[1:])
     x = classifier_input
+    for layer_name in classifier_layer_names:
+        x = model.get_layer(layer_name)(x)
+    classifier_model = Model(classifier_input, x)
 
-    # Index of the last convolutional layer.
-    last_index = model.layers.index(last_conv)   
-    
-    for layer in model.layers[last_index + 1:]:
+    img_array = np.expand_dims(tile, axis=0)
+    #img_array = tf.convert_to_tensor(img_array, dtype=tf.float32)
 
-        x = layer(x)
-    
-    return Model(classifier_input, x)
+    # Then, we compute the gradient of the top predicted class for our input image
+    # with respect to the activations of the last conv layer
+    with tf.GradientTape() as tape:
+        # Compute activations of the last conv layer and make the tape watch it
+        last_conv_layer_output = last_conv_layer_model(img_array)
+        tape.watch(last_conv_layer_output)
+        # Compute class predictions
+        preds = classifier_model(last_conv_layer_output)
+        top_pred_index = tf.argmax(preds[0])
+        top_class_channel = preds[:, tf.cast(top_pred_index, dtype=tf.int32)]
 
+    # This is the gradient of the top predicted class with regard to
+    # the output feature map of the last conv layer
+    grads = tape.gradient(top_class_channel, last_conv_layer_output)
 
+    # This is a vector where each entry is the mean intensity of the gradient
+    # over a specific feature map channel
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
 
-def compute_cam(index, tile, conv_model, classifier):
-    """
-    Compute gradient and class activation map.
+    # We multiply each channel in the feature map array
+    # by "how important this channel is" with regard to the top predicted class
+    last_conv_layer_output = last_conv_layer_output.numpy()[0]
+    pooled_grads = pooled_grads.numpy()
+    for i in range(pooled_grads.shape[-1]):
+        last_conv_layer_output[:, :, i] *= pooled_grads[i]
 
-    :param index: class index.
-    :param tile: input tile to be processed.
-    :param conv_model:  model to retrieve the output of the last Conv2D layer.
-    :param classifier:  model to retrieve the gradients.
-    :return: the tile activation map for the given class, and a boolean which
-    indicates whether the class has highest support for the given tile.
-    """
+    # The channel-wise mean of the resulting feature map
+    # is our heatmap of class activation
+    heatmap = np.mean(last_conv_layer_output, axis=-1)
 
-    # Transform the tile array into a batch.
-    # <tile_batch> shape is (1, model_input_size, model_input_size, 3).
-    tile_batch = np.expand_dims(tile, axis=0)
-    tile_batch = tf.convert_to_tensor(tile_batch, dtype=tf.float32)
+    # For visualization purpose, we will also normalize the heatmap between 0 & 1
+    heatmap = np.maximum(heatmap, 0) / np.max(heatmap)
+    return heatmap
 
-    # Compute the output of the last convolutional layer.
-    last_conv_output = conv_model(tile_batch)
-
-    with tf.GradientTape(watch_accessed_variables=False) as tape:
-
-        # Watch the gradient.
-        tape.watch(last_conv_output)
-
-        # Obtain the predictions.
-        predictions = classifier(last_conv_output)
-
-        # Build a tensor for the given index
-        class_index = tf.convert_to_tensor(index, dtype='int64') 
-
-        # Dtermine whether the index corresponds to the best prediction.
-        is_best_match = class_index == tf.argmax(predictions[0])
-
-        # Retrieve the corresponding channel.
-        class_channel = predictions[:, class_index]
-
-    # Retrieve the corresponding gradients.
-    grads = tape.gradient(class_channel, last_conv_output)
-
-    # Compute the guided gradients.
-    cast_conv_outputs = tf.cast(last_conv_output > 0, 'float32')
-    cast_grads = tf.cast(grads > 0, 'float32')
-    guided_grads = cast_conv_outputs * cast_grads * grads
-
-    # Remove the unnecessary batch dimension from the convolution 
-    # and from the guided gradients.
-    last_conv_output = last_conv_output[0]
-    guided_grads = guided_grads[0]
-
-    # Compute the average of the gradient values, and, using them
-    # as weights, compute the ponderation of the filters with
-    # respect to the weights.
-    weights = tf.reduce_mean(guided_grads, axis=(0, 1))
-    cam = tf.reduce_sum(tf.multiply(weights, last_conv_output), axis=-1)
-
-    return (cam, is_best_match)
 
 
 
@@ -202,19 +150,19 @@ def make_heatmap(cam, top_pred):
 
 
 
-def process_tile(conv_model, classifier_model, mosaics, edge, r, c, tile):
+def process_tile(model, classifier_layer_names, mosaics, tile, r, c):
 
     # Generate class activation maps for all annotations classes
     # The function <compute_cam> returns a boolean which indicates
     # whether the given class is the best match.
-    cams = [compute_cam(i, tile, conv_model, classifier_model)
-            for i, _ in enumerate(AmfConfig.get('header'))]
+    cams = [compute_cam(model, classifier_layer_names, tile)]
 
+    edge = edge = AmfConfig.get('tile_edge')
 
-    for (cam, is_best_match), mosaic in zip(cams, mosaics):
+    for cam in cams:
 
         # Generats the heatmap.
-        heatmap = make_heatmap(cam, is_best_match)
+        heatmap = make_heatmap(cam, True)
 
         # Resize the tile to its original size, desaturate
         # and increase the contrast (better overlay rendition).
@@ -230,7 +178,7 @@ def process_tile(conv_model, classifier_model, mosaics, edge, r, c, tile):
         # Inserts the overlay on the large map.
         rpos = r
         cpos = c
-        mosaic[rpos:rpos + edge, cpos:cpos + edge] = output    
+        mosaics[rpos:rpos + edge, cpos:cpos + edge] = output    
 
 
 
@@ -243,26 +191,18 @@ def generate(mosaics, model, row, input_data):
     :param r: row index.
     """
 
-    if AmfConfig.get('generate_cams'):
-
-        edge = AmfConfig.get('tile_edge')
-
-        # Map the input tile to the activations of the last Conv2D layer.
-        last_conv, conv_model = get_conv_model(model)
-
-        # Map the activations of <last_conv> to the final class predictions.
-        classifier_model = get_classifier_model(model, last_conv)
+    if AmfConfig.get('generate_cams'):       
         
         if AmfConfig.colonization():
                
+            classifier_layer_names = ['M4', 'F', 'FCRS1', 'DRS1', 
+                                      'FCRS2', 'DRS2', 'RS']
+               
             for c, tile in enumerate(row):
             
-                process_tile(conv_model, classifier_model, mosaics, edge,
-                             input_data, c, tile)
+                process_tile(model, classifier_layer_names, mosaics, tile,
+                             input_data, c)
 
         else:
         
-            for x, tile in zip(input_data, row):
-       
-                process_tile(conv_model, classifier_model, mosaics, edge,
-                             x[0], x[1], tile)
+                print('Not yet implemented')
