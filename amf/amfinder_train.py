@@ -51,6 +51,7 @@ run - Run the training session.
 
 import os
 import io
+import keras
 import random
 random.seed(42)
 import pyvips
@@ -60,11 +61,10 @@ import zipfile as zf
 import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None
-
+from contextlib import redirect_stdout
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
-
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
 
@@ -360,7 +360,15 @@ def run(input_files):
 
     # Input model (either new or pre-trained).
     model = AmfModel.load()
-    model.summary()
+    
+    # TODO: add an option to print network information.
+    if False:
+        cnn = 'CNN%d' % (AmfConfig.get('level'))
+        with open(f'{cnn}_summary.txt', 'w') as sf:
+            with redirect_stdout(sf):
+                model.summary()
+        keras.utils.plot_model(model, f'{cnn}_architecture.png',
+                               show_shapes=True)
 
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)
