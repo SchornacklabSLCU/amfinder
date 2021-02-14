@@ -66,7 +66,7 @@ def info(message, indent=0, **kwargs):
     
     :param message: The message to be printed.
     :param ident: Indentation level (defaults to 0).
-    :params kwargs: Any relevant keyword argument. 
+    :param kwargs: Any relevant keyword argument. 
     """
 
     print(' ' * 4 * indent + f'INFO: {message}.', **kwargs)
@@ -79,7 +79,7 @@ def warning(message, indent=0, **kwargs):
 
     :param message: The message to be printed.
     :param ident: Indentation level (defaults to 0).
-    :params kwargs: Any relevant keyword argument. 
+    :param kwargs: Any relevant keyword argument. 
     """
 
     print(' ' * 4 * indent + f'WARNING: {message}.', file=sys.stderr, **kwargs)
@@ -93,7 +93,7 @@ def error(message, exit_code, indent=0, **kwargs):
     :param message: The message to be printed.
     :param exit_code: The exit code to return when closing the application.
     :param ident: Indentation level (defaults to 0).
-    :params kwargs: Any relevant keyword argument.
+    :param kwargs: Any relevant keyword argument.
     """
 
     print(' ' * 4 * indent + f'ERROR: {message}.', file=sys.stderr, **kwargs)
