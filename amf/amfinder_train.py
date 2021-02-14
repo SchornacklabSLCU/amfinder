@@ -47,13 +47,15 @@ Functions
 :function class_weights: Computes class weights
 :function get_callbacks: Configures Keras callbacks.
 :function save_model_architecture: Saves neural network architecture.
+:function print_memory_usage: Prints memory used to load training data.
 :function run: Runs a training session.
 """
 
-import os
 import io
+import os
 import yaml
 import keras
+import psutil
 import random
 random.seed(42)
 import pyvips
@@ -410,6 +412,17 @@ def save_model_architecture(model):
 
 
 
+def print_memory_usage():
+    """
+    Prints the amount of memory used to load training data.
+    """
+
+    process = psutil.Process(os.getpid())
+    mb = process.memory_info().rss / (1024 * 1024)
+    print(f"* Total memory used: {mb} Mb.")
+
+
+
 def run(input_files):
     """
     Creates or loads a convolutional neural network, and trains it
@@ -427,7 +440,7 @@ def run(input_files):
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)
 
-    AmfSegm.print_memory_usage()
+    print_memory_usage()
 
     # Generates training and validation datasets.
     xt, xc, yt, yc = train_test_split(tiles, labels,

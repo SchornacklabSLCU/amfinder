@@ -35,13 +35,10 @@
     print_memory_usage - prints total memory usage.
 """
 
-import os
-import sys
 import pyvips
 import random
 random.seed(42)
 import numpy as np
-import psutil
 
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
@@ -109,12 +106,3 @@ def tile(image, r, c):
             for tile in tile_list]
 
     return data
-
-
-
-def print_memory_usage():
-    """ Prints amf memory usage. """
-
-    process = psutil.Process(os.getpid())
-    mb = process.memory_info().rss / (1024 * 1024)
-    print(f"* Total memory used: {mb} Mb.")
