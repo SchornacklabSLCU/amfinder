@@ -179,10 +179,10 @@ def estimate_background_subsampling(input_dataset):
     # Generates the grand total. 
     counts = functools.reduce(operator.add, count_list)
 
-    # Number of background tiles.
+    # Number of tiles annotated as 'background/not a root/other'.
     background = counts['X']
 
-    # Number of tiles with other annotation.
+    # Other tiles (i.e. annotated as 'colonised' or 'non-colonised' root).
     other_counts = counts.drop(['row', 'col', 'X'])
 
     # Average tile count per annotation class.
