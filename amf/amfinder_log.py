@@ -21,26 +21,27 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-""" Log Functions.
+"""
+Log functions.
 
-    Displays information, warnings, errors, and progress bars.
+Displays message, warnings, errors, and progress bars.
 
-    Constants
-    -----------
-    ERR_INVALID_MODEL - Wrong Keras model.
-    ERR_NO_PRETRAINED_MODEL - A pre-trained model is required but not provided.
-    ERR_INVALID_MODEL_SHAPE - Wrong model input shape.
-    ERR_INVALID_ANNOTATION_LEVEL - 
-    ERR_MISSING_ARCHIVE - Cannot find the zip archive associated with an image.
-    ERR_MISSING_SETTINGS - File settings.json not found.
-    ERR_MISSING_ANNOTATIONS - The given archive lacks stage 1 annotations.
+Constants
+-----------
+ERR_INVALID_MODEL - Wrong Keras model.
+ERR_NO_PRETRAINED_MODEL - A pre-trained model is required but not provided.
+ERR_INVALID_MODEL_SHAPE - Wrong model input shape.
+ERR_INVALID_ANNOTATION_LEVEL - 
+ERR_MISSING_ARCHIVE - Cannot find the zip archive associated with an image.
+ERR_MISSING_SETTINGS - File settings.json not found.
+ERR_MISSING_ANNOTATIONS - The given archive lacks stage 1 annotations.
 
-    Functions
-    -----------
-    info -  print a message.
-    warning - print a warning message.
-    error - print an error message, and closes the application.
-    progress_bar - displays a progress bar.
+Functions
+-----------
+:function info: prints a message.
+:function warning: prints a warning message.
+:function error: prints an error message, and closes the application.
+:function progress_bar: displays a progress bar.
 
 """
 
@@ -60,21 +61,40 @@ ERR_MISSING_ANNOTATIONS = 32
 
 
 def info(message, indent=0, **kwargs):
-    """ Prints an message on standard output. """
+    """
+    Prints an message on standard output.
+    
+    :param message: The message to be printed.
+    :param ident: Indentation level (defaults to 0).
+    :params kwargs: Any relevant keyword argument. 
+    """
 
     print(' ' * 4 * indent + f'INFO: {message}.', **kwargs)
 
 
 
 def warning(message, indent=0, **kwargs):
-    """ Prints a warning message on standard error. """
+    """
+    Prints a warning message on standard error.
+
+    :param message: The message to be printed.
+    :param ident: Indentation level (defaults to 0).
+    :params kwargs: Any relevant keyword argument. 
+    """
 
     print(' ' * 4 * indent + f'WARNING: {message}.', file=sys.stderr, **kwargs)
 
 
 
 def error(message, exit_code, indent=0, **kwargs):
-    """ Prints an error message on standard error and quits. """
+    """
+    Prints an error message on standard error and quits.
+    
+    :param message: The message to be printed.
+    :param exit_code: The exit code to return when closing the application.
+    :param ident: Indentation level (defaults to 0).
+    :params kwargs: Any relevant keyword argument.
+    """
 
     print(' ' * 4 * indent + f'ERROR: {message}.', file=sys.stderr, **kwargs)
 
@@ -85,7 +105,13 @@ def error(message, exit_code, indent=0, **kwargs):
 
 
 def progress_bar(iteration, total, indent=0):
-    """ Displays a progress bar. """
+    """
+    Displays a progress bar.
+    
+    :param iteration: Current iteration value.
+    :param total: Total iteration count (to calculate percentages).
+    :param indent: Indentation level (defaults to 0).
+    """
 
     percent = 100.0 * iteration / float(total)
 
