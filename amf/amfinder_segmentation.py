@@ -71,8 +71,11 @@ def data_augmentation(tile):
     # Grayscale tile.
     tile_list.append(tile.colourspace('b-w'))
 
-    # Complementary colors
+    # Complementary colors.
     tile_list.append(tile.invert())
+                                   
+    # Gaussian blur. 
+    tile_list.append(tile.gaussblur(2.5))
                                        
     return [tile.colourspace('srgb') for tile in tile_list]
 

@@ -254,13 +254,13 @@ def load_dataset(input_files):
             if AmfConfig.get('level') == 1 and subsampling > 0 and \
                annot.X == 1 and random.uniform(0, 100) < subsampling:
 
-                continue
+                pass
             
             else:
      
                 tile_set = AmfSegm.tile(image, annot.row, annot.col)
                 tiles += tile_set
-                hot_labels += [list(annot[3:]) * len(tile_set)]
+                hot_labels += [list(annot[3:])] * len(tile_set)
             
         print('OK')
 
@@ -268,8 +268,8 @@ def load_dataset(input_files):
 
     # Preprocessing and conversion to NumPy arrays.
     preprocess = lambda x: x / 255.0
-    hot_labels = np.array(hot_labels, np.uint8)
     tiles = preprocess(np.array(tiles, np.float32))
+    hot_labels = np.array(hot_labels, np.uint8)
 
     return tiles, hot_labels
 
