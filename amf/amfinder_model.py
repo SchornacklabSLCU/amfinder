@@ -25,6 +25,7 @@
 
 """
 ConvNet Builder.
+
 Builds the convolutional neural networks used by AMFinder.
 
 Constants
@@ -35,11 +36,11 @@ CNN2_NAME - Name of the AM fungal structure prediction network.
 
 Functions
 ------------
-convolutions - Builds convolution/maxpooling blocks.
-fc_layers - Builds fully connected/dropout layers.
-create_cnn1 - Builds a network for root segmentation.
-create_cnn2 - Builds a network for AM fungal structure prediction.
-load - main function, to be called from outside.
+:function convolutions: Builds convolution/maxpooling blocks.
+:function fc_layers: Builds fully connected/dropout layers.
+:function create_cnn1: Builds a network for root segmentation.
+:function create_cnn2: Builds a network for AM fungal structure prediction.
+:function load: main function, to be called from outside.
 """
 
 
@@ -116,6 +117,13 @@ def convolutions():
 def fc_layers(x, label, count=1, activation='sigmoid'):
     """
     Builds fully connected layers (with dropout).
+    
+    :param x: last layer of conv/maxpool blocks (= Flatten). 
+    :param label: Either 'RS' (root segmentation) or 'A', 'V', 'I', 'H'.
+    :param count: Size of the output dense layer (defaults to 1).
+    :param activation: Activation function (defaults to sigmoid).
+    :return: CNN output (Dense) to use with Keras Model.
+    :rtype: tensorflow.python.framework.ops.Tensor
     """
 
     x = Dense(128, kernel_initializer=he_uniform(), activation='relu',
@@ -176,7 +184,9 @@ def create_cnn2():
 
 
 def load():
-    """ Load or initialise a convolutional neural network. """
+    """
+    Loads or initialises a convolutional neural network.
+    """
 
     path = AmfConfig.get('model')
 
