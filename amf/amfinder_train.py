@@ -25,6 +25,7 @@
 
 """
 Training module.
+
 Trains a convolutional neural network on a set of ink-stained root
 images annotated to highlight fungal colonization (ConvNet I) or
 intraradical fungal structures (ConvNet II). Annotations are stored
@@ -32,25 +33,26 @@ in an auxiliary zip file.
 
 Class
 ------------
-ImageDataGeneratorMO - Custom data generator for multiple single-variable
-    outputs. Used with ConvNet II.
+:class ImageDataGeneratorMO:
+    Custom data generator for multiple single-variable outputs.
     Reference: https://github.com/keras-team/keras/issues/3761
 
 Functions
 ------------
-load_tile - Load a tile (may return None for background tiles).
-class_weights - Compute class weights and display statistics.
-read_tsv - Reads the annotation table from the auxiliary zip archive.
-estimate_drop - Estimate background tiles to omit to reduce class imbalance.
-load_dataset - Load training dataset (i.e. tiles and annotations).
-get_callbacks - Set up Keras callbacks.
-run - Run the training session.
+:function get_zipfile: Returns the path of an auxiliary ZIP archive.
+:function import_settings: Imports image settings from a ZIP archive.
+:function import_annotations: Imports tile annotations from a ZIP archive.
+:function estimate_background_subsampling: Estimates background subsampling.
+:function load_dataset: Loads training dataset.
+:function class_weights: Computes class weights
+:function get_callbacks: Configures Keras callbacks.
+:function save_model_architecture: Saves neural network architecture.
+:function run: Runs a training session.
 """
-
-
 
 import os
 import io
+import yaml
 import keras
 import random
 random.seed(42)
@@ -60,11 +62,13 @@ import functools
 import zipfile as zf
 import numpy as np
 import pandas as pd
-pd.options.mode.chained_assignment = None
+
 from contextlib import redirect_stdout
+
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ReduceLROnPlateau
 from keras.preprocessing.image import ImageDataGenerator
+
 from sklearn.model_selection import train_test_split
 from sklearn.utils.class_weight import compute_class_weight
 
@@ -77,31 +81,212 @@ import amfinder_segmentation as AmfSegm
 
 
 
-def load_tile(image, drop, data):
+def get_zipfile(path):
     """
-    Loads a tile. The function may return None to prevent
-    overrepresentation of the background annotation class.
+    Returns the path of the auxiliary ZIP archive associated
+    with the given image.
+    
+    :param path: Path to an input image.
+    :return: Path to the corresponding auxiliary ZIP archive.
+    :rtype: string
     """
 
-    if AmfConfig.get('level') == 1 and drop > 0 and \
-       data['X'] == 1 and random.uniform(0, 100) < drop:
+    return '{}.zip'.format(os.path.splitext(path)[0])
 
-        # Drop the background tile.
+
+
+def import_settings(path):
+    """
+    Imports image settings stored in the auxiliary ZIP archive
+    associated with the given image.
+    
+    :param path: Path to an input image.
+    :return: Dictionary containing image settings
+    :rtype: dict
+    """
+
+    zfile = get_zipfile(path)
+
+    try:
+
+        assert zf.is_zipfile(zfile)
+
+        with zf.ZipFile(zfile, 'r') as z:
+
+            assert AmfSave.IMG_SETTINGS in z.namelist()
+
+            raw_text = z.read(AmfSave.IMG_SETTINGS).decode('utf-8')
+            return yaml.safe_load(raw_text)
+
+    except AssertionError:
+
+        return {'tile_edge': AmfConfig.get('tile_edge')}
+
+
+
+def import_annotations(path):
+    """
+    Imports tile annotations from the auxiliary ZIP archive
+    associated with the given input image.
+    
+    :param path: Path to an input image.
+    :return: Pandas dataframe containing annotations
+    :rtype: pd.DataFrame 
+    """
+
+    zfile = get_zipfile(path)
+
+    try:
+    
+        assert zf.is_zipfile(zfile)
+        
+        with zf.ZipFile(zfile, 'r') as z:
+
+            base = 'col' if AmfConfig.get('level') == 1 else 'myc'
+            table = f'{base}.tsv'
+
+            assert table in z.namelist()
+
+            raw_data = z.read(table).decode('utf-8')
+            return pd.read_csv(io.StringIO(raw_data), sep='\t')           
+            
+    except AssertionError:
+
         return None
 
-    else:
 
-        return AmfSegm.tile(image, data['row'], data['col'])
+
+def estimate_background_subsampling(input_dataset):
+    """
+    Calculates the percentage of background tiles to omit
+    to ensure near equal representation of all annotation classes
+    in the training dataset. Background tiles are more abundant 
+    than roots in most images.
+
+    :param input_dataset: Input dataset containing annotations.
+    :return: The percentage of background tiles to omit.
+    :rtype: int
+    """
+
+    # The concept of background tiles does not apply to CNN2. 
+    if AmfConfig.get('level') == 2 or AmfConfig.get('drop') == 0:
+    
+        return 0
+    
+    # Counts annotations for each input table.
+    count_list = [x[2].sum() for x in input_dataset]
+
+    # Generates the grand total. 
+    counts = functools.reduce(operator.add, count_list)
+
+    # Number of background tiles.
+    background = counts['X']
+
+    # Number of tiles with other annotation.
+    other_counts = counts.drop(['row', 'col', 'X'])
+
+    # Average tile count per annotation class.
+    average = round(sum(other_counts.values) / len(other_counts))
+
+    # Excess background tiles compared to other classes.
+    excess = background - average
+
+    if excess <= 0:
+
+        return 0
+
+    else: 
+    
+        x = round(excess * 100 / background)
+        AmfLog.info(f'{x}% of background tiles will be ignored', indent=1)
+        return x
+
+
+
+def load_dataset(input_files):
+    """Loads training tile set and their corresponding annotations.
+    
+    :param input_files: List of input images to use for training.
+    :return: Numpy arrays containing tiles and one-hot encoded annotations. 
+    :rtype: tuple
+    """
+
+    print('* Tile extraction.')
+
+    # Load image settings and annotations.   
+    settings = [import_settings(path) for path in input_files]
+    annotations = [import_annotations(path) for path in input_files]
+
+    # Remove images without annotations.
+    dataset = zip(input_files, settings, annotations)
+    filtered_dataset = [x for x in dataset if x[2] is not None]
+
+    # Terminate if there is no data to process.
+    if len(filtered_dataset) == 0:
+
+        AmfLog.error('Input images do not contain tile annotations. '
+                     'Use amfbrowser to annotate tiles before training',
+                     AmfLog.ERR_NO_DATA)
+
+    # Determine the required amount of background subsampling (if active).
+    subsampling = estimate_background_subsampling(filtered_dataset)
+
+    tiles = []
+    hot_labels = []   
+    header = AmfConfig.get('header')
+
+    for path, config, annots in filtered_dataset:
+   
+        edge = config['tile_edge']
+        AmfConfig.set('tile_edge', edge)              
+
+        base = os.path.basename(path)
+        print(f'    - {base} (tiles: {edge} pixels)... ', end='', flush=True)
+
+        # FIXME: Random access is inefficient. To achieve better
+        # efficiency we would have to load tiles row by row.
+        image = pyvips.Image.new_from_file(path, access='random')
+
+        # Extract tile sets (= original tile and augmented versions).
+        # Repeat one-hot encoded annotations for each tile.
+        for annot in annots.itertuples():
+        
+            if AmfConfig.get('level') == 1 and subsampling > 0 and \
+               annot.X == 1 and random.uniform(0, 100) < subsampling:
+
+                continue
+            
+            else:
+     
+                tile_set = AmfSegm.tile(image, annot.row, annot.col)
+                tiles += tile_set
+                hot_labels += [list(annot[3:]) * len(tile_set)]
+            
+        print('OK')
+
+        del image
+
+    # Preprocessing and conversion to NumPy arrays.
+    preprocess = lambda x: x / 255.0
+    hot_labels = np.array(hot_labels, np.uint8)
+    tiles = preprocess(np.array(tiles, np.float32))
+
+    return tiles, hot_labels
 
 
 
 def class_weights(one_hot_labels):
     """
-    Compute weights to counteract class imbalance and display statistics.
-    Note: this functions requires Tensorflow 2.1 (and Keras 2.3.1). Indeed,
-    a bug in TF makes it impossible to use class_weights to models with
-    multiple outputs. This bug is active on January 2021. 
+    Computes weights to counteract class imbalance and 
+    display statistics. Note: this functions requires 
+    Tensorflow 2.1 (and Keras 2.3.1). A bug in TF makes it 
+    impossible to use class_weights to models with multiple
+    outputs. This bug is active on January 2021. 
     Reference: https://github.com/tensorflow/tensorflow/issues/40457
+    
+    :param one_hot_labels: Hot labels encoding tile annotations.
+    :return: Dictionary of class weights.
+    :rtype: dict
     """
 
     print('* Class weights')
@@ -144,162 +329,13 @@ def class_weights(one_hot_labels):
 
 
 
-def read_tsv(level, path):
-    """
-    Retrieve manual annotations from the ZIP archive associated
-    with the input image. Returns a Pandas DataFrame containing
-    annotations, `None` in case of error.
-    """
-
-    # foo.jpg should come with an auxiliary file foo.zip.
-    zfile = os.path.splitext(path)[0] + '.zip'
-
-    if os.path.isfile(zfile) and zf.is_zipfile(zfile):
-
-        # Return the tsv filename to read (either 'col.tsv' or 'myc.tsv').
-        tsv = AmfConfig.tsv_name()
-
-        with zf.ZipFile(zfile, 'r') as z:
-
-            # Check availability of the annotation table.
-            if tsv in z.namelist():
-
-                dat = z.read(tsv).decode('utf-8')
-                dat = io.StringIO(dat)
-                dat = pd.read_csv(dat, sep='\t')
-
-                return (dat, AmfConfig.import_settings(zfile))
-
-            else:
-
-                return None
-
-    else:
-
-        return None
-
-
-
-def estimate_drop(counts):
-    """
-    Determine the percentage of background tiles to skip to avoid
-    overrepresentation of this annotation class. Roots are well
-    spaced in most pictures, resulting in large amount of background
-    tiles.
-    """
-
-    # Number of background tiles.
-    background_count = counts['X']
-
-    # Number of tiles with other annotation.
-    other_counts = counts.drop(['row', 'col', 'X'])
-
-    # Average tile count per annotation class.
-    average = round(sum(other_counts.values) / len(other_counts.index))
-
-    # Excess background tiles compared to other classes.
-    overhead = background_count - average
-
-    if overhead <= 0:
-
-        return 0
-
-    else:
-
-        return round(overhead * 100 / background_count)
-
-
-
-def load_dataset(input_files):
-    """
-    Loads the full training dataset by generating tables containing
-    tiles and their corresponding annotations.
-    """
-
-    print('* Image segmentation.')
-
-    # Load annotation tables for all input images.
-    level = AmfConfig.get('level')
-    annot_tables = [read_tsv(level, x) for x in input_files]
-
-    drop = 0
-
-    # Skipping background tiles only applies in training level 1. 
-    if AmfConfig.get('level') == 1 and AmfConfig.get('drop') > 0:
-
-        # Remove cases where no pandas.DataFrame was produced
-        filtered_tables = [x for x in annot_tables if x is not None]
-
-        # This happens when auxiliary zip files do not contain annotations.
-        if len(filtered_tables) == 0:
-
-            AmfLog.error('Input images do not contain tile annotations. '
-                         'Use amfbrowser to annotate tiles before training',
-                         AmfLog.ERR_NO_DATA)
-
-        # Produces counts (pandas.Series) for each input file.
-        count_list = [x[0].sum() for x in filtered_tables]       
-
-        # Retrieve the grand total.
-        counts = functools.reduce(operator.add, count_list)
-
-        # Estimate the percentage of background tiles to drop.
-        drop = estimate_drop(counts)
-        AmfLog.info(f'{drop}% of background tiles will be dropped', indent=1)
-
-    tiles = []
-    labels = []
-
-    headers = AmfConfig.get('header')
-
-    for path, data in zip(input_files, annot_tables):
-
-        base = os.path.basename(path)
-
-        if data is None:
-
-            print(f'    - {base}... Failed')
-            continue
-
-        # Updates tile edge for this image.
-        tsize = data[1]['tile_edge']
-        AmfConfig.set('tile_edge', tsize)
-
-        print(f'    - {base} (tile size: {tsize} pixels)... ',
-              end='', flush=True)
-
-        image = pyvips.Image.new_from_file(path, access='random')
-
-        # Loads tiles, omitting some background tiles if needed.
-        data = data[0]
-        data['tile'] = data.apply(lambda x: load_tile(image, drop, x), axis=1)
-        data = data[data['tile'].notnull()]
-
-        # Converts tile annotations to one-hot vectors.
-        data['hot'] = data[headers].values.tolist()
-
-        # Fast method to assign the new data to the existing lists.
-        # Order does not matter here (data will get shuffled later).
-        # Reference: https://stackoverflow.com/a/58898489
-        tiles[0:0] = data['tile'].values.tolist()
-        labels[0:0] = data['hot'].values.tolist()
-        print('OK')
-
-        del image
-
-    # Preprocessing and conversion to NumPy arrays.
-    preprocess = lambda x: x / 255.0
-    labels = np.array(labels, np.uint8)
-    tiles = preprocess(np.array(tiles, np.float32))
-
-    return tiles, labels
-
-
-
 def get_callbacks():
     """
-    Configure Keras callbacks to enable early stopping and learning rate
-    reduction when reaching a plateau.
+    Configures Keras callbacks to enable early stopping 
+    and learning rate reduction when reaching a plateau.
+    
+    :return: List of callback monitors.
+    :rtype: list
     """
 
     # Prevent overfitting and restores best weights.
@@ -352,23 +388,41 @@ class ImageDataGeneratorMO(ImageDataGenerator):
 
 
 
+def save_model_architecture(model):
+    """
+    Saves neural network architecture, parameters count, etc.
+    
+    :param model: Model to save.
+    """
+
+    if AmfConfig.get('summary'):
+
+        cnn = 'CNN%d' % (AmfConfig.get('level'))
+
+        with open(f'{cnn}_summary.txt', 'w') as sf:
+
+            with redirect_stdout(sf):
+
+                model.summary()
+
+        keras.utils.plot_model(model, f'{cnn}_architecture.png',
+                               show_shapes=True)
+
+
+
 def run(input_files):
     """
     Creates or loads a convolutional neural network, and trains it
     with the annotated tiles extracted from input images.
+    
+    :param input_files: List of input images to train with.
     """
 
     # Input model (either new or pre-trained).
     model = AmfModel.load()
 
     # Save model information (layers and graph) upon user request.
-    if AmfConfig.get('summary'):
-        cnn = 'CNN%d' % (AmfConfig.get('level'))
-        with open(f'{cnn}_summary.txt', 'w') as sf:
-            with redirect_stdout(sf):
-                model.summary()
-        keras.utils.plot_model(model, f'{cnn}_architecture.png',
-                               show_shapes=True)
+    save_model_architecture(model)
 
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)

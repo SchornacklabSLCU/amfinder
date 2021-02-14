@@ -54,25 +54,27 @@ INTERPOLATION = pyvips.vinterpolate.Interpolate.new('nearest')
 
 
 def data_augmentation(tile):
-    """ Modify tile pixels and preserve all information. """
+    """ Non-destructive tile augmentation. Fungal structures may occur
+        on the edges, therefore random rotations and zoomed in are not
+        used in this function. """
 
-    tmp = tile
+    tile_list = [tile]
 
-    if random.uniform(0, 100) < 50:
+    # Rotation
+    tile_list.append(tile.rotate(90))
 
-        chroma = random.uniform(0.5, 1.5)
-        hue = random.uniform(0.5, 1.5)
-        tmp = tile.colourspace("lch") * [1, chroma, hue]
-     
-    elif random.uniform(0, 100) < 50:
+    # Chroma and hue.
+    c = random.uniform(0.5, 1.5)
+    h = random.uniform(0.5, 1.5)
+    tile_list.append(tile.colourspace('lch') * [1, c, h])
+    
+    # Grayscale tile.
+    tile_list.append(tile.colourspace('b-w'))
 
-        tmp = tile.colourspace("b-w") # grayscale
-
-    elif random.uniform(0, 100) < 50:
-
-        tmp = tile.invert() # complementary color
-                                        
-    return tmp.colourspace("srgb")
+    # Complementary colors
+    tile_list.append(tile.invert())
+                                       
+    return [tile.colourspace('srgb') for tile in tile_list]
 
 
 
@@ -88,26 +90,20 @@ def tile(image, r, c):
         ratio = AmfModel.INPUT_SIZE / edge
         tile = tile.resize(ratio, interpolate=INTERPOLATION)
 
+    tile_list = [tile]
+
     # Perform various types of data augmentation (grayscale, hue, blur)
     if AmfConfig.get('run_mode') == 'train' and AmfConfig.get('data_augm'):
       
-        tile = data_augmentation(tile)
+        tile_list = data_augmentation(tile)
 
     # Debug only, in case we want to have a look at tiles.
     # tile.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))
 
-    data = np.ndarray(buffer=tile.write_to_memory(),
-                      dtype=np.uint8,
-                      shape=[tile.height, tile.width, tile.bands])
-
-    # Add 90 degrees rotations to some tiles. We do not use
-    # other angle values to make sure no structure is lost.
-    # This will be combined with tile flipping by the image
-    # generator (see amfinder_train.py).
-    if AmfConfig.get('run_mode') == 'train' and random.uniform(0, 100) < 50:
-
-        data = np.rot90(data)
-        
+    data = [np.ndarray(buffer=tile.write_to_memory(),
+                       dtype=np.uint8,
+                       shape=[tile.height, tile.width, tile.bands])
+            for tile in tile_list]
 
     return data
 

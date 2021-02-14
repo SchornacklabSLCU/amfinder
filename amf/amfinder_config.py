@@ -350,26 +350,6 @@ def update_tile_edge(path):
 
 
 
-def import_settings(zfile):
-    """
-    Import settings.
-    """
-
-    with zf.ZipFile(zfile) as z:
-
-        jfile = 'settings.json'
-
-        if jfile in z.namelist():
-        
-            x = z.read(jfile).decode('utf-8')
-            x = yaml.safe_load(x)
-            return x
-
-        else:
-        
-            return {'tile_edge': get('tile_edge')}
-
-
 def get_input_files():
     """
     Filter input file list and keep valid JPEG or TIFF images.

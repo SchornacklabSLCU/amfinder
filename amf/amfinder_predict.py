@@ -78,7 +78,8 @@ def myc_structures(path, image, nrows, ncols, model):
 
             def process_batch(batch, b):
                 batch = [x for x in batch if x is not None]
-                row = [AmfSegm.tile(image, x[0], x[1]) for x in batch]
+                # In prediction mode, AmfSegm.tiles always returns singletons.
+                row = [AmfSegm.tile(image, x[0], x[1])[0] for x in batch]
                 row = normalize(np.array(row, np.float32))
                 # Returns three prediction tables (one per class).
                 prd = model.predict(row, batch_size=25)

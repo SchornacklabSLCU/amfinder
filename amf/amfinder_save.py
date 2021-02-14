@@ -41,6 +41,7 @@ import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
 
 CORRUPTED_ARCHIVE = 30
+IMG_SETTINGS = 'settings.json'
 
 
 
@@ -157,9 +158,9 @@ def save_settings(z):
 
     # Prediction of mycorrhizal structures requires settings.json.
     # There is no need to create the file again.
-    if AmfConfig.get('level') == 1 and 'settings.json' not in z.namelist():
+    if AmfConfig.get('level') == 1 and IMG_SETTINGS not in z.namelist():
 
-        with z.open('settings.json', mode='w') as s:
+        with z.open(IMG_SETTINGS, mode='w') as s:
             edge = AmfConfig.get('tile_edge')
             data = '{"tile_edge": %d}' % (edge)
             s.write(data.encode())
