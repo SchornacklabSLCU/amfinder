@@ -65,6 +65,9 @@ def data_augmentation(tile):
     h = random.uniform(0.5, 1.5)
     tile_list.append(tile.colourspace('lch') * [1, c, h])
     
+    # Brightness.
+    tile_list.append(tile * random.uniform(0.2, 1.5))
+  
     # Grayscale tile.
     tile_list.append(tile.colourspace('b-w'))
 
@@ -72,7 +75,7 @@ def data_augmentation(tile):
     tile_list.append(tile.invert())
                                    
     # Gaussian blur. 
-    tile_list.append(tile.gaussblur(2.5))
+    tile_list.append(tile.gaussblur(random.uniform(0.5, 2.5)))
                                        
     return [tile.colourspace('srgb') for tile in tile_list]
 
@@ -98,7 +101,8 @@ def tile(image, r, c):
         tile_list = data_augmentation(tile)
 
     # Debug only, in case we want to have a look at tiles.
-    # tile.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))
+    #for i, t in enumerate(tile_list):
+    #    t.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))
 
     data = [np.ndarray(buffer=tile.write_to_memory(),
                        dtype=np.uint8,
