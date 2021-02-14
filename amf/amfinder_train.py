@@ -24,12 +24,12 @@
 
 
 """
-Training module.
+Neural network training.
 
-Trains a convolutional neural network on a set of ink-stained root
-images annotated to highlight fungal colonization (ConvNet I) or
-intraradical fungal structures (ConvNet II). Annotations are stored
-in an auxiliary zip file.
+Trains a convolutional neural network with a set of ink-stained root
+images associated with tile annotations which label colonised root
+sections (CNN1) or intraradical hyphal structures (CNN2).
+Annotations are stored in an auxiliary ZIP archive.
 
 Class
 ------------
@@ -206,7 +206,8 @@ def estimate_background_subsampling(input_dataset):
 
 
 def load_dataset(input_files):
-    """Loads training tile set and their corresponding annotations.
+    """
+    Loads training tile set and their corresponding annotations.
     
     :param input_files: List of input images to use for training.
     :return: Numpy arrays containing tiles and one-hot encoded annotations. 
@@ -484,6 +485,6 @@ def run(input_files):
                     validation_data=v_gen.flow(xc, yc, batch_size=bs),
                     validation_steps=len(xc) // bs,
                     callbacks=get_callbacks(),
-                    verbose=1)
+                    verbose=2)
 
     AmfSave.training_data(his.history, model)

@@ -21,18 +21,19 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-""" Image Segmentation.
+"""
+Image Segmentation.
 
-    Returns tiles of a large input image.
-    
-    Constants
-    -----------
-    INTERPOLATION - Interpolation mode for image resizing.
+Crop tiles (squares) and apply diverse image modifications.
 
-    Functions
-    ------------
-    tile - crops a tile at the given coordinates within a large input image.
-    print_memory_usage - prints total memory usage.
+Constants
+-----------
+INTERPOLATION - Interpolation mode for image resizing.
+
+Functions
+------------
+:function data_augmentation: Non-destructive tile augmentation.
+:function tile: Extracts a tile from a large image.
 """
 
 import pyvips
@@ -46,14 +47,21 @@ import amfinder_config as AmfConfig
 
 
 # Not the best quality, but optimized for speed.
+# To check availability, type in a terminal: vips -l interpolate
 INTERPOLATION = pyvips.vinterpolate.Interpolate.new('nearest')
 
 
 
 def data_augmentation(tile):
-    """ Non-destructive tile augmentation. Fungal structures may occur
-        on the edges, therefore random rotations and zoomed in are not
-        used in this function. """
+    """
+    Non-destructive tile augmentation. Fungal structures may occur
+    on the edges, therefore random rotations and zoomed in are not
+    used in this function.
+    
+    :param tile: The tile to modify.
+    :return: List containing both the original tile and the modified versions.
+    :rtype: list
+    """
 
     tile_list = [tile]
 
@@ -82,8 +90,17 @@ def data_augmentation(tile):
 
 
 def tile(image, r, c):
-    """ Extracts a tile from a large image, resizes it to
-        model input size, and returns it as a numpy array. """
+    """ 
+    Extracts a tile from a large image, resizes it to
+    the required CNN input image size, and applies 
+    data augmentation (if actve).
+    
+    :param image: The source image used to extract tiles.
+    :param r: The row index of the tile to extract.
+    :param c: The column index of the tile to extract.
+    :return: Set of tile, converted to numpy arrays.
+    :rtype: list
+    """
 
     edge = AmfConfig.get('tile_edge')
     tile = image.crop(c * edge, r * edge, edge, edge)
@@ -100,7 +117,7 @@ def tile(image, r, c):
       
         tile_list = data_augmentation(tile)
 
-    # Debug only, in case we want to have a look at tiles.
+    # DEBUG: save tiles as JPEG files.
     #for i, t in enumerate(tile_list):
     #    t.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))
 
