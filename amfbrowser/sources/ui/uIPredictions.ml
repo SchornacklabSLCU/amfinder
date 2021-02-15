@@ -346,7 +346,7 @@ module Make (P : PARAMS) : S = struct
                 let enable row =
                     overlay_icon#set_pixbuf (AmfIcon.get `DETACH);
                     overlay_label#set_label (Aux.small_text AmfLang.en_attach);
-                    cams#misc#set_sensitive true;
+                    cams#misc#set_sensitive false; (* FIXME: not available *)
                     palette#misc#set_sensitive true;
                     convert#misc#set_sensitive true;
                     ambiguities#misc#set_sensitive true;

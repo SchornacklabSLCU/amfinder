@@ -22,10 +22,10 @@
  * IN THE SOFTWARE.
  *)
 
-let en_stage_A = "Stage 1"
+let en_stage_A = "CNN1"
 let en_stage_A_label = "Root colonisation"
 
-let en_stage_B = "Stage 2"
+let en_stage_B = "CNN2"
 let en_stage_B_label = "AM fungal structures"
 
 let en_layer = "Layer"

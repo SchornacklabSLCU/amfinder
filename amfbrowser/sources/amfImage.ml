@@ -252,7 +252,7 @@ object (self)
                 match large_tiles#get ~r ~c with
                 | None -> ()
                 | Some pix -> let x = float (c * e) and y = float (r * e) in
-                    let pix = resize_pixbuf e pix in
+                    let _ = resize_pixbuf e pix in
                     (* Cairo_gtk.set_source_pixbuf t pix ~x ~y;
                     Cairo.paint t; *)
                     let mask = annotations#get ~r ~c () in
