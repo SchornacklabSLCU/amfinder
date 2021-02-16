@@ -136,7 +136,7 @@ def colonization(image, nrows, ncols, model):
     # Full row processing, from tile extraction to structure prediction.
     def process_row(r):
         # First, extract all tiles within a row.
-        row = [AmfSegm.tile(image, r, c) for c in c_range]
+        row = [AmfSegm.tile(image, r, c)[0] for c in c_range]
         # Convert to NumPy array, and normalize.
         row = normalize(np.array(row, np.float32))
         # Predict mycorrhizal structures.
