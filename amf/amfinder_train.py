@@ -87,7 +87,7 @@ def get_zipfile(path):
     """
     Returns the path of the auxiliary ZIP archive associated
     with the given image.
-    
+
     :param path: Path to an input image.
     :return: Path to the corresponding auxiliary ZIP archive.
     :rtype: string
@@ -101,7 +101,7 @@ def import_settings(path):
     """
     Imports image settings stored in the auxiliary ZIP archive
     associated with the given image.
-    
+
     :param path: Path to an input image.
     :return: Dictionary containing image settings
     :rtype: dict
@@ -130,18 +130,18 @@ def import_annotations(path):
     """
     Imports tile annotations from the auxiliary ZIP archive
     associated with the given input image.
-    
+
     :param path: Path to an input image.
     :return: Pandas dataframe containing annotations
-    :rtype: pd.DataFrame 
+    :rtype: pd.DataFrame
     """
 
     zfile = get_zipfile(path)
 
     try:
-    
+
         assert zf.is_zipfile(zfile)
-        
+
         with zf.ZipFile(zfile, 'r') as z:
 
             base = 'col' if AmfConfig.get('level') == 1 else 'myc'
@@ -150,8 +150,8 @@ def import_annotations(path):
             assert table in z.namelist()
 
             raw_data = z.read(table).decode('utf-8')
-            return pd.read_csv(io.StringIO(raw_data), sep='\t')           
-            
+            return pd.read_csv(io.StringIO(raw_data), sep='\t')
+
     except AssertionError:
 
         return None
@@ -162,7 +162,7 @@ def estimate_background_subsampling(input_dataset):
     """
     Calculates the percentage of background tiles to omit
     to ensure near equal representation of all annotation classes
-    in the training dataset. Background tiles are more abundant 
+    in the training dataset. Background tiles are more abundant
     than roots in most images.
 
     :param input_dataset: Input dataset containing annotations.
@@ -170,15 +170,15 @@ def estimate_background_subsampling(input_dataset):
     :rtype: int
     """
 
-    # The concept of background tiles does not apply to CNN2. 
+    # The concept of background tiles does not apply to CNN2.
     if AmfConfig.get('level') == 2 or AmfConfig.get('drop') == 0:
-    
+
         return 0
-    
+
     # Counts annotations for each input table.
     count_list = [x[2].sum() for x in input_dataset]
 
-    # Generates the grand total. 
+    # Generates the grand total.
     counts = functools.reduce(operator.add, count_list)
 
     # Number of tiles annotated as 'background/not a root/other'.
@@ -197,8 +197,8 @@ def estimate_background_subsampling(input_dataset):
 
         return 0
 
-    else: 
-    
+    else:
+
         x = round(excess * 100 / background)
         AmfLog.info(f'{x}% of background tiles will be ignored', indent=1)
         return x
@@ -208,15 +208,15 @@ def estimate_background_subsampling(input_dataset):
 def load_dataset(input_files):
     """
     Loads training tile set and their corresponding annotations.
-    
+
     :param input_files: List of input images to use for training.
-    :return: Numpy arrays containing tiles and one-hot encoded annotations. 
+    :return: Numpy arrays containing tiles and one-hot encoded annotations.
     :rtype: tuple
     """
 
     print('* Tile extraction.')
 
-    # Load image settings and annotations.   
+    # Load image settings and annotations.
     settings = [import_settings(path) for path in input_files]
     annotations = [import_annotations(path) for path in input_files]
 
@@ -235,13 +235,13 @@ def load_dataset(input_files):
     subsampling = estimate_background_subsampling(filtered_dataset)
 
     tiles = []
-    hot_labels = []   
+    hot_labels = []
     header = AmfConfig.get('header')
 
     for path, config, annots in filtered_dataset:
-   
+
         edge = config['tile_edge']
-        AmfConfig.set('tile_edge', edge)              
+        AmfConfig.set('tile_edge', edge)
 
         base = os.path.basename(path)
         print(f'    - {base} (tiles: {edge} pixels)... ', end='', flush=True)
@@ -253,18 +253,18 @@ def load_dataset(input_files):
         # Extract tile sets (= original tile and augmented versions).
         # Repeat one-hot encoded annotations for each tile.
         for annot in annots.itertuples():
-        
+
             if AmfConfig.get('level') == 1 and subsampling > 0 and \
                annot.X == 1 and random.uniform(0, 100) < subsampling:
 
                 pass
-            
+
             else:
-     
+
                 tile_set = AmfSegm.tile(image, annot.row, annot.col)
                 tiles += tile_set
                 hot_labels += [list(annot[3:])] * len(tile_set)
-            
+
         print('OK')
 
         del image
@@ -280,13 +280,13 @@ def load_dataset(input_files):
 
 def class_weights(one_hot_labels):
     """
-    Computes weights to counteract class imbalance and 
-    display statistics. Note: this functions requires 
-    Tensorflow 2.1 (and Keras 2.3.1). A bug in TF makes it 
+    Computes weights to counteract class imbalance and
+    display statistics. Note: this functions requires
+    Tensorflow 2.1 (and Keras 2.3.1). A bug in TF makes it
     impossible to use class_weights to models with multiple
-    outputs. This bug is active on January 2021. 
+    outputs. This bug is active on January 2021.
     Reference: https://github.com/tensorflow/tensorflow/issues/40457
-    
+
     :param one_hot_labels: Hot labels encoding tile annotations.
     :return: Dictionary of class weights.
     :rtype: dict
@@ -298,11 +298,11 @@ def class_weights(one_hot_labels):
 
         # For instance, [[0, 0, 1], [1, 0 , 0]] returns [2, 0]
         hot_indexes = np.argmax(one_hot_labels, axis=1)
-        class_weights = compute_class_weight('balanced', 
+        class_weights = compute_class_weight('balanced',
                                              classes=np.unique(hot_indexes),
                                              y=hot_indexes)
 
-        for cls, num, w  in zip(AmfConfig.get('header'), 
+        for cls, num, w  in zip(AmfConfig.get('header'),
                                 np.bincount(hot_indexes),
                                 class_weights):
 
@@ -314,7 +314,7 @@ def class_weights(one_hot_labels):
 
     else:
 
-        class_weights = [compute_class_weight('balanced', 
+        class_weights = [compute_class_weight('balanced',
                                               classes=np.unique(y),
                                               y=y) for y in one_hot_labels]
 
@@ -326,7 +326,7 @@ def class_weights(one_hot_labels):
                                                    sums[0], ws[0]))
 
         # Output format: {'A': {0: wA0, 1: wA1}, 'V': {0: wV0, 1:wV1}, ...}
-        # where wA0, w1A, wV0, and wV1 are weights (cf. compute_class_weight). 
+        # where wA0, w1A, wV0, and wV1 are weights (cf. compute_class_weight).
         return {x: dict(enumerate(y)) for x, y in zip(AmfConfig.get('header'),
                                                       class_weights)}
 
@@ -334,9 +334,9 @@ def class_weights(one_hot_labels):
 
 def get_callbacks():
     """
-    Configures Keras callbacks to enable early stopping 
+    Configures Keras callbacks to enable early stopping
     and learning rate reduction when reaching a plateau.
-    
+
     :return: List of callback monitors.
     :rtype: list
     """
@@ -344,7 +344,7 @@ def get_callbacks():
     # Prevent overfitting and restores best weights.
     e = EarlyStopping(monitor='val_loss',
            min_delta=0,
-           patience=8,
+           patience=AmfConfig.get('patience'),
            verbose=1,
            mode='auto',
            restore_best_weights=True)
@@ -365,7 +365,7 @@ def get_callbacks():
 class ImageDataGeneratorMO(ImageDataGenerator):
     """
     Patched version of Keras's ImageDataGenerator to support multiple
-    single-variable outputs. This requires output data to be a list of 
+    single-variable outputs. This requires output data to be a list of
     identical-length 1D NumPy arrays. Any inefficiency is negligible.
     Reference: https://github.com/keras-team/keras/issues/3761
     """
@@ -381,7 +381,7 @@ class ImageDataGeneratorMO(ImageDataGenerator):
 
         y_sing = np.transpose(np.asarray(y))
 
-        generator_sing = super(ImageDataGeneratorMO, 
+        generator_sing = super(ImageDataGeneratorMO,
                                self).flow(x, y_sing, **kwargs)
 
         while True:
@@ -394,7 +394,7 @@ class ImageDataGeneratorMO(ImageDataGenerator):
 def save_model_architecture(model):
     """
     Saves neural network architecture, parameters count, etc.
-    
+
     :param model: Model to save.
     """
 
@@ -428,7 +428,7 @@ def run(input_files):
     """
     Creates or loads a convolutional neural network, and trains it
     with the annotated tiles extracted from input images.
-    
+
     :param input_files: List of input images to train with.
     """
 

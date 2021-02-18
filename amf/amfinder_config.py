@@ -76,6 +76,7 @@ PAR = {
     'vfrac': 15,
     'data_augm': False,
     'summary': False,
+    'patience': 12,
     'header': HEADERS[0],
     #'generate_cams': False,
     'colormap': cv2.COLORMAP_JET,
@@ -222,6 +223,12 @@ def training_subparser(subparsers):
     parser.add_argument('-e', '--epochs',
         action='store', dest='epochs', metavar='NUM', type=int, default=x,
         help='number of epochs to run.'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['patience']
+    parser.add_argument('-p', '--patience',
+        action='store', dest='patience', metavar='NUM', type=int, default=x,
+        help='number of epochs to wait before early stopping is triggered.'
              '\ndefault value: {}'.format(x))
 
     x = PAR['learning_rate']
