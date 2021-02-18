@@ -77,6 +77,7 @@ PAR = {
     'data_augm': False,
     'summary': False,
     'patience': 12,
+    'outdir': os.getcwd(),
     'header': HEADERS[0],
     #'generate_cams': False,
     'colormap': cv2.COLORMAP_JET,
@@ -87,6 +88,15 @@ PAR = {
         'model_checkpoint': None,
     }
 }
+
+
+APP_PATH = os.path.dirname(os.path.realpath(__file__))
+
+
+def get_appdir():
+    """ Returns the application directory. """
+
+    return APP_PATH
 
 
 
@@ -196,7 +206,7 @@ def training_subparser(subparsers):
              '\ndefault value: {} pixels'.format(x))
 
     x = PAR['batch_size']
-    parser.add_argument('-bs', '--batch_size',
+    parser.add_argument('-b', '--batch_size',
         action='store', dest='batch_size', metavar='NUM', type=int, default=x,
         help='training batch size.'
              '\ndefault value: {}'.format(x))
@@ -211,13 +221,19 @@ def training_subparser(subparsers):
     parser.add_argument('-a', '--data_augmentation',
         action='store_true', dest='data_augm', default=x,
         help='apply data augmentation (hue, chroma, saturation, etc.)'
-             '\nby default, does not apply data augmentation.')
+             '\nby default, data augmentation is not used.')
 
     x = PAR['summary']
     parser.add_argument('-s', '--summary',
         action='store_true', dest='summary', default=x,
         help='save CNN architecture (CNN graph and model summary)'
              '\nby default, does not save any information.')
+
+    x = PAR['outdir']
+    parser.add_argument('-o', '--outdir',
+        action='store', dest='outdir', default=x,
+        help='folder where to save trained model and CNN architecture.'
+             '\ndefault: {}'.format(x))
 
     x = PAR['epochs']
     parser.add_argument('-e', '--epochs',
@@ -244,15 +260,20 @@ def training_subparser(subparsers):
         help='Percentage of tiles used for validation.'
              '\ndefault value: {}%%'.format(x))
 
-    parser.add_argument('-myc', '--hyphal_structures',
+    level = parser.add_mutually_exclusive_group()
+
+    level.add_argument('-1', '--CNN1',
+        action='store_const', dest='level', const=1,
+        help='Train for root colonisation (default)')
+
+    level.add_argument('-2', '--CNN2',
         action='store_const', dest='level', const=2,
-        help='Train for fungal hyphal structures (arbuscules, vesicles, hyphae).'
-             '\nBy default, train for fungal root colonization.')
+        help='Train for fungal hyphal structures.')
 
     x = None
-    parser.add_argument('-net', '--trained_network',
+    parser.add_argument('-net', '--network',
         action='store', dest='model', metavar='H5', type=str, default=x,
-        help='path to the pre-trained neural network.'
+        help='name of the pre-trained network to use as a basis for training.'
              '\ndefault value: {}'.format(x))
 
     x = PAR['input_files']
@@ -292,10 +313,10 @@ def prediction_subparser(subparsers):
         help='OpenCV colormap (see OpenCV documentation).'
              '\ndefault value: {}'.format(x))
 
-    x = 'pre-trained/RootSegm.h5'
-    parser.add_argument('-net', '--trained_network',
+    x = 'CNN1_pretrained_2021-01-18.h5'
+    parser.add_argument('-net', '--network',
         action='store', dest='model', metavar='H5', type=str, default=x,
-        help='path to the pre-trained model.'
+        help='name of the pre-trained model to use for predictions.'
              '\ndefault value: {}'.format(x))
 
     x = PAR['input_files']

@@ -69,6 +69,7 @@ def training_data(history, model):
     """ Saves training weights, history and plots. """
 
     zipf = now() + '_training.zip'
+    zipf = os.path.join(AmfConfig.get('outdir'), zipf)
 
     with zf.ZipFile(zipf, 'w') as z:
 

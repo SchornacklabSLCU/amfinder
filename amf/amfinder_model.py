@@ -188,7 +188,16 @@ def load():
     Loads or initialises a convolutional neural network.
     """
 
-    path = AmfConfig.get('model')
+    if AmfConfig.get('model') is None:
+
+        path = None
+
+    # Trained networks must be saved in app_dir/trained_networks.
+    else:
+
+        path = os.path.join(AmfConfig.get_appdir(),
+                            "trained_networks",
+                            os.path.basename(AmfConfig.get('model')))
 
     if path is not None and os.path.isfile(path):
     
