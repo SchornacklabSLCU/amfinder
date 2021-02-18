@@ -57,7 +57,7 @@ def data_augmentation(tile):
     Non-destructive tile augmentation. Fungal structures may occur
     on the edges, therefore random rotations and zoomed in are not
     used in this function.
-    
+
     :param tile: The tile to modify.
     :return: List containing both the original tile and the modified versions.
     :rtype: list
@@ -66,35 +66,41 @@ def data_augmentation(tile):
     tile_list = [tile]
 
     # Rotation
-    tile_list.append(tile.rotate(90))
+    if random.choice([True, False]):
+        tile_list.append(tile.rotate(90))
 
     # Chroma and hue.
-    c = random.uniform(0.5, 1.5)
-    h = random.uniform(0.5, 1.5)
-    tile_list.append(tile.colourspace('lch') * [1, c, h])
-    
+    if random.choice([True, False]):
+        c = random.uniform(0.5, 1.5)
+        h = random.uniform(0.5, 1.5)
+        tile_list.append(tile.colourspace('lch') * [1, c, h])
+
     # Brightness.
-    tile_list.append(tile * random.uniform(0.2, 1.5))
-  
+    if random.choice([True, False]):
+        tile_list.append(tile * random.uniform(0.2, 1.5))
+
     # Grayscale tile.
-    tile_list.append(tile.colourspace('b-w'))
+    if random.choice([True, False]):
+        tile_list.append(tile.colourspace('b-w'))
 
     # Complementary colors.
-    tile_list.append(tile.invert())
-                                   
-    # Gaussian blur. 
-    tile_list.append(tile.gaussblur(random.uniform(0.5, 2.5)))
-                                       
+    if random.choice([True, False]):
+        tile_list.append(tile.invert())
+
+    # Gaussian blur.
+    if random.choice([True, False]):
+        tile_list.append(tile.gaussblur(random.uniform(0.5, 2.5)))
+
     return [tile.colourspace('srgb') for tile in tile_list]
 
 
 
 def tile(image, r, c):
-    """ 
+    """
     Extracts a tile from a large image, resizes it to
-    the required CNN input image size, and applies 
+    the required CNN input image size, and applies
     data augmentation (if actve).
-    
+
     :param image: The source image used to extract tiles.
     :param r: The row index of the tile to extract.
     :param c: The column index of the tile to extract.
@@ -114,7 +120,7 @@ def tile(image, r, c):
 
     # Perform various types of data augmentation (grayscale, hue, blur)
     if AmfConfig.get('run_mode') == 'train' and AmfConfig.get('data_augm'):
-      
+
         tile_list = data_augmentation(tile)
 
     # DEBUG: save tiles as JPEG files.
