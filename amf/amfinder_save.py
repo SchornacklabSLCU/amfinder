@@ -22,20 +22,30 @@
 # IN THE SOFTWARE.
 
 """ 
+Model and prediction saving.
 
+Functions
+------------
+
+:function string_of_level: Returns the CNN name for the given prediction level.
+:function now: Returns the current date/time.
+:function training_data: Saves training weights, history and plots.
+:function get_zip_info: Creates a ZIP information object.
+:function save_settings: Saves image settings.
+:function prediction_table: Saves or append predictions to an archive.
 """
 
 import os
 import io
-import sys
 import json
 import h5py
 import pickle
 import datetime
 import numpy as np
 import zipfile as zf
-import matplotlib as plt
+#import matplotlib as plt (used for CAMs, currently deactivated).
 
+import amfinder_log as AmfLog
 import amfinder_plot as AmfPlot
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
@@ -46,7 +56,9 @@ IMG_SETTINGS = 'settings.json'
 
 
 def string_of_level():
-
+    """
+    Returns the CNN name associated with the given prediction level. 
+    """
     if AmfConfig.get('level') == 1:
     
         return AmfModel.CNN1_NAME
@@ -58,15 +70,22 @@ def string_of_level():
 
 
 def now():
-    """ Returns the current date/time in a format 
-        suitable for use as file name. """
+    """
+    Returns the current date/time in a format suitable
+    for use as file name.
+    """
 
     return datetime.datetime.now().isoformat(sep='_')
 
 
 
 def training_data(history, model):
-    """ Saves training weights, history and plots. """
+    """
+    Saves training weights, history and plots.
+    
+    :param history: Training history data.
+    :param model: The CNN model that was used for training.
+    """
 
     zipf = now() + '_training.zip'
     zipf = os.path.join(AmfConfig.get('outdir'), zipf)
@@ -92,12 +111,14 @@ def training_data(history, model):
         x_range = np.arange(0, epochs)
 
         AmfPlot.initialize()
-        data = AmfPlot.draw(history, epochs, 'Loss', x_range, 'loss', 'val_loss')
+        data = AmfPlot.draw(history, epochs, 'Loss', x_range, 
+                            'loss', 'val_loss')
         z.writestr('loss.png', data.getvalue())
 
         if AmfConfig.get('level') == 1:
 
-            data = AmfPlot.draw(history, epochs, 'Accuracy', x_range, 'acc', 'val_acc')
+            data = AmfPlot.draw(history, epochs, 'Accuracy', x_range, 
+                                'acc', 'val_acc')
             z.writestr('accuracy.png', data.getvalue())
         
         else:
@@ -132,6 +153,13 @@ def training_data(history, model):
 
 
 def get_zip_info(path, comment):
+    """
+    Creates a ZIP information object for a given file.
+    
+    :param path: Path to the file to create.
+    :param comment: String to use as comment for the ZIP file.
+    """
+
     a = datetime.datetime.today()
     now = (a.year, a.month, a.day, a.hour, a.minute, a.second)
     zi = zf.ZipInfo(filename=path, date_time=now)
@@ -142,23 +170,26 @@ def get_zip_info(path, comment):
 
 
 
-def save_cams(uniq, z, cams):
-
-    level = string_of_level()
-    for label, image in zip(AmfConfig.get('header'), cams):
-        buf = io.BytesIO()
-        plt.image.imsave(buf, image, format='jpg')
-        zi = get_zip_info(f'activations/{uniq}.{label}.jpg', label)
-        z.writestr(zi, buf.getvalue())
-        z.comment = f'{label}'.encode()
+#def save_cams(uniq, z, cams):
+#    level = string_of_level()
+#    for label, image in zip(AmfConfig.get('header'), cams):
+#        buf = io.BytesIO()
+#        plt.image.imsave(buf, image, format='jpg')
+#        zi = get_zip_info(f'activations/{uniq}.{label}.jpg', label)
+#        z.writestr(zi, buf.getvalue())
+#        z.comment = f'{label}'.encode()
 
 
 
 def save_settings(z):
-    """ Saves tile size. """
+    """
+    Saves image settings (currently, only tile size).
+    
+    :param z: ZIP archive.
+    """
 
-    # Prediction of mycorrhizal structures requires settings.json.
-    # There is no need to create the file again.
+    # Level 2 predictions require settings.json.
+    # Make sure not the duplicate file if it exists.
     if AmfConfig.get('level') == 1 and IMG_SETTINGS not in z.namelist():
 
         with z.open(IMG_SETTINGS, mode='w') as s:
@@ -169,9 +200,14 @@ def save_settings(z):
 
 
 def prediction_table(results, cams, path):
-    """ Saves or append predictions to an archive. """
+    """
+    Saves or append predictions to an archive.
+    
+    :param results: annotation table to save.
+    :param cams: class activation maps (currently not implemented). 
+    :param path: path to the ZIP archive.
+    """
 
-    # TODO: check whether None may happen.
     if results is not None:
 
         zipf = '{}.zip'.format(os.path.splitext(path)[0])
@@ -197,8 +233,8 @@ def prediction_table(results, cams, path):
         
             else:
 
-                print('FAILED')
-                sys.exit(CORRUPTED_ARCHIVE)
+                AmfLog.error('Corrupted archive',
+                             AmfLog.ERR_CORRUPTED_ARCHIVE)
     
         else:
 

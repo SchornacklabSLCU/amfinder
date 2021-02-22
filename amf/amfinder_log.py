@@ -35,6 +35,7 @@ ERR_INVALID_ANNOTATION_LEVEL -
 ERR_MISSING_ARCHIVE - Cannot find the zip archive associated with an image.
 ERR_MISSING_SETTINGS - File settings.json not found.
 ERR_MISSING_ANNOTATIONS - The given archive lacks stage 1 annotations.
+ERR_CORRUPTED_ARCHIVE - Corrupted ZIP archive.
 
 Functions
 -----------
@@ -50,13 +51,14 @@ import traceback
 
 
 ERR_NO_DATA = 10
-ERR_INVALID_MODEL = 40
 ERR_NO_PRETRAINED_MODEL = 20
 ERR_INVALID_MODEL_SHAPE = 21
 ERR_INVALID_ANNOTATION_LEVEL = 22
 ERR_MISSING_ARCHIVE = 30
 ERR_MISSING_SETTINGS = 31
 ERR_MISSING_ANNOTATIONS = 32
+ERR_INVALID_MODEL = 40
+ERR_CORRUPTED_ARCHIVE = 41
 
 
 
