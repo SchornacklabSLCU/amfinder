@@ -21,16 +21,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-""" Draw Accuracy and Loss Plots.
+"""
+Plots accuracy and loss after training.
 
-    Constants
-    -----------
+Functions
+-----------
 
-    Functions
-    -----------
-
-    initialize - Defines plot style.
-    draw - Draws a loss/accuracy plot.
+:function initialize: Defines plot style.
+:function draw: draws a loss/accuracy plot.
 
 """
 
