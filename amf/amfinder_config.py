@@ -118,6 +118,8 @@ def tsv_name():
 def get(id):
     """
     Retrieve application settings.
+    
+    :param id: Unique identifier.
     """
 
     id = id.lower()
@@ -158,6 +160,10 @@ def intra_struct():
 def set(id, value, create=False):
     """
     Updates application settings.
+    
+    :param id: unique identifier.
+    :param value: value to store.
+    :param create: create id if it does not exist (optional).
     """
 
     if value is None:
@@ -193,6 +199,8 @@ def set(id, value, create=False):
 def training_subparser(subparsers):
     """
     Defines arguments used in training mode.
+    
+    :param subparsers: subparser generator.
     """
 
     parser = subparsers.add_parser('train',
@@ -289,6 +297,8 @@ def training_subparser(subparsers):
 def prediction_subparser(subparsers):
     """
     Defines arguments used in prediction mode.
+    
+    :param subparsers: subparser generator.
     """
 
     parser = subparsers.add_parser('predict',
@@ -349,7 +359,9 @@ def build_arg_parser():
 
 def abspath(files):
     """
-    Expand wildcards and return absolute paths to input files.
+    Returns absolute paths to input files.
+    
+    :param files: Raw list of input file names (can contain wildcards).
     """
 
     files = sum([glob.glob(x) for x in files], [])
@@ -359,7 +371,9 @@ def abspath(files):
 
 def update_tile_edge(path):
     """
-    Import settings.
+    Import image settings (currently tile edge).
+    
+    :param path: path to the input image.
     """
 
     zfile = os.path.splitext(path)[0] + '.zip'
