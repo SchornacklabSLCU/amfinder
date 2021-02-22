@@ -21,6 +21,18 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+"""
+Predicts fungal colonisation (CNN1) and intraradical hyphal structures (CNN2).
+
+Functions
+------------
+
+:function normalize: Pixel normalisation function.
+:function predict_level2: CNN2 predictions.
+:function predict_level1: CNN1 predictions.
+:function run: main prediction function.
+"""
+
 import io
 import os
 import pyvips
@@ -41,14 +53,26 @@ import amfinder_segmentation as AmfSegm
 
 
 def normalize(t):
-    """ Simple normalization function. """
+    """
+    Simple pixel normalisation function.
+    
+    :param t: input image (numpy array).
+    """
 
     return t / 255.0
 
 
 
-def myc_structures(path, image, nrows, ncols, model):
-    """ Identifies AM fungal structures in colonized root segments. """
+def predict_level2(path, image, nrows, ncols, model):
+    """
+    Identifies AM fungal structures in colonized root segments.
+    
+    :param path: path to the input image.
+    :param image: input image (to extract tiles).
+    :param nrows: row count.
+    :param ncols: column count.
+    :para model: CNN2 model used for predictions.
+    """
     
     #cams = AmfMapping.initialize(nrows, ncols)
     
@@ -88,9 +112,11 @@ def myc_structures(path, image, nrows, ncols, model):
                 vp = prd[1].tolist()
                 hp = prd[2].tolist()       
                 ip = prd[3].tolist()
-                dat = [[a[0], v[0], h[0], i[0]] for a, v, h, i in zip(ap, vp, hp, ip)]
+                dat = [[a[0], v[0], h[0], i[0]] for a, v, h, i in 
+                       zip(ap, vp, hp, ip)]
                 #AmfMapping.generate(cams, model, row, batch)
-                res = [[x[0], x[1], y[0], y[1], y[2], y[3]] for (x, y) in zip(batch, dat)]
+                res = [[x[0], x[1], y[0], y[1], y[2], y[3]] for (x, y) in
+                        zip(batch, dat)]
                 AmfLog.progress_bar(b, nbatches, indent=1)
                 return pd.DataFrame(res)
 
@@ -114,17 +140,14 @@ def myc_structures(path, image, nrows, ncols, model):
 
 
 
-def colonization(image, nrows, ncols, model):
-    """ Predict mycorrhizal structures row by row. 
-        PARAMETERS
-        image: pyvips.vimage.Image
-            Large image (mosaic) from which tiles are extracted.
-        nrows: int
-            Tile count on Y axis (image height).
-        ncols: int
-            Tile count on X axis (image width).
-        model: Sequential (tensorflow).
-            Model used to predict mycorrhizal structures.
+def predict_level1(image, nrows, ncols, model):
+    """
+    Identifies colonised root segments. 
+
+    :param image: input image (to extract tiles).
+    :param nrows: row count.
+    :param ncols: column count. 
+    :param model: CNN1 model used for predictions.
     """
 
     # Creates the images to save the class activation maps.
@@ -171,10 +194,10 @@ def colonization(image, nrows, ncols, model):
 
 
 def run(input_images):
-    """ Run prediction on a bunch of images.
-        PARAMETER
-        input_images: list 
-            Images on which to predict mycorrhizal structures.
+    """
+    Runs prediction on a bunch of images.
+    
+    :param input_images: input images to use for predictions.
     """
 
     model = AmfModel.load()
@@ -200,11 +223,11 @@ def run(input_images):
            
             if AmfConfig.get('level') == 1:
             
-                table, cams = colonization(image, nrows, ncols, model)
+                table, cams = predict_level1(image, nrows, ncols, model)
 
             else:
 
-                table, cams = myc_structures(path, image, nrows, ncols, model)
+                table, cams = predict_level2(path, image, nrows, ncols, model)
 
             # Save predictions (<table>) and class activations maps (<cams>)
             # in a ZIP archive derived from the image name (<path>). 
