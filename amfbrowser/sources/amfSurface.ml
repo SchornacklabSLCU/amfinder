@@ -467,7 +467,7 @@ module Legend = struct
         ) (0, 0) t |> snd
 
     let hspaces = function
-        | true  -> [|140; 140; 140|]
+        | true  -> [|110; 140; 120|]
         | false -> [|105; 85; 130; 75|]
 
     let classes () =

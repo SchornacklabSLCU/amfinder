@@ -76,7 +76,7 @@ let others = function
     | false -> [true]
 
 let symbols = function
-    | true  -> ["Colonized (M+)"; "Non-colonized (M−)"; "Background"]
+    | true  -> ["Colonised"; "Non-colonised"; "Background"]
     | false -> ["Arbuscule"; "Vesicle"; "Hyphopodium"; "Hypha"]
 
 let icon_text = function
