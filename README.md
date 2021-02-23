@@ -41,7 +41,7 @@ $ source amfenv/bin/activate
 This is the mode to use when predicting structures on root images.
 
 ```bash
-$ amf predict [-t tile_edge] [-m pre_trained] [IMAGE [IMAGE] ...]
+$ amf predict [-t tile_edge] [-net model] [IMAGE [IMAGE] ...]
 ```
 
 ### Training mode
@@ -52,8 +52,27 @@ useful when analysing root images obtained with different **staining methods**
 (such as AlexaFluor-conjugated Wheat Germ Agglutinin).
 
 ```bash
-$ amf train [-myc] [-e epochs] [--keep] [-f fraction] [-m pre-trained] [IMAGE [IMAGE] ...]
+$ amf train [IMAGE [IMAGE] ...]
 ```
+
+Command-line options are as follows:
+
+|Short|Long|Description|Default|
+|-|-|-|-|
+|`-h`|`--help`|Display this help.|
+|`-t`|`--tile_size`| Tile size, in pixels.|126|
+|`-b`|`batch_size`|Training batch size.|32|
+|`-k`|`--keep_background`|Do not skip any background tile.|False|
+|`-a`|`--data_augmentation`|Activate data augmentation.|False|
+|`-s`|`--summary`|Save CNN architecture and graph.|False|
+|`-o`|`--outdir`|Folder where to save trained model and CNN architecture.|cwd|
+|`-e`|`--epochs`|Number of training cycles.|100|
+|`-p`|`--patience`|Number of epochs to wait before early stopping.|12|
+|`-lr`|`--learning_rate`|Learning rate used by the Adam optimiser.|0.001|
+|`-vf`|`--validation_fraction`|Fraction of tiles used as validation set.|15%|
+|`-1`|`--CNN1`|Train for root colonisation.|True|
+|`-2`|`--CNN2`|Train for intraradical hyphal structures.|False|
+|`-net`|`--network`|Name of the pre-trained network.|None|
 
 For large datasets, running the script on a high-performance computing (HPC)
 equipment is recommended. An example using [Slurm](https://slurm.schedmd.com/)
@@ -140,8 +159,7 @@ $ brew install gpatch opam gtk+ cairo
 that sandboxing does not work on Windows. OPAM should be initialized using
 `opam init --disable-sandboxing`.
 
-4.
-
-
-
-### Introduction to `amfbrowser`<a name="amfbrowserhelp"></a>
+4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/),
+then configure bash to tell GUIs to use the local X server. For instance, use
+`echo "export DISPLAY=localhost:0.0" >> ~/.bashrc`. Detailed instructions are
+available on the internet.
