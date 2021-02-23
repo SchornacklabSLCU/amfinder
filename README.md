@@ -90,11 +90,13 @@ workload manager is provided below.
 #! /bin/bash
 #SBATCH -e train.err
 #SBATCH -o train.out
-#SBATCH --mem=100G
-#SBATCH -n 48
+#SBATCH --mem=10G
+#SBATCH -n 10
 
-source /home/user/amfenv/bin/activate
-./amf train dataset/*jpg
+BASE=/home/user/amf
+
+source $BASE/amfenv/bin/activate
+$BASE/amf train $BASE/training_data/*jpg
 deactivate
 ```
 
