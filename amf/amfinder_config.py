@@ -429,6 +429,7 @@ def initialize():
         set('vfrac', par.vfrac)
         set('data_augm', par.data_augm)
         set('summary', par.summary)
+        set('outdir', par.outdir)
 
     else: # elif par.run_mode == 'predict'
 
