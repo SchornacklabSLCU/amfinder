@@ -174,7 +174,7 @@ $ brew install gpatch opam gtk+ cairo
 that sandboxing does not work on Windows. OPAM should be initialized using
 `opam init --disable-sandboxing`.
 
-4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/),
+4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/)),
 then configure bash to tell GUIs to use the local X server. For instance, use
 `echo "export DISPLAY=localhost:0.0" >> ~/.bashrc`. Detailed instructions are
 available on the internet.
