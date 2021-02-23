@@ -36,6 +36,9 @@ $ source amfenv/bin/activate
 (amfenv) $ deactivate
 ```
 
+**Note:** `amf` is not compatible with the latest Keras/Tensorflow versions due
+to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issues/40457).
+
 ### Prediction mode
 
 This is the mode to use when predicting structures on root images.
