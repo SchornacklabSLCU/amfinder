@@ -401,7 +401,7 @@ def save_model_architecture(model):
     if AmfConfig.get('summary'):
 
         cnn = 'CNN%d' % (AmfConfig.get('level'))
-        path = os.path.join(AmfConfig.get('outdir', f'{cnn}_summary.txt'))
+        path = os.path.join(AmfConfig.get('outdir'), f'{cnn}_summary.txt')
 
         with open(path, 'w') as sf:
 
@@ -409,7 +409,7 @@ def save_model_architecture(model):
 
                 model.summary()
 
-        path = os.path.join(AmfConfig.get('outdir', f'{cnn}_architecture.png'))
+        path = os.path.join(AmfConfig.get('outdir'), f'{cnn}_architecture.png')
         keras.utils.plot_model(model, path, show_shapes=True)
 
 
