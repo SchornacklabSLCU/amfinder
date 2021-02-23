@@ -14,9 +14,9 @@ amendment and validation of computer predictions.
 ## Command-line script (`amf`)<a name="amf"></a>
 
 The command-line script `amf` uses convolutional neural networks (ConvNets)
-to predict **fungal root colonisation** (prediction stage 1) and **intraradical
-hyphal structures** (prediction stage 2). The program uses pre-trained ConvNets
-adapted to ink-stained root pictures. It can also train ConvNets on
+to predict **fungal root colonisation** and **intraradical
+hyphal structures**. The program uses pre-trained networks to enable direct
+analysis of ink-stained root pictures. It can also train ConvNets on
 **custom datasets** to enable analysis of differently stained
 or labelled root images.
 
@@ -41,8 +41,16 @@ $ source amfenv/bin/activate
 This is the mode to use when predicting structures on root images.
 
 ```bash
-$ amf predict [-t tile_edge] [-net model] [IMAGE [IMAGE] ...]
+$ amf predict IMAGE [IMAGE ...]
 ```
+
+Command-line arguments are as follows:
+
+|Short|Long|Description|Default|
+|-|-|-|-|
+|`-h`|`--help`|Display this help.|
+|`-t`|`--tile_size`| Tile size, in pixels.|126|
+|`-net`|`--network`|Name of the pre-trained network.|None|
 
 ### Training mode
 
@@ -52,7 +60,7 @@ useful when analysing root images obtained with different **staining methods**
 (such as AlexaFluor-conjugated Wheat Germ Agglutinin).
 
 ```bash
-$ amf train [IMAGE [IMAGE] ...]
+$ amf train IMAGE [IMAGE ...]
 ```
 
 Command-line options are as follows:
@@ -123,11 +131,16 @@ $ cd amfinder/amfbrowser
 $ ./build.sh
 ```
 
-5. The binary `amfbrowser.exe` is ready to use (see [next section](#amfbrowserhelp)).
+5. Copy the folder `data` to your local application folder. A typical path
+would be `~/.local/share/amfinder/data`.
 
+6. The binary `amfbrowser.exe` is ready to use.
 
 
 #### MacOS
+
+Same as Linux, but you will need [Homebrew](https://brew.sh/index_fr) to
+install packages.
 
 #### Windows 10
 
