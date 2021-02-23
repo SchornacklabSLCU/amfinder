@@ -48,7 +48,7 @@ end
 
 type palette = string array
 
-let folder = "data/palettes"
+let folder = Filename.concat (Glib.get_user_data_dir ()) "amfinder/data/palettes"
 let palette_db = ref []
 
 let transparency = "B0"

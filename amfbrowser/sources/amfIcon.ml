@@ -42,7 +42,7 @@ type id = [
 ]
 
 module Dir = struct
-    let main = "data/icons"
+    let main = Filename.concat (Glib.get_user_data_dir ()) "amfinder/data/icons"
     let annotations = Filename.(concat (concat main "annotations"))
     let interface = Filename.(concat (concat main "interface"))
 end
