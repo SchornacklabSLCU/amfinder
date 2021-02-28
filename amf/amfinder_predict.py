@@ -126,7 +126,7 @@ def predict_level2(path, image, nrows, ncols, model):
             table = pd.concat(results, ignore_index=True)
             table.columns = ['row', 'col'] + AmfConfig.get('header')
 
-            return (table, cams)
+            return (table, None) # None was cams
 
         else:
         
@@ -189,15 +189,16 @@ def predict_level1(image, nrows, ncols, model):
     table.insert(0, column='col', value=col_values)
     table.insert(0, column='row', value=row_values)
 
-    return (table, None) # was cams
+    return (table, None) # None was cams
 
 
 
-def run(input_images):
+def run(input_images, postprocess=None):
     """
     Runs prediction on a bunch of images.
     
     :param input_images: input images to use for predictions.
+    :param save: indicate whether results should be saved or returned.
     """
 
     model = AmfModel.load()
@@ -229,6 +230,12 @@ def run(input_images):
 
                 table, cams = predict_level2(path, image, nrows, ncols, model)
 
-            # Save predictions (<table>) and class activations maps (<cams>)
-            # in a ZIP archive derived from the image name (<path>). 
-            AmfSave.prediction_table(table, cams, path)
+
+            # Save results or use continuation for further processing.
+            if postprocess is None:
+
+                AmfSave.prediction_table(table, cams, path)
+                
+            else:
+            
+                postprocess(table, path)

@@ -207,12 +207,6 @@ def training_subparser(subparsers):
         help='learns how to identify AMF structures.',
         formatter_class=RawTextHelpFormatter)
 
-    x = PAR['tile_edge']
-    parser.add_argument('-t', '--tile_size',
-        action='store', dest='edge', type=int, default=x,
-        help='edge size of a single tile, in pixels.'
-             '\ndefault value: {} pixels'.format(x))
-
     x = PAR['batch_size']
     parser.add_argument('-b', '--batch_size',
         action='store', dest='batch_size', metavar='NUM', type=int, default=x,
@@ -338,6 +332,32 @@ def prediction_subparser(subparsers):
 
 
 
+def diagnostic_subparser(subparsers):
+    """
+    Defines arguments used in diagnostic mode.
+    
+    :param subparsers: subparser generator.
+    """
+
+    parser = subparsers.add_parser('diagnose',
+        help='Runs AMFinder in diagnostic mode.',
+        formatter_class=RawTextHelpFormatter)
+
+    x = 'CNN1_pretrained_2021-01-18.h5'
+    parser.add_argument('-net', '--network',
+        action='store', dest='model', metavar='H5', type=str, default=x,
+        help='name of the pre-trained model to use for diagnostic.'
+             '\ndefault value: {}'.format(x))
+
+    x = PAR['input_files']
+    parser.add_argument('image', nargs='*', default=x,
+        help='plant root scan to be processed.'
+             '\ndefault value: {}'.format(x))
+
+    return parser
+
+
+
 def build_arg_parser():
     """
     Builds AMFinder command-line parser.
@@ -352,6 +372,7 @@ def build_arg_parser():
 
     _ = training_subparser(subparsers)
     _ = prediction_subparser(subparsers)
+    _ = diagnostic_subparser(subparsers)
 
     return main
 
@@ -415,7 +436,6 @@ def initialize():
 
     # Main arguments.
     set('run_mode', par.run_mode)
-    set('tile_edge', par.edge)
     set('input_files', par.image)
 
     # Sub-parser specific arguments.
@@ -431,8 +451,16 @@ def initialize():
         set('summary', par.summary)
         set('outdir', par.outdir)
 
-    else: # elif par.run_mode == 'predict'
+    elif par.run_mode == 'predict':
 
+        set('tile_edge', par.edge)
         set('model', par.model)
-       #set('generate_cams', par.generate_cams)
         set('colormap', par.colormap)
+        
+    elif par.run_mode == 'diagnose': 
+        
+        set('model', par.model)   
+        
+    else:
+    
+        pass
