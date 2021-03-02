@@ -22,6 +22,10 @@
  * IN THE SOFTWARE.
  *)
 
+let levels = "Prediction stage"
+let active_tile = "Active tile"
+let image_overview = "Image overview"
+
 let en_stage_A = "CNN1"
 let en_stage_A_label = "Root colonisation"
 

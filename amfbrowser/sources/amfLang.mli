@@ -23,7 +23,11 @@
  *)
  
 (** English translation. *)
- 
+
+val levels : string
+val active_tile : string
+val image_overview : string 
+
 val en_stage_A : string
 val en_stage_A_label : string
 

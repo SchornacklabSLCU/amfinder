@@ -22,6 +22,8 @@
  * IN THE SOFTWARE.
  *)
 
+open Printf
+
 let _ = GMain.init ()
 
 let window =
@@ -49,17 +51,39 @@ module Box = struct
         ~border_width
         ~packing:window#add ()
 
+    let label_xalign = 0.0
+
+    let title s = sprintf "<b><big> %s</big></b>" (String.uppercase_ascii s)
+
     (* To display the annotation modes. *)
-    let b = GPack.button_box `HORIZONTAL
-        ~border_width:(2 * spacing)
-        ~layout:`SPREAD
-        ~packing:(v#pack ~expand:false) ()
+    let b = 
+        let label = GMisc.label ~markup:(title AmfLang.levels) () in
+        let bin = GBin.frame
+            ~label_xalign
+            ~border_width
+            ~packing:(v#pack ~expand:false) () in
+        bin#set_label_widget (Some label#coerce);
+        let bbox = GPack.button_box `HORIZONTAL
+            ~border_width:spacing
+            ~layout:`SPREAD
+            ~packing:bin#add () in
+        bbox
 
     (* Displays magnified view and whole image side by side. *)
-    let h = GPack.hbox
-        ~spacing
-        ~border_width
-        ~packing:v#add ()
+    let h = GPack.hbox ~packing:v#add ()
+
+    let h1 =
+        let label = GMisc.label ~markup:(title AmfLang.active_tile) () in
+        let bin = GBin.frame ~label_xalign ~border_width ~packing:h#add () in
+        bin#set_label_widget (Some label#coerce);
+        bin
+    
+    let h2 =
+        let label = GMisc.label ~markup:(title AmfLang.image_overview) () in
+        let bin = GBin.frame ~label_xalign ~border_width ~packing:h#add () in
+        bin#set_label_widget (Some label#coerce);
+        bin
+
 end
 
 
@@ -70,16 +94,16 @@ module Levels = UILevels.Make (
     end )
 
 
-let make_pane ~r ~c = GPack.table
+let make_pane ~r ~c h = GPack.table
     ~rows:r
-    ~columns:c 
+    ~columns:c
     ~row_spacings:spacing
     ~col_spacings:spacing 
-    ~border_width:0
-    ~packing:Box.h#add ()
+    ~border_width:spacing
+    ~packing:h#add ()
 
-let left_pane = make_pane ~r:2 ~c:1
-let right_pane = make_pane ~r:1 ~c:2
+let left_pane = make_pane ~r:2 ~c:1 Box.h1
+let right_pane = make_pane ~r:1 ~c:2 Box.h2
 
 
 let container = GPack.table 

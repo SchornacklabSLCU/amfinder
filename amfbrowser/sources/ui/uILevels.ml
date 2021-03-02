@@ -42,15 +42,15 @@ module Make (P : PARAMS) : S = struct
   let set_current x = curr := x
 
   let make_radio group step text lvl =
-    (* Container for the GtkRadioButton and its corresponding GtkLabel. *)
-    let packing = (GPack.hbox ~packing:P.packing ())#pack ~expand:false in
+    (* Container for the GtkRadioButton and its corresponding GtkLabel. 
+    let packing = (GPack.hbox ~packing:P.packing ())#pack ~expand:false in*)
     (* Radio button without a label (will use a GtkLabel for that). *)
     let active = group = None in
-    let r = GButton.radio_button ?group ~active ~packing () in
+    let r = GButton.radio_button ?group ~active ~packing:P.packing () in
     (* Removes the unpleasant focus square around the round button. *)
     r#misc#set_can_focus false;
     let markup = sprintf "<big><b>%s.</b> %s</big>" step text in
-    ignore (GMisc.label ~markup ~packing ());
+    ignore (GMisc.label ~markup ~packing:r#set_image ());
     (* Updates the annotation level upon activation. *)
     r#connect#toggled (fun () -> if r#active then curr := lvl);
     r
