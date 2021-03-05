@@ -117,18 +117,17 @@ $ amf diagnose -net <trained_network> <jpeg/tiff images>
 
 #### Linux
 
-1. Download and install the OCaml package manager
-[OPAM](https://opam.ocaml.org/doc/Install.html).
+1. Install [OPAM](https://opam.ocaml.org/doc/Install.html).
 
-2. Using [`opam switch`](https://opam.ocaml.org/doc/Usage.html#opam-switch),
-install **OCaml 4.08.0** (older versions won't work).
+2. Use [`opam switch`](https://opam.ocaml.org/doc/Usage.html#opam-switch) to
+install **OCaml 4.08.0**.
 
 3. Install `amfbrowser` dependencies:
-```bash
+```
 $ opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip
 ```
-You may be required to install development packages, including
-`libgtk2.0-dev` and `libgtksourceview2.0-dev`.
+**Note:** You may need to install development packages such as `libgtk2.0-dev`
+and `libgtksourceview2.0-dev`.
 
 4. Retrieve `amfbrowser` sources and build:
 ```
@@ -138,7 +137,7 @@ $ ./build.sh
 ```
 
 5. Copy the folder `data` to your local application folder. A typical path
-would be `~/.local/share/amfinder/data`.
+is `~/.local/share/amfinder/data`.
 
 6. The binary `amfbrowser.exe` is ready to use.
 
