@@ -40,11 +40,11 @@ $ amf predict <options> <jpeg/tiff images>
 
 Available `<options>` are listed below:
 
-|Short|Long|Description|Default|
+|Short|Long|Description|Default value|
 |-|-|-|-|
 |`-h`|`--help`|Display this help.|
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
-|`-net`|`--network`|Select a network in folder `trained_networks`.|None|
+|`-net`|`--network`|Select a network in folder `trained_networks`.|
 
 Pre-trained networks are available in folder [`trained_networks`](amf/trained_networks):
 
@@ -65,10 +65,9 @@ $ amf train <options> <jpeg/tiff images>
 
 Available `<options>` are listed below:
 
-|Short|Long|Description|Default|
+|Short|Long|Description|Default value|
 |-|-|-|-|
 |`-h`|`--help`|Display this help.|
-|`-t`|`--tile_size`| Tile size, in pixels.|126|
 |`-b`|`batch_size`|Training batch size.|32|
 |`-k`|`--keep_background`|Do not skip any background tile.|False|
 |`-a`|`--data_augmentation`|Activate data augmentation.|False|
@@ -80,7 +79,7 @@ Available `<options>` are listed below:
 |`-vf`|`--validation_fraction`|Fraction of tiles used as validation set.|15%|
 |`-1`|`--CNN1`|Train for root colonisation.|True|
 |`-2`|`--CNN2`|Train for intraradical hyphal structures.|False|
-|`-net`|`--network`|Name of the pre-trained network.|None|
+|`-net`|`--network`|Select a network in folder `trained_networks`.|
 
 `amf train` can run on high-performance computing (HPC) systems.
 Below is a template script for [Slurm](https://slurm.schedmd.com/):
