@@ -80,28 +80,27 @@ Available `<options>` are listed below:
 |`-2`|`--CNN2`|Train for intraradical hyphal structures.|False|
 |`-net`|`--network`|Name of the pre-trained network.|None|
 
-For large datasets, running the script on a high-performance computing (HPC)
-equipment is recommended. An example using [Slurm](https://slurm.schedmd.com/)
-workload manager is provided below.
+`amf train` can run on high-performance computing (HPC) systems.
+Below is a template script for [Slurm](https://slurm.schedmd.com/)
+workload manager:
 
-```bash
+```
 #! /bin/bash
-#SBATCH -e train.err
-#SBATCH -o train.out
+#SBATCH -e amftrain.err
+#SBATCH -o amftrain.out
 #SBATCH --mem=10G
 #SBATCH -n 10
 
-BASE=/home/user/amf
+ROOT=/home/<user>/amf
 
-source $BASE/amfenv/bin/activate
-$BASE/amf train $BASE/training_data/*jpg
+source $ROOT/amfenv/bin/activate
+$ROOT/amf train <options> *jpg
 deactivate
 ```
 
 ### Diagnostic mode
 
-Use the following command to determine **precision** and **specificity** of a
-trained network:
+Ddetermine **precision** and **specificity** of a trained network.
 
 ```bash
 $ amf diagnose -net <trained_network> <images>
