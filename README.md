@@ -44,10 +44,10 @@ to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issu
 This is the mode to use when predicting structures on root images.
 
 ```bash
-$ amf predict IMAGE [IMAGE ...]
+$ amf predict <options> <images>
 ```
 
-Command-line arguments are as follows:
+Options are listed below:
 
 |Short|Long|Description|Default|
 |-|-|-|-|
@@ -55,7 +55,7 @@ Command-line arguments are as follows:
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
 |`-net`|`--network`|Name of the pre-trained network.|None|
 
-Several pre-trained networks are available.
+Several pre-trained networks are available:
 
 |File name|Annotation level|Description|
 |-|-|-|
@@ -72,10 +72,10 @@ useful when analysing root images obtained with different **staining methods**
 (such as AlexaFluor-conjugated Wheat Germ Agglutinin).
 
 ```bash
-$ amf train IMAGE [IMAGE ...]
+$ amf train <options> <images>
 ```
 
-Command-line options are as follows:
+Options are listed below:
 
 |Short|Long|Description|Default|
 |-|-|-|-|
@@ -110,6 +110,15 @@ BASE=/home/user/amf
 source $BASE/amfenv/bin/activate
 $BASE/amf train $BASE/training_data/*jpg
 deactivate
+```
+
+### Diagnostic mode
+
+Use the following command to determine **precision** and **specificity** of a 
+trained network:
+
+```bash
+$ amf diagnose -net <trained_network> <images>
 ```
 
 
