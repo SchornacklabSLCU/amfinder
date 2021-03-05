@@ -151,15 +151,14 @@ install packages.
 
 #### Windows 10
 
-`amfbrowser` can be installed and run on Windows 10 after activation of the
-Windows Subsystem for Linux (WSL). WSL runs a a GNU/Linux environment directly
-on Windows, unmodified. **Admin rights are required to activate WSL**.
+`amfbrowser` can be installed and run on Windows 10 after activation of
+Windows Subsystem for Linux (WSL).
 
-1. Activate the [Windows Subsystem for Linux
+1. Activate [Windows Subsystem for Linux
 (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10). Then, go to
 Windows App store and install a Linux distribution
 (recommended distributions are [Ubuntu](https://ubuntu.com/) and
-[Debian](https://www.debian.org/index.html), but many others should work too).
+[Debian](https://www.debian.org/index.html), but others should work too).
 
 2. Install an OCaml build system based on the `brew` package manager:
 ```bash
@@ -175,11 +174,10 @@ $ echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.profile
 $ brew install gpatch opam gtk+ cairo
 ```
 
-3. Follow the [Linux installation instructions](#amfbrowseronlinux). Please note
-that sandboxing does not work on Windows. OPAM should be initialized using
-`opam init --disable-sandboxing`.
+3. Follow the [Linux installation instructions](#amfbrowseronlinux), with the
+following modification: use `opam init --disable-sandboxing` for initialisation.
 
-4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/)),
-then configure bash to tell GUIs to use the local X server. For instance, use
+4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/))
+and configure `bash` to tell GUIs to use the local X server. For instance, use
 `echo "export DISPLAY=localhost:0.0" >> ~/.bashrc`. Detailed instructions are
 available on the internet.
