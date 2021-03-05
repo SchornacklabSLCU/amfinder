@@ -44,7 +44,7 @@ Available `<options>` are listed below:
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
 |`-net`|`--network`|Select a pre-trained network in `trained_networks`.|None|
 
-Several pre-trained networks are available in folder [`trained_nztworks`](amf/trained_networks):
+Pre-trained networks are available in folder [`trained_networks`](amf/trained_networks):
 
 |File name|Annotation level|Description|
 |-|-|-|
