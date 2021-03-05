@@ -13,13 +13,6 @@ convolutional neural networks.
 
 ## Command-line script (`amf`)<a name="amf"></a>
 
-The command-line script `amf` uses convolutional neural networks (ConvNets)
-to predict **fungal root colonisation** and **intraradical
-hyphal structures**. The program uses pre-trained networks to enable direct
-analysis of ink-stained root pictures. It can also train ConvNets on
-**custom datasets** to enable analysis of differently stained
-or labelled root images.
-
 ### Installation instructions
 
 `amf` requires at least **Python 3.6**. Below is a typical installation, using
