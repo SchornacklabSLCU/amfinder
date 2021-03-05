@@ -81,8 +81,7 @@ Available `<options>` are listed below:
 |`-net`|`--network`|Name of the pre-trained network.|None|
 
 `amf train` can run on high-performance computing (HPC) systems.
-Below is a template script for [Slurm](https://slurm.schedmd.com/)
-workload manager:
+Below is a template script for [Slurm](https://slurm.schedmd.com/):
 
 ```
 #! /bin/bash
