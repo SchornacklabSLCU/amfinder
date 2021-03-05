@@ -32,8 +32,8 @@ to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issu
 
 Predict fungal colonisation or intraradical hyphal structures within plant root images.
 
-```bash
-$ amf predict <options> <images>
+```
+$ amf predict <options> <jpeg/tiff images>
 ```
 
 Available options are listed below:
@@ -57,8 +57,8 @@ Several pre-trained networks are available (right-click to save):
 
 Train `amf` on a different image dataset, or refine existing models.
 
-```bash
-$ amf train <options> <images>
+```
+$ amf train <options> <jpeg/tiff images>
 ```
 
 Available options are listed below:
