@@ -103,9 +103,9 @@ deactivate
 **Determine precision and specificity of a trained network.**
 
 ```bash
-$ amf diagnose -net <trained_network> <images>
+$ amf diagnose -net <trained_network> <jpeg/tiff images>
 ```
-
+**Note** In diagnostic mode, images must be already annotated.
 
 ## Standalone interface `amfbrowser`<a name="amfbrowser"></a>
 
