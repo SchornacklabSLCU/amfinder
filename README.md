@@ -55,11 +55,11 @@ Options are listed below:
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
 |`-net`|`--network`|Name of the pre-trained network.|None|
 
-Several pre-trained networks are available:
+Several pre-trained networks are available (right-click to save):
 
 |File name|Annotation level|Description|
 |-|-|-|
-|<a href="amf/trained_network/CNN1v1.h5" download>CNN1v1.h5]</a>|Stage 1|Ink-stained, ClearSee-treated root pictures.|
+|[CNN1v1.h5](amf/trained_network/CNN1v1.h5)</a>|Stage 1|Ink-stained, ClearSee-treated root pictures.|
 |[CNN1v2.h5](amf/trained_network/CNN1v2.h5)|Stage 1|Same, but hue- and saturation-insensitive.|
 |[CNN2v1.h5](amf/trained_network/CNN2v1.h5)|Stage 2|Ink-stained, ClearSee-treated high-magnification root pictures.|
 
@@ -114,7 +114,7 @@ deactivate
 
 ### Diagnostic mode
 
-Use the following command to determine **precision** and **specificity** of a 
+Use the following command to determine **precision** and **specificity** of a
 trained network:
 
 ```bash
