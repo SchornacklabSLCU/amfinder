@@ -42,7 +42,7 @@ Available `<options>` are listed below:
 |-|-|-|-|
 |`-h`|`--help`|Display this help.|
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
-|`-net`|`--network`|Name of the pre-trained network.|None|
+|`-net`|`--network`|Name of the pre-trained network (to be saved in folder `trained_networks`).|None|
 
 Several pre-trained networks are available (right-click to save):
 
