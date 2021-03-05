@@ -30,7 +30,7 @@ to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issu
 
 ### Prediction mode
 
-Predict fungal colonisation or intraradical hyphal structures within plant root images.
+**Predict fungal colonisation or intraradical hyphal structures within plant root images.**
 
 ```
 $ amf predict <options> <jpeg/tiff images>
@@ -55,7 +55,7 @@ Pre-trained networks are available in folder [`trained_networks`](amf/trained_ne
 
 ### Training mode
 
-Train `amf` on a different image dataset, or refine existing models.
+**Train `amf` on a different image dataset, or refine existing models.**
 
 ```
 $ amf train <options> <jpeg/tiff images>
@@ -99,7 +99,7 @@ deactivate
 
 ### Diagnostic mode
 
-Ddetermine **precision** and **specificity** of a trained network.
+**Determine precision and specificity of a trained network.**
 
 ```bash
 $ amf diagnose -net <trained_network> <images>
