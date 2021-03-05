@@ -36,7 +36,7 @@ Predict fungal colonisation or intraradical hyphal structures within plant root 
 $ amf predict <options> <jpeg/tiff images>
 ```
 
-Available options are listed below:
+Available `<options>` are listed below:
 
 |Short|Long|Description|Default|
 |-|-|-|-|
@@ -61,7 +61,7 @@ Train `amf` on a different image dataset, or refine existing models.
 $ amf train <options> <jpeg/tiff images>
 ```
 
-Available options are listed below:
+Available `<options>` are listed below:
 
 |Short|Long|Description|Default|
 |-|-|-|-|
