@@ -8,10 +8,10 @@ convolutional neural networks.
 
 ## Summary
 
-1. [Command-line script (`amf`)](#amf)
-2. [Standalone interface (`amfbrowser`)](#amfbrowser)
+1. [Command-line tool `amf`](#amf)
+2. [Standalone interface `amfbrowser`](#amfbrowser)
 
-## Command-line script (`amf`)<a name="amf"></a>
+## Command-line tool `amf`<a name="amf"></a>
 
 **Train neural networks and predict fungal colonisation and intraradical structures.**
 
@@ -108,7 +108,7 @@ $ amf diagnose -net <trained_network> <images>
 ```
 
 
-## Standalone interface (`amfbrowser`)<a name="amfbrowser"></a>
+## Standalone interface `amfbrowser`<a name="amfbrowser"></a>
 
 **Browse, amend and validate `amf` predictions.**
 
