@@ -59,9 +59,9 @@ Several pre-trained networks are available:
 
 |File name|Annotation level|Description|
 |-|-|-|
-|CNN1v1.h5|Stage 1|Ink-stained, ClearSee-treated root pictures.|
-|CNN1v2.h5|Stage 1|Same, but hue-insensitive.|
-|CNN2v1.h5|Stage 2|Ink-stained, ClearSee-treated high-magnification root pictures.|
+|[CNN1v1.h5](amf/trained_network/CNN1v1.h5)|Stage 1|Ink-stained, ClearSee-treated root pictures.|
+|[CNN1v2.h5](amf/trained_network/CNN1v2.h5)|Stage 1|Same, but hue- and saturation-insensitive.|
+|[CNN2v1.h5](amf/trained_network/CNN2v1.h5)|Stage 2|Ink-stained, ClearSee-treated high-magnification root pictures.|
 
 
 ### Training mode
