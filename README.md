@@ -22,7 +22,7 @@ or labelled root images.
 
 ### Installation instructions
 
-`amf` requires [Python](https://www.python.org/) **version 3.6** or above.
+`amf` requires at least **Python 3.6**.
 Create a virtual environment, then install packages listed in file
 `requirements.txt`. Below is a typical installation :
 
