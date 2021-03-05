@@ -37,8 +37,7 @@ to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issu
 
 ### Prediction mode
 
-Use **prediction mode** to predict fungal colonisation or intraradical hyphal
-structures on plant root images.
+Predict fungal colonisation or intraradical hyphal structures within plant root images.
 
 ```bash
 $ amf predict <options> <images>
@@ -63,8 +62,7 @@ Several pre-trained networks are available (right-click to save):
 
 ### Training mode
 
-Use **training mode** to train `amf` on a different image dataset, or to refine
-existing models.
+Train `amf` on a different image dataset, or refine existing models.
 
 ```bash
 $ amf train <options> <images>
