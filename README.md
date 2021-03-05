@@ -44,7 +44,7 @@ Available `<options>` are listed below:
 |-|-|-|-|
 |`-h`|`--help`|Display this help.|
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
-|`-net`|`--network`|Select a pre-trained network in `trained_networks`.|None|
+|`-net`|`--network`|Select a network in folder `trained_networks`.|None|
 
 Pre-trained networks are available in folder [`trained_networks`](amf/trained_networks):
 
