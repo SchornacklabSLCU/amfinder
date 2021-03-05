@@ -44,13 +44,13 @@ Available `<options>` are listed below:
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
 |`-net`|`--network`|Select a pre-trained network in `trained_networks`.|None|
 
-Several pre-trained networks are available (right-click to save):
+Several pre-trained networks are available in folder [`trained_nztworks`](amf/trained_networks):
 
 |File name|Annotation level|Description|
 |-|-|-|
-|[CNN1v1.h5](amf/trained_network/CNN1v1.h5)</a>|Stage 1|Ink-stained, ClearSee-treated root pictures.|
-|[CNN1v2.h5](amf/trained_network/CNN1v2.h5)|Stage 1|Same, but hue- and saturation-insensitive.|
-|[CNN2v1.h5](amf/trained_network/CNN2v1.h5)|Stage 2|Ink-stained, ClearSee-treated high-magnification root pictures.|
+|[CNN1v1.h5](amf/trained_networks/CNN1v1.h5)</a>|Stage 1|Ink-stained, ClearSee-treated root pictures.|
+|[CNN1v2.h5](amf/trained_networks/CNN1v2.h5)|Stage 1|Same, but hue- and saturation-insensitive.|
+|[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|Stage 2|Ink-stained, ClearSee-treated high-magnification root pictures.|
 
 
 ### Training mode
