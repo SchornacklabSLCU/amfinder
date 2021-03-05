@@ -55,6 +55,15 @@ Command-line arguments are as follows:
 |`-t`|`--tile_size`| Tile size, in pixels.|126|
 |`-net`|`--network`|Name of the pre-trained network.|None|
 
+Several pre-trained networks are available.
+
+|File name|Annotation level|Description|
+|-|-|-|
+|CNN1v1.h5|Stage 1|Ink-stained, ClearSee-treated root pictures.|
+|CNN1v2.h5|Stage 1|Same, but hue-insensitive.|
+|CNN2v1.h5|Stage 2|Ink-stained, ClearSee-treated high-magnification root pictures.|
+
+
 ### Training mode
 
 Users may want to train `amf` on a specific set of images. This is especially
