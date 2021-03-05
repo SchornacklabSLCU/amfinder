@@ -157,8 +157,8 @@ Windows Subsystem for Linux (WSL).
 1. Activate [Windows Subsystem for Linux
 (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10). Then, go to
 Windows App store and install a Linux distribution
-(recommended distributions are [Ubuntu](https://ubuntu.com/) and
-[Debian](https://www.debian.org/index.html), but others should work too).
+([Ubuntu](https://ubuntu.com/) and [Debian](https://www.debian.org/index.html)
+are recommended, but others should work too).
 
 2. Install an OCaml build system based on the `brew` package manager:
 ```bash
