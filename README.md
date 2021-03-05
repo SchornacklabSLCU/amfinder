@@ -13,6 +13,8 @@ convolutional neural networks.
 
 ## Command-line script (`amf`)<a name="amf"></a>
 
+**Train neural networks and predict fungal colonisation and intraradical structures.**
+
 ### Installation instructions
 
 `amf` requires at least **Python 3.6**. Below is a typical installation, using
@@ -108,9 +110,7 @@ $ amf diagnose -net <trained_network> <images>
 
 ## Standalone interface (`amfbrowser`)<a name="amfbrowser"></a>
 
-The standalone interface `amfbrowser` allows to browse, amend and validate
-`amf` predictions. Installation instructions are detailed below for the main
-platforms.
+**Browse, amend and validate `amf` predictions.**
 
 ![](doc/amfbrowser.png)
 
