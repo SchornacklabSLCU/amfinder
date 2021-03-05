@@ -1,9 +1,9 @@
 # Automatic Mycorrhiza Finder (AMFinder)
 
-The Automatic Mycorrhiza Finder (AMFinder) consists of the `amf` Python script
-for automatic annotation of AM fungal colonization and fungal structures in
-root images, and the standalone interface `amfbrowser` for inspection,
-amendment and validation of computer predictions.
+The Automatic Mycorrhiza Finder (AMFinder) allows for automatic computer
+vision-based identification and quantification of AM fungal colonisation
+and intraradical hyphal structures on ink-stained root images using
+convolutional neural networks.
 
 
 ## Summary
