@@ -23,7 +23,7 @@ or labelled root images.
 ### Installation instructions
 
 `amf` requires at least **Python 3.6**. Below is a typical installation, using
-a virtual environment to install dependencies (`requirements.txt`):
+a virtual environment to install dependencies:
 
 ```bash
 $ python3.7 -m venv amfenv
@@ -37,13 +37,14 @@ to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issu
 
 ### Prediction mode
 
-This is the mode to use when predicting structures on root images.
+Use **prediction mode** to predict fungal colonisation or intraradical hyphal
+structures on plant root images.
 
 ```bash
 $ amf predict <options> <images>
 ```
 
-Options are listed below:
+Available options are listed below:
 
 |Short|Long|Description|Default|
 |-|-|-|-|
@@ -62,16 +63,14 @@ Several pre-trained networks are available (right-click to save):
 
 ### Training mode
 
-Users may want to train `amf` on a specific set of images. This is especially
-useful when analysing root images obtained with different **staining methods**
-(such as trypan blue or chlorazol black) or that rely on **fluorescence**
-(such as AlexaFluor-conjugated Wheat Germ Agglutinin).
+Use **training mode** to train `amf` on a different image dataset, or to refine
+existing models.
 
 ```bash
 $ amf train <options> <images>
 ```
 
-Options are listed below:
+Available options are listed below:
 
 |Short|Long|Description|Default|
 |-|-|-|-|
