@@ -22,17 +22,14 @@ or labelled root images.
 
 ### Installation instructions
 
-The command-line program `amf` requires [Python](https://www.python.org/)
-**version 3.6** or above.
-It is recommended to create a virtual environment to install the packages
-listed in the dependency file `requirements.txt`. Below is an example of a
-typical installation, followed by a test prediction.
+`amf` requires [Python](https://www.python.org/) **version 3.6** or above.
+Create a virtual environment, then install packages listed in file
+`requirements.txt`. Below is a typical installation :
 
 ```bash
 $ python3.7 -m venv amfenv
 $ source amfenv/bin/activate
 (amfenv) $ python -m pip install -r requirements.txt
-(amfenv) $ ./amf predict test/*jpg
 (amfenv) $ deactivate
 ```
 
