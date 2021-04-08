@@ -5,6 +5,7 @@ vision-based identification and quantification of AM fungal colonisation
 and intraradical hyphal structures on ink-stained root images using
 convolutional neural networks.
 
+**The latest version of AMFinder is v2.0.**
 
 ## Summary
 
