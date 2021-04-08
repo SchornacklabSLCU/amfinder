@@ -156,7 +156,7 @@ module Params = struct
     end
     module FileChooser = struct
         let parent = window
-        let title = "CastANet Image Chooser"
+        let title = "AMFinder Image Chooser"
         let border_width = border_width
     end
 end
