@@ -24,6 +24,7 @@ a virtual environment to install dependencies:
 ```bash
 $ python3.7 -m venv amfenv
 $ source amfenv/bin/activate
+(amfenv) $ cd amf
 (amfenv) $ python -m pip install -r requirements.txt
 (amfenv) $ deactivate
 ```
