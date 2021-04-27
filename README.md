@@ -22,7 +22,7 @@ convolutional neural networks.
 2. Download AMFinder sources from Github, and extract the archive.
 3. Move to the `amf` folder.
 4. Open a terminal, run `export PYTHON=<path>`, replacing `<path>` with the path to Python 3.7.
-5. Run `./install.sh`. If needed, add executable permissions with: `chmod +x install.sh`.
+5. Run `./install.sh`. If needed, add executable permissions with: `chmod +x install.sh`. Should the variable `PYTHON` not be set, the script will use the output of `which python3` instead.
 
 **Important:** Before using `amf`, you will need to activate its Python virtual environment. Open a terminal in the `amf` directory and run the command `source amfenv/bin/activate` to activate the virtual environment. Your terminal prompt will change to `(amfenv) $`. Once you are done with `amf`, you can deactivate the environment by running the command `deactivate`.
 
