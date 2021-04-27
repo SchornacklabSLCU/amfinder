@@ -60,22 +60,22 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 **Note:** To be able to run `amf`, you first need to reactivate the virtual environment by running the command `source amfenv/bin/activate` (see installation guidelines, step 4).
 
-For training, run in a terminal `amf train <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
+For training, run in a terminal `amf train <parameters> <images>` where `<parameters>` are either the short or long names listed below (all training parameters are optional). Replace `<images>` with the path to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
-|`-net CNN`|`--network CNN`|**Optional**. Use network `CNN`.|
-|`-b N`|`batch_size N`|**Optional**. Use a batch size of `N` tiles.|N = 32|
-|`-k`|`--keep_background`|**Optional**. Do not skip any background tile.|False|
-|`-a`|`--data_augmentation`|**Optional**. Activate data augmentation.|False|
-|`-s`|`--summary`|**Optional**. Save CNN architecture and graph.|False|
-|`-o PATH`|`--outdir PATH`|**Optional**. Save trained model and CNN architecture in `PATH`.|cwd|
-|`-e N`|`--epochs N`|**Optional**. Perform `N` training cycles.|N = 100|
-|`-p N`|`--patience N`|**Optional**. Wait for `N` epochs before early stopping.|N = 12|
-|`-lr X`|`--learning_rate X`|**Optional**. Use `X` as learning rate for the Adam optimiser.|X = 0.001|
-|`-vf N`|`--validation_fraction N`|**Optional**. Use `N` percents of total tiles as validation set.|N = 15%|
-|`-1`|`--CNN1`|**Optional**. Train for root colonisation.|True|
-|`-2`|`--CNN2`|**Optional**. Train for intraradical hyphal structures.|False|
+|`-net CNN`|`--network CNN`|Use network `CNN`.|*ab initio* training|
+|`-b N`|`batch_size N`|Use a batch size of `N` tiles.|N = 32|
+|`-k`|`--keep_background`|Do not skip any background tile.|False|
+|`-a`|`--data_augmentation`|Activate data augmentation.|False|
+|`-s`|`--summary`|Save CNN architecture and graph.|False|
+|`-o PATH`|`--outdir PATH`|Save trained model and CNN architecture in `PATH`.|cwd|
+|`-e N`|`--epochs N`|Perform `N` training cycles.|N = 100|
+|`-p N`|`--patience N`|Wait for `N` epochs before early stopping.|N = 12|
+|`-lr X`|`--learning_rate X`|Use `X` as learning rate for the Adam optimiser.|X = 0.001|
+|`-vf N`|`--validation_fraction N`|Use `N` percents of total tiles as validation set.|N = 15%|
+|`-1`|`--CNN1`|Train for root colonisation.|True|
+|`-2`|`--CNN2`|Train for intraradical hyphal structures.|False|
 
 
 Training can benefit from high-performance computing (HPC) systems.
