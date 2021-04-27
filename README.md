@@ -110,23 +110,22 @@ text-based system such as an HPC.
 
 1. Download and install OPAM from the [official webwsite](https://opam.ocaml.org/doc/Install.html) or from your package manager.
 
-2. In a terminal, run the command: `opam switch create 4.08.0`. Information about OPAM switches can be found [here](https://opam.ocaml.org/doc/Usage.html#opam-switch).
+2. Either manually executes steps 3-5 below, or move to the `amfbrowser` folder and run the command: `OPAM=/usr/bin/opam ./install.sh`, storing the path to `opam` in the `OPAM` variable. If needed, add executable permissions to the installation file with: `chmod +x install.sh`. You can then proceed to step 6.
 
-3. Install `amfbrowser` dependencies by running: `opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip`
+3. Initialise OPAM by running: `opam init`.
+
+4. In a terminal, run the command: `opam switch create 4.08.0`. Information about OPAM switches can be found [here](https://opam.ocaml.org/doc/Usage.html#opam-switch). Once OCaml 4.08.0 is installed, run `eval $(opam env)` to update the environment.
+
+5. Install `amfbrowser` dependencies by running the command: `opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip`. After all dependencies are installed, run `eval $(opam env)` to update the environment.
 
 **Note:** You may need to install development packages such as `libgtk2.0-dev` and `libgtksourceview2.0-dev`. Users with [miniconda](https://docs.conda.io/en/latest/miniconda.html) or similar tool suite installed may encounter problems if their `PATH` variable has been altered. In particular, make sure that the command `which ocaml` and `which pkg-config` correspond to OPAM-installed softwares.
 
-4. Retrieve `amfbrowser` sources and build:
-```
-$ git clone git@github.com:SchornacklabSLCU/amfinder.git
-$ cd amfinder/amfbrowser
-$ ./build.sh
-```
+6. Move to the `amfbrowser` folder and run the compilation script: `./build.sh`
 
-5. Copy the folder `data` to your local application folder. A typical path
+7. Copy the folder `data` to your local application folder. A typical path
 is `~/.local/share/amfinder/data`.
 
-6. The binary `amfbrowser.exe` is ready to use.
+8. The binary `amfbrowser.exe` is ready to use.
 
 
 #### MacOS
