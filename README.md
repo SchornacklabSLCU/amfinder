@@ -19,17 +19,12 @@ convolutional neural networks.
 ### Installation instructions
 
 1. Install **Python 3.7** from the [official website](https://www.python.org/) or from your package manager.
-2. Open a terminal and install the package `virtualenv` by running the command: `python -m pip install virtualenv`. **Note:** in all commands listed here, replace `python` with the name of the Python program on your system. For instance, it could be `python3` or `python3.7`.
-3. Create a virtual environment. In a terminal, run: `python -m venv amfenv`.
-4. Activate the virtual environment. In a terminal, run: `source amfenv/bin/activate`.
-5. Download AMFinder sources from Github and extract the archive. Move to the `amf` folder. For instance, run in a terminal: `cd amf`.
-6. Upgrade the Python package installer `pip`. In a terminal, run: `python -m pip install --upgrade pip`.
-7. Install the required Python libraries listed in file `requirements.txt`. In a terminal, run : `python -m pip install -r requirements.txt`.
-8. The command-line tool is now ready to use. After use, deactivate the virtual environment (in a terminal, run: `deactivate`). You will need to reactivate the virtual environment for future use (step 4 above).
+2. Download AMFinder sources from Github, and extract the archive.
+3. Move to the `amf` folder.
+4. Open a terminal, run `export PYTHON=<path>`, replacing `<path>` with the path to Python 3.7.
+5. Run `./install.sh`. If needed, add executable permissions with: `chmod +x install.sh`.
 
-**Alternative method**
-
-Steps 2-7 above can be run at once on Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system. Download AMFinder sources from Github and extract the archive. Move to the `amf` directory and run in a terminal: `PYTHON=/usr/bin/python3.7 ./install.sh`, storing the path to Python 3.7 in the `PYTHON` variable. If needed, add executable permissions to the installation file with: `chmod +x install.sh`.
+**Important:** Before using `amf`, you will need to activate its Python virtual environment. Open a terminal in the `amf` directory and run the command `source amfenv/bin/activate` to activate the virtual environment. Your terminal prompt will change to `(amfenv) $`. Once you are done with `amf`, you can deactivate the environment by running the command `deactivate`.
 
 
 ### Using the software
@@ -38,7 +33,7 @@ Steps 2-7 above can be run at once on Linux using the script `install.sh` within
 
 #### Prediction mode
 
-**Note:** To be able to run `amf`, you first need to reactivate the virtual environment by running the command `source amfenv/bin/activate` (see installation guidelines, step 4).
+**Important**: Remember to activate `amf` virtual environment before use (see installation instructions).
 
 For predictions, run in a terminal `amf predict <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
 
