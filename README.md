@@ -110,7 +110,7 @@ text-based system such as an HPC.
 
 1. Download and install OPAM from the [official webwsite](https://opam.ocaml.org/doc/Install.html) or from your package manager.
 
-2. Either manually executes steps 3-5 below, or move to the `amfbrowser` folder and run the command: `OPAM=/usr/bin/opam ./install.sh`, storing the path to `opam` in the `OPAM` variable. If needed, add executable permissions to the installation file with: `chmod +x install.sh`. You can then proceed to step 6.
+2. Either manually run the commands in steps 3-5 below, or go to the `amfbrowser` folder and run the command: `OPAM=/usr/bin/opam ./install.sh`. Indicate the path to `opam` in the `OPAM` variable (if not provided, the script will use the output of `which opam`). If needed, add executable permissions to the installation file with: `chmod +x install.sh`. You can then proceed directly to step 6.
 
 3. Initialise OPAM by running: `opam init`.
 
@@ -122,8 +122,7 @@ text-based system such as an HPC.
 
 6. Move to the `amfbrowser` folder and run the compilation script: `./build.sh`
 
-7. Copy the folder `data` to your local application folder. A typical path
-is `~/.local/share/amfinder/data`.
+7. Copy the folder `data` to your local application folder ( `$HOME/.local/share/amfinder`).
 
 8. The binary `amfbrowser.exe` is ready to use.
 
@@ -162,6 +161,8 @@ $ brew install gpatch opam gtk+ cairo
 following modification: use `opam init --disable-sandboxing` for initialisation.
 
 4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/))
-and configure `bash` to tell GUIs to use the local X server. For instance, use
-`echo "export DISPLAY=localhost:0.0" >> ~/.bashrc`. Detailed instructions are
-available on the internet.
+and configure `bash` to tell GUIs to use the local X server by running `export DISPLAY=localhost:0.0`.
+This variable has to be set for each session. As an alternative, you can save the
+variable in your session configuration file by running: `echo "export DISPLAY=localhost:0.0" >> ~/.bashrc`
+and reload the configuration (`. ~/.bashrc`). The new variable with then be automatically
+set and does not have to be redefined manually. 
