@@ -14,8 +14,8 @@ eval $($OPAM env)
 
 ./build.sh
 
-DIR="$HOME/.local/share/amfinder/data"
+DIR="$HOME/.local/share/amfinder"
 
 mkdir -p "$DIR"
 
-cp -r data $"DIR" 
+cp -r data "$DIR" 
