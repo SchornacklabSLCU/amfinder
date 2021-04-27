@@ -77,31 +77,23 @@ For training, run in a terminal `amf train <parameters> <images>` where `<parame
 |`-1`|`--CNN1`|**Optional**. Train for root colonisation.|True|
 |`-2`|`--CNN2`|**Optional**. Train for intraradical hyphal structures.|False|
 
-`amf train` can run on high-performance computing (HPC) systems.
+
+Training can benefit from high-performance computing (HPC) systems.
 Below is a template script for [Slurm](https://slurm.schedmd.com/):
 
 ```
 #! /bin/bash
-#SBATCH -e amftrain.err
-#SBATCH -o amftrain.out
-#SBATCH --mem=10G
-#SBATCH -n 10
+#SBATCH -e <error_file>
+#SBATCH -o <output_file>
+#SBATCH --mem=<memory_GB>
+#SBATCH -n <procs>
 
 ROOT=/home/<user>/amf
 
 source $ROOT/amfenv/bin/activate
-$ROOT/amf train <options> *jpg
+$ROOT/amf train <parameters> <images>
 deactivate
 ```
-
-### Diagnostic mode
-
-**Determine precision and specificity of a trained network.**
-
-```
-$ amf diagnose -net <trained_network> <jpeg/tiff images>
-```
-**Note:** In diagnostic mode, images must be already annotated.
 
 ## Standalone interface `amfbrowser`<a name="amfbrowser"></a>
 
@@ -111,19 +103,18 @@ $ amf diagnose -net <trained_network> <jpeg/tiff images>
 
 ### Installation instructions<a name="amfbrowseronlinux"></a>
 
+**Note:** As a graphical interface, `amfbrowser` cannot be installed on a
+text-based system such as an HPC.
+
 #### Linux
 
-1. Install [OPAM](https://opam.ocaml.org/doc/Install.html).
+1. Download and install OPAM from the [official webwsite](https://opam.ocaml.org/doc/Install.html) or from your package manager.
 
-2. Use [`opam switch`](https://opam.ocaml.org/doc/Usage.html#opam-switch) to
-install **OCaml 4.08.0**.
+2. In a terminal, run the command: `opam switch create 4.08.0`. Information about OPAM switches can be found [here](https://opam.ocaml.org/doc/Usage.html#opam-switch).
 
-3. Install `amfbrowser` dependencies:
-```
-$ opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip
-```
-**Note:** You may need to install development packages such as `libgtk2.0-dev`
-and `libgtksourceview2.0-dev`.
+3. Install `amfbrowser` dependencies by running: `opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip`
+
+**Note:** You may need to install development packages such as `libgtk2.0-dev` and `libgtksourceview2.0-dev`. Users with [miniconda](https://docs.conda.io/en/latest/miniconda.html) or similar tool suite installed may encounter problems if their `PATH` variable has been altered. In particular, make sure that the command `which ocaml` and `which pkg-config` correspond to OPAM-installed softwares.
 
 4. Retrieve `amfbrowser` sources and build:
 ```
