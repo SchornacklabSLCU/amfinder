@@ -1,7 +1,8 @@
 #! /bin/bash
 
-$OPAM init
+OPAM="${OPAM:-$(which opam)}"
 
+$OPAM init
 $OPAM switch create 4.08.0
 
 eval $($OPAM env)
