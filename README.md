@@ -24,8 +24,7 @@ convolutional neural networks.
 4. Open a terminal, run `export PYTHON=<path>`, replacing `<path>` with the path to Python 3.7.
 5. Run `./install.sh`. If needed, add executable permissions with: `chmod +x install.sh`. Should the variable `PYTHON` not be set, the script will use the output of `which python3` instead.
 
-**Important:** Before using `amf`, you will need to activate its Python virtual environment. Open a terminal in the `amf` directory and run the command `source amfenv/bin/activate` to activate the virtual environment. Your terminal prompt will change to `(amfenv) $`. Once you are done with `amf`, you can deactivate the environment by running the command `deactivate`.
-
+**Important:** Before using `amf` for training or prediction (see next section), you will need to activate its Python virtual environment. To that end, open a terminal in the `amf` directory and run the command `source amfenv/bin/activate` to activate the virtual environment. Your terminal prompt will change to `(amfenv) $`. Once you are done with `amf`, you can deactivate the environment by running the command `deactivate`.
 
 ### Using the software
 
@@ -105,27 +104,14 @@ text-based system such as an HPC.
 
 1. Download and install OPAM from the [official webwsite](https://opam.ocaml.org/doc/Install.html) or from your package manager.
 
-2. Either manually run the commands in steps 3-5 below, or go to the `amfbrowser` folder and run the command: `OPAM=/usr/bin/opam ./install.sh`. Indicate the path to `opam` in the `OPAM` variable (if not provided, the script will use the output of `which opam`). If needed, add executable permissions to the installation file with: `chmod +x install.sh`. You can then proceed directly to step 6.
-
-3. Initialise OPAM by running: `opam init`.
-
-4. In a terminal, run the command: `opam switch create 4.08.0`. Information about OPAM switches can be found [here](https://opam.ocaml.org/doc/Usage.html#opam-switch). Once OCaml 4.08.0 is installed, run `eval $(opam env)` to update the environment.
-
-5. Install `amfbrowser` dependencies by running the command: `opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip`. After all dependencies are installed, run `eval $(opam env)` to update the environment.
+2. Open a terminal in the `amfbrowser` folder and run the command: `export OPAM=<path>`, replacing `<path>` with the path to the opam program. Then, run the command `./install.sh` to install `amfbrowser` dependencies and compile `amfbrowser.exe`. Should the variable `OPAM` not be set, the script will use the output of `which opam`. If needed, add executable permissions to the installation file with: `chmod +x install.sh`. Follow the instructions on the screen and reply yes to the questions asked during opam installation and configuration. 
 
 **Note:** You may need to install development packages such as `libgtk2.0-dev` and `libgtksourceview2.0-dev`. Users with [miniconda](https://docs.conda.io/en/latest/miniconda.html) or similar tool suite installed may encounter problems if their `PATH` variable has been altered. You may have to temporarily mask miniconda directory from your `PATH` variable by running `PATH=<modified_path> opam install ...`.
-
-6. Move to the `amfbrowser` folder and run the compilation script: `./build.sh`
-
-7. Copy the folder `data` to your local application folder ( `$HOME/.local/share/amfinder`).
-
-8. The binary `amfbrowser.exe` is ready to use.
 
 
 #### MacOS
 
-Same as Linux, but you will need [Homebrew](https://brew.sh/index_fr) to
-install packages.
+Same as Linux, but you will need [Homebrew](https://brew.sh/index_fr) to install OPAM.
 
 #### Windows 10
 
@@ -152,8 +138,7 @@ $ echo "eval \$($(brew --prefix)/bin/brew shellenv)" >> ~/.profile
 $ brew install gpatch opam gtk+ cairo
 ```
 
-3. Follow the [Linux installation instructions](#amfbrowseronlinux), with the
-following modification: use `opam init --disable-sandboxing` for initialisation.
+3. Follow the [Linux installation instructions](#amfbrowseronlinux). You may have to edit the file `install.sh` with a text editor and uncomment the option `--disable-sandboxing`.
 
 4. Install a X server (for instance, [Xming](https://sourceforge.net/projects/xming/))
 and configure `bash` to tell GUIs to use the local X server by running `export DISPLAY=localhost:0.0`.
