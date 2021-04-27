@@ -25,14 +25,14 @@ convolutional neural networks.
 2. Open a terminal and install the package `virtualenv` by running the command: `python -m pip install virtualenv` (replace `python` with the name of the Python program on your system).
 3. Create a virtual environment. In a terminal, run: `python -m venv amfenv`.
 4. Activate the virtual environment. In a terminal, run: `source amfenv/bin/activate`.
-5. Donwload AMFinder sources from Github and extract the archive. Move to the `amf` folder. For instance, run in a terminal: `cd amf`.
-6. Upgrade the Python installer `pip`. In a terminal, run: `python -m pip install --upgrade pip`.
+5. Download AMFinder sources from Github and extract the archive. Move to the `amf` folder. For instance, run in a terminal: `cd amf`.
+6. Upgrade the Python package installer `pip`. In a terminal, run: `python -m pip install --upgrade pip`.
 7. Install the required Python libraries listed in file `requirements.txt`. In a terminal, run : `python -m pip install -r requirements.txt`.
 8. The command-line tool is now ready to use (see next section). After use, deactivate the virtual environment (in a terminal, run: `deactivate`). You will need to reactivate the virtual environment for future use (step 4 above).
 
-**Semi-automatic installation**
+**Automatic installation**
 
-The commands listed above can be run at once in Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system.
+The commands listed above can be run at once in Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system. Download AMFinder sources from Github and extract the archive. Move to the amf directory and run in a terminal: `./install.sh` (if needed, add executable permissions to the file with: `chmod +x install.sh`).
 
 ### Prediction mode
 
