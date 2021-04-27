@@ -38,7 +38,9 @@ Steps 2-7 above can be run at once on Linux using the script `install.sh` within
 
 #### Prediction mode
 
-To use `amf` for predictions, run in a terminal `amf predict <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
+**Note:** To be able to run `amf`, you first need to reactivate the virtual environment by running the command `source amfenv/bin/activate` (see installation guidelines, step 4).
+
+For predictions, run in a terminal `amf predict <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
