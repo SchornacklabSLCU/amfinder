@@ -29,7 +29,7 @@ convolutional neural networks.
 
 **Alternative method**
 
-The commands listed in steps 2-7 above can be run at once in Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system. Download AMFinder sources from Github and extract the archive. Move to the amf directory and run in a terminal: `./install.sh` (if needed, add executable permissions to the file with: `chmod +x install.sh`).
+The commands listed in steps 2-7 above can be run at once in Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system. Download AMFinder sources from Github and extract the archive. Move to the `amf` directory and run in a terminal: `PYTHON=/usr/bin/python3.7 ./install.sh`, storing the path to Python 3.7 in the `PYTHON` variable. If needed, add executable permissions to the installation file with: `chmod +x install.sh`.
 
 
 ### Prediction mode

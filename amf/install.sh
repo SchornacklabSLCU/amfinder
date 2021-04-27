@@ -1,13 +1,11 @@
 #! /bin/bash
 
-PYTHON="$(which python3.7)"
-
 $PYTHON -m pip install virtualenv
 
 $PYTHON -m venv amfenv
 
 source amfenv/bin/activate
 
-python -m pip install --upgrade pip
+$PYTHON -m pip install --upgrade pip
 
-python -m pip install -r requirements.txt
+$PYTHON -m pip install -r requirements.txt
