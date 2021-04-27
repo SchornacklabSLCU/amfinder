@@ -36,21 +36,16 @@ Steps 2-7 above can be run at once on Linux using the script `install.sh` within
 
 **`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).**
 
-#### Prediction
+#### Prediction mode
 
-```
-$ amf predict <options> <jpeg/tiff images>
-```
-
-Available `<options>` are listed below:
+To use `amf` for predictions, run in a terminal `amf predict <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
-|`-h`|`--help`|Display this help.|
-|`-t`|`--tile_size`| Tile size, in pixels.|126|
-|`-net`|`--network`|Select a network in folder `trained_networks`.|
+|`-net CNN`|`--network CNN`|**Mandatory**. Use network `CNN` (see list below).|
+|`-t N`|`--tile_size N`|**Optional**. Use `N` pixels as tile size.|N = 126|
 
-Pre-trained networks are available in folder [`trained_networks`](amf/trained_networks):
+Pre-trained networks to be used with the parameter `-net` are available in folder [`trained_networks`](amf/trained_networks). You can add your own trained networks to this folder.
 
 |File name|Annotation level|Description|
 |-|-|-|
