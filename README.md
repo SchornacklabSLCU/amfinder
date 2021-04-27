@@ -18,6 +18,8 @@ convolutional neural networks.
 
 ### Installation instructions
 
+**Manual installation**
+
 1. Install **Python 3.7** from the [official website](https://www.python.org/) or from your package manager.
 
 2. Open a terminal and install the package `virtualenv` by running the command: `python -m pip install virtualenv` (replace `python` with the name of the Python program on your system).
@@ -27,6 +29,10 @@ convolutional neural networks.
 6. Upgrade the Python installer `pip`. In a terminal, run: `python -m pip install --upgrade pip`.
 7. Install the required Python libraries listed in file `requirements.txt`. In a terminal, run : `python -m pip install -r requirements.txt`.
 8. The command-line tool is now ready to use (see next section). After use, deactivate the virtual environment (in a terminal, run: `deactivate`). You will need to reactivate the virtual environment for future use (step 4 above).
+
+**Semi-automatic installation**
+
+The commands listed above can be run at once in Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system.
 
 ### Prediction mode
 
