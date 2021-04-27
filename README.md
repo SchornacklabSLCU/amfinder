@@ -56,31 +56,26 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 |[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|Stage 2|Ink-stained, ClearSee-treated microscope root pictures.|
 
 
-### Training mode
+#### Training mode
 
-**Train `amf` on a different image dataset, or refine existing models.**
+**Note:** To be able to run `amf`, you first need to reactivate the virtual environment by running the command `source amfenv/bin/activate` (see installation guidelines, step 4).
 
-```
-$ amf train <options> <jpeg/tiff images>
-```
-
-Available `<options>` are listed below:
+For training, run in a terminal `amf train <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
-|`-h`|`--help`|Display this help.|
-|`-b`|`batch_size`|Training batch size.|32|
-|`-k`|`--keep_background`|Do not skip any background tile.|False|
-|`-a`|`--data_augmentation`|Activate data augmentation.|False|
-|`-s`|`--summary`|Save CNN architecture and graph.|False|
-|`-o`|`--outdir`|Folder where to save trained model and CNN architecture.|cwd|
-|`-e`|`--epochs`|Number of training cycles.|100|
-|`-p`|`--patience`|Number of epochs to wait before early stopping.|12|
-|`-lr`|`--learning_rate`|Learning rate used by the Adam optimiser.|0.001|
-|`-vf`|`--validation_fraction`|Fraction of tiles used as validation set.|15%|
-|`-1`|`--CNN1`|Train for root colonisation.|True|
-|`-2`|`--CNN2`|Train for intraradical hyphal structures.|False|
-|`-net`|`--network`|Select a network in folder `trained_networks`.|
+|`-net`|`--network`|**Mandatory**. Select a network in folder `trained_networks`.|
+|`-b N`|`batch_size N`|**Optional**. Use a batch size of `N` tiles.|N = 32|
+|`-k`|`--keep_background`|**Optional**. Do not skip any background tile.|False|
+|`-a`|`--data_augmentation`|**Optional**. Activate data augmentation.|False|
+|`-s`|`--summary`|**Optional**. Save CNN architecture and graph.|False|
+|`-o PATH`|`--outdir PATH`|**Optional**. Save trained model and CNN architecture in `PATH`.|cwd|
+|`-e N`|`--epochs N`|**Optional**. Perform `N` training cycles.|N = 100|
+|`-p N`|`--patience N`|**Optional**. Wait for `N` epochs before early stopping.|N = 12|
+|`-lr X`|`--learning_rate X`|**Optional**. Use `X` as learning rate for the Adam optimiser.|X = 0.001|
+|`-vf N`|`--validation_fraction N`|**Optional**. Use `N` percents of total tiles as validation set.|N = 15%|
+|`-1`|`--CNN1`|**Optional**. Train for root colonisation.|True|
+|`-2`|`--CNN2`|**Optional**. Train for intraradical hyphal structures.|False|
 
 `amf train` can run on high-performance computing (HPC) systems.
 Below is a template script for [Slurm](https://slurm.schedmd.com/):
