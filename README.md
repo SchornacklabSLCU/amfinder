@@ -19,7 +19,7 @@ convolutional neural networks.
 ### Installation instructions
 
 1. Install **Python 3.7** from the [official website](https://www.python.org/) or from your package manager.
-2. Open a terminal and install the package `virtualenv` by running the command: `python -m pip install virtualenv` (replace `python` with the name of the Python program on your system).
+2. Open a terminal and install the package `virtualenv` by running the command: `python -m pip install virtualenv`. **Note:** always replace `python` with the name of the Python program on your system. For instance, it could be `python3` or `python3.7`).
 3. Create a virtual environment. In a terminal, run: `python -m venv amfenv`.
 4. Activate the virtual environment. In a terminal, run: `source amfenv/bin/activate`.
 5. Download AMFinder sources from Github and extract the archive. Move to the `amf` folder. For instance, run in a terminal: `cd amf`.
