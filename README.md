@@ -29,12 +29,14 @@ convolutional neural networks.
 
 **Alternative method**
 
-The commands listed in steps 2-7 above can be run at once in Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system. Download AMFinder sources from Github and extract the archive. Move to the `amf` directory and run in a terminal: `PYTHON=/usr/bin/python3.7 ./install.sh`, storing the path to Python 3.7 in the `PYTHON` variable. If needed, add executable permissions to the installation file with: `chmod +x install.sh`.
+Steps 2-7 above can be run at once on Linux using the script `install.sh` within the `amf` directory, provided Python 3.7 is installed on your system. Download AMFinder sources from Github and extract the archive. Move to the `amf` directory and run in a terminal: `PYTHON=/usr/bin/python3.7 ./install.sh`, storing the path to Python 3.7 in the `PYTHON` variable. If needed, add executable permissions to the installation file with: `chmod +x install.sh`.
 
 
-### Prediction mode
+### Using the software
 
-**Predict fungal colonisation or intraradical hyphal structures within plant root images.**
+**`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).**
+
+#### Prediction
 
 ```
 $ amf predict <options> <jpeg/tiff images>
