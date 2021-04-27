@@ -118,7 +118,7 @@ text-based system such as an HPC.
 
 5. Install `amfbrowser` dependencies by running the command: `opam install dune odoc lablgtk cairo2 cairo2-gtk magic-mime camlzip`. After all dependencies are installed, run `eval $(opam env)` to update the environment.
 
-**Note:** You may need to install development packages such as `libgtk2.0-dev` and `libgtksourceview2.0-dev`. Users with [miniconda](https://docs.conda.io/en/latest/miniconda.html) or similar tool suite installed may encounter problems if their `PATH` variable has been altered. In particular, make sure that the command `which ocaml` and `which pkg-config` correspond to OPAM-installed softwares.
+**Note:** You may need to install development packages such as `libgtk2.0-dev` and `libgtksourceview2.0-dev`. Users with [miniconda](https://docs.conda.io/en/latest/miniconda.html) or similar tool suite installed may encounter problems if their `PATH` variable has been altered. You may have to temporarily mask miniconda directory from your `PATH` variable by running `PATH=<modified_path> opam install ...`.
 
 6. Move to the `amfbrowser` folder and run the compilation script: `./build.sh`
 
