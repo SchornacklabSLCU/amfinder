@@ -64,7 +64,7 @@ For training, run in a terminal `amf train <parameters> <images>` where `<parame
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
-|`-net`|`--network`|**Mandatory**. Select a network in folder `trained_networks`.|
+|`-net CNN`|`--network CNN`|**Optional**. Use network `CNN`.|
 |`-b N`|`batch_size N`|**Optional**. Use a batch size of `N` tiles.|N = 32|
 |`-k`|`--keep_background`|**Optional**. Do not skip any background tile.|False|
 |`-a`|`--data_augmentation`|**Optional**. Activate data augmentation.|False|
