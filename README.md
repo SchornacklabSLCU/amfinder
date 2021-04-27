@@ -26,6 +26,11 @@ convolutional neural networks.
 
 **Important:** Before using `amf` for training or prediction (see next section), you will need to activate its Python virtual environment. To that end, open a terminal in the `amf` directory and run the command `source amfenv/bin/activate` to activate the virtual environment. Your terminal prompt will change to `(amfenv) $`. Once you are done with `amf`, you can deactivate the environment by running the command `deactivate`.
 
+**Note:** old processors may lack AVX and AVX2 processor instructions 
+and may fail to run Tensorflow. If you encounter such error, you need to
+download and build Tensorflow from sources. Instructions can be found on
+the Tensorflow website.
+
 ### Using the software
 
 **`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).**
