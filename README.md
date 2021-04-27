@@ -18,16 +18,14 @@ convolutional neural networks.
 
 ### Installation instructions
 
-`amf` requires at least **Python 3.6**. Below is a typical installation, using
-a virtual environment to install dependencies:
+1. Install Python 3.6 or above from the official [website](https://www.python.org/) or from your package manager.
 
-```bash
-$ python3.7 -m venv amfenv
-$ source amfenv/bin/activate
-(amfenv) $ cd amf
-(amfenv) $ python -m pip install -r requirements.txt
-(amfenv) $ deactivate
-```
+2. Open a terminal and run the command: `python -m pip install virtualenv` (replace `python` with the name of the Python program on your system).
+3. Create a virtual environment. In a terminal, run: `python -m venv amfenv`.
+4. Activate the virtual environment. In a terminal, run: `source amfenv/bin/activate`.
+5. Donwload AMFinder sources from Github and extract the archive. Move to the `amf` folder. For instance, run in a terminal: `cd amf`.
+6. Install the required Python libraries listed in file `requirements.txt`. In a terminal, run : `python -m pip install -r requirements.txt`.
+7. The command-line tool is now ready to use. After use, deactivate the virtual environment (in a terminal, run: `deactivate`). You will need to reactivate the virtual environment for future use (step 4 above).
 
 **Note:** `amf` is not compatible with the latest Keras/Tensorflow versions due
 to [a bug affecting class weights](https://github.com/tensorflow/tensorflow/issues/40457).
