@@ -47,10 +47,10 @@ let locked_square = create AmfSurface.Annotation.locked
 let empty_square = create (AmfSurface.Annotation.empty "#808080FF")
 
 let palette =
-    create (fun index ->
+    (fun index ->
         AmfUI.Predictions.get_colors ()
         |> (fun t -> Array.get t index)
-        |> (fun color -> create (AmfSurface.Prediction.filled color))
+        |> (fun color -> (AmfSurface.Prediction.filled color))
     )
 
 let make_surface ?grayscale level chr x =
