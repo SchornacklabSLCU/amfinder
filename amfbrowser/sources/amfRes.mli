@@ -1,4 +1,4 @@
-(* AMFinder - ui/uIHelper.ml
+(* AMFinder - amfRes.mli
  *
  * MIT License
  * Copyright (c) 2021 Edouard Evangelisti
@@ -22,35 +22,22 @@
  * IN THE SOFTWARE.
  *)
 
-open Printf
+(* Resources (icons and palettes). *)
 
-let separator packing = ignore (GButton.separator_tool_item ~packing ())
+type item = [
+    | `AMBIGUOUS
+    | `AMFBROWSER
+    | `ATTACH
+    | `CONFIG
+    | `CONVERT
+    | `DETACH
+    | `EXPORT
+    | `PALETTE
+    | `SNAPSHOT
+    | `CAM of bool
+    | `CHAR of char * bool
+]
 
-let morespace packing =
-  let item = GButton.tool_item ~expand:false ~packing () in
-  ignore (GPack.vbox ~height:5 ~packing:item#add ())
+val get : item -> int -> GdkPixbuf.pixbuf
 
-let label ?(vspace = true) packing markup =
-  let item = GButton.tool_item ~packing () in
-  let markup = sprintf "%s" markup in
-  let label = GMisc.label ~markup ~justify:`CENTER ~packing:item#add () in
-  if vspace then morespace packing;
-  label
-
-let pango_small = Printf.sprintf "<small>%s</small>"
-
-let custom_tool_button ?packing icon size label = 
-    let btn = GButton.tool_button ?packing () in
-    let box = GPack.hbox
-        ~spacing:2
-        ~packing:btn#set_label_widget () in
-    let _ = GMisc.image 
-        ~width:25
-        ~pixbuf:(AmfRes.get icon size)
-        ~packing:(box#pack ~expand:false) ()
-    and _ = GMisc.label
-        ~markup:(pango_small label)
-        ~xalign:0.0
-        ~yalign:0.5
-        ~packing:box#add () in
-    btn
+val palettes : (string * string array) list

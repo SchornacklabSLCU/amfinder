@@ -68,8 +68,8 @@ module Toolbox = struct
             ~markup:(if chr = '*' then (sprintf "<small>%s</small>" AmfLang.en_overlay)
                      else "<small><tt>000000</tt></small>")
             ~packing:hbox#add () in
-        let style = if chr = '*' then `RGB else `GRAY in
-        r_image#set_pixbuf (AmfIcon.get (`CLASS (chr, `SMALL, style)));
+        let style = chr = '*' in
+        r_image#set_pixbuf (AmfRes.get (`CHAR (chr, style)) 24);
         chr, {r_radio; r_label; r_image}
 
     let make level =
@@ -157,7 +157,7 @@ module Make (P : PARAMS) : S = struct
             ignore (radio#connect#toggled ~callback)
         ) P.radios;
         let callback chr radio _ icon =
-            let style = if radio#get_active then `RGB else `GRAY in
-            icon#set_pixbuf (AmfIcon.get (`CLASS (chr, `SMALL, style)))
+            let style = radio#get_active in
+            icon#set_pixbuf (AmfRes.get (`CHAR (chr, style)) 24)
         in set_callback callback
 end

@@ -49,6 +49,6 @@ module Make (P : PARAMS) : S = struct
     let _ = UIHelper.separator packing
     let _ = UIHelper.label packing "<b><small>Toolbox</small></b>"
 
-    let snap = UIHelper.custom_tool_button ~packing `SNAP "Snap"   
-    let export = UIHelper.custom_tool_button ~packing `EXPORT "Export"
+    let snap = UIHelper.custom_tool_button ~packing `SNAPSHOT 24 "Snap"   
+    let export = UIHelper.custom_tool_button ~packing `EXPORT 24 "Export"
 end

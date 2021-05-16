@@ -38,5 +38,5 @@ val pango_small : string -> string
 
 val custom_tool_button :
     ?packing:(GButton.tool_item_o -> unit) ->
-    AmfIcon.id ->  string -> GButton.tool_button
+    AmfRes.item -> int -> string -> GButton.tool_button
 (** Custom tool button with a GdkPixbuf icon. *)

@@ -30,7 +30,7 @@ let window =
     let wnd = GWindow.window
         ~decorated:true
         ~title:"amfbrowser 2.0"
-        ~icon:(AmfIcon.get `APP)
+        ~icon:(AmfRes.get `AMFBROWSER 24)
         ~resizable:false
         ~position:`CENTER_ALWAYS ()
     in wnd#connect#destroy GMain.quit;
@@ -38,7 +38,7 @@ let window =
 
 let status_icon = GMisc.status_icon_from_pixbuf
     ~visible:true
-    (AmfIcon.get `APP)
+    (AmfRes.get `AMFBROWSER 24)
 
 let spacing = 5
 let border_width = spacing

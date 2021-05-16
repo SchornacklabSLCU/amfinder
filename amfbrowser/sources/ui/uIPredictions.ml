@@ -46,9 +46,6 @@ module type S = sig
     val ambiguities : GButton.tool_button
 end
 
-type palette = string array
-
-let folder = Filename.concat (Glib.get_user_data_dir ()) "amfinder/data/palettes"
 let palette_db = ref []
 
 let transparency = "B0"
@@ -58,19 +55,10 @@ let validate_color ?(default = "#ffffff" ^ transparency) s =
     (fun a b c -> sprintf "#%02x%02x%02x%s" a b c transparency)
 
 let load () =
-    let files = Sys.readdir folder in
-    Array.sort String.compare files;
-    Array.fold_left (fun pal elt ->
-        let path = Filename.concat folder elt in
-        if Filename.check_suffix path ".palette" then (
-            let base = Filename.remove_extension elt in
-            let colors = File.read path
-                |> String.split_on_char '\n'
-                |> List.map validate_color
-                |> Array.of_list
-            in (base, colors) :: pal
-        ) else pal
-    ) [] files
+    List.fold_left (fun pal (id, clr) ->
+        let colors = Array.map validate_color clr in
+        (id, colors) :: pal
+    ) [] AmfRes.palettes
 
 let parse_html_color =
     let f n = max 0.0 @@ min 1.0 @@ float n /. 255.0 in
@@ -210,7 +198,7 @@ module Make (P : PARAMS) : S = struct
     let overlay, overlay_label, overlay_icon = 
         Aux.markup_toggle_button
             ~sensitive:true
-            ~pixbuf:(AmfIcon.get `ATTACH)
+            ~pixbuf:(AmfRes.get `ATTACH 24)
             ~label:"Import" 
             ~packing ()
 
@@ -222,7 +210,7 @@ module Make (P : PARAMS) : S = struct
             ~packing:btn#set_label_widget () in
         let _ = GMisc.image 
             ~width:25
-            ~pixbuf:(AmfIcon.get `PALETTE)
+            ~pixbuf:(AmfRes.get `PALETTE 24)
             ~packing:(box#pack ~expand:false) ()
         and _ = GMisc.label
             ~markup:(Aux.small_text "Palette")
@@ -236,20 +224,20 @@ module Make (P : PARAMS) : S = struct
 
     let cams =
         let btn, lbl, ico = Aux.markup_toggle_button
-            ~pixbuf:(AmfIcon.get (`CAM `GRAY))
+            ~pixbuf:(AmfRes.get (`CAM false) 24)
             ~label:"CAMs" ~packing () in 
         let callback () =
-            let style = if btn#get_active then `RGB else `GRAY in
-            ico#set_pixbuf (AmfIcon.get (`CAM style))
+            let style = btn#get_active in
+            ico#set_pixbuf (AmfRes.get (`CAM style) 24)
         in ignore (btn#connect#toggled ~callback);
         btn
 
     let convert = Aux.markup_button
-        ~icon:(AmfIcon.get `CONVERT)
+        ~icon:(AmfRes.get `CONVERT 24)
         ~label:"Convert" ~packing ()
 
     let ambiguities = Aux.markup_button
-        ~icon:(AmfIcon.get `LOW_QUALITY)
+        ~icon:(AmfRes.get `AMBIGUOUS 24)
         ~label:"Validate" ~packing ()
 
     let set_choices t =
@@ -344,7 +332,7 @@ module Make (P : PARAMS) : S = struct
             Activate.dialog#misc#hide ();
             if result = `OK then
                 let enable row =
-                    overlay_icon#set_pixbuf (AmfIcon.get `DETACH);
+                    overlay_icon#set_pixbuf (AmfRes.get `DETACH 24);
                     overlay_label#set_label (Aux.small_text AmfLang.en_attach);
                     cams#misc#set_sensitive false; (* FIXME: not available *)
                     palette#misc#set_sensitive true;
@@ -358,7 +346,7 @@ module Make (P : PARAMS) : S = struct
             palette#misc#set_sensitive false;
             convert#misc#set_sensitive false;
             ambiguities#misc#set_sensitive false;
-            overlay_icon#set_pixbuf (AmfIcon.get `ATTACH);
+            overlay_icon#set_pixbuf (AmfRes.get `ATTACH 24);
             overlay_label#set_label (Aux.small_text AmfLang.en_attach)
     end
 
