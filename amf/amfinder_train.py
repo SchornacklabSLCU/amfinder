@@ -53,6 +53,7 @@ Functions
 
 import io
 import os
+import cv2
 import yaml
 import keras
 import psutil
@@ -64,6 +65,7 @@ import functools
 import zipfile as zf
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 from contextlib import redirect_stdout
 
@@ -425,6 +427,47 @@ def print_memory_usage():
 
 
 
+def data_augm(tile):
+    """
+    Non-destructive tile augmentation. Fungal structures may occur
+    on the edges, therefore random rotations and zoomed in are not
+    used in this function.
+
+    :param tile: The tile to modify.
+    :return: The modified tile.
+    :rtype: the modified tile.
+    """
+
+    out_tile = None
+    num = random.randint(1, 7)
+    
+    if num == 1:    # Rotation
+        out_tile = tile.rotate(90)
+
+    elif num == 2:  # Chroma and hue.
+        c = random.uniform(0.5, 1.5)
+        h = random.uniform(0.5, 1.5)
+        out_tile = tile.colourspace('lch') * [1, c, h]
+
+    elif num == 3:  # Brightness.
+        out_tile = tile * random.uniform(0.5, 1.5)
+
+    elif num == 4:  # Grayscale.
+        out_tile = tile.colourspace('b-w')
+
+    elif num == 5:  # Complementary colors.
+        out_tile = tile.invert()
+
+    elif num == 6:  # Gaussian blur.
+        out_tile = tile.gaussblur(random.uniform(0.5, 2.5))
+        
+    else:           # No augmentation.
+        out_tile = tile
+
+    return out_tile.colourspace('srgb')
+
+
+
 def run(input_files):
     """
     Creates or loads a convolutional neural network, and trains it
@@ -458,7 +501,13 @@ def run(input_files):
         # Root segmentation (colonized vs non-colonized vs background).
         # ConvNet I has a standard, single input/single output architecture,
         # and can use ImageDataGenerator.
-        t_gen = ImageDataGenerator(horizontal_flip=True, vertical_flip=True)
+        if AmfConfig.get('data_augm'):
+            t_gen = ImageDataGenerator(horizontal_flip=True,
+                                       vertical_flip=True
+                                       preprocessing_function=data_augm)
+        else:
+            t_gen = ImageDataGenerator()
+
         v_gen = ImageDataGenerator()
 
     else:
@@ -466,7 +515,13 @@ def run(input_files):
         # AM fungal structures (arbuscules, vesicles, hyphae).
         # ConvNet II has multiple outputs. ImageDataGenerator is not suitable.
         # Reference: https://github.com/keras-team/keras/issues/3761
-        t_gen = ImageDataGeneratorMO(horizontal_flip=True, vertical_flip=True)
+        if AmfConfig.get('data_augm'):
+            t_gen = ImageDataGeneratorMO(horizontal_flip=True,
+                                         vertical_flip=True,
+                                         preprocessing_function=data_augm)
+        else:
+            t_gen = ImageDataGeneratorMO()
+
         v_gen = ImageDataGeneratorMO()
         # Reshape one-hot data in a way suitable for ImageDataGeneratorMO:
         # [[a1 v1 h1]...[aN vN hN]] -> [[a1...aN] [v1...vN] [h1...hN]]

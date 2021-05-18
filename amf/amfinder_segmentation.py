@@ -52,49 +52,6 @@ INTERPOLATION = pyvips.vinterpolate.Interpolate.new('nearest')
 
 
 
-def data_augmentation(tile):
-    """
-    Non-destructive tile augmentation. Fungal structures may occur
-    on the edges, therefore random rotations and zoomed in are not
-    used in this function.
-
-    :param tile: The tile to modify.
-    :return: List containing both the original tile and the modified versions.
-    :rtype: list
-    """
-
-    tile_list = [tile]
-
-    # Rotation
-    if random.choice([True, False]):
-        tile_list.append(tile.rotate(90))
-
-    # Chroma and hue.
-    if random.choice([True, False]):
-        c = random.uniform(0.5, 1.5)
-        h = random.uniform(0.5, 1.5)
-        tile_list.append(tile.colourspace('lch') * [1, c, h])
-
-    # Brightness.
-    if random.choice([True, False]):
-        tile_list.append(tile * random.uniform(0.2, 1.5))
-
-    # Grayscale tile.
-    if random.choice([True, False]):
-        tile_list.append(tile.colourspace('b-w'))
-
-    # Complementary colors.
-    if random.choice([True, False]):
-        tile_list.append(tile.invert())
-
-    # Gaussian blur.
-    if random.choice([True, False]):
-        tile_list.append(tile.gaussblur(random.uniform(0.5, 2.5)))
-
-    return [tile.colourspace('srgb') for tile in tile_list]
-
-
-
 def tile(image, r, c):
     """
     Extracts a tile from a large image, resizes it to
@@ -116,20 +73,6 @@ def tile(image, r, c):
         ratio = AmfModel.INPUT_SIZE / edge
         tile = tile.resize(ratio, interpolate=INTERPOLATION)
 
-    tile_list = [tile]
-
-    # Perform various types of data augmentation (grayscale, hue, blur)
-    if AmfConfig.get('run_mode') == 'train' and AmfConfig.get('data_augm'):
-
-        tile_list = data_augmentation(tile)
-
-    # DEBUG: save tiles as JPEG files.
-    #for i, t in enumerate(tile_list):
-    #    t.jpegsave("tile_%.5f.jpg" % (random.uniform(0,2)))
-
-    data = [np.ndarray(buffer=tile.write_to_memory(),
-                       dtype=np.uint8,
-                       shape=[tile.height, tile.width, tile.bands])
-            for tile in tile_list]
-
-    return data
+    return np.ndarray(buffer=tile.write_to_memory(),
+                      dtype=np.uint8,
+                      shape=[tile.height, tile.width, tile.bands])
