@@ -67,7 +67,7 @@ def tile(image, r, c):
 
     edge = AmfConfig.get('tile_edge')
     tile = image.crop(c * edge, r * edge, edge, edge)
-
+    
     if AmfModel.INPUT_SIZE != edge:
 
         ratio = AmfModel.INPUT_SIZE / edge

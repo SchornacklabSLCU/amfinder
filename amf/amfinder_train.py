@@ -65,7 +65,7 @@ import functools
 import zipfile as zf
 import numpy as np
 import pandas as pd
-from PIL import Image
+#from PIL import Image # debug
 
 from contextlib import redirect_stdout
 
@@ -79,6 +79,7 @@ from sklearn.utils.class_weight import compute_class_weight
 import amfinder_log as AmfLog
 import amfinder_plot as AmfPlot
 import amfinder_save as AmfSave
+import amfinder_image as AmfImage
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
 import amfinder_segmentation as AmfSegm
@@ -263,20 +264,15 @@ def load_dataset(input_files):
 
             else:
 
-                tile_set = AmfSegm.tile(image, annot.row, annot.col)
-                tiles += tile_set
-                hot_labels += [list(annot[3:])] * len(tile_set)
+                tile = AmfSegm.tile(image, annot.row, annot.col)
+                tiles.append(tile)
+                hot_labels.append(list(annot[3:]))
 
         print('OK')
 
         del image
-
-    # Preprocessing and conversion to NumPy arrays.
-    preprocess = lambda x: x / 255.0
-    tiles = preprocess(np.array(tiles, np.float32))
-    hot_labels = np.array(hot_labels, np.uint8)
-
-    return tiles, hot_labels
+       
+    return np.array(tiles, np.float32), np.array(hot_labels, np.uint8)
 
 
 
@@ -427,44 +423,52 @@ def print_memory_usage():
 
 
 
+img_index = 0
+
 def data_augm(tile):
     """
-    Non-destructive tile augmentation. Fungal structures may occur
-    on the edges, therefore random rotations and zoomed in are not
-    used in this function.
+    Two-step random tile augmentation based on blur and anticlockwise 90-degree
+    rotation (step 1), and desaturation, inversion, chroma/hue alteration, or
+    histogram equalisation (step 2). Random rotations and zoom are not used 
+    due to fungal structures occurring on edges in some tiles.
 
-    :param tile: The tile to modify.
-    :return: The modified tile.
-    :rtype: the modified tile.
+    :param tile: The tile to augment.
+    :return: The augmented tile.
+    :rtype: pyvips.Image
     """
 
-    out_tile = None
-    num = random.randint(1, 7)
+    global img_index
+    num = random.randint(1, 10)
+
+    if num == 1:
     
-    if num == 1:    # Rotation
-        out_tile = tile.rotate(90)
+        output = AmfImage.invert(tile)
+    
+    elif num == 3:
+    
+        output = AmfImage.grayscale(tile)
+    
+    elif num == 5:
 
-    elif num == 2:  # Chroma and hue.
-        c = random.uniform(0.5, 1.5)
-        h = random.uniform(0.5, 1.5)
-        out_tile = tile.colourspace('lch') * [1, c, h]
+        output = AmfImage.sobel_edge_detection(tile)
+    
+    elif num == 7:
+    
+        output = AmfImage.median_blur(tile)
+    
+    elif num == 9:
+    
+        output = AmfImage.rotate_colours(tile)
+    
+    else:
+    
+        output = tile
+    
+    #im = Image.fromarray(output.astype(np.uint8))
+    #img_index += 1
+    #im.save("tiles/tile_%06d.png" % (img_index))
 
-    elif num == 3:  # Brightness.
-        out_tile = tile * random.uniform(0.5, 1.5)
-
-    elif num == 4:  # Grayscale.
-        out_tile = tile.colourspace('b-w')
-
-    elif num == 5:  # Complementary colors.
-        out_tile = tile.invert()
-
-    elif num == 6:  # Gaussian blur.
-        out_tile = tile.gaussblur(random.uniform(0.5, 2.5))
-        
-    else:           # No augmentation.
-        out_tile = tile
-
-    return out_tile.colourspace('srgb')
+    return output
 
 
 
@@ -484,6 +488,7 @@ def run(input_files):
 
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)
+    #tiles = 
 
     print_memory_usage()
 
@@ -502,13 +507,15 @@ def run(input_files):
         # ConvNet I has a standard, single input/single output architecture,
         # and can use ImageDataGenerator.
         if AmfConfig.get('data_augm'):
-            t_gen = ImageDataGenerator(horizontal_flip=True,
-                                       vertical_flip=True
+            t_gen = ImageDataGenerator(rescale=1.0 / 255,
+                                       horizontal_flip=True,
+                                       vertical_flip=True,
+                                       brightness_range=[0.5, 1.5],
                                        preprocessing_function=data_augm)
         else:
-            t_gen = ImageDataGenerator()
+            t_gen = ImageDataGenerator(rescale=1.0 / 255)
 
-        v_gen = ImageDataGenerator()
+        v_gen = ImageDataGenerator(rescale=1.0 / 255)
 
     else:
 
@@ -516,13 +523,16 @@ def run(input_files):
         # ConvNet II has multiple outputs. ImageDataGenerator is not suitable.
         # Reference: https://github.com/keras-team/keras/issues/3761
         if AmfConfig.get('data_augm'):
-            t_gen = ImageDataGeneratorMO(horizontal_flip=True,
+            t_gen = ImageDataGeneratorMO(rescale=1.0 / 255,
+                                         horizontal_flip=True,
                                          vertical_flip=True,
+                                         brightness_range=[0.5, 1.5],
                                          preprocessing_function=data_augm)
         else:
-            t_gen = ImageDataGeneratorMO()
+            t_gen = ImageDataGeneratorMO(rescale=1.0 / 255)
 
-        v_gen = ImageDataGeneratorMO()
+        v_gen = ImageDataGeneratorMO(rescale=1.0 / 255)
+
         # Reshape one-hot data in a way suitable for ImageDataGeneratorMO:
         # [[a1 v1 h1]...[aN vN hN]] -> [[a1...aN] [v1...vN] [h1...hN]]
         nclasses = len(AmfConfig.get('header')) # (= 4)
