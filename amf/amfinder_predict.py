@@ -102,8 +102,8 @@ def predict_level2(path, image, nrows, ncols, model):
 
             def process_batch(batch, b):
                 batch = [x for x in batch if x is not None]
-                # In prediction mode, AmfSegm.tiles always returns singletons.
-                row = [AmfSegm.tile(image, x[0], x[1])[0] for x in batch]
+                # First, extract all tiles from the batch.
+                row = [AmfSegm.tile(image, x[0], x[1]) for x in batch]
                 row = normalize(np.array(row, np.float32))
                 # Returns three prediction tables (one per class).
                 prd = model.predict(row, batch_size=25)
@@ -159,7 +159,7 @@ def predict_level1(image, nrows, ncols, model):
     # Full row processing, from tile extraction to structure prediction.
     def process_row(r):
         # First, extract all tiles within a row.
-        row = [AmfSegm.tile(image, r, c)[0] for c in c_range]
+        row = [AmfSegm.tile(image, r, c) for c in c_range]
         # Convert to NumPy array, and normalize.
         row = normalize(np.array(row, np.float32))
         # Predict mycorrhizal structures.

@@ -49,7 +49,7 @@ initialize - Read command-line arguments and store user-defined values.
 
 
 import os
-import cv2
+#import cv2
 import glob
 import yaml
 import mimetypes
@@ -80,7 +80,7 @@ PAR = {
     'outdir': os.getcwd(),
     'header': HEADERS[0],
     #'generate_cams': False,
-    'colormap': cv2.COLORMAP_JET,
+    #'colormap': cv2.COLORMAP_JET,
     'monitors': {
         'csv_logger': None,
         'early_stopping': None,
@@ -311,11 +311,11 @@ def prediction_subparser(subparsers):
    #    help='Generate class activation map (takes some time).'
    #         '\ndefault value: {}'.format(x))
 
-    x = PAR['colormap']
-    parser.add_argument('-c', '--opencv_colormap',
-        action='store', dest='colormap', metavar='N', type=int, default=x,
-        help='OpenCV colormap (see OpenCV documentation).'
-             '\ndefault value: {}'.format(x))
+   # x = PAR['colormap']
+   # parser.add_argument('-c', '--opencv_colormap',
+   #     action='store', dest='colormap', metavar='N', type=int, default=x,
+   #     help='OpenCV colormap (see OpenCV documentation).'
+   #          '\ndefault value: {}'.format(x))
 
     x = 'CNN1_pretrained_2021-01-18.h5'
     parser.add_argument('-net', '--network',
@@ -455,7 +455,7 @@ def initialize():
 
         set('tile_edge', par.edge)
         set('model', par.model)
-        set('colormap', par.colormap)
+        #set('colormap', par.colormap)
         
     elif par.run_mode == 'diagnose': 
         
