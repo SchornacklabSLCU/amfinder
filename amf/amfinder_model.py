@@ -235,3 +235,20 @@ def load():
         
             AmfLog.error('A pre-trained model is required in prediction mode',
                          exit_code=AmfLog.ERR_NO_PRETRAINED_MODEL)
+
+
+
+def get_conv_submodels(model):
+    """
+    Builds submodels for all Conv2D layers. 
+    """
+    submodels = []
+
+    for layer in model.layers:
+    
+        if isinstance(layer, Conv2D):
+        
+            submodel = Model(model.input, layer.output)
+            submodels.append((layer.name, submodel))
+
+    return submodels

@@ -40,6 +40,9 @@ import numpy as np
 import pandas as pd
 import zipfile as zf
 from itertools import zip_longest
+# For intermediate images
+from PIL import Image
+import matplotlib.pyplot as plt
 
 import amfinder_log as AmfLog
 import amfinder_save as AmfSave
@@ -193,6 +196,44 @@ def predict_level1(image, nrows, ncols, model):
 
 
 
+def save_layer_outputs(model, image, base):
+    """
+    Save intermediate images
+    Note: currently only works for a single tile.
+    """
+
+    colormap = plt.get_cmap('plasma')
+    submodels = AmfModel.get_conv_submodels(model)
+
+    zipf = '{}_layer_outputs.zip'.format(os.path.splitext(base)[0])
+    zipf = os.path.join(AmfConfig.get('outdir'), zipf)
+
+    with zf.ZipFile(zipf, 'w') as z:
+
+        for layer_id, submodel in submodels:
+
+            tiles = [AmfSegm.tile(image, 0, 0)] # TODO: generalise!
+            batch = normalize(np.array(tiles, np.float32))
+
+            predictions = submodel.predict(batch)
+
+            for i in range(predictions.shape[0]):
+
+                im = predictions[i]
+
+                for channel in range(im.shape[-1]):
+                    
+                    tmp = colormap(im[:,:, channel])
+                    tmp = Image.fromarray(np.uint8(tmp * 255))
+                    tmp = tmp.convert('RGB')
+                    bytes = io.BytesIO()   
+                    tmp.save(bytes, 'JPEG', quality=100) 
+                    # Should add i in filename.
+                    filename = '{}/channel_{}.jpg'.format(layer_id, channel)  
+                    z.writestr(filename, bytes.getvalue())
+
+
+
 def run(input_images, postprocess=None):
     """
     Runs prediction on a bunch of images.
@@ -226,10 +267,14 @@ def run(input_images, postprocess=None):
             
                 table, cams = predict_level1(image, nrows, ncols, model)
 
+                if AmfConfig.get('save_layer_outputs'):
+
+                    save_layer_outputs(model, image, base)
+                        
+
             else:
 
-                table, cams = predict_level2(path, image, nrows, ncols, model)
-
+                table, cams = predict_level2(path, image, nrows, ncols, model)               
 
             # Save results or use continuation for further processing.
             if postprocess is None:

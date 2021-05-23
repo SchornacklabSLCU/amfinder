@@ -53,7 +53,7 @@ Functions
 
 import io
 import os
-import cv2
+#import cv2
 import yaml
 import keras
 import psutil

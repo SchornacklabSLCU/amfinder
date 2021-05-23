@@ -79,6 +79,7 @@ PAR = {
     'patience': 12,
     'outdir': os.getcwd(),
     'header': HEADERS[0],
+    'save_layer_outputs': False, 
     #'generate_cams': False,
     #'colormap': cv2.COLORMAP_JET,
     'monitors': {
@@ -323,6 +324,11 @@ def prediction_subparser(subparsers):
         help='name of the pre-trained model to use for predictions.'
              '\ndefault value: {}'.format(x))
 
+    parser.add_argument('-lo', '--save_layer_outputs',
+        action='store_const', dest='save_layer_outputs', const=True,
+        help='save layer outputs in a separate zip file.'
+             '\ndefault value: False')
+
     x = PAR['input_files']
     parser.add_argument('image', nargs='*', default=x,
         help='plant root scan to be processed.'
@@ -455,6 +461,7 @@ def initialize():
 
         set('tile_edge', par.edge)
         set('model', par.model)
+        set('save_layer_outputs', par.save_layer_outputs)
         #set('colormap', par.colormap)
         
     elif par.run_mode == 'diagnose': 
