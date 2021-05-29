@@ -78,7 +78,7 @@ PAR = {
     'patience': 12,
     'outdir': os.getcwd(),
     'header': HEADERS[0],
-    'super_resolution': False
+    'super_resolution': False,
     'save_conv2d_kernels': False,
     'save_conv2d_outputs': False, 
     'colormap': 'plasma',
@@ -279,6 +279,11 @@ def training_subparser(subparsers):
         help='name of the pre-trained network to use as a basis for training.'
              '\ndefault value: {}'.format(x))
 
+    parser.add_argument('-sr', '--super_resolution',
+        action='store_const', dest='super_resolution', const=True,
+        help='Apply super-resolution before predictions.'
+             '\ndefault value: no super-resolution.')
+
     x = PAR['input_files']
     parser.add_argument('image', nargs='*',
         default=x,
@@ -460,6 +465,7 @@ def initialize():
         set('data_augm', par.data_augm)
         set('summary', par.summary)
         set('outdir', par.outdir)
+        set('super_resolution', par.super_resolution)
 
     elif par.run_mode == 'predict':
 
