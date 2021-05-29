@@ -32,8 +32,8 @@ INTERPOLATION - Interpolation mode for image resizing.
 
 Functions
 ------------
-:function data_augmentation: Non-destructive tile augmentation.
 :function tile: Extracts a tile from a large image.
+:function preprocess: Convert a tile list to NumPy array and normalise pixels.
 """
 
 import pyvips
@@ -76,3 +76,16 @@ def tile(image, r, c):
     return np.ndarray(buffer=tile.write_to_memory(),
                       dtype=np.uint8,
                       shape=[tile.height, tile.width, tile.bands])
+
+
+
+def preprocess(tile_list):
+    """
+    Preprocess a list of tiles.
+    
+    :param tile_list: list of tiles extracted using the function above.
+    :return: a numpy array containing normalised pixel values for several tiles.
+    :rtype: numpy.ndarray
+    """
+    
+    return np.array(tile_list, np.float32) / 255.0
