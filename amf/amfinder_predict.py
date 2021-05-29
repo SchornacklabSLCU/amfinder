@@ -57,6 +57,27 @@ import amfinder_superresolution as AmfSRGAN
 
 
 
+def table_header():
+
+    return ['row', 'col'] + AmfConfig.get('header')
+
+
+# Full row processing, from tile extraction to structure prediction.
+def process_row_1(cnn1, image, nrows, ncols, batch_size, r):
+    # First, extract all tiles within a row.
+    row = [AmfSegm.tile(image, r, c) for c in range(ncols)]
+    # Convert to NumPy array, and normalize.
+    row = AmfSegm.preprocess(row)
+    # Predict mycorrhizal structures.
+    prd = cnn1.predict(row, batch_size=batch_size)
+    # Retrieve class activation maps.
+    #AmfMapping.generate(cams, model, row, r)
+    # Update the progress bar.
+    AmfLog.progress_bar(r + 1, nrows, indent=1)
+    # Return prediction as Pandas data frame.
+    return pd.DataFrame(prd)
+
+
 def predict_level2(path, image, nrows, ncols, model):
     """
     Identifies AM fungal structures in colonized root segments.
@@ -118,7 +139,7 @@ def predict_level2(path, image, nrows, ncols, model):
             results = [process_batch(x, b) for x, b in zip(batches, 
                                                            range(1, nbatches + 1))]
             table = pd.concat(results, ignore_index=True)
-            table.columns = ['row', 'col'] + AmfConfig.get('header')
+            table.columns = table_header()
 
             return (table, None) # None was cams
 
@@ -134,54 +155,38 @@ def predict_level2(path, image, nrows, ncols, model):
 
 
 
-def predict_level1(image, nrows, ncols, model):
+def predict_level1(image, nrows, ncols, cnn1):
     """
     Identifies colonised root segments. 
 
     :param image: input image (to extract tiles).
     :param nrows: row count.
     :param ncols: column count. 
-    :param model: CNN1 model used for predictions.
+    :param cnn1: trained CNN1 used for predictions.
     """
 
     # Creates the images to save the class activation maps.
     #cams = AmfMapping.initialize(nrows, ncols)
 
-    bs = AmfConfig.get('batch_size')
-    c_range = range(ncols)
-
-    # Full row processing, from tile extraction to structure prediction.
-    def process_row(r):
-        # First, extract all tiles within a row.
-        row = [AmfSegm.tile(image, r, c) for c in c_range]
-        # Convert to NumPy array, and normalize.
-        row = AmfSegm.preprocess(row)
-        # Predict mycorrhizal structures.
-        prd = model.predict(row, batch_size=bs)
-        # Retrieve class activation maps.
-        #AmfMapping.generate(cams, model, row, r)
-        # Update the progress bar.
-        AmfLog.progress_bar(r + 1, nrows, indent=1)
-        # Return prediction as Pandas data frame.
-        return pd.DataFrame(prd)
-
     # Initialize the progress bar.
     AmfLog.progress_bar(0, nrows, indent=1)
 
     # Retrieve predictions for all rows within the image.
-    results = [process_row(r) for r in range(nrows)]
+    bs = AmfConfig.get('batch_size')
+    results = [process_row_1(cnn1, image, nrows, ncols, bs, r) for r in range(nrows)]
 
-    # Concat to a single Pandas dataframe and add header.
+    # Concat to a single Pandas dataframe.
     table = pd.concat(results, ignore_index=True)
-    table.columns = AmfConfig.get('header')
 
     # Add row and column indexes to the Pandas data frame.
     # col_values = 0, 1, ..., c, 0, ..., c, ..., 0, ..., c; c = ncols - 1
-    col_values = list(range(ncols)) * nrows
     # row_values = 0, 0, ..., 0, 1, ..., 1, ..., r, ..., r; r = nrows - 1
+    col_values = list(range(ncols)) * nrows
     row_values = [x // ncols for x in range(nrows * ncols)]
+
     table.insert(0, column='col', value=col_values)
     table.insert(0, column='row', value=row_values)
+    table.columns = table_header()
 
     return (table, None) # None was cams
 
@@ -282,7 +287,7 @@ def run(input_images, postprocess=None):
 
         edge = AmfConfig.update_tile_edge(path)
 
-        image = pyvips.Image.new_from_file(path, access='random')
+        image = AmfSegm.load(path)
 
         nrows = image.height // edge
         ncols = image.width // edge

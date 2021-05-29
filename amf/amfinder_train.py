@@ -251,7 +251,7 @@ def load_dataset(input_files):
 
         # FIXME: Random access is inefficient. To achieve better
         # efficiency we would have to load tiles row by row.
-        image = pyvips.Image.new_from_file(path, access='random')
+        image = AmfSegm.load(path)
 
         # Extract tile sets (= original tile and augmented versions).
         # Repeat one-hot encoded annotations for each tile.

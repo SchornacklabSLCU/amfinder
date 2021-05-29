@@ -52,6 +52,14 @@ INTERPOLATION = pyvips.vinterpolate.Interpolate.new('nearest')
 
 
 
+def load(image_path, access='random'):
+    """
+    Loads an image using the vips library.
+    """
+    return pyvips.Image.new_from_file(image_path, access=access)
+
+
+
 def tile(image, r, c):
     """
     Extracts a tile from a large image, resizes it to
