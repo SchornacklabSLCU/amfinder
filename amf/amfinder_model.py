@@ -50,6 +50,7 @@ import keras
 
 from keras.models import Model
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.optimizers import Adam
 from keras.initializers import he_uniform
 
 import amfinder_log as AmfLog
@@ -151,7 +152,7 @@ def create_cnn1():
                   outputs=output_layer,
                   name=CNN1_NAME)
 
-    opt = keras.optimizers.Adam(learning_rate=AmfConfig.get('learning_rate'))
+    opt = Adam(learning_rate=AmfConfig.get('learning_rate'))
     model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['acc'])
@@ -174,7 +175,7 @@ def create_cnn2():
                   outputs=output_layers,
                   name=CNN2_NAME)
 
-    opt = keras.optimizers.Adam(learning_rate=AmfConfig.get('learning_rate'))
+    opt = Adam(learning_rate=AmfConfig.get('learning_rate'))
     model.compile(loss='binary_crossentropy',
                   optimizer=opt,
                   metrics=['acc'])
@@ -238,17 +239,19 @@ def load():
 
 
 
-def get_conv_submodels(model):
+def filter(model, layer_type):
     """
-    Builds submodels for all Conv2D layers. 
+    Return all layers from a <model> that belong to a given <layer_type>.
     """
-    submodels = []
 
-    for layer in model.layers:
+    return [x for x in model.layers if isinstance(x, layer_type)]
+
+
+
+def get_feature_extractors(model):
+    """
+    Builds submodels for all convolutional layers (Conv2D). 
+    """
     
-        if isinstance(layer, Conv2D):
-        
-            submodel = Model(model.input, layer.output)
-            submodels.append((layer.name, submodel))
+    return [(x, Model(model.input, x.output)) for x in filter(model, Conv2D)]
 
-    return submodels
