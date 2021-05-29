@@ -27,7 +27,6 @@ Predicts fungal colonisation (CNN1) and intraradical hyphal structures (CNN2).
 Functions
 ------------
 
-:function normalize: Pixel normalisation function.
 :function predict_level2: CNN2 predictions.
 :function predict_level1: CNN1 predictions.
 :function run: main prediction function.
@@ -43,26 +42,18 @@ from itertools import zip_longest
 # For intermediate images
 from PIL import Image
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 import amfinder_log as AmfLog
+import amfinder_calc as AmfCalc
 import amfinder_save as AmfSave
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
 import amfinder_segmentation as AmfSegm
+import amfinder_superresolution as AmfSRGAN
 
 # FIXME: Deactivated due to probable issues with TF 2.1
 # import amfinder_activation_mapping as AmfMapping
-
-
-
-def normalize(t):
-    """
-    Simple pixel normalisation function.
-    
-    :param t: input image (numpy array).
-    """
-
-    return t / 255.0
 
 
 
@@ -107,7 +98,7 @@ def predict_level2(path, image, nrows, ncols, model):
                 batch = [x for x in batch if x is not None]
                 # First, extract all tiles from the batch.
                 row = [AmfSegm.tile(image, x[0], x[1]) for x in batch]
-                row = normalize(np.array(row, np.float32))
+                row = AmfSegm.preprocess(row)
                 # Returns three prediction tables (one per class).
                 prd = model.predict(row, batch_size=25)
                 # Converts to a table of predictions.
@@ -164,7 +155,7 @@ def predict_level1(image, nrows, ncols, model):
         # First, extract all tiles within a row.
         row = [AmfSegm.tile(image, r, c) for c in c_range]
         # Convert to NumPy array, and normalize.
-        row = normalize(np.array(row, np.float32))
+        row = AmfSegm.preprocess(row)
         # Predict mycorrhizal structures.
         prd = model.predict(row, batch_size=bs)
         # Retrieve class activation maps.
@@ -196,24 +187,24 @@ def predict_level1(image, nrows, ncols, model):
 
 
 
-def save_layer_outputs(model, image, base):
+def save_conv2d_outputs(model, image, base):
     """
-    Save intermediate images
+    Save outputs of each Conv2D layer.
     Note: currently only works for a single tile.
     """
 
-    colormap = plt.get_cmap('plasma')
-    submodels = AmfModel.get_conv_submodels(model)
+    cmap = plt.get_cmap(AmfConfig.get('colormap'))
+    submodels = AmfModel.get_feature_extractors(model)
 
     zipf = '{}_layer_outputs.zip'.format(os.path.splitext(base)[0])
     zipf = os.path.join(AmfConfig.get('outdir'), zipf)
 
     with zf.ZipFile(zipf, 'w') as z:
 
-        for layer_id, submodel in submodels:
+        for conv2d, submodel in submodels:
 
             tiles = [AmfSegm.tile(image, 0, 0)] # TODO: generalise!
-            batch = normalize(np.array(tiles, np.float32))
+            batch = AmfSegm.preprocess(tiles)
 
             predictions = submodel.predict(batch)
 
@@ -223,14 +214,45 @@ def save_layer_outputs(model, image, base):
 
                 for channel in range(im.shape[-1]):
                     
-                    tmp = colormap(im[:,:, channel])
+                    tmp = cmap(im[:,:, channel])
                     tmp = Image.fromarray(np.uint8(tmp * 255))
                     tmp = tmp.convert('RGB')
                     bytes = io.BytesIO()   
                     tmp.save(bytes, 'JPEG', quality=100) 
                     # Should add i in filename.
-                    filename = '{}/channel_{}.jpg'.format(layer_id, channel)  
+                    filename = '{}/channel_{}.jpg'.format(conv2d.name, channel)  
                     z.writestr(filename, bytes.getvalue())
+
+
+
+def save_conv2d_kernels(model):
+    """
+    Save kernels for all convolutional layers.
+    """
+
+    cmap = plt.get_cmap(AmfConfig.get('colormap'))
+    base = os.path.basename(AmfConfig.get('model'))
+    zipf = '{}_kernels.zip'.format(os.path.splitext(base)[0])
+    zipf = os.path.join(AmfConfig.get('outdir'), zipf)
+
+    with zf.ZipFile(zipf, 'w') as z:
+
+        iterations = 30
+        learning_rate = 10.0
+
+        for (conv2d, submodel) in AmfModel.get_feature_extractors(model):
+    
+            for filter_index in range(conv2d.output.shape[3]):
+
+                loss, img = AmfCalc.visualize_filter(submodel, filter_index)
+
+                tmp = Image.fromarray(np.uint8(img * 255))
+                tmp = tmp.convert('RGB')
+                bytes = io.BytesIO()   
+                tmp.save(bytes, 'JPEG', quality=100) 
+                # Should add i in filename.
+                filename = '{}/filter_{}.jpg'.format(conv2d.name, filter_index)  
+                z.writestr(filename, bytes.getvalue())
 
 
 
@@ -242,8 +264,17 @@ def run(input_images, postprocess=None):
     :param save: indicate whether results should be saved or returned.
     """
 
+    # Update this in case we need super-resolution.
+    #AmfSRGAN.run(input_images)
+    # Remove it.
+
     model = AmfModel.load()
        
+    if AmfConfig.get('save_conv2d_kernels'):
+    
+        save_conv2d_kernels(model)
+
+
     for path in input_images:
 
         base = os.path.basename(path)
@@ -267,9 +298,10 @@ def run(input_images, postprocess=None):
             
                 table, cams = predict_level1(image, nrows, ncols, model)
 
-                if AmfConfig.get('save_layer_outputs'):
+                if AmfConfig.get('save_conv2d_outputs'):
 
-                    save_layer_outputs(model, image, base)
+                    AmfCalc.get_cam(AmfSegm.tile(image, 0, 0), model)
+                    #save_conv2d_outputs(model, image, base)
                         
 
             else:
