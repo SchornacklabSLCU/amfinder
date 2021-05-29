@@ -49,7 +49,6 @@ initialize - Read command-line arguments and store user-defined values.
 
 
 import os
-#import cv2
 import glob
 import yaml
 import mimetypes
@@ -79,9 +78,10 @@ PAR = {
     'patience': 12,
     'outdir': os.getcwd(),
     'header': HEADERS[0],
-    'save_layer_outputs': False, 
-    #'generate_cams': False,
-    #'colormap': cv2.COLORMAP_JET,
+    'super_resolution': False
+    'save_conv2d_kernels': False,
+    'save_conv2d_outputs': False, 
+    'colormap': 'plasma',
     'monitors': {
         'csv_logger': None,
         'early_stopping': None,
@@ -306,17 +306,16 @@ def prediction_subparser(subparsers):
         help='Tile size (in pixels) used for image segmentation.'
              '\ndefault value: {} pixels'.format(x))
 
-   #x = PAR['generate_cams']
-   #parser.add_argument('-cam', '--class_activation_maps',
-   #    action='store_true', dest='generate_cams', default=x,
-   #    help='Generate class activation map (takes some time).'
-   #         '\ndefault value: {}'.format(x))
+    parser.add_argument('-sr', '--super_resolution',
+        action='store_const', dest='super_resolution', const=True,
+        help='Apply super-resolution before predictions.'
+             '\ndefault value: no super-resolution.')
 
-   # x = PAR['colormap']
-   # parser.add_argument('-c', '--opencv_colormap',
-   #     action='store', dest='colormap', metavar='N', type=int, default=x,
-   #     help='OpenCV colormap (see OpenCV documentation).'
-   #          '\ndefault value: {}'.format(x))
+    x = PAR['colormap']
+    parser.add_argument('-map', '--colormap',
+        action='store', dest='colormap', metavar='id', type=str, default=x,
+        help='Name of the colormap used to display conv2d outputs and kernels.'
+             '\ndefault value: {}'.format(x))
 
     x = 'CNN1_pretrained_2021-01-18.h5'
     parser.add_argument('-net', '--network',
@@ -324,9 +323,14 @@ def prediction_subparser(subparsers):
         help='name of the pre-trained model to use for predictions.'
              '\ndefault value: {}'.format(x))
 
-    parser.add_argument('-lo', '--save_layer_outputs',
-        action='store_const', dest='save_layer_outputs', const=True,
-        help='save layer outputs in a separate zip file.'
+    parser.add_argument('-so', '--save_conv2d_outputs',
+        action='store_const', dest='save_conv2d_outputs', const=True,
+        help='save conv2d outputs in a separate zip file.'
+             '\ndefault value: False')
+
+    parser.add_argument('-sk', '--save_conv2d_kernels',
+        action='store_const', dest='save_conv2d_kernels', const=True,
+        help='save convolution kernels in a separate zip file (takes time).'
              '\ndefault value: False')
 
     x = PAR['input_files']
@@ -461,9 +465,11 @@ def initialize():
 
         set('tile_edge', par.edge)
         set('model', par.model)
-        set('save_layer_outputs', par.save_layer_outputs)
-        #set('colormap', par.colormap)
-        
+        set('super_resolution', par.super_resolution) 
+        set('save_conv2d_kernels', par.save_conv2d_kernels)   
+        set('save_conv2d_outputs', par.save_conv2d_outputs)   
+        set('colormap', par.colormap)
+
     elif par.run_mode == 'diagnose': 
         
         set('model', par.model)   
