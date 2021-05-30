@@ -62,8 +62,11 @@ def table_header():
     return ['row', 'col'] + AmfConfig.get('header')
 
 
-# Full row processing, from tile extraction to structure prediction.
+
 def process_row_1(cnn1, image, nrows, ncols, batch_size, r):
+    """
+    Predict colonisation (CNN1) on a single tile row.
+    """
     # First, extract all tiles within a row.
     row = [AmfSegm.tile(image, r, c) for c in range(ncols)]
     # Convert to NumPy array, and normalize.

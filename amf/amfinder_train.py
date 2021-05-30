@@ -488,7 +488,6 @@ def run(input_files):
 
     # Input tiles and their corresponding annotations.
     tiles, labels = load_dataset(input_files)
-    #tiles = 
 
     print_memory_usage()
 

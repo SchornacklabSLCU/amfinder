@@ -56,6 +56,7 @@ def load(image_path, access='random'):
     """
     Loads an image using the vips library.
     """
+
     return pyvips.Image.new_from_file(image_path, access=access)
 
 
@@ -97,3 +98,30 @@ def preprocess(tile_list):
     """
     
     return np.array(tile_list, np.float32) / 255.0
+
+
+
+def mosaic(image):
+
+    edge = AmfConfig.get('tile_edge')
+
+    nrows = int(image.height // edge)
+    ncols = int(image.width // edge)
+
+    if nrows == 0 or ncols == 0:
+
+        AmfLog.warning('Tile size ({edge} pixels) is too large')
+        return None
+        
+    else:
+
+        tiles = []
+
+        for r in range(nrows):
+
+            for c in range(ncols):
+ 
+                tiles.append(tile(image, r, c))
+
+        return tiles
+
