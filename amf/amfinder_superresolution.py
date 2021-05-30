@@ -34,7 +34,7 @@ from keras.layers.advanced_activations import PReLU, LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import VGG19
+from keras.engine.network import Network
 
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
@@ -251,15 +251,22 @@ def train(paths):
     fake_features = feature_extractor(fake_hr)
 
     # For the combined model we will only train the generator
-    discriminator.trainable = False
+    # Using Network removes warnings.
+    # https://github.com/keras-team/keras/issues/8585#issuecomment-412728017
+    frozen_discriminator = Network(discriminator.inputs,
+                                   discriminator.outputs,
+                                   name='frozen_discriminator')
+
+    frozen_discriminator.trainable = False
 
     # Discriminator determines validity of generated high res. images
-    validity = discriminator(fake_hr)
+    validity = frozen_discriminator(fake_hr)
 
-    combined = Model([img_lr, img_hr], [validity, fake_features])
-    combined.compile(loss=['binary_crossentropy', 'mse'],
-                     loss_weights=[1e-3, 1],
-                     optimizer=OPTIMIZER)
+    adversarial_model = Model([img_lr, img_hr], [validity, fake_features])
+
+    adversarial_model.compile(loss=['binary_crossentropy', 'mse'],
+                              loss_weights=[1e-3, 1],
+                              optimizer=OPTIMIZER)
                     
     tiles = get_tiles(paths)
     epochs = len(tiles) * 100
@@ -294,7 +301,8 @@ def train(paths):
         image_features = feature_extractor.predict(hr_tile)
         
         # Train the generators
-        g_loss = combined.train_on_batch([lr_tile, hr_tile], [valid, image_features])
+        g_loss = adversarial_model.train_on_batch([lr_tile, hr_tile],
+                                                  [valid, image_features])
 
         elapsed_time = datetime.datetime.now() - start_time
         # Plot the progress
