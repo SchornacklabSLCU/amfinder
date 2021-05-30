@@ -30,6 +30,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
 import amfinder_predict as AmfPredict
+import amfinder_superresolution as AmfSR
 
 
 
@@ -41,9 +42,18 @@ def main():
     input_files = AmfConfig.get_input_files()
 
     if run_mode == 'train':
+       
+        if AmfConfig.get('super_resolution'):
+        
+            print('* Running in super-resolution training mode')
+        
+            AmfSR.train(input_files)
+        
+        else:
 
-        print('* Running in training mode')
-        AmfTrain.run(input_files)
+            print('* Running in training mode')
+        
+            AmfTrain.run(input_files)
 
     elif run_mode == 'predict':
 
