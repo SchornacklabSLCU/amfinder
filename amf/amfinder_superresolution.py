@@ -33,6 +33,7 @@ from keras.layers.advanced_activations import PReLU, LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Model
 from keras.engine.network import Network
+from keras import backend as K
 
 import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
@@ -51,22 +52,27 @@ DISC_PATCH = (PATCH, PATCH, 1)
 OPTIMIZER = Adam(0.0002, 0.5)
 
 
-#INDEX=0
+
+def PSNR(y_true, y_pred):
+    """
+    PSNR is Peek Signal to Noise Ratio, see https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
+    The equation is:
+    PSNR = 20 * log10(MAX_I) - 10 * log10(MSE)
+
+    Since input is scaled from -1 to 1, MAX_I = 1, and thus 20 * log10(1) = 0. Only the last part of the equation is therefore neccesary.
+    """
+    return -10.0 * K.log(K.mean(K.square(y_pred - y_true))) / K.log(10.0) 
+
+
+
 def fast_downsample(tile):
     """
     Fast image downsampling method.
     Source: https://stackoverflow.com/a/56135413
     """
 
-    down = tile.reshape((LR_EDGE, BIN_SIZE,
+    return tile.reshape((LR_EDGE, BIN_SIZE,
                          LR_EDGE, BIN_SIZE, CHANNELS)).max(3).max(1)
-
-    #global INDEX
-    #INDEX += 1
-    #plt.imsave(f'check/Tile{INDEX}_hr.jpeg', np.uint8(tile))
-    #plt.imsave(f'check/Tile{INDEX}_lr.jpeg', np.uint8(down))
-
-    return down
 
 
 
@@ -180,10 +186,11 @@ def build_generator(residual_blocks=5):
     #c2 = BatchNormalization(momentum=0.8)(c2)
     c2 = Add()([c2, c1])
 
-    # Upsampling
+    # Upsampling (original code had two blocks to achieve x4)
+    # Instead we have a single block which achieves x3.
     u2 = upscale_block(c2)
 
-    # Generate high resolution output (activation='tanh')
+    # Generate high resolution output (original code used activation='tanh')
     gen_hr = Conv2D(CHANNELS, 
                     kernel_size=9,
                     strides=1,
@@ -247,6 +254,10 @@ def train(paths, batch_size=2, sample_interval=20):
     if AmfConfig.get('generator') is not None:
     
         generator.load_weights(AmfConfig.get('generator'))
+
+    generator.compile(loss='mse',
+                      optimizer=Adam(1e-4, 0.9),
+                      metrics=['mse', PSNR])
 
     # High res. and low res. images
     img_hr = Input(shape=HR_SHAPE)
@@ -329,7 +340,7 @@ def train(paths, batch_size=2, sample_interval=20):
         print('time:', elapsed_time, 'g_loss:', g_loss, 'd_loss:', d_loss)
 
         # Save image samples to see progress.
-        if epoch % sample_interval == 0:
+        if (epoch + 1) % sample_interval == 0:
             save_sample_images(epoch, generator, tiles)
 
     # TODO: improve this.
