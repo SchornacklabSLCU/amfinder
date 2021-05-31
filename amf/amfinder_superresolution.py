@@ -54,9 +54,10 @@ OPTIMIZER = Adam(0.0002, 0.5)
 
 
 
+# https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
 def PSNR(y_true, y_pred):
     """
-    PSNR is Peek Signal to Noise Ratio, see https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
+    PSNR is Peek Signal to Noise Ratio.
     The equation is:
     PSNR = 20 * log10(MAX_I) - 10 * log10(MSE)
 
@@ -95,9 +96,9 @@ def get_tiles(paths):
         lr_tiles.extend(lr_tile_set)
 
     # (N, HR_EDGE, HR_EDGE, CHANNELS)
-    hr_tiles = AmfSegm.preprocess(hr_tiles)
+    hr_tiles = AmfSegm.preprocess_sr(hr_tiles)
     # (N, LR_EDGE, LR_EDGE, CHANNELS)
-    lr_tiles = AmfSegm.preprocess(lr_tiles)
+    lr_tiles = AmfSegm.preprocess_sr(lr_tiles)
 
     return list(zip(hr_tiles, lr_tiles))
 
@@ -227,7 +228,7 @@ def get_random_tile_pairs(tiles, batch_size=1, training=True):
 
 
 
-def train(paths, batch_size=2, sample_interval=5):
+def train(paths, batch_size=4, sample_interval=20):
     """
     Trains a SRGAN.
     """
@@ -354,6 +355,11 @@ def train(paths, batch_size=2, sample_interval=5):
 
 
 
+def restore(image):
+
+    return np.uint8((image + 1) * 127.5)
+
+
 
 def save_sample_images(epoch, generator, tiles, batch_size=2):
     r, c = batch_size, 4
@@ -365,12 +371,12 @@ def save_sample_images(epoch, generator, tiles, batch_size=2):
     fake_hr = generator.predict(imgs_lr)
 
     # Restore pixel values.
-    imgs_lr = np.uint8(255 * imgs_lr)
+    imgs_lr = restore(imgs_lr)
     imgs_in = [cv2.resize(x,
-                         dsize=(126, 126),
-                         interpolation=cv2.INTER_CUBIC) for x in imgs_lr]
-    fake_hr = np.uint8(255 * fake_hr)
-    imgs_hr = np.uint8(255 * imgs_hr)
+                          dsize=(HR_EDGE, HR_EDGE),
+                          interpolation=cv2.INTER_CUBIC) for x in imgs_lr]
+    fake_hr = restore(fake_hr)
+    imgs_hr = restore(imgs_hr)
 
     # Save generated images together with originals.
     titles = ['Low resolution', 'Interpolation', 'Generated', 'High resolution']

@@ -101,6 +101,15 @@ def preprocess(tile_list):
 
 
 
+def preprocess_sr(tile_list):
+    """
+    For super resolution, images must be normalized to [-1; 1] for use with
+    tanh activation function.
+    """
+    return (np.array(tile_list, np.float32) / 127.5) - 1.0
+
+
+
 def mosaic(image):
 
     edge = AmfConfig.get('tile_edge')
