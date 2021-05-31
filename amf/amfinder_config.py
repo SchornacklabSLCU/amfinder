@@ -130,7 +130,8 @@ def get(id):
     if id in PAR:
     
         # Special case, look into a specific folder.
-        if id in ['generator', 'discriminator'] and PAR[id] is not None:
+        if id in ['generator', 'discriminator', 'model'] and \
+           PAR[id] is not None:
         
             return os.path.join(get_appdir(),
                                 'trained_networks',

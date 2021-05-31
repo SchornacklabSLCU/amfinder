@@ -184,21 +184,18 @@ def create_cnn2():
 
 
 
-def load():
+def load(name=None):
     """
     Loads or initialises a convolutional neural network.
     """
 
-    if AmfConfig.get('model') is None:
+    if name is not None:
+    
+        path = os.path.join(AmfConfig.get_appdir(), 'trained_networks', name)
 
-        path = None
-
-    # Trained networks must be saved in app_dir/trained_networks.
     else:
 
-        path = os.path.join(AmfConfig.get_appdir(),
-                            "trained_networks",
-                            os.path.basename(AmfConfig.get('model')))
+        path = AmfConfig.get('model')
 
     if path is not None and os.path.isfile(path):
     

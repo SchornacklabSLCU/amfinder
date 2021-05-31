@@ -23,6 +23,7 @@
 
 import os
 import sys
+import cv2
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
@@ -104,8 +105,10 @@ def get_tiles(paths):
 
 def build_feature_extractor():
 
-    model = AmfModel.load()
-    model.outputs = [model.get_layer('C22').output] # 56 x 56 x 64
+    # CNN2 model gives good results.
+    model = AmfModel.load(name='CNN2v1.h5')
+    # Layer C22 has an output shape of (56, 56, 64).
+    model.outputs = [model.get_layer('C22').output]
     img = Input(shape=HR_SHAPE)
     img_features = model(img)
     return Model(img, img_features)
@@ -148,10 +151,10 @@ def build_discriminator():
 def residual_block(layer_input):
     """Residual block described in paper"""
     d = Conv2D(64, kernel_size=3, strides=1, padding='same')(layer_input)
-    d = BatchNormalization(momentum=0.5)(d)
+    d = BatchNormalization(momentum=0.8)(d)
     d = PReLU(shared_axes = [1,2])(d)
     d = Conv2D(64, kernel_size=3, strides=1, padding='same')(d)
-    d = BatchNormalization(momentum=0.5)(d)
+    d = BatchNormalization(momentum=0.8)(d)
     d = Add()([d, layer_input])
     return d
 
@@ -190,11 +193,13 @@ def build_generator(residual_blocks=5):
     # Instead we have a single block which achieves x3.
     u2 = upscale_block(c2)
 
-    # Generate high resolution output (original code used activation='tanh')
+    # Generate high resolution output. For tanh activation function, see:
+    # https://towardsdatascience.com/gan-ways-to-improve-gan-performance-acf37f9f59b
     gen_hr = Conv2D(CHANNELS, 
                     kernel_size=9,
                     strides=1,
-                    padding='same')(u2)
+                    padding='same',
+                    activation='tanh')(u2)
 
     return Model(img_lr, gen_hr, name='generator')
 
@@ -222,7 +227,7 @@ def get_random_tile_pairs(tiles, batch_size=1, training=True):
 
 
 
-def train(paths, batch_size=2, sample_interval=20):
+def train(paths, batch_size=2, sample_interval=5):
     """
     Trains a SRGAN.
     """
@@ -256,7 +261,7 @@ def train(paths, batch_size=2, sample_interval=20):
         generator.load_weights(AmfConfig.get('generator'))
 
     generator.compile(loss='mse',
-                      optimizer=Adam(1e-4, 0.9),
+                      optimizer=OPTIMIZER,
                       metrics=['mse', PSNR])
 
     # High res. and low res. images
@@ -351,7 +356,7 @@ def train(paths, batch_size=2, sample_interval=20):
 
 
 def save_sample_images(epoch, generator, tiles, batch_size=2):
-    r, c = batch_size, 3
+    r, c = batch_size, 4
 
     imgs_hr, imgs_lr = get_random_tile_pairs(tiles,
                                              batch_size=batch_size,
@@ -361,16 +366,19 @@ def save_sample_images(epoch, generator, tiles, batch_size=2):
 
     # Restore pixel values.
     imgs_lr = np.uint8(255 * imgs_lr)
+    imgs_in = [cv2.resize(x,
+                         dsize=(126, 126),
+                         interpolation=cv2.INTER_CUBIC) for x in imgs_lr]
     fake_hr = np.uint8(255 * fake_hr)
     imgs_hr = np.uint8(255 * imgs_hr)
 
     # Save generated images together with originals.
-    titles = ['Low resolution', 'Generated', 'High resolution']
+    titles = ['Low resolution', 'Interpolation', 'Generated', 'High resolution']
     fig, axs = plt.subplots(r, c)
     fig.suptitle('AMFinder SRGAN epoch {}'.format(epoch + 1), fontsize=20)
 
     for row in range(r):
-        for col, image in enumerate([imgs_lr, fake_hr, imgs_hr]):
+        for col, image in enumerate([imgs_lr, imgs_in, fake_hr, imgs_hr]):
             axs[row, col].imshow(image[row])
             axs[row, col].set_title(titles[col])
             axs[row, col].axis('off')
