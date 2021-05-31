@@ -78,6 +78,8 @@ PAR = {
     'patience': 12,
     'outdir': os.getcwd(),
     'header': HEADERS[0],
+    'generator': None,
+    'discriminator': None,
     'super_resolution': False,
     'save_conv2d_kernels': False,
     'save_conv2d_outputs': False, 
@@ -127,7 +129,16 @@ def get(id):
 
     if id in PAR:
     
-        return PAR[id]
+        # Special case, look into a specific folder.
+        if id in ['generator', 'discriminator'] and PAR[id] is not None:
+        
+            return os.path.join(get_appdir(),
+                                'trained_networks',
+                                os.path.basename(PAR[id]))
+
+        else:
+    
+            return PAR[id]
     
     elif id in PAR['monitors']:
     
@@ -283,6 +294,18 @@ def training_subparser(subparsers):
         action='store_const', dest='super_resolution', const=True,
         help='Apply super-resolution before predictions.'
              '\ndefault value: no super-resolution.')
+
+    x = None
+    parser.add_argument('-g', '--generator',
+        action='store', dest='generator', metavar='H5', type=str, default=x,
+        help='name of the pre-trained generator.'
+             '\ndefault value: {}'.format(x))
+
+    x = None
+    parser.add_argument('-d', '--discriminator',
+        action='store', dest='discriminator', metavar='H5', type=str, default=x,
+        help='name of the pre-trained discriminator.'
+             '\ndefault value: {}'.format(x))
 
     x = PAR['input_files']
     parser.add_argument('image', nargs='*',
@@ -465,7 +488,10 @@ def initialize():
         set('data_augm', par.data_augm)
         set('summary', par.summary)
         set('outdir', par.outdir)
+        # Parameters associated with super-resolution. 
         set('super_resolution', par.super_resolution)
+        set('generator', par.generator)
+        set('discriminator', par.discriminator)
 
     elif par.run_mode == 'predict':
 

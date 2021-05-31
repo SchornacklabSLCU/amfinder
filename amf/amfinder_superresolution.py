@@ -89,8 +89,10 @@ def get_tiles(paths):
         lr_tile_set = [fast_downsample(tile) for tile in hr_tile_set]
         lr_tiles.extend(lr_tile_set)
 
-    hr_tiles = AmfSegm.preprocess(hr_tiles)   # (N, HR_EDGE, HR_EDGE, CHANNELS)
-    lr_tiles = AmfSegm.preprocess(lr_tiles)   # (N, LR_EDGE, LR_EDGE, CHANNELS)
+    # (N, HR_EDGE, HR_EDGE, CHANNELS)
+    hr_tiles = AmfSegm.preprocess(hr_tiles)
+    # (N, LR_EDGE, LR_EDGE, CHANNELS)
+    lr_tiles = AmfSegm.preprocess(lr_tiles)
 
     return list(zip(hr_tiles, lr_tiles))
 
@@ -160,7 +162,7 @@ def upscale_block(layer_input):
 
 
 
-def build_generator(residual_blocks=16):
+def build_generator(residual_blocks=5):
 
     # Low resolution image input
     img_lr = Input(shape=LR_SHAPE)
@@ -176,7 +178,8 @@ def build_generator(residual_blocks=16):
 
     # Post-residual block
     c2 = Conv2D(64, kernel_size=3, strides=1, padding='same')(r)
-    c2 = BatchNormalization(momentum=0.8)(c2)
+    c2 = PReLU(shared_axes=[1,2])(c2)
+    #c2 = BatchNormalization(momentum=0.8)(c2)
     c2 = Add()([c2, c1])
 
     # Upsampling
@@ -214,9 +217,12 @@ def get_random_tile_pairs(tiles, batch_size=1, training=True):
 
 
 
-def train(paths, batch_size=50, sample_interval=20):
+def train(paths, batch_size=2, sample_interval=20):
+    """
+    Trains a SRGAN.
+    """
 
-    print('  - Building feature extractor')
+    print('* (super-resolution) Building feature extractor')
    
     feature_extractor = build_feature_extractor()
     feature_extractor.trainable = False
@@ -224,20 +230,27 @@ def train(paths, batch_size=50, sample_interval=20):
                               optimizer=OPTIMIZER,
                               metrics=['accuracy'])
 
-    print('  - Building discriminator')
+    print('* (super-resolution) Building discriminator')
 
     discriminator = build_discriminator()
-    discriminator.summary()
+    
+    if AmfConfig.get('discriminator') is not None:
+    
+        discriminator.load_weights(AmfConfig.get('discriminator'))
+
     discriminator.compile(loss='mse',
                           optimizer=OPTIMIZER,
                           metrics=['accuracy'])
 
-    print('  - Building generator')
+    print('* (super-resolution) Building generator')
 
     generator = build_generator()
-    generator.summary()
+    
+    if AmfConfig.get('generator') is not None:
+    
+        generator.load_weights(AmfConfig.get('generator'))
 
-     # High res. and low res. images
+    # High res. and low res. images
     img_hr = Input(shape=HR_SHAPE)
     img_lr = Input(shape=LR_SHAPE)
 
@@ -263,7 +276,10 @@ def train(paths, batch_size=50, sample_interval=20):
                       outputs=[validity, fake_features],
                       name='SRGAN')
 
-    gan_model.summary()
+    # TODO: display in verbose mode?
+    # generator.summary()
+    # discriminator.summary()
+    # gan_model.summary()
 
     gan_model.compile(loss=['binary_crossentropy', 'mse'],
                       loss_weights=[1e-3, 1],
@@ -272,6 +288,13 @@ def train(paths, batch_size=50, sample_interval=20):
     tiles = get_tiles(paths)
     epochs = len(tiles) * 200
 
+    # Annotations for original high-resolution images (valid), and
+    # newly generated images (fake). Annotations are given so the
+    # discriminator learns to identify fake images. Both tables
+    # have shape (batch_size, PATCH, PATCH, 1) to tell which parts
+    # of the generated images were identified as fake.
+    valid = np.ones((batch_size,) + DISC_PATCH)
+    fake = np.zeros((batch_size,) + DISC_PATCH)
     start_time = datetime.datetime.now()
 
     for epoch in range(epochs):
@@ -283,9 +306,6 @@ def train(paths, batch_size=50, sample_interval=20):
         # From low res. image generate high res. version
         # (N, LR_EDGE * 4, LR_EDGE * 4, CHANNELS)
         fake_hr = generator.predict(lr_tile)
-
-        valid = np.ones((batch_size,) + DISC_PATCH)
-        fake = np.zeros((batch_size,) + DISC_PATCH)
 
         # Train the discriminators
         # (original images = real / generated = Fake)
