@@ -28,12 +28,10 @@ import datetime
 import matplotlib.pyplot as plt
 
 from tensorflow.keras.optimizers import Adam
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, Add
+from keras.layers import Input, Dense, BatchNormalization, Add
 from keras.layers.advanced_activations import PReLU, LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.preprocessing.image import ImageDataGenerator
+from keras.models import Model
 from keras.engine.network import Network
 
 import amfinder_model as AmfModel
