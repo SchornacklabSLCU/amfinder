@@ -40,37 +40,35 @@ import amfinder_model as AmfModel
 import amfinder_config as AmfConfig
 import amfinder_segmentation as AmfSegm
 
-
-HR_EDGE = 126
 BIN_SIZE = 3
-LR_EDGE = int(HR_EDGE / BIN_SIZE)
 CHANNELS = 3
+HR_EDGE = 126
+LR_EDGE = HR_EDGE // BIN_SIZE
 LR_SHAPE = (LR_EDGE, LR_EDGE, CHANNELS)
 HR_SHAPE = (HR_EDGE, HR_EDGE, CHANNELS)
-
-PATCH = 8 #int(HR_EDGE / 2**4) # 7
-DISC_PATCH = (PATCH, PATCH, 1)
 OPTIMIZER = Adam(0.0002, 0.5)
 
 
 
-# https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
+# Reference: https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
 def PSNR(y_true, y_pred):
     """
-    PSNR is Peek Signal to Noise Ratio.
+    PSNR stands for Peek Signal to Noise Ratio.
     The equation is:
     PSNR = 20 * log10(MAX_I) - 10 * log10(MSE)
 
-    Since input is scaled from -1 to 1, MAX_I = 1, and thus 20 * log10(1) = 0. Only the last part of the equation is therefore neccesary.
+    Since input is scaled from -1 to 1, MAX_I = 1, and 
+    thus 20 * log10(1) = 0. Only the last part of 
+    the equation is therefore necessary.
     """
     return -10.0 * K.log(K.mean(K.square(y_pred - y_true))) / K.log(10.0) 
 
 
 
+# Reference: https://stackoverflow.com/a/56135413 
 def fast_downsample(tile):
     """
     Fast image downsampling method.
-    Source: https://stackoverflow.com/a/56135413
     """
 
     return tile.reshape((LR_EDGE, BIN_SIZE,
@@ -83,13 +81,16 @@ def get_tiles(paths):
     hr_tiles = []
     lr_tiles = []   
 
-    AmfConfig.set('tile_edge', HR_EDGE)  
+    # Note: using tiles smaller than 126x126 pixels as high-resolution
+    # tiles for SRGAN training does not make sense.
+    edge = max(AmfConfig.get('tile_edge'), 126)
+    AmfConfig.set('tile_edge', edge)  
 
     for path in paths:
     
         image = AmfSegm.load(path)
 
-        hr_tile_set = AmfSegm.mosaic(image)
+        hr_tile_set = AmfSegm.mosaic(image, edge=edge)
         hr_tiles.extend(hr_tile_set)
 
         lr_tile_set = [fast_downsample(tile) for tile in hr_tile_set]
@@ -228,7 +229,7 @@ def get_random_tile_pairs(tiles, batch_size=1, training=True):
 
 
 
-def train(paths, batch_size=4, sample_interval=20):
+def train(paths, batch_size=2, sample_interval=20):
     """
     Trains a SRGAN.
     """
@@ -306,17 +307,18 @@ def train(paths, batch_size=4, sample_interval=20):
     # Annotations for original high-resolution images (valid), and
     # newly generated images (fake). Annotations are given so the
     # discriminator learns to identify fake images. Both tables
-    # have shape (batch_size, PATCH, PATCH, 1) to tell which parts
+    # have shape (batch_size, 8, 8, 1) to tell which parts
     # of the generated images were identified as fake.
-    valid = np.ones((batch_size,) + DISC_PATCH)
-    fake = np.zeros((batch_size,) + DISC_PATCH)
+    valid = np.ones((batch_size,) + (8, 8, 1))
+    fake = np.zeros((batch_size,) + (8, 8, 1))
     start_time = datetime.datetime.now()
 
     for epoch in range(epochs):
 
         print('Epoch {}/{}... '.format(epoch + 1, epochs), end='')
 
-        hr_tile, lr_tile = get_random_tile_pairs(tiles, batch_size=batch_size)
+        hr_tile, lr_tile = get_random_tile_pairs(tiles,
+                                                 batch_size=batch_size)
         
         # From low res. image generate high res. version
         # (N, LR_EDGE * 4, LR_EDGE * 4, CHANNELS)
@@ -328,7 +330,8 @@ def train(paths, batch_size=4, sample_interval=20):
         d_loss_fake = discriminator.train_on_batch(fake_hr, fake)
         d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
 
-        hr_tile, lr_tile = get_random_tile_pairs(tiles, batch_size=batch_size)
+        hr_tile, lr_tile = get_random_tile_pairs(tiles,
+                                                 batch_size=batch_size)
 
         # The generators want the discriminators 
         # to label the generated images as real
@@ -379,7 +382,8 @@ def save_sample_images(epoch, generator, tiles, batch_size=2):
     imgs_hr = restore(imgs_hr)
 
     # Save generated images together with originals.
-    titles = ['Low resolution', 'Interpolation', 'Generated', 'High resolution']
+    titles = ['Low resolution', 'Interpolation',
+              'Generated', 'High resolution']
     fig, axs = plt.subplots(r, c)
     fig.suptitle('AMFinder SRGAN epoch {}'.format(epoch + 1), fontsize=20)
 
