@@ -77,6 +77,6 @@ module Make (P : PARAMS) : S = struct
         let screenshot = GdkPixbuf.create ~width:sz ~height:sz () in
         (* Source X and Y were determined from a window screenshot. *)
         GdkPixbuf.get_from_drawable ~dest:screenshot
-            ~src_x:16 ~src_y:150 P.window#misc#window;
+            ~src_x:16 ~src_y:176 P.window#misc#window;
         screenshot
 end

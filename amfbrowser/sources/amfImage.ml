@@ -139,13 +139,14 @@ object (self)
     
     method update_statistics () = self#update_counters ()
 
-    (* TODO: it should be possible to choose the folder! *)
     method screenshot () =
         let screenshot = AmfUI.Magnifier.screenshot () in
         let r, c = cursor#get in
-        let filename = sprintf "AMF_screenshot_R%d_C%d.jpg" r c in
+        let prefix = Filename.remove_extension file#base in
+        let filename = sprintf "%s_screenshot_R%dC%d.jpg" prefix r c in
+        let path = Filename.concat (Filename.dirname file#path) filename in
         AmfLog.info "Saving screenshot as %S" filename;
-        GdkPixbuf.save ~filename ~typ:"jpeg" screenshot
+        GdkPixbuf.save ~filename:path ~typ:"jpeg" screenshot
 
     method private draw_annotated_tile ?(sync = false) ~r ~c () =
         let tile_exists = draw#tile ~sync:false ~r ~c () in
