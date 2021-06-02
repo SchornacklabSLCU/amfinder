@@ -50,6 +50,22 @@ OPTIMIZER = Adam(0.0002, 0.5)
 
 
 
+def preprocess(tile_list):
+    """
+    For super resolution, images must be normalized to [-1; 1] for use with
+    tanh activation function.
+    """
+    return (np.array(tile_list, np.float32) / 127.5) - 1.0
+
+
+
+def restore(tile_list):
+
+    return np.uint8((tile_list + 1) * 127.5)
+
+
+
+
 # Reference: https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
 def PSNR(y_true, y_pred):
     """
@@ -97,9 +113,9 @@ def get_tiles(paths):
         lr_tiles.extend(lr_tile_set)
 
     # (N, HR_EDGE, HR_EDGE, CHANNELS)
-    hr_tiles = AmfSegm.preprocess_sr(hr_tiles)
+    hr_tiles = preprocess(hr_tiles)
     # (N, LR_EDGE, LR_EDGE, CHANNELS)
-    lr_tiles = AmfSegm.preprocess_sr(lr_tiles)
+    lr_tiles = preprocess(lr_tiles)
 
     return list(zip(hr_tiles, lr_tiles))
 
@@ -358,9 +374,64 @@ def train(paths, batch_size=2, sample_interval=20):
 
 
 
-def restore(image):
+def initialize(nrows, ncols):
+    """
+    Creates an empty image.
+    """
+    
+    canvas = None
+    
+    if AmfConfig.get('super_resolution'):
+    
+        canvas = np.zeros([nrows * 126, ncols * 126, 3], dtype=np.uint8)
+        canvas.fill(255)
 
-    return np.uint8((image + 1) * 127.5)
+    return canvas
+
+
+
+def generate(sr_image, row, r):
+
+    # Super-resolution is not active, then return the row unaltered.
+    if sr_image is None:
+
+        return row
+
+    else:
+    
+        sr_row = improve(row)
+
+        x_ini = 0
+        y_ini = r * 126
+        # Update the image.
+        
+        for i, tile in enumerate(sr_row): 
+        
+            sr_image[y_ini:y_ini + 126, i * 126:(i + 1) * 126] = tile
+
+        return sr_row
+
+
+GENERATOR = None
+def improve(raw_tiles):
+    """
+    Generate high-resolution versions of the given tiles.
+    """
+    
+    global GENERATOR
+    
+    if GENERATOR is None:
+   
+        GENERATOR = build_generator()
+
+        print("* Generator weights:", AmfConfig.get('generator'))
+        GENERATOR.load_weights(AmfConfig.get('generator'))
+
+        GENERATOR.compile(loss='mse',
+                          optimizer=OPTIMIZER,
+                          metrics=['mse', PSNR])
+    
+    return restore(GENERATOR.predict(preprocess(raw_tiles)))
 
 
 

@@ -340,13 +340,19 @@ def prediction_subparser(subparsers):
         help='Apply super-resolution before predictions.'
              '\ndefault value: no super-resolution.')
 
+    x = 'SRGANGenv1beta.h5'
+    parser.add_argument('-g', '--generator',
+        action='store', dest='generator', metavar='H5', type=str, default=x,
+        help='name of the pre-trained generator.'
+             '\ndefault value: {}'.format(x))
+
     x = PAR['colormap']
     parser.add_argument('-map', '--colormap',
         action='store', dest='colormap', metavar='id', type=str, default=x,
         help='Name of the colormap used to display conv2d outputs and kernels.'
              '\ndefault value: {}'.format(x))
 
-    x = 'CNN1_pretrained_2021-01-18.h5'
+    x = 'CNN1v2.h5'
     parser.add_argument('-net', '--network',
         action='store', dest='model', metavar='H5', type=str, default=x,
         help='name of the pre-trained model to use for predictions.'
@@ -498,10 +504,12 @@ def initialize():
 
         set('tile_edge', par.edge)
         set('model', par.model)
-        set('super_resolution', par.super_resolution) 
         set('save_conv2d_kernels', par.save_conv2d_kernels)   
         set('save_conv2d_outputs', par.save_conv2d_outputs)   
         set('colormap', par.colormap)
+        # Parameters associated with super-resolution. 
+        set('super_resolution', par.super_resolution)
+        set('generator', par.generator)
 
     elif par.run_mode == 'diagnose': 
         

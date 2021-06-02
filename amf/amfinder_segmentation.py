@@ -61,7 +61,7 @@ def load(image_path, access='random'):
 
 
 
-def tile(image, r, c):
+def tile(image, r, c, edge=None):
     """
     Extracts a tile from a large image, resizes it to
     the required CNN input image size, and applies
@@ -74,10 +74,19 @@ def tile(image, r, c):
     :rtype: list
     """
 
-    edge = AmfConfig.get('tile_edge')
+    edge = edge if edge is not None else AmfConfig.get('tile_edge')
     tile = image.crop(c * edge, r * edge, edge, edge)
+
+    # In super-resolution mode, ensure the tile is 42x42 pixels.
+    if AmfConfig.get('super_resolution'):
+      
+        if edge != 42:
+        
+            ratio = 42 / edge
+            tile = tile.resize(ratio, interpolate=INTERPOLATION)
     
-    if AmfModel.INPUT_SIZE != edge:
+    # Otherwise, use interpolation to bring tile to 126x126 pixels.
+    elif AmfModel.INPUT_SIZE != edge:
 
         ratio = AmfModel.INPUT_SIZE / edge
         tile = tile.resize(ratio, interpolate=INTERPOLATION)
@@ -101,18 +110,9 @@ def preprocess(tile_list):
 
 
 
-def preprocess_sr(tile_list):
-    """
-    For super resolution, images must be normalized to [-1; 1] for use with
-    tanh activation function.
-    """
-    return (np.array(tile_list, np.float32) / 127.5) - 1.0
+def mosaic(image, edge=None):
 
-
-
-def mosaic(image):
-
-    edge = AmfConfig.get('tile_edge')
+    edge = edge if edge is not None else AmfConfig.get('tile_edge')
 
     nrows = int(image.height // edge)
     ncols = int(image.width // edge)
@@ -130,7 +130,7 @@ def mosaic(image):
 
             for c in range(ncols):
  
-                tiles.append(tile(image, r, c))
+                tiles.append(tile(image, r, c, edge))
 
         return tiles
 

@@ -63,18 +63,18 @@ def table_header():
 
 
 
-def process_row_1(cnn1, image, nrows, ncols, batch_size, r):
+def process_row_1(cnn1, image, nrows, ncols, batch_size, r, sr_image):
     """
     Predict colonisation (CNN1) on a single tile row.
     """
     # First, extract all tiles within a row.
     row = [AmfSegm.tile(image, r, c) for c in range(ncols)]
+    # Generate super-resolution tiles.
+    row = AmfSRGAN.generate(sr_image, row, r)
     # Convert to NumPy array, and normalize.
     row = AmfSegm.preprocess(row)
     # Predict mycorrhizal structures.
     prd = cnn1.predict(row, batch_size=batch_size)
-    # Retrieve class activation maps.
-    #AmfMapping.generate(cams, model, row, r)
     # Update the progress bar.
     AmfLog.progress_bar(r + 1, nrows, indent=1)
     # Return prediction as Pandas data frame.
@@ -91,9 +91,7 @@ def predict_level2(path, image, nrows, ncols, model):
     :param ncols: column count.
     :para model: CNN2 model used for predictions.
     """
-    
-    #cams = AmfMapping.initialize(nrows, ncols)
-    
+   
     zfile = os.path.splitext(path)[0] + '.zip'
 
     if not zf.is_zipfile(zfile):
@@ -169,14 +167,15 @@ def predict_level1(image, nrows, ncols, cnn1):
     """
 
     # Creates the images to save the class activation maps.
-    #cams = AmfMapping.initialize(nrows, ncols)
+    sr_image = AmfSRGAN.initialize(nrows, ncols)
 
     # Initialize the progress bar.
     AmfLog.progress_bar(0, nrows, indent=1)
 
     # Retrieve predictions for all rows within the image.
     bs = AmfConfig.get('batch_size')
-    results = [process_row_1(cnn1, image, nrows, ncols, bs, r) for r in range(nrows)]
+    results = [process_row_1(cnn1, image, nrows, ncols, bs, r, sr_image)
+               for r in range(nrows)]
 
     # Concat to a single Pandas dataframe.
     table = pd.concat(results, ignore_index=True)
@@ -191,7 +190,7 @@ def predict_level1(image, nrows, ncols, cnn1):
     table.insert(0, column='row', value=row_values)
     table.columns = table_header()
 
-    return (table, None) # None was cams
+    return (table, sr_image)
 
 
 
@@ -272,10 +271,6 @@ def run(input_images, postprocess=None):
     :param save: indicate whether results should be saved or returned.
     """
 
-    # Update this in case we need super-resolution.
-    #AmfSRGAN.run(input_images)
-    # Remove it.
-
     model = AmfModel.load()
        
     if AmfConfig.get('save_conv2d_kernels'):
@@ -304,22 +299,21 @@ def run(input_images, postprocess=None):
            
             if AmfConfig.get('level') == 1:
             
-                table, cams = predict_level1(image, nrows, ncols, model)
+                table, sr_image = predict_level1(image, nrows, ncols, model)
 
                 if AmfConfig.get('save_conv2d_outputs'):
 
-                    AmfCalc.get_cam(AmfSegm.tile(image, 0, 0), model)
-                    #save_conv2d_outputs(model, image, base)
-                        
+                    save_conv2d_outputs(model, image, base) 
 
             else:
 
-                table, cams = predict_level2(path, image, nrows, ncols, model)               
+                table, sr_image = predict_level2(path, image, nrows, ncols, model)               
 
             # Save results or use continuation for further processing.
             if postprocess is None:
 
-                AmfSave.prediction_table(table, cams, path)
+                # None was cams, reuse for super-resolution.
+                AmfSave.prediction_table(table, sr_image, path)
                 
             else:
             

@@ -43,7 +43,7 @@ import pickle
 import datetime
 import numpy as np
 import zipfile as zf
-#import matplotlib as plt (used for CAMs, currently deactivated).
+import matplotlib as plt
 
 import amfinder_log as AmfLog
 import amfinder_plot as AmfPlot
@@ -170,14 +170,11 @@ def get_zip_info(path, comment):
 
 
 
-#def save_cams(uniq, z, cams):
-#    level = string_of_level()
-#    for label, image in zip(AmfConfig.get('header'), cams):
-#        buf = io.BytesIO()
-#        plt.image.imsave(buf, image, format='jpg')
-#        zi = get_zip_info(f'activations/{uniq}.{label}.jpg', label)
-#        z.writestr(zi, buf.getvalue())
-#        z.comment = f'{label}'.encode()
+def save_sr_image(uniq, z, sr_image):
+    buf = io.BytesIO()
+    plt.image.imsave(buf, sr_image, format='jpg')
+    zi = get_zip_info(f'sr/{uniq}.jpg', AmfConfig.get('generator'))
+    z.writestr(zi, buf.getvalue())
 
 
 
@@ -199,12 +196,12 @@ def save_settings(z):
 
 
 
-def prediction_table(results, cams, path):
+def prediction_table(results, sr_image, path):
     """
     Saves or append predictions to an archive.
     
     :param results: annotation table to save.
-    :param cams: class activation maps (currently not implemented). 
+    :param sr_image: high-resolution image.
     :param path: path to the ZIP archive.
     """
 
@@ -228,8 +225,8 @@ def prediction_table(results, cams, path):
                     z.writestr(zi, data)
                     z.comment = b'{level}'                   
                     
-                    if cams is not None:
-                        save_cams(uniq, z, cams)
+                    if sr_image is not None:
+                        save_sr_image(uniq, z, sr_image)
         
             else:
 
@@ -242,7 +239,7 @@ def prediction_table(results, cams, path):
                 save_settings(z)
                 zi = get_zip_info(tsv, string_of_level())
                 z.writestr(zi, data)
-                if cams is not None:
-                    save_cams(uniq, z, cams)
+                if sr_image is not None:
+                    save_sr_image(uniq, z, sr_image)
 
         print('OK')
