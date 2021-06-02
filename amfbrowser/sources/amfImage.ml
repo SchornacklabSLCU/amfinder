@@ -173,13 +173,7 @@ object (self)
         if i = 1 && j = 1 && predictions#active && activations#active then (
              match predictions#current with
              | None -> large_tiles#get (* No active prediction set. *)
-             | Some id -> match AmfUI.Layers.current () with
-                | '*' -> (* let's find the top layer. *)
-                    begin match predictions#max_layer ~r ~c with
-                        | None -> large_tiles#get
-                        | Some (max, _) -> activations#get id max
-                    end
-                | chr -> activations#get id chr
+             | Some id -> activations#get id
         ) else large_tiles#get
 
     method magnified_view () =

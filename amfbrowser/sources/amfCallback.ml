@@ -59,7 +59,7 @@ module Predictions = struct
     let update_cam image_ref =
         let callback () =
             Option.iter (fun image -> image#magnified_view ()) !image_ref
-        in ignore (AmfUI.Predictions.cams#connect#toggled ~callback)
+        in ignore (AmfUI.Predictions.sr_image#connect#toggled ~callback)
 
     let convert image_ref =
         let callback () =

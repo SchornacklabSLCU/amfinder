@@ -22,15 +22,16 @@
  * IN THE SOFTWARE.
  *)
 
-(** Class activation maps (CAMs). *)
+(** Super-resolution images obtained using a generative adversarial 
+  * network (SRGAM). *)
 
 class type cls = object
 
     method active : bool
     (** Indicates whether class activation maps are to be displayed. *)
     
-    method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option
-    (** Return the CAM associated with a given tile. *)
+    method get : string -> r:int -> c:int -> GdkPixbuf.pixbuf option
+    (** Return the super-resolution image with a given tile. *)
     
     method dump : Zip.out_file -> unit
     (** Saves activations. *)

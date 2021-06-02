@@ -28,57 +28,53 @@ open ImgShared
 
 class type cls = object
     method active : bool
-    method get : string -> char -> r:int -> c:int -> GdkPixbuf.pixbuf option   
+    method get : string -> r:int -> c:int -> GdkPixbuf.pixbuf option   
     method dump : Zip.out_file -> unit
 end
 
 
 class activations
     (source : ImgSource.cls) 
-    (input : (string * (char * GdkPixbuf.pixbuf)) list) edge 
+    (input : (string * (string * GdkPixbuf.pixbuf)) list) edge 
 
 = object
 
     val hash =
         let hash = Hashtbl.create 11 in
         List.iter (fun (id, data) ->
-            match Hashtbl.find_opt hash id with
-            | None -> Hashtbl.add hash id [data]
-            | Some old -> Hashtbl.replace hash id (data :: old)
+            Hashtbl.add hash id data
         ) input;
         hash
 
-    method active = AmfUI.Predictions.cams#get_active
+    method active = AmfUI.Predictions.sr_image#get_active
 
-    method get id chr ~r ~c =
+    method get id ~r ~c =
         try
-            let pixbuf = List.assoc chr (Hashtbl.find hash id) in
-            let src_x = c * source#edge 
-            and src_y = r * source#edge in
-            crop_pixbuf ~src_x ~src_y ~edge:source#edge pixbuf
+            let pixbuf = snd (Hashtbl.find hash id) in
+            let src_x = c * 126 and src_y = r * 126 in
+            crop_pixbuf ~src_x ~src_y ~edge:126 pixbuf
             |> resize_pixbuf edge
             |> Option.some
         with exn -> 
             AmfLog.warning "ImgTileMatrix.activations#get \
-            %S %C ~r=%d ~c=%d triggered exception %S" id chr r c 
+            %S r=%d c=%d triggered exception %S" id r c 
             (Printexc.to_string exn);
             None
 
     method dump och =
-        List.iter (fun (id, (chr, pixbuf)) ->
+        List.iter (fun (id, (comment, pixbuf)) ->
             let buf = Buffer.create 100 in
             GdkPixbuf.save_to_buffer pixbuf ~typ:"jpeg" buf;
-            Zip.add_entry
-                ~comment:(String.make 1 chr)
+            Zip.add_entry ~comment
                 (Buffer.contents buf) och
-                (sprintf "activations/%s.%c.jpg" id chr)
+                (sprintf "sr/%s.jpg" id)
         ) input
 
 end
 
 let filter entries =
     List.filter (fun e -> 
-        Filename.dirname e.Zip.filename = "activations"
+        Filename.dirname e.Zip.filename = "sr"
     ) entries
 
 let create ?zip source =
@@ -87,10 +83,7 @@ let create ?zip source =
     | Some ich -> let entries = Zip.entries ich in
         let table = 
             List.map (fun ({Zip.filename; comment; _} as entry) ->
-                let chr = Scanf.sscanf comment "%c" Char.uppercase_ascii
-                and id = Filename.chop_extension filename 
-                    |> Filename.chop_extension
-                    |> Filename.basename in
+                let id = Filename.(basename (chop_extension filename)) in
                 let tmp, och = Filename.open_temp_file
                     ~mode:[Open_binary] 
                     "amfinder" ".jpg" in
@@ -99,6 +92,6 @@ let create ?zip source =
                 AmfLog.info "Loading activation map %S" tmp;
                 let pixbuf = GdkPixbuf.from_file tmp in
                 Sys.remove tmp;
-                id, (chr, pixbuf) 
+                id, (comment, pixbuf) 
             ) (filter entries)
         in new activations source table 180

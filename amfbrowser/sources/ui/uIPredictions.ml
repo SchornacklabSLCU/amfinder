@@ -225,7 +225,7 @@ module Make (P : PARAMS) : S = struct
     let sr_image =
         let btn, lbl, ico = Aux.markup_toggle_button
             ~pixbuf:(AmfRes.get (`CAM false) 24)
-            ~label:"High res." ~packing () in 
+            ~label:"SRGAN" ~packing () in 
         let callback () =
             let style = btn#get_active in
             ico#set_pixbuf (AmfRes.get (`CAM style) 24)
