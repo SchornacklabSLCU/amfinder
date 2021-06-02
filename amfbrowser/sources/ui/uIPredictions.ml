@@ -41,7 +41,7 @@ module type S = sig
     val overlay : GButton.toggle_tool_button
     val palette : GButton.tool_button
     val set_palette_update : (unit -> unit) -> unit
-    val cams : GButton.toggle_tool_button
+    val sr_image : GButton.toggle_tool_button
     val convert : GButton.tool_button
     val ambiguities : GButton.tool_button
 end
@@ -222,10 +222,10 @@ module Make (P : PARAMS) : S = struct
     let palette_update = ref []
     let set_palette_update f = palette_update := f :: !palette_update
 
-    let cams =
+    let sr_image =
         let btn, lbl, ico = Aux.markup_toggle_button
             ~pixbuf:(AmfRes.get (`CAM false) 24)
-            ~label:"CAMs" ~packing () in 
+            ~label:"High res." ~packing () in 
         let callback () =
             let style = btn#get_active in
             ico#set_pixbuf (AmfRes.get (`CAM style) 24)
@@ -334,7 +334,7 @@ module Make (P : PARAMS) : S = struct
                 let enable row =
                     overlay_icon#set_pixbuf (AmfRes.get `DETACH 24);
                     overlay_label#set_label (Aux.small_text AmfLang.en_attach);
-                    cams#misc#set_sensitive false; (* FIXME: not available *)
+                    sr_image#misc#set_sensitive true;
                     palette#misc#set_sensitive true;
                     convert#misc#set_sensitive true;
                     ambiguities#misc#set_sensitive true;
@@ -342,7 +342,7 @@ module Make (P : PARAMS) : S = struct
             else overlay#set_active false
 
         let disable () =
-            cams#misc#set_sensitive false;
+            sr_image#misc#set_sensitive false;
             palette#misc#set_sensitive false;
             convert#misc#set_sensitive false;
             ambiguities#misc#set_sensitive false;

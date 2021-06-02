@@ -54,8 +54,8 @@ module type S = sig
     val set_palette_update : (unit -> unit) -> unit
     (** Defines the update function to use when the palette changes. *)
 
-    val cams : GButton.toggle_tool_button
-    (** Indicates whether CAMs are to be displayed or not. *)
+    val sr_image : GButton.toggle_tool_button
+    (** Indicates whether super-resolution tiles are to be displayed or not. *)
 
     val convert : GButton.tool_button
     (** Converts predictions to annotations. *)
