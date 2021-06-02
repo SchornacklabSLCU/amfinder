@@ -262,8 +262,8 @@ object (self)
         (* Tells whether the visibe window was left unchanged. *)
         not !res
  
-    method r_range = rbound, min source#rows (rbound + _HMAX_ - 1)
-    method c_range = cbound, min source#columns (cbound + _WMAX_ - 1)
+    method r_range = rbound, min (source#rows - 1) (rbound + _HMAX_ - 1)
+    method c_range = cbound, min (source#columns - 1) (cbound + _WMAX_ - 1)
 
     method edge = _EDGE_
     method x_origin = x_origin
