@@ -87,9 +87,8 @@ def fast_downsample(tile):
     Fast image downsampling method.
     """
 
-    return tile.reshape((LR_EDGE, BIN_SIZE,
-                         LR_EDGE, BIN_SIZE, CHANNELS)).max(3).max(1)
-
+    tmp = tile.reshape((15, BIN_SIZE, 15, BIN_SIZE, 3)).max(3).max(1)
+    return cv2.resize(tmp, 42, cv2.INTER_NEAREST)
 
 
 def get_tiles(paths):
@@ -309,9 +308,10 @@ def train(paths, batch_size=2, sample_interval=20):
                       name='SRGAN')
 
     # TODO: display in verbose mode?
-    # generator.summary()
-    # discriminator.summary()
-    # gan_model.summary()
+    #generator.summary()
+    #discriminator.summary()
+    #gan_model.summary()
+    #sys.exit(0)
 
     gan_model.compile(loss=['binary_crossentropy', 'mse'],
                       loss_weights=[1e-3, 1],
@@ -328,6 +328,8 @@ def train(paths, batch_size=2, sample_interval=20):
     valid = np.ones((batch_size,) + (8, 8, 1))
     fake = np.zeros((batch_size,) + (8, 8, 1))
     start_time = datetime.datetime.now()
+
+    base_dir = os.path.join(AmfConfig.get_appdir(), 'trained_networks')
 
     for epoch in range(epochs):
 
@@ -367,10 +369,13 @@ def train(paths, batch_size=2, sample_interval=20):
         # Save image samples to see progress.
         if (epoch + 1) % sample_interval == 0:
             save_sample_images(epoch, generator, tiles)
+            discriminator.save_weights(os.path.join(base_dir, 'disc/srgan_disc{}.h5'.format(epoch+1)))
+            generator.save_weights(os.path.join(base_dir, 'gen/srgan_gen{}.h5'.format(epoch+1)))
 
     # TODO: improve this.
-    discriminator.save_weights('trained_networks/srgan_discriminator.h5')
-    generator.save_weights('trained_networks/srgan_generator.h5')
+    discriminator.save_weights(os.path.join(base_dir, 'disc/srgan_disc_final.h5'))
+    generator.save_weights(os.path.join(base_dir, 'gen/srgan_gen_final.h5'))
+
 
 
 
@@ -424,7 +429,6 @@ def improve(raw_tiles):
    
         GENERATOR = build_generator()
 
-        print("* Generator weights:", AmfConfig.get('generator'))
         GENERATOR.load_weights(AmfConfig.get('generator'))
 
         GENERATOR.compile(loss='mse',

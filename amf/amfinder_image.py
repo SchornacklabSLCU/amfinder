@@ -39,7 +39,6 @@ Functions
 import random
 random.seed(42)
 import numpy as np
-from scipy.signal import convolve2d
 from scipy.ndimage import median_filter
 
 
@@ -73,34 +72,6 @@ def median_blur(tile):
         ims.append(tmp)
 
     return np.stack(ims, axis=2)
-
-
-
-def sobel_edge_detection(tile):
-    """
-    Edge detection using the Sobel algorithm.
-    """
-
-    sobel_x = np.c_[
-        [-1, 0, 1],
-        [-2, 0, 2],
-        [-1, 0, 1]
-    ]
-
-    sobel_y = np.c_[
-        [1, 2, 1],
-        [0, 0, 0],
-        [-1, -2, -1]
-    ]
-
-    layers = []
-    for d in range(3):
-        sx = convolve2d(tile[:,:,d], sobel_x, mode="same", boundary="symm")
-        sy = convolve2d(tile[:,:,d], sobel_y, mode="same", boundary="symm")
-        layers.append(np.sqrt(sx * sx + sy * sy))
-
-    return np.stack(layers, axis=2)
-
 
 
 

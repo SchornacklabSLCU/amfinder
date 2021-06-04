@@ -173,7 +173,8 @@ def get_zip_info(path, comment):
 def save_sr_image(uniq, z, sr_image):
     buf = io.BytesIO()
     plt.image.imsave(buf, sr_image, format='jpg')
-    zi = get_zip_info(f'sr/{uniq}.jpg', AmfConfig.get('generator'))
+    comment = os.path.basename(AmfConfig.get('generator'))
+    zi = get_zip_info(f'sr/{uniq}.jpg', comment)
     z.writestr(zi, buf.getvalue())
 
 

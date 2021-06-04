@@ -447,16 +447,12 @@ def data_augm(tile):
     elif num == 3:
     
         output = AmfImage.grayscale(tile)
-    
+       
     elif num == 5:
-
-        output = AmfImage.sobel_edge_detection(tile)
-    
-    elif num == 7:
     
         output = AmfImage.median_blur(tile)
     
-    elif num == 9:
+    elif num == 7:
     
         output = AmfImage.rotate_colours(tile)
     
