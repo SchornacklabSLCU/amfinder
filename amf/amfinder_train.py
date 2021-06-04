@@ -438,7 +438,7 @@ def data_augm(tile):
     """
 
     global img_index
-    num = random.randint(1, 10)
+    num = random.randint(1, 8)
 
     if num == 1:
     
