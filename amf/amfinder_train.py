@@ -271,7 +271,7 @@ def load_dataset(input_files):
         print('OK')
 
         del image
-       
+
     return np.array(tiles, np.float32), np.array(hot_labels, np.uint8)
 
 
@@ -429,7 +429,7 @@ def data_augm(tile):
     """
     Two-step random tile augmentation based on blur and anticlockwise 90-degree
     rotation (step 1), and desaturation, inversion, chroma/hue alteration, or
-    histogram equalisation (step 2). Random rotations and zoom are not used 
+    histogram equalisation (step 2). Random rotations and zoom are not used
     due to fungal structures occurring on edges in some tiles.
 
     :param tile: The tile to augment.
@@ -438,31 +438,34 @@ def data_augm(tile):
     """
 
     global img_index
-    num = random.randint(1, 8)
+    num = random.randint(1, 5)
 
     if num == 1:
-    
+
         output = AmfImage.invert(tile)
-    
-    elif num == 3:
-    
+
+    elif num == 2:
+
         output = AmfImage.grayscale(tile)
-       
-    elif num == 5:
-    
+
+    elif num == 3:
+
         output = AmfImage.median_blur(tile)
-    
-    elif num == 7:
-    
+
+    elif num == 4:
+
         output = AmfImage.rotate_colours(tile)
-    
+
     else:
-    
+
         output = tile
-    
-    #im = Image.fromarray(output.astype(np.uint8))
-    #img_index += 1
-    #im.save("tiles/tile_%06d.png" % (img_index))
+
+    # TODO: Add an option for this.
+    #if img_index < 99 and bool(random.getrandbits(1)):
+    #    im = Image.fromarray(output.astype(np.uint8))
+    #    img_index += 1
+    #    im.save(os.path.join(AmfConfig.get('outdir'), "tile_%06d.png" % (img_index)))
+
 
     return output
 
@@ -505,7 +508,7 @@ def run(input_files):
             t_gen = ImageDataGenerator(rescale=1.0 / 255,
                                        horizontal_flip=True,
                                        vertical_flip=True,
-                                       brightness_range=[0.5, 1.5],
+                                       brightness_range=[0.75, 1.25],
                                        preprocessing_function=data_augm)
         else:
             t_gen = ImageDataGenerator(rescale=1.0 / 255)
@@ -521,7 +524,7 @@ def run(input_files):
             t_gen = ImageDataGeneratorMO(rescale=1.0 / 255,
                                          horizontal_flip=True,
                                          vertical_flip=True,
-                                         brightness_range=[0.5, 1.5],
+                                         brightness_range=[0.75, 1.25],
                                          preprocessing_function=data_augm)
         else:
             t_gen = ImageDataGeneratorMO(rescale=1.0 / 255)
