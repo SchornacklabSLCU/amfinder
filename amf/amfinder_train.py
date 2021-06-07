@@ -208,6 +208,49 @@ def estimate_background_subsampling(input_dataset):
 
 
 
+def print_table_header():
+    """
+    Print table header.
+    """
+    if AmfConfig.get('level') == 1:
+
+        print('Filename\tImage size (px)\tTile size (px)\tM+\tM-\tX\tDiscarded')
+
+    else:
+
+        print('Filename\tImage size (px)\tTile size (px)\tA\tV\tH\tI')
+
+
+
+def print_image_stats(path, image, config, annots, discarded):
+    """
+    Print image information.
+    """
+    
+    edge = config['tile_edge']
+    base = os.path.basename(path)
+    w = image.width
+    h = image.height
+
+    if AmfConfig.get('level') == 1:
+
+        y = annots['Y'].sum()
+        n = annots['N'].sum()
+        x = annots['X'].sum()
+
+        print(f'{base}\t{w}x{h}\t{edge}\t{y}\t{n}\t{x}\t{discarded}', flush=True)
+
+    else:
+    
+        a = annots['A'].sum()
+        v = annots['V'].sum()
+        h = annots['H'].sum()
+        i = annots['I'].sum()
+    
+        print(f'{base}\t{w}x{h}\t{edge}\t{a}\t{v}\t{h}\t{i}', flush=True)
+
+
+
 def load_dataset(input_files):
     """
     Loads training tile set and their corresponding annotations.
@@ -241,25 +284,26 @@ def load_dataset(input_files):
     hot_labels = []
     header = AmfConfig.get('header')
 
+    print_table_header()
+
     for path, config, annots in filtered_dataset:
 
         edge = config['tile_edge']
         AmfConfig.set('tile_edge', edge)
 
-        base = os.path.basename(path)
-        print(f'    - {base} (tiles: {edge} pixels)... ', end='', flush=True)
-
         # FIXME: Random access is inefficient. To achieve better
         # efficiency we would have to load tiles row by row.
         image = AmfSegm.load(path)
-
+        
         # Extract tile sets (= original tile and augmented versions).
         # Repeat one-hot encoded annotations for each tile.
+        discarded = 0
         for annot in annots.itertuples():
 
             if AmfConfig.get('level') == 1 and subsampling > 0 and \
                annot.X == 1 and random.uniform(0, 100) < subsampling:
 
+                discarded += 1
                 pass
 
             else:
@@ -268,7 +312,7 @@ def load_dataset(input_files):
                 tiles.append(tile)
                 hot_labels.append(list(annot[3:]))
 
-        print('OK')
+        print_image_stats(path, image, config, annots, discarded)
 
         del image
 

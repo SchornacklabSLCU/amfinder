@@ -115,15 +115,17 @@ def progress_bar(iteration, total, indent=0):
     :param indent: Indentation level (defaults to 0).
     """
 
-    percent = 100.0 * iteration / float(total)
+    if total > 0:
 
-    completed = round(50.0 * iteration / total)
-    remaining = 50 - completed
+        percent = 100.0 * iteration / float(total)
 
-    bar = '█' * completed + '-' * remaining
+        completed = round(50.0 * iteration / total)
+        remaining = 50 - completed
 
-    print(' ' * 4 * indent + f'- processing |{bar}| {percent:.1f}%', end='\r')
+        bar = '█' * completed + '-' * remaining
 
-    if iteration == total:
+        print(' ' * 4 * indent + f'- processing |{bar}| {percent:.1f}%', end='\r')
 
-        print() # newline
+        if iteration == total:
+
+            print() # newline

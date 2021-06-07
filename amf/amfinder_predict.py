@@ -139,8 +139,11 @@ def predict_level2(path, image, nrows, ncols, model):
             AmfLog.progress_bar(0, nbatches, indent=1)
             results = [process_batch(x, b) for x, b in zip(batches, 
                                                            range(1, nbatches + 1))]
-            table = pd.concat(results, ignore_index=True)
-            table.columns = table_header()
+            
+            table = None                                       
+            if len(results) > 0:
+                table = pd.concat(results, ignore_index=True)
+                table.columns = table_header()
 
             return (table, None) # None was cams
 
