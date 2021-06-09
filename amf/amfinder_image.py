@@ -106,6 +106,7 @@ def rotate_colours(tile):
     """
     norm = do_normalise(tile)
     theta = random.randint(0, 20) * np.pi / 10
+    print(theta)
     norm_rot = np.einsum("ijk,lk->ijl", norm, rotation_matrix(theta))
     return undo_normalise(norm_rot)
 
