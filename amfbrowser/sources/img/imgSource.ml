@@ -42,7 +42,7 @@ class source ?zip pixbuf =
         | None -> !AmfPar.edge
         | Some ich -> Zip.find_entry ich "settings.json"
             |> Zip.read_entry ich
-            |> (fun s -> sscanf s "{\"tile_edge\": %d}" (fun n -> n)) in
+            |> (fun s -> sscanf s "{%_[\"']tile_edge%_[\"']: %d}" (fun n -> n)) in
 
 object (self)
 
