@@ -7,6 +7,9 @@ convolutional neural networks.
 
 **The latest version of AMFinder is v2.0.**
 
+**Reference publication:** [Evangelisti _et al._, 2021, _bioRxiv_](https://doi.org/10.1101/2021.03.05.434067). 
+
+
 ## Summary
 
 1. [Command-line tool `amf`](#amf)
