@@ -11,6 +11,7 @@ convolutional neural networks.
 
 1. [Command-line tool `amf`](#amf)
 2. [Standalone interface `amfbrowser`](#amfbrowser)
+3. [A typical pipeline](#pipeline)
 
 ## Command-line tool `amf`<a name="amf"></a>
 
@@ -35,7 +36,7 @@ the Tensorflow website.
 
 **`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).**
 
-#### Prediction mode
+#### Prediction mode<a name="amfpred"></a>
 
 **Important**: Remember to activate `amf` virtual environment before use (see installation instructions).
 
@@ -150,4 +151,13 @@ and configure `bash` to tell GUIs to use the local X server by running `export D
 This variable has to be set for each session. As an alternative, you can save the
 variable in your session configuration file by running: `echo "export DISPLAY=localhost:0.0" >> ~/.bashrc`
 and reload the configuration (`. ~/.bashrc`). The new variable with then be automatically
-set and does not have to be redefined manually. 
+set and does not have to be redefined manually.
+
+## A typical pipeline<a name="amf"></a>
+
+1. Predict colonisation on ink-stained root images: `amf predict -net your_CNN1.h5 *jpg`.
+   Note 1: Available parameters can be found in [this section](#amfpred).
+   Note 2: H5 files for trained networks can be found in `trained_networks`.
+2. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image.
+3. Predict intraradical hyphal structures in batch: `amf predict -net your_CNN2.h5 *jpg`.
+4. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image
