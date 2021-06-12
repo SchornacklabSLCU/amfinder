@@ -20,11 +20,12 @@ convolutional neural networks. **The latest version of AMFinder is v2.0.**
 
 ### Installation instructions
 
-1. Install **Python 3.7** from the [official website](https://www.python.org/) or from your package manager.
-2. Download AMFinder sources from Github, and extract the archive.
-3. Move to the `amf` folder.
-4. Open a terminal, run `export PYTHON=<path>`, replacing `<path>` with the path to Python 3.7.
-5. Run `./install.sh`. If needed, add executable permissions with: `chmod +x install.sh`. Should the variable `PYTHON` not be set, the script will use the output of `which python3` instead.
+1. Windows users only: install [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about) to get access to a Unix-like terminal. 
+2. Install **Python 3.7** from the [official website](https://www.python.org/) or from your package manager.
+3. Download AMFinder sources from Github, and extract the archive.
+4. Move to the `amf` folder.
+5. Open a terminal, run `export PYTHON=<path>`, replacing `<path>` with the path to Python 3.7.
+6. Run `./install.sh`. If needed, add executable permissions with: `chmod +x install.sh`. Should the variable `PYTHON` not be set, the script will use the output of `which python3` instead.
 
 **Important:** Before using `amf` for training or prediction (see next section), you will need to activate its Python virtual environment. To that end, open a terminal in the `amf` directory and run the command `source amfenv/bin/activate` to activate the virtual environment. Your terminal prompt will change to `(amfenv) $`. Once you are done with `amf`, you can deactivate the environment by running the command `deactivate`.
 
@@ -52,10 +53,12 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 |File name|Annotation level|Description|
 |-|-|-|
-|[CNN1v1.h5](amf/trained_networks/CNN1v1.h5)</a>|Stage 1|Ink-stained, ClearSee-treated root pictures (flatbed scanner/microscope).|
-|[CNN1v2.h5](amf/trained_networks/CNN1v2.h5)|Stage 1|Same, but hue- and saturation-insensitive.|
-|[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|Stage 2|Ink-stained, ClearSee-treated microscope root pictures.|
+|[CNN1v1.h5](amf/trained_networks/CNN1v1.h5)</a>|CNN1|Ink-stained, ClearSee-treated root pictures (flatbed scanner/microscope).|
+|[CNN1v2.h5](amf/trained_networks/CNN1v2.h5)|CNN1|Same, but trained with data augmentation.|
+|[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|CNN2|Ink-stained, ClearSee-treated microscope root pictures.|
+|[CNN2v2.h5](amf/trained_networks/CNN2v2.h5)|CNN2|Same, but trained with data augmentation.|
 
+**Note:** the image datasets used to generate these trained networks are available upon request (email the corresponding authors).
 
 #### Training mode
 
