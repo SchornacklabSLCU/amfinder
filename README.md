@@ -161,6 +161,7 @@ set and does not have to be redefined manually.
    
    **Note 2**: H5 files containing trained networks can be found in `trained_networks`. If you trained AMFinder on a specific dataset, copy/paste your custom H5 file to this folder. AMFinder won't use H5 files stored in other folders.
    
-2. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image.
+2. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image. AMFinder is a semi-automatic prediction pipeline. User supervision and validation of computer predictions for fungal colonisation is required before intraradical hyphal structures can be analysed.
+
 3. Predict intraradical hyphal structures in batch: `amf predict -net your_CNN2.h5 *jpg`.
 4. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image
