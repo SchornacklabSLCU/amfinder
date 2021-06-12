@@ -164,5 +164,7 @@ set and does not have to be redefined manually.
    
 2. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image. AMFinder is a semi-automatic prediction pipeline. User supervision and validation of computer predictions for fungal colonisation is required before intraradical hyphal structures can be analysed.
 
+    **Important:** `amfbrowser` is a graphical interface. It won't run on a text-based system such as an HPC.
+
 3. Predict intraradical hyphal structures: `amf predict -net your_CNN2.h5 *jpg`.
 4. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image.
