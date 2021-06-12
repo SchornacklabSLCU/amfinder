@@ -153,11 +153,11 @@ variable in your session configuration file by running: `echo "export DISPLAY=lo
 and reload the configuration (`. ~/.bashrc`). The new variable with then be automatically
 set and does not have to be redefined manually.
 
-## A typical pipeline<a name="amf"></a>
+## A typical pipeline<a name="pipeline"></a>
 
 1. Predict colonisation on ink-stained root images: `amf predict -net your_CNN1.h5 *jpg`.
-   Note 1: Available parameters can be found in [this section](#amfpred).
-   Note 2: H5 files for trained networks can be found in `trained_networks`.
+   **Note 1**: Available parameters can be found in [this section](#amfpred).
+   **Note 2**: H5 files for trained networks can be found in `trained_networks`.
 2. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image.
 3. Predict intraradical hyphal structures in batch: `amf predict -net your_CNN2.h5 *jpg`.
 4. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image
