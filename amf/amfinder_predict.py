@@ -96,7 +96,7 @@ def predict_level2(path, image, nrows, ncols, model):
 
     if not zf.is_zipfile(zfile):
 
-        AmfLog.warning(f'The file {path} is not a valid archive')
+        AmfLog.warning(f'Cannot read archive {zfile}.')
         return None
    
     with zf.ZipFile(zfile) as z:
