@@ -192,7 +192,7 @@ def run(input_images):
 
     AmfPredict.run(input_images, postprocess=compare)
 
-    cnn = 'CNN%d' % (AmfConfig.get('level'))
+    cnn = os.path.basename(AmfConfig.get('model'))
     path = os.path.join(AmfConfig.get('outdir'), f'{cnn}_diagnostic.tsv')
 
     with open(path, 'w') as sf:
@@ -211,3 +211,5 @@ def run(input_images):
                         x = "NA" if x is None else x
                     
                         print(f'{typ}\t{cls}\t{x}')
+
+    print(f'* Diagnostic file: {path}')
