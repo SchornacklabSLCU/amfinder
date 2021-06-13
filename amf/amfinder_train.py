@@ -482,7 +482,7 @@ def data_augm(tile):
     """
 
     global img_index
-    num = random.randint(1, 5)
+    num = random.randint(1, 4)
 
     if num == 1:
 
@@ -494,22 +494,20 @@ def data_augm(tile):
 
     elif num == 3:
 
-        output = AmfImage.median_blur(tile)
-
-    elif num == 4:
-
         output = AmfImage.rotate_colours(tile)
 
     else:
 
         output = tile
 
-    # TODO: Add an option for this.
-    #if img_index < 99 and bool(random.getrandbits(1)):
-    #    im = Image.fromarray(output.astype(np.uint8))
-    #    img_index += 1
-    #    im.save(os.path.join(AmfConfig.get('outdir'), "tile_%06d.png" % (img_index)))
+    # May randomly save some augmented tiles.
+    if img_index < AmfConfig.get('save_augmented_tiles') \
+    and bool(random.getrandbits(1)):
 
+        im = Image.fromarray(output.astype(np.uint8))
+        img_index += 1
+        im.save(os.path.join(AmfConfig.get('outdir'),
+                'tile_%06d.png' % (img_index)))
 
     return output
 

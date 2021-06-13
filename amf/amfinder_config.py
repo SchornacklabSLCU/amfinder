@@ -74,6 +74,7 @@ PAR = {
     'epochs': 100,
     'vfrac': 15,
     'data_augm': False,
+    'save_augmented_tiles': 0,
     'summary': False,
     'patience': 12,
     'outdir': os.getcwd(),
@@ -237,6 +238,13 @@ def training_subparser(subparsers):
         action='store_true', dest='data_augm', default=x,
         help='apply data augmentation (hue, chroma, saturation, etc.)'
              '\nby default, data augmentation is not used.')
+
+    x = PAR['save_augmented_tiles']
+    parser.add_argument('-sa', '--save_augmented_tiles',
+        action='store', dest='save_augmented_tiles',
+        metavar='NUM', type=int, default=x,
+        help='save a subset of augmented tiles.'
+             '\nby default, does not save any tile.')
 
     x = PAR['summary']
     parser.add_argument('-s', '--summary',
