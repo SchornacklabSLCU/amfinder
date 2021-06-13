@@ -30,8 +30,6 @@ Functions
 ------------
 :function invert: invert colours.
 :function grayscale: convert an image to grayscale.
-:function median_blur: apply a median filer to all colour channels.
-:function sobel_edge_detection: detect edges using Sobel filter.
 :function rotate_colours: transform colours.
 
 """
@@ -58,20 +56,6 @@ def grayscale(tile):
 
     gray = np.dot(tile[...,:3], [0.2989, 0.5870, 0.1140])
     return np.stack((gray,) * 3, axis=-1)
-
-
-
-def median_blur(tile):
-    """
-    Applies a median filer to all colour channels.
-    """
-
-    ims = []
-    for d in range(3):
-        tmp = median_filter(tile[:,:,d], size=(17, 17))
-        ims.append(tmp)
-
-    return np.stack(ims, axis=2)
 
 
 
