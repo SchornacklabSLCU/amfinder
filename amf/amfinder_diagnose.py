@@ -27,13 +27,13 @@ performance.
 
 Global
 ------------
-:dict TRUE_POSITIVES: Dictionary containing the true positive counts.
-:dict TRUE_NEGATIVES: Dictionary containing the true negative counts.
+:dict SENSITIVITY: Dictionary containing the true positive counts.
+:dict SPECIFICITY: Dictionary containing the true negative counts.
 
 Functions
 ------------
 :function dict_of_header: Builds a dictionary using the active class header.
-:function initialize: Initialises TRUE_POSITIVES and TRUE_NEGATIVES.
+:function initialize: Initialises SENSITIVITY and SPECIFICITY.
 :function remove_coordinates: Removes columns 'row' and 'col' from a dataframe.
 :function as_annotations: Performs automatic conversions.
 
@@ -49,8 +49,9 @@ import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
 import amfinder_predict as AmfPredict
 
-TRUE_POSITIVES = {}
-TRUE_NEGATIVES = {}
+ACCURACY = {}
+SENSITIVITY = {}
+SPECIFICITY = {}
 
 
 
@@ -65,10 +66,12 @@ def dict_of_header():
 def initialize():
     """
     """
-    global TRUE_POSITIVES
-    global TRUE_NEGATIVES
-    TRUE_POSITIVES = dict_of_header()
-    TRUE_NEGATIVES = dict_of_header()
+    global ACCURACY
+    global SENSITIVITY
+    global SPECIFICITY
+    ACCURACY = dict_of_header()
+    SENSITIVITY = dict_of_header()
+    SPECIFICITY = dict_of_header()
 
 
 
@@ -121,10 +124,11 @@ def compare(preds, path):
     Compares annotations and computer predictions.
     """
 
-    global TRUE_POSITIVES
-    global TRUE_NEGATIVES
+    global ACCURACY
+    global SENSITIVITY
+    global SPECIFICITY
     
-    if len(TRUE_POSITIVES) == 0:
+    if len(SENSITIVITY) == 0:
     
         initialize()
     
@@ -142,10 +146,12 @@ def compare(preds, path):
 
         for cls in AmfConfig.get('header'):
        
-            p_count = 0
-            n_count = 0
-            tp_count = 0
-            tn_count = 0
+            p_count = 0     # positive annotation.
+            n_count = 0     # negative annotation.
+            tp_count = 0    # true positives.
+            tn_count = 0    # true negatives.
+            fp_count = 0    # false positives.
+            fn_count = 0    # false negatives.
         
             for a, p in zip(annot.itertuples(), preds.itertuples()):
             
@@ -157,6 +163,10 @@ def compare(preds, path):
                 
                         tp_count += 1
                     
+                    else:
+                    
+                        fn_count += 1
+                    
                 else:
                 
                     n_count += 1
@@ -164,15 +174,20 @@ def compare(preds, path):
                     if getattr(p, cls) == 0:
                 
                         tn_count += 1
+                        
+                    else:
+                    
+                        fp_count += 1
 
-            TRUE_POSITIVES[cls].append(None if p_count == 0 else tp_count / p_count)
-            TRUE_NEGATIVES[cls].append(None if n_count == 0 else tn_count / n_count)
-    
+            ACCURACY[cls].append(None if p_count + n_count == 0 else (tp_count + tn_count) / (p_count + n_count))
+            SENSITIVITY[cls].append(None if p_count == 0 else tp_count / (tp_count + fn_count))
+            SPECIFICITY[cls].append(None if n_count == 0 else tn_count / (tn_count + fp_count))
+
 
 
 def run(input_images):
     """
-    
+    Print neural network diagnostic.
     """
 
     AmfPredict.run(input_images, postprocess=compare)
@@ -186,7 +201,8 @@ def run(input_images):
 
             print('Group\tClass\tPercentage')
 
-            for typ, dic in zip(["TP", "TN"], [TRUE_POSITIVES, TRUE_NEGATIVES]):
+            for typ, dic in zip(['Accuracy', 'Sensitivity', 'Specificity'],
+                                [ACCURACY, SENSITIVITY, SPECIFICITY]):
             
                 for cls in AmfConfig.get('header'):
                 
