@@ -33,9 +33,14 @@ Global
 Functions
 ------------
 :function dict_of_header: Builds a dictionary using the active class header.
-:function initialize: Initialises SENSITIVITY and SPECIFICITY.
+:function get_index: Convert an integer list to string.
+:function initialise: Initialises SENSITIVITY and SPECIFICITY.
 :function remove_coordinates: Removes columns 'row' and 'col' from a dataframe.
 :function as_annotations: Performs automatic conversions.
+:function safe_ratio: Compute x/y if y != 0, or return NaN.
+:function compare: Compare computer predictions to annotations for an image.
+:function plot_confusion_matrix: Plot and save a confusion matrix.
+:function run: Perform diagnostic analysis of the given network.
 
 """
 
@@ -49,6 +54,18 @@ import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
 import amfinder_predict as AmfPredict
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+
+METRICS = ['Accuracy', 'Sensitivity', 'Specificity']
+STRING_INDICES = ['0', '1', '3','01', '03', '13', '013']
+
+LEVEL_1_TICKS = list(range(0, 3))
+LEVEL_2_TICKS = list(range(0, 7))
+LEVEL_1_LABELS = ['M+', 'M−', 'Other']
+LEVEL_2_LABELS = ['A', 'V', 'I', 'AV', 'AI', 'VI', 'AVI']
+
+MATRIX = None
 ACCURACY = {}
 SENSITIVITY = {}
 SPECIFICITY = {}
@@ -63,12 +80,47 @@ def dict_of_header():
 
 
 
-def initialize():
+def get_index(t):
     """
+    Convert an integer list to string.
     """
+
+    if len(t) == 0:
+    
+        return None
+
+    else:
+
+        # Remove hyphopodia. This will be removed once we
+        # acquire enough images to train AMFinder.
+        t = np.setdiff1d(t, np.array([2]))
+
+        elt = ''.join(map(str, t))
+
+        return STRING_INDICES.index(elt)
+
+
+
+def initialise():
+    """
+    Initialise dictionaries and confusion matrix.
+    """
+
+    global MATRIX
     global ACCURACY
     global SENSITIVITY
     global SPECIFICITY
+
+    nclasses = len(AmfConfig.get('header'))
+    
+    if AmfConfig.get('level') == 1:
+        
+        MATRIX = [np.zeros(nclasses) for _ in range(0, nclasses)]
+        
+    else:
+    
+        MATRIX = [np.zeros(7) for _ in range(0, 7)]
+        
     ACCURACY = dict_of_header()
     SENSITIVITY = dict_of_header()
     SPECIFICITY = dict_of_header()
@@ -119,18 +171,26 @@ def as_annotations(preds, threshold=0.5):
 
 
 
+def safe_ratio(x, y):
+
+    return float('nan') if y == 0 else x / y
+
+
+
 def compare(preds, path):
     """
-    Compares annotations and computer predictions.
+    Compare annotations and computer predictions.
+    This is the continuation function to be passed to AmfPredict.run
     """
 
+    global MATRIX
     global ACCURACY
     global SENSITIVITY
     global SPECIFICITY
     
-    if len(SENSITIVITY) == 0:
+    if MATRIX is None:
     
-        initialize()
+        initialise()
     
     annot = AmfTrain.import_annotations(path)
 
@@ -144,44 +204,152 @@ def compare(preds, path):
         annot = remove_coordinates(annot)
         preds = as_annotations(preds)
 
-        for cls in AmfConfig.get('header'):
-       
-            p_count = 0     # positive annotation.
-            n_count = 0     # negative annotation.
-            tp_count = 0    # true positives.
-            tn_count = 0    # true negatives.
-            fp_count = 0    # false positives.
-            fn_count = 0    # false negatives.
+        # Convert tables to one-hot encoded vectors.
+        annot_hot = annot.values.tolist()
+        preds_hot = preds.values.tolist()
+
+        if AmfConfig.get('level') == 1:
         
-            for a, p in zip(annot.itertuples(), preds.itertuples()):
+            # Get indices of active classes.        
+            annot_bin = np.argmax(annot_hot, axis=1)
+            preds_bin = np.argmax(preds_hot, axis=1)
+
+        else:
+
+            # Get indices of all non-zero classes.
+            annot_bin = [np.nonzero(x)[0] for x in annot_hot]
+            preds_bin = [np.nonzero(x)[0] for x in preds_hot]
+
+
+        nclasses = len(AmfConfig.get('header'))
+        tp_count = [0] * nclasses   # True positives.
+        fp_count = [0] * nclasses   # False positives.
+        tn_count = [0] * nclasses   # True negatives.
+        fn_count = [0] * nclasses   # False negatives.
+       
+        for a, p in zip(annot_bin, preds_bin):
+               
+            if AmfConfig.get('level') == 1:
+       
+                MATRIX[a][p] += 1
             
-                if getattr(a, cls) == 1:
+                if p == a:
                 
-                    p_count += 1
-                
-                    if getattr(p, cls) == 1:
-                
-                        tp_count += 1
+                    tp_count[p] += 1
+                                        
+                    for x in range(0, nclasses):
                     
-                    else:
-                    
-                        fn_count += 1
+                        if x != p:
+                        
+                            tn_count[x] += 1
                     
                 else:
                 
-                    n_count += 1
-                
-                    if getattr(p, cls) == 0:
-                
-                        tn_count += 1
-                        
-                    else:
-                    
-                        fp_count += 1
+                    # The predicted class is a false positive.
+                    fp_count[p] += 1
+                    # The expected class (annotation) is a false negative.
+                    fn_count[a] += 1
+                    # The remaining class (neither p nor a) is a true negative.
+                    tn_count[3 - p - a] += 1
 
-            ACCURACY[cls].append(None if p_count + n_count == 0 else (tp_count + tn_count) / (p_count + n_count))
-            SENSITIVITY[cls].append(None if p_count == 0 else tp_count / (tp_count + fn_count))
-            SPECIFICITY[cls].append(None if n_count == 0 else tn_count / (tn_count + fp_count))
+            else:
+                     
+                a_idx = get_index(a)
+                p_idx = get_index(p)
+                
+                # In some rare cases, computer predictions are
+                # all < 0.5, resulting in empty prediction set.
+                # Also, some cells may have received no annotation. 
+                if a_idx is not None and p_idx is not None:
+                     
+                    MATRIX[a_idx][p_idx] += 1
+
+                for i in range(0, nclasses):
+        
+                    if i in p: # class <i> is part of predictions.
+                    
+                        if i in a: # class <i> is part of expected annotations.
+                    
+                            tp_count[i] += 1
+                            
+                        else:
+                        
+                            fp_count[i] += 1
+                
+                    else: # class <i> is not part of predictions.
+                    
+                        if i in a: # class <i> is part of expected annotations.
+                        
+                            fn_count[i] += 1
+                            
+                        else:
+                        
+                            tn_count[i] += 1
+
+
+        for x, k in enumerate(AmfConfig.get('header')):
+                  
+            ACCURACY[k].append(safe_ratio(tp_count[x] + tn_count[x],
+                                          tp_count[x] + fp_count[x] +
+                                          tn_count[x] + fn_count[x]))
+
+            SENSITIVITY[k].append(safe_ratio(tp_count[x],
+                                             tp_count[x] + fn_count[x]))
+
+            SPECIFICITY[k].append(safe_ratio(tn_count[x],
+                                             tn_count[x] + fp_count[x]))
+
+
+
+def plot_confusion_matrix(cnn):
+    """
+    Generate and save a confusion matrix from the given counts.
+    """
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    cax = plt.imshow(MATRIX, cmap='cool')
+    fig.colorbar(cax)
+
+    plt.title(f'{cnn}', fontsize=16)
+    plt.xlabel('Annotations', fontsize=14, fontweight='bold')
+    plt.ylabel('Predictions', fontsize=14, fontweight='bold')
+
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
+    
+    if AmfConfig.get('level') == 1:
+
+        ax.set_xticks(LEVEL_1_TICKS)
+        ax.set_yticks(LEVEL_1_TICKS)
+        ax.set_xticklabels(LEVEL_1_LABELS)
+        ax.set_yticklabels(LEVEL_1_LABELS)
+
+    else:
+    
+        # Rotating X-axis labels for improved readability.
+        # This is useful when using 4 annotation classes.
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+
+        ax.set_xticks(LEVEL_2_TICKS)
+        ax.set_yticks(LEVEL_2_TICKS)
+        ax.set_xticklabels(LEVEL_2_LABELS)
+        ax.set_yticklabels(LEVEL_2_LABELS)
+
+    for (i, j), z in np.ndenumerate(MATRIX):
+
+        ax.text(j, i, '{:d}'.format(int(z)),
+                ha='center',
+                va='center',
+                fontsize=8,
+                color='black')
+
+    path = os.path.join(AmfConfig.get('outdir'), f'{cnn}_confusion_matrix.jpg')
+    plt.savefig(path, dpi=300, pil_kwargs={'quality': 100})
+
+    print(f'* Confusion matrix: {path}')
 
 
 
@@ -201,8 +369,9 @@ def run(input_images):
 
             print('Group\tClass\tPercentage')
 
-            for typ, dic in zip(['Accuracy', 'Sensitivity', 'Specificity'],
-                                [ACCURACY, SENSITIVITY, SPECIFICITY]):
+            for typ, dic in zip(METRICS, [ACCURACY, 
+                                          SENSITIVITY,
+                                          SPECIFICITY]):
             
                 for cls in AmfConfig.get('header'):
                 
@@ -211,5 +380,26 @@ def run(input_images):
                         x = "NA" if x is None else x
                     
                         print(f'{typ}\t{cls}\t{x}')
+   
+    # Print a quick summary with average values.
+    
+    print('* Average values')
+    
+    for metric, data in zip(METRICS, [ACCURACY,
+                                      SENSITIVITY,
+                                      SPECIFICITY]):
+
+        print(f'  {metric}')
+
+        for cls in AmfConfig.get('header'):
+
+            avg = np.nanmean(data[cls])
+
+            print('  - Class %s: %.4f' % (cls, avg))
 
     print(f'* Diagnostic file: {path}')
+
+    # No confusion matrix in level 2.        
+    if AmfConfig.get('level') == 1 or True:
+
+        plot_confusion_matrix(cnn)
