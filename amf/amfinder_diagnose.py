@@ -22,7 +22,7 @@
 # IN THE SOFTWARE.
 
 """
-Computes diagnostic metrics (precision and specificity) to assess network 
+Computes diagnostic metrics (precision and specificity) to assess network
 performance.
 
 Global
@@ -86,7 +86,7 @@ def get_index(t):
     """
 
     if len(t) == 0:
-    
+
         return None
 
     else:
@@ -112,15 +112,15 @@ def initialise():
     global SPECIFICITY
 
     nclasses = len(AmfConfig.get('header'))
-    
+
     if AmfConfig.get('level') == 1:
-        
+
         MATRIX = [np.zeros(nclasses) for _ in range(0, nclasses)]
-        
+
     else:
-    
+
         MATRIX = [np.zeros(7) for _ in range(0, 7)]
-        
+
     ACCURACY = dict_of_header()
     SENSITIVITY = dict_of_header()
     SPECIFICITY = dict_of_header()
@@ -130,7 +130,7 @@ def initialise():
 def remove_coordinates(df):
     """
     Removes columns 'row' and 'col' from a dataframe.
-    
+
     :param df: the dataframe to process.
     :return: a processed dataframe.
     :retype: Pandas dataframe.
@@ -145,7 +145,7 @@ def as_annotations(preds, threshold=0.5):
     Perform automatic conversion of predictions to annotations.
     Level 1: the highest value is used as annotation.
     Level 2: any value >= 0.5 is considered as annotation.
-    
+
     :param preds: prediction table.
     :param threshold: threshold for level 2 conversions (default: 0.5).
     :return: an annotation table.
@@ -164,7 +164,7 @@ def as_annotations(preds, threshold=0.5):
 
     else: # AmfConfig.get('level') == 2:
 
-        conv = np.where(preds >= threshold, 1, 0)    
+        conv = np.where(preds >= threshold, 1, 0)
 
     conv = conv.astype(np.uint8)
     return pd.DataFrame(data=conv, columns=AmfConfig.get('header'))
@@ -187,15 +187,15 @@ def compare(preds, path):
     global ACCURACY
     global SENSITIVITY
     global SPECIFICITY
-    
+
     if MATRIX is None:
-    
+
         initialise()
-    
+
     annot = AmfTrain.import_annotations(path)
 
     if annot is None:
-    
+
         base = os.path.basename(path)
         AmfLog.warning('Image {base} has no annotations')
 
@@ -209,8 +209,8 @@ def compare(preds, path):
         preds_hot = preds.values.tolist()
 
         if AmfConfig.get('level') == 1:
-        
-            # Get indices of active classes.        
+
+            # Get indices of active classes.
             annot_bin = np.argmax(annot_hot, axis=1)
             preds_bin = np.argmax(preds_hot, axis=1)
 
@@ -226,25 +226,25 @@ def compare(preds, path):
         fp_count = [0] * nclasses   # False positives.
         tn_count = [0] * nclasses   # True negatives.
         fn_count = [0] * nclasses   # False negatives.
-       
+
         for a, p in zip(annot_bin, preds_bin):
-               
+
             if AmfConfig.get('level') == 1:
-       
+
                 MATRIX[a][p] += 1
-            
+
                 if p == a:
-                
+
                     tp_count[p] += 1
-                                        
+
                     for x in range(0, nclasses):
-                    
+
                         if x != p:
-                        
+
                             tn_count[x] += 1
-                    
+
                 else:
-                
+
                     # The predicted class is a false positive.
                     fp_count[p] += 1
                     # The expected class (annotation) is a false negative.
@@ -253,42 +253,42 @@ def compare(preds, path):
                     tn_count[3 - p - a] += 1
 
             else:
-                     
+
                 a_idx = get_index(a)
                 p_idx = get_index(p)
-                
+
                 # In some rare cases, computer predictions are
                 # all < 0.5, resulting in empty prediction set.
-                # Also, some cells may have received no annotation. 
+                # Also, some cells may have received no annotation.
                 if a_idx is not None and p_idx is not None:
-                     
+
                     MATRIX[a_idx][p_idx] += 1
 
                 for i in range(0, nclasses):
-        
+
                     if i in p: # class <i> is part of predictions.
-                    
+
                         if i in a: # class <i> is part of expected annotations.
-                    
+
                             tp_count[i] += 1
-                            
+
                         else:
-                        
+
                             fp_count[i] += 1
-                
+
                     else: # class <i> is not part of predictions.
-                    
+
                         if i in a: # class <i> is part of expected annotations.
-                        
+
                             fn_count[i] += 1
-                            
+
                         else:
-                        
+
                             tn_count[i] += 1
 
 
         for x, k in enumerate(AmfConfig.get('header')):
-                  
+
             ACCURACY[k].append(safe_ratio(tp_count[x] + tn_count[x],
                                           tp_count[x] + fp_count[x] +
                                           tn_count[x] + fn_count[x]))
@@ -318,7 +318,7 @@ def plot_confusion_matrix(cnn):
 
     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
-    
+
     if AmfConfig.get('level') == 1:
 
         ax.set_xticks(LEVEL_1_TICKS)
@@ -327,7 +327,7 @@ def plot_confusion_matrix(cnn):
         ax.set_yticklabels(LEVEL_1_LABELS)
 
     else:
-    
+
         # Rotating X-axis labels for improved readability.
         # This is useful when using 4 annotation classes.
         plt.xticks(rotation=90)
@@ -369,22 +369,22 @@ def run(input_images):
 
             print('Group\tClass\tPercentage')
 
-            for typ, dic in zip(METRICS, [ACCURACY, 
+            for typ, dic in zip(METRICS, [ACCURACY,
                                           SENSITIVITY,
                                           SPECIFICITY]):
-            
+
                 for cls in AmfConfig.get('header'):
-                
+
                     for x in dic[cls]:
-                        
+
                         x = "NA" if x is None else x
-                    
+
                         print(f'{typ}\t{cls}\t{x}')
-   
+
     # Print a quick summary with average values.
-    
+
     print('* Average values')
-    
+
     for metric, data in zip(METRICS, [ACCURACY,
                                       SENSITIVITY,
                                       SPECIFICITY]):
@@ -399,7 +399,7 @@ def run(input_images):
 
     print(f'* Diagnostic file: {path}')
 
-    # No confusion matrix in level 2.        
+    # No confusion matrix in level 2.
     if AmfConfig.get('level') == 1 or True:
 
         plot_confusion_matrix(cnn)
