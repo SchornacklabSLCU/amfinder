@@ -47,6 +47,7 @@ Functions
 import os
 import numpy as np
 import pandas as pd
+from PIL import Image
 from contextlib import redirect_stdout
 
 import amfinder_log as AmfLog
@@ -57,6 +58,9 @@ import amfinder_predict as AmfPredict
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
+import amfinder_segmentation as AmfSegm
+
+ID = 0
 METRICS = ['Accuracy', 'Sensitivity', 'Specificity']
 STRING_INDICES = ['0', '1', '3','01', '03', '13', '013']
 
@@ -146,7 +150,6 @@ def as_annotations(preds, threshold=0.5):
     :rtype: Pandas dataframe.
     """
 
-
     preds = remove_coordinates(preds)
     preds = preds.to_numpy()
 
@@ -171,12 +174,13 @@ def safe_ratio(x, y):
 
 
 
-def compare(preds, path):
+def compare(image, preds, path):
     """
     Compare annotations and computer predictions.
     This is the continuation function to be passed to AmfPredict.run
     """
 
+    global ID
     global MATRIX
     global ACCURACY
     global SENSITIVITY
@@ -195,6 +199,7 @@ def compare(preds, path):
 
     else:
 
+        coord = preds[['row', 'col']]
         annot = remove_coordinates(annot)
         preds = as_annotations(preds)
 
@@ -221,7 +226,7 @@ def compare(preds, path):
         tn_count = [0] * nclasses   # True negatives.
         fn_count = [0] * nclasses   # False negatives.
 
-        for a, p in zip(annot_bin, preds_bin):
+        for a, p, rc in zip(annot_bin, preds_bin, coord.values.tolist()):
 
             if AmfConfig.get('level') == 1:
 
@@ -239,6 +244,13 @@ def compare(preds, path):
 
                 else:
 
+                    # Deactivated for the moment.
+                    #ID += 1
+                    #tile = AmfSegm.tile(image, rc[0], rc[1])
+                    #pimg = Image.fromarray(tile)
+                    #pimg.save(os.path.join(AmfConfig.get('outdir'),
+                    #          f'mispredicted/p{p}a{a}_{ID:06d}.png'))
+
                     # The predicted class is a false positive.
                     fp_count[p] += 1
                     # The expected class (annotation) is a false negative.
@@ -250,6 +262,17 @@ def compare(preds, path):
 
                 a_idx = get_index(a)
                 p_idx = get_index(p)
+
+                # Deactivated for the moment.
+                #if a_idx != p_idx:
+                
+                #    ID += 1
+                #    tile = AmfSegm.tile(image, rc[0], rc[1])
+                #    pimg = Image.fromarray(tile)
+                #    a_lbl = '0' if a_idx is None else LEVEL_2_LABELS[a_idx]
+                #    p_lbl = '0' if p_idx is None else LEVEL_2_LABELS[p_idx]
+                #    pimg.save(os.path.join(AmfConfig.get('outdir'),
+                #              f'mispredicted/p{p_lbl}a{a_lbl}_{ID:06d}.png'))
 
                 # In some rare cases, computer predictions are
                 # all < 0.5, resulting in empty prediction set.

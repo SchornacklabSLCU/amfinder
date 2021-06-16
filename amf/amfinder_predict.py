@@ -320,4 +320,4 @@ def run(input_images, postprocess=None):
                 
             else:
             
-                postprocess(table, path)
+                postprocess(image, table, path)
