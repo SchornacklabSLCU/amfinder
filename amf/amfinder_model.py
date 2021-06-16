@@ -199,13 +199,13 @@ def load(name=None):
 
     if path is not None and os.path.isfile(path):
     
-        print(f'* Pre-trained network: {path}')
+        print(f'* Trained model: {path}')
         model = keras.models.load_model(path)
 
         if model.name == CNN1_NAME:
 
             AmfConfig.set('level', 1)
-            print('* Classes: colonised (M+), non-colonised (M-), other (X).')
+            print('* Classes: colonised (M+), non-colonised (M−), background (Other).')
 
         else: # elif model.name == CNN2_NAME
 

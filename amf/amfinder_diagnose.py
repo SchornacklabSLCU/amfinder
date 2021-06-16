@@ -22,8 +22,8 @@
 # IN THE SOFTWARE.
 
 """
-Computes diagnostic metrics (precision and specificity) to assess network
-performance.
+Compute diagnostic metrics (accuracy, sensitivity, and specificity) and 
+confusion matrices to assess network performance.
 
 Global
 ------------
@@ -32,7 +32,9 @@ Global
 
 Functions
 ------------
+:function text_of_list: Convert a string list to multiline text.
 :function dict_of_header: Builds a dictionary using the active class header.
+:function save_mispredicted_tile: Save a subset of mispredicted tiles.
 :function get_index: Convert an integer list to string.
 :function initialise: Initialises SENSITIVITY and SPECIFICITY.
 :function remove_coordinates: Removes columns 'row' and 'col' from a dataframe.
@@ -44,36 +46,46 @@ Functions
 
 """
 
+import io
 import os
 import numpy as np
 import pandas as pd
+import zipfile as zf
 from PIL import Image
 from contextlib import redirect_stdout
 
 import amfinder_log as AmfLog
+import amfinder_save as AmfSave
 import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
 import amfinder_predict as AmfPredict
+import amfinder_segmentation as AmfSegm
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-import amfinder_segmentation as AmfSegm
-
-ID = 0
+# Constants.
 METRICS = ['Accuracy', 'Sensitivity', 'Specificity']
 STRING_INDICES = ['0', '1', '3','01', '03', '13', '013']
+TICKS = [list(range(0, 3)), list(range(0, 7))]
+LABELS = [['M+', 'M−', 'Other'],
+          ['A', 'V', 'I', 'AV', 'AI', 'VI', 'AVI']]
 
-LEVEL_1_TICKS = list(range(0, 3))
-LEVEL_2_TICKS = list(range(0, 7))
-LEVEL_1_LABELS = ['M+', 'M−', 'Other']
-LEVEL_2_LABELS = ['A', 'V', 'I', 'AV', 'AI', 'VI', 'AVI']
-
+# Global variables.
+Z = None
+ID = {}
 MATRIX = None
 ACCURACY = {}
 SENSITIVITY = {}
 SPECIFICITY = {}
 
+
+
+def text_of_list(t):
+    """
+    Convert a string list to multiline text.
+    """
+    return '\n'.join(t)
 
 
 def dict_of_header():
@@ -104,24 +116,36 @@ def initialise():
     Initialise dictionaries and confusion matrix.
     """
 
+    global Z
+    global ID
     global MATRIX
     global ACCURACY
     global SENSITIVITY
     global SPECIFICITY
 
-    nclasses = len(AmfConfig.get('header'))
+    # Initialise confusion matrices and tile counters.
+    labels = LABELS[0]
+    classes = 3
 
-    if AmfConfig.get('level') == 1:
+    if AmfConfig.get('level') == 2:
 
-        MATRIX = [np.zeros(nclasses) for _ in range(0, nclasses)]
+        labels = LABELS[1]
+        classes = 7
 
-    else:
+    ID = {x : 0 for x in labels}
+    MATRIX = [np.zeros(classes) for _ in range(0, classes)]
 
-        MATRIX = [np.zeros(7) for _ in range(0, 7)]
-
+    # Initialise metrics.
     ACCURACY = dict_of_header()
     SENSITIVITY = dict_of_header()
     SPECIFICITY = dict_of_header()
+
+    # Initialise archive.
+    now = AmfSave.now()
+    cnn = os.path.basename(AmfConfig.get('model'))
+    zipf = f'{now}_{cnn}_diagnostic.zip'
+    zipf = os.path.join(AmfConfig.get('outdir'), zipf)
+    Z = zf.ZipFile(zipf, 'w')
 
 
 
@@ -174,12 +198,36 @@ def safe_ratio(x, y):
 
 
 
+def save_mispredicted_tile(image, a, p, rc, samples_per_class=100):
+    """
+    Save a subset of mispredicted tiles.
+    """
+    global ID
+
+    level = AmfConfig.get('level')
+
+    a = None if a is None else LABELS[level - 1][a]
+    p = None if p is None else LABELS[level - 1][p]
+
+    if p is not None and a is not None and ID[p] < samples_per_class:
+    
+        ID[p] += 1
+        num = ID[p]
+        img = Image.fromarray(AmfSegm.tile(image, rc[0], rc[1]))
+        byt = io.BytesIO()   
+        img.save(byt, 'PNG')
+        path = f'mispredicted_tiles/p{p}_a{a}_{num:06d}.png'
+        Z.writestr(path, byt.getvalue())
+
+
+
 def compare(image, preds, path):
     """
     Compare annotations and computer predictions.
     This is the continuation function to be passed to AmfPredict.run
     """
 
+    global Z
     global ID
     global MATRIX
     global ACCURACY
@@ -244,12 +292,7 @@ def compare(image, preds, path):
 
                 else:
 
-                    # Deactivated for the moment.
-                    #ID += 1
-                    #tile = AmfSegm.tile(image, rc[0], rc[1])
-                    #pimg = Image.fromarray(tile)
-                    #pimg.save(os.path.join(AmfConfig.get('outdir'),
-                    #          f'mispredicted/p{p}a{a}_{ID:06d}.png'))
+                    save_mispredicted_tile(image, a, p, rc)
 
                     # The predicted class is a false positive.
                     fp_count[p] += 1
@@ -263,16 +306,9 @@ def compare(image, preds, path):
                 a_idx = get_index(a)
                 p_idx = get_index(p)
 
-                # Deactivated for the moment.
-                #if a_idx != p_idx:
-                
-                #    ID += 1
-                #    tile = AmfSegm.tile(image, rc[0], rc[1])
-                #    pimg = Image.fromarray(tile)
-                #    a_lbl = '0' if a_idx is None else LEVEL_2_LABELS[a_idx]
-                #    p_lbl = '0' if p_idx is None else LEVEL_2_LABELS[p_idx]
-                #    pimg.save(os.path.join(AmfConfig.get('outdir'),
-                #              f'mispredicted/p{p_lbl}a{a_lbl}_{ID:06d}.png'))
+                if a_idx != p_idx:
+
+                    save_mispredicted_tile(image, a_idx, p_idx, rc)
 
                 # In some rare cases, computer predictions are
                 # all < 0.5, resulting in empty prediction set.
@@ -329,6 +365,7 @@ def plot_confusion_matrix(cnn):
     cax = plt.imshow(MATRIX, cmap='cool')
     fig.colorbar(cax)
 
+    # Title and axes titles.
     plt.title(f'{cnn}', fontsize=16)
     plt.xlabel('Annotations', fontsize=14, fontweight='bold')
     plt.ylabel('Predictions', fontsize=14, fontweight='bold')
@@ -336,25 +373,15 @@ def plot_confusion_matrix(cnn):
     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
 
-    if AmfConfig.get('level') == 1:
+    level = AmfConfig.get('level') == 1
 
-        ax.set_xticks(LEVEL_1_TICKS)
-        ax.set_yticks(LEVEL_1_TICKS)
-        ax.set_xticklabels(LEVEL_1_LABELS)
-        ax.set_yticklabels(LEVEL_1_LABELS)
+    # Ticks and labels.
+    ax.set_xticks(TICKS[level - 1])
+    ax.set_yticks(TICKS[level - 1])
+    ax.set_xticklabels(LABELS[level - 1])
+    ax.set_yticklabels(LABELS[level - 1])
 
-    else:
-
-        # Rotating X-axis labels for improved readability.
-        # This is useful when using 4 annotation classes.
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-
-        ax.set_xticks(LEVEL_2_TICKS)
-        ax.set_yticks(LEVEL_2_TICKS)
-        ax.set_xticklabels(LEVEL_2_LABELS)
-        ax.set_yticklabels(LEVEL_2_LABELS)
-
+    # Display values within the confusion matrix.
     for (i, j), z in np.ndenumerate(MATRIX):
 
         ax.text(j, i, '{:d}'.format(int(z)),
@@ -363,10 +390,10 @@ def plot_confusion_matrix(cnn):
                 fontsize=8,
                 color='black')
 
-    path = os.path.join(AmfConfig.get('outdir'), f'{cnn}_confusion_matrix.jpg')
-    plt.savefig(path, dpi=300, pil_kwargs={'quality': 100})
-
-    print(f'* Confusion matrix: {path}')
+    path = os.path.join(AmfConfig.get('outdir'), )
+    byt = io.BytesIO()      
+    plt.savefig(byt, format='jpg', dpi=300, pil_kwargs={'quality': 100})
+    Z.writestr(f'{cnn}_confusion_matrix.jpg', byt.getvalue())
 
 
 
@@ -378,45 +405,40 @@ def run(input_images):
     AmfPredict.run(input_images, postprocess=compare)
 
     cnn = os.path.basename(AmfConfig.get('model'))
-    path = os.path.join(AmfConfig.get('outdir'), f'{cnn}_diagnostic.tsv')
 
-    with open(path, 'w') as sf:
+    # Metrics data.
+    buffer = ['Group\tClass\tPercentage']
+    for typ, dic in zip(METRICS, [ACCURACY,
+                                  SENSITIVITY,
+                                  SPECIFICITY]):
 
-        with redirect_stdout(sf):
+        for cls in AmfConfig.get('header'):
 
-            print('Group\tClass\tPercentage')
+            for x in dic[cls]:
 
-            for typ, dic in zip(METRICS, [ACCURACY,
-                                          SENSITIVITY,
-                                          SPECIFICITY]):
+                x = "NA" if x is None else x
 
-                for cls in AmfConfig.get('header'):
+                buffer.append(f'{typ}\t{cls}\t{x}')
 
-                    for x in dic[cls]:
+    Z.writestr(f'{cnn}_metrics.tsv', text_of_list(buffer))
 
-                        x = "NA" if x is None else x
-
-                        print(f'{typ}\t{cls}\t{x}')
-
-    # Print a quick summary with average values.
-
-    print('* Average values')
-
+    # Simple report with average values.
+    buffer = ['Average values']
     for metric, data in zip(METRICS, [ACCURACY,
                                       SENSITIVITY,
                                       SPECIFICITY]):
 
-        print(f'  {metric}')
+        buffer.append(f'* {metric}')
 
         for cls in AmfConfig.get('header'):
 
             avg = np.nanmean(data[cls])
+            buffer.append(f'  Class {cls}: {avg:.4f}')
 
-            print('  - Class %s: %.4f' % (cls, avg))
+    Z.writestr(f'{cnn}_report.txt', text_of_list(buffer))
 
-    print(f'* Diagnostic file: {path}')
+    # Confusion matrix.
+    plot_confusion_matrix(cnn)
 
-    # No confusion matrix in level 2.
-    if AmfConfig.get('level') == 1 or True:
-
-        plot_confusion_matrix(cnn)
+    print('* Diagnostic data: {}'.format(Z.filename))
+    Z.close()
