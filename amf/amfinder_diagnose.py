@@ -85,19 +85,13 @@ def get_index(t):
     Convert an integer list to string.
     """
 
-    if len(t) == 0:
+    # Remove hyphopodia. This will be removed once we
+    # acquire enough images to train AMFinder.
+    t = np.setdiff1d(t, np.array([2]))
 
-        return None
+    elt = ''.join(map(str, t))
 
-    else:
-
-        # Remove hyphopodia. This will be removed once we
-        # acquire enough images to train AMFinder.
-        t = np.setdiff1d(t, np.array([2]))
-
-        elt = ''.join(map(str, t))
-
-        return STRING_INDICES.index(elt)
+    return None if len(elt) == 0 else STRING_INDICES.index(elt)
 
 
 
