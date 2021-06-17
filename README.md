@@ -69,7 +69,7 @@ For training, run in a terminal `amf train <parameters> <images>` where `<parame
 |Short|Long|Description|Default value|
 |-|-|-|-|
 |`-net CNN`|`--network CNN`|Use network `CNN`.|*ab initio* training|
-|`-b N`|`batch_size N`|Use a batch size of `N` tiles.|N = 32|
+|`-b N`|`--batch_size N`|Use a batch size of `N` tiles.|N = 32|
 |`-k`|`--keep_background`|Do not skip any background tile.|False|
 |`-a`|`--data_augmentation`|Activate data augmentation.|False|
 |`-s`|`--summary`|Save CNN architecture and graph.|False|
@@ -107,8 +107,11 @@ deactivate
 
 ### Installation instructions<a name="amfbrowseronlinux"></a>
 
-**Note:** As a graphical interface, `amfbrowser` cannot be installed on a
-text-based system such as an HPC.
+**Note:** As a graphical interface, `amfbrowser` **cannot** be installed on a
+text-based system such as an HPC. Ready-to-use binaries are available. Windows
+users can use the linux version once [Windows Subsystem for Linux
+(WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10) has been 
+activated.
 
 #### Linux
 
