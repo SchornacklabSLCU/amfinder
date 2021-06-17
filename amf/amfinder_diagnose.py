@@ -66,7 +66,7 @@ import matplotlib.ticker as ticker
 
 # Constants.
 METRICS = ['Accuracy', 'Sensitivity', 'Specificity']
-STRING_INDICES = ['0', '1', '3','01', '03', '13', '013']
+STRING_INDICES = ['0', '1', '3', '01', '03', '13', '013']
 TICKS = [list(range(0, 3)), list(range(0, 7))]
 LABELS = [['M+', 'M−', 'Other'],
           ['A', 'V', 'I', 'AV', 'AI', 'VI', 'AVI']]
