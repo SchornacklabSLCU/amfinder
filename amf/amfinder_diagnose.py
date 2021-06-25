@@ -79,6 +79,10 @@ ACCURACY = {}
 SENSITIVITY = {}
 SPECIFICITY = {}
 
+TP_COUNT = None
+TN_COUNT = None
+FP_COUNT = None
+FN_COUNT = None
 
 
 def text_of_list(t):
@@ -122,6 +126,17 @@ def initialise():
     global ACCURACY
     global SENSITIVITY
     global SPECIFICITY
+    
+    global TP_COUNT
+    global TN_COUNT
+    global FP_COUNT
+    global FN_COUNT
+    
+    nclasses = len(AmfConfig.get('header'))
+    TP_COUNT = [0] * nclasses   # True positives.
+    FP_COUNT = [0] * nclasses   # False positives.
+    TN_COUNT = [0] * nclasses   # True negatives.
+    FN_COUNT = [0] * nclasses   # False negatives.
 
     # Initialise confusion matrices and tile counters.
     labels = LABELS[0]
@@ -198,7 +213,7 @@ def safe_ratio(x, y):
 
 
 
-def save_mispredicted_tile(image, a, p, rc, samples_per_class=100):
+def save_mispredicted_tile(image, a, p, rc, samples_per_class=-1):
     """
     Save a subset of mispredicted tiles.
     """
@@ -209,7 +224,8 @@ def save_mispredicted_tile(image, a, p, rc, samples_per_class=100):
     a = None if a is None else LABELS[level - 1][a]
     p = None if p is None else LABELS[level - 1][p]
 
-    if p is not None and a is not None and ID[p] < samples_per_class:
+    if p is not None and a is not None and \
+       (samples_per_class <= 0 or ID[p] < samples_per_class):
     
         ID[p] += 1
         num = ID[p]
@@ -233,6 +249,12 @@ def compare(image, preds, path):
     global ACCURACY
     global SENSITIVITY
     global SPECIFICITY
+
+    global TP_COUNT
+    global TN_COUNT
+    global FP_COUNT
+    global FN_COUNT
+
 
     if MATRIX is None:
 
@@ -267,12 +289,7 @@ def compare(image, preds, path):
             annot_bin = [np.nonzero(x)[0] for x in annot_hot]
             preds_bin = [np.nonzero(x)[0] for x in preds_hot]
 
-
         nclasses = len(AmfConfig.get('header'))
-        tp_count = [0] * nclasses   # True positives.
-        fp_count = [0] * nclasses   # False positives.
-        tn_count = [0] * nclasses   # True negatives.
-        fn_count = [0] * nclasses   # False negatives.
 
         for a, p, rc in zip(annot_bin, preds_bin, coord.values.tolist()):
 
@@ -282,24 +299,24 @@ def compare(image, preds, path):
 
                 if p == a:
 
-                    tp_count[p] += 1
+                    TP_COUNT[p] += 1
 
                     for x in range(0, nclasses):
 
                         if x != p:
 
-                            tn_count[x] += 1
+                            TN_COUNT[x] += 1
 
                 else:
 
                     save_mispredicted_tile(image, a, p, rc)
 
                     # The predicted class is a false positive.
-                    fp_count[p] += 1
+                    FP_COUNT[p] += 1
                     # The expected class (annotation) is a false negative.
-                    fn_count[a] += 1
+                    FN_COUNT[a] += 1
                     # The remaining class (neither p nor a) is a true negative.
-                    tn_count[3 - p - a] += 1
+                    TN_COUNT[3 - p - a] += 1
 
             else:
 
@@ -323,34 +340,21 @@ def compare(image, preds, path):
 
                         if i in a: # class <i> is part of expected annotations.
 
-                            tp_count[i] += 1
+                            TP_COUNT[i] += 1
 
                         else:
 
-                            fp_count[i] += 1
+                            FP_COUNT[i] += 1
 
                     else: # class <i> is not part of predictions.
 
                         if i in a: # class <i> is part of expected annotations.
 
-                            fn_count[i] += 1
+                            FN_COUNT[i] += 1
 
                         else:
 
-                            tn_count[i] += 1
-
-
-        for x, k in enumerate(AmfConfig.get('header')):
-
-            ACCURACY[k].append(safe_ratio(tp_count[x] + tn_count[x],
-                                          tp_count[x] + fp_count[x] +
-                                          tn_count[x] + fn_count[x]))
-
-            SENSITIVITY[k].append(safe_ratio(tp_count[x],
-                                             tp_count[x] + fn_count[x]))
-
-            SPECIFICITY[k].append(safe_ratio(tn_count[x],
-                                             tn_count[x] + fp_count[x]))
+                            TN_COUNT[i] += 1
 
 
 
@@ -359,16 +363,23 @@ def plot_confusion_matrix(cnn):
     Generate and save a confusion matrix from the given counts.
     """
 
+    global MATRIX
+
+    # Ground truth normalisation.
+    row_sums = np.asarray(MATRIX).sum(axis=1)
+    MATRIX = MATRIX / row_sums[:, np.newaxis] * 100
+
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
     cax = plt.imshow(MATRIX, cmap='cool')
+    plt.clim(0, 100)
     fig.colorbar(cax)
 
     # Title and axes titles.
     plt.title(f'{cnn}', fontsize=16)
-    plt.xlabel('Annotations', fontsize=14, fontweight='bold')
-    plt.ylabel('Predictions', fontsize=14, fontweight='bold')
+    plt.xlabel('Predictions', fontsize=14, fontweight='bold')
+    plt.ylabel('Annotations', fontsize=14, fontweight='bold')
 
     ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
     ax.yaxis.set_major_locator(ticker.MultipleLocator(1))
@@ -382,9 +393,9 @@ def plot_confusion_matrix(cnn):
     ax.set_yticklabels(LABELS[level - 1])
 
     # Display values within the confusion matrix.
-    for (i, j), z in np.ndenumerate(MATRIX):
+    for (a, p), z in np.ndenumerate(MATRIX):
 
-        ax.text(j, i, '{:d}'.format(int(z)),
+        ax.text(p, a, '{:.1f}'.format(z),
                 ha='center',
                 va='center',
                 fontsize=8,
@@ -404,6 +415,20 @@ def run(input_images):
 
     AmfPredict.run(input_images, postprocess=compare)
 
+    for x, k in enumerate(AmfConfig.get('header')):
+
+        ACCURACY[k].append(safe_ratio(TP_COUNT[x] + TN_COUNT[x],
+                                      TP_COUNT[x] + FP_COUNT[x] +
+                                      TN_COUNT[x] + FN_COUNT[x]))
+
+        SENSITIVITY[k].append(safe_ratio(TP_COUNT[x],
+                                         TP_COUNT[x] + FN_COUNT[x]))
+
+        SPECIFICITY[k].append(safe_ratio(TN_COUNT[x],
+                                         TN_COUNT[x] + FP_COUNT[x]))
+
+
+
     cnn = os.path.basename(AmfConfig.get('model'))
 
     # Metrics data.
@@ -421,21 +446,6 @@ def run(input_images):
                 buffer.append(f'{typ}\t{cls}\t{x}')
 
     Z.writestr(f'{cnn}_metrics.tsv', text_of_list(buffer))
-
-    # Simple report with average values.
-    buffer = ['Average values']
-    for metric, data in zip(METRICS, [ACCURACY,
-                                      SENSITIVITY,
-                                      SPECIFICITY]):
-
-        buffer.append(f'* {metric}')
-
-        for cls in AmfConfig.get('header'):
-
-            avg = np.nanmean(data[cls])
-            buffer.append(f'  Class {cls}: {avg:.4f}')
-
-    Z.writestr(f'{cnn}_report.txt', text_of_list(buffer))
 
     # Confusion matrix.
     plot_confusion_matrix(cnn)
