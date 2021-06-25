@@ -244,10 +244,10 @@ def print_image_stats(path, image, config, annots, discarded):
     
         a = annots['A'].sum()
         v = annots['V'].sum()
-        h = annots['H'].sum()
+        hy = annots['H'].sum()
         i = annots['I'].sum()
     
-        print(f'{base}\t{w}x{h}\t{edge}\t{a}\t{v}\t{h}\t{i}', flush=True)
+        print(f'{base}\t{w}x{h}\t{edge}\t{a}\t{v}\t{hy}\t{i}', flush=True)
 
 
 
