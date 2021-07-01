@@ -395,11 +395,14 @@ def plot_confusion_matrix(cnn):
     # Display values within the confusion matrix.
     for (a, p), z in np.ndenumerate(MATRIX):
 
+        text_color = 'black' if z <= 50.0 else 'white'
+
         ax.text(p, a, '{:.1f}'.format(z),
                 ha='center',
                 va='center',
-                fontsize=8,
-                color='black')
+                fontsize=11,
+                weight='bold',
+                color=text_color)
 
     path = os.path.join(AmfConfig.get('outdir'), )
     byt = io.BytesIO()      
