@@ -58,7 +58,7 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 |[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|CNN2|Ink-stained, ClearSee-treated microscope root pictures.|
 |[CNN2v2.h5](amf/trained_networks/CNN2v2.h5)|CNN2|Same, but trained with data augmentation.|
 
-**Note:** the image datasets used to generate these trained networks are available upon request (email the corresponding authors).
+**Note:** the image datasets used to generate these trained networks are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
 
 #### Training mode
 
