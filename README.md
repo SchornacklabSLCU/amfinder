@@ -162,7 +162,7 @@ set and does not have to be redefined manually.
 
 ## A typical pipeline<a name="pipeline"></a>
 
-*Make sure `amf` and `amfbrowser.exe` are in your `$PATH` or use `/path/to/amf` and `/path/to/amfbrowser.exe`.*
+*Make sure `amf` and `amfbrowser.exe` are in `$PATH` or use `/path/to/amf` and `/path/to/amfbrowser.exe` when typing the commands below.*
 
 1. Predict colonisation on ink-stained root images: `amf predict -net your_CNN1.h5 *jpg`.
 
