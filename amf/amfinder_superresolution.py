@@ -33,6 +33,10 @@ from keras.layers import Input, Dense, BatchNormalization, Add
 from keras.layers.advanced_activations import PReLU, LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Model
+# From keras 2.5, the following will be replaced by:
+# from tf_agents.networks import network
+# Thanks to matevzl533 for reporting this. 
+# Reference: https://www.tensorflow.org/agents/tutorials/8_networks_tutorial
 from keras.engine.network import Network
 from keras import backend as K
 
