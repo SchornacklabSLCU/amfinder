@@ -162,13 +162,15 @@ set and does not have to be redefined manually.
 
 ## A typical pipeline<a name="pipeline"></a>
 
+*Make sure `amf` and `amfbrowser.exe` are in your `$PATH` or use `/path/to/amf` and `/path/to/amfbrowser.exe`.*
+
 1. Predict colonisation on ink-stained root images: `amf predict -net your_CNN1.h5 *jpg`.
 
    **Note 1**: `amf` parameters can be found in [this section](#amfpred).
    
    **Note 2**: H5 files containing trained networks can be found in `trained_networks`. If you trained AMFinder on a specific dataset, copy/paste your custom H5 file to this folder. AMFinder won't use H5 files stored in other folders.
    
-2. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image. AMFinder is a semi-automatic prediction pipeline. User supervision and validation of computer predictions for fungal colonisation is required before intraradical hyphal structures can be analysed.
+2. Convert computer predictions to annotations by running `amfbrowser.exe your_image.jpg` on each image. AMFinder is a semi-automatic prediction pipeline. User supervision and validation of computer predictions for fungal colonisation is required before intraradical hyphal structures can be analysed.
 
     **Important:** `amfbrowser` is a graphical interface. It won't run on a text-based system such as an HPC.
 
