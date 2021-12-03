@@ -1,4 +1,4 @@
- AMFinder - amfinder_altmodel.py
+# AMFinder - amfinder_altmodel.py
 #
 # MIT License
 # Copyright (c) 2021 Edouard Evangelisti, Carl Turner
