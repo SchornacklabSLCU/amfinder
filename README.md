@@ -186,6 +186,6 @@ An optimised ink-staining protocol with additional clearing is available in [Eva
 
 **Batch staining plant roots is essential for high-throughput analyses.** It can be achieved using a hand-crafted device composed of 10 cell strainers (100 µm nylon mesh) tied together with adhesive sealing film for PCR plates. A single sieve can accommodate a 4-week-old *N. benthamiana* root system. The sieves are immersed in 10% KOH, water, or ink/vinegar staining solution contained in a plastic lid. The lid is incubated in a hot (95°C) water bath to achieve the desired staining conditions.
 
-|-|-|-|
 |View from above|View from below|With plastic lid|
+|-|-|-|
 |![](doc/Staining_sieves_1.jpg)|![](doc/Staining_sieves_2.jpg)|![](doc/Staining_sieves_3.jpg)
