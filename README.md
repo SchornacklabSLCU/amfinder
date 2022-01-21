@@ -189,4 +189,4 @@ An optimised ink-staining protocol with additional clearing is available in [Eva
 |View from above|View from below|With plastic lid|
 |-|-|-|
 |![](doc/Staining_sieves_1.jpg)|![](doc/Staining_sieves_2.jpg)|![](doc/Staining_sieves_3.jpg)
-<td colspan=3>Devices from Dr Albin Teulet and Alex Guyon (Schornack lab), derived from an original idea by Dr Clément Quan.</td>
+<td colspan=3>Devices from [Dr Albin Teulet](https://twitter.com/albinteulet) and [Alex Guyon](https://twitter.com/alexwguyon) (Schornack lab), derived from an original idea by Dr Clément Quan.</td>
