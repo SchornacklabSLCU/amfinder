@@ -9,6 +9,8 @@ convolutional neural networks. **The latest version of AMFinder is v2.0.**
 
 See below how to compile, install and use AMFinder. We also provide tips for batch staining of plant roots.
 
+**We would like to hear from you:** if you are working with a system that appears challenging for AMFinder, please get in touch. We would be happy to help generate specialised CNN1/2 networks and make them widely available to the research community.
+
 ## Summary
 
 1. [Command-line tool `amf`](#amf)
