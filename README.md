@@ -9,6 +9,8 @@ convolutional neural networks. **The latest version of AMFinder is v2.0.**
 
 See below how to compile, install and use AMFinder. We also provide tips for batch staining of plant roots.
 
+**We would like to hear from you:** if you are working with a system that appears challenging for AMFinder, please get in touch. We would be happy to help generate specialised CNN1/2 networks and make them widely available to the research community.
+
 ## Summary
 
 1. [Command-line tool `amf`](#amf)
@@ -182,10 +184,12 @@ set and does not have to be redefined manually.
 
 ## How to batch stain plant roots?<a name="staining"></a>
 
-An optimised ink-staining protocol with additional clearing is available in [Evangelisti _et al. (2021)](https://doi.org/10.1111/nph.17697)   
+An optimised ink-staining protocol with additional clearing is available in [Evangelisti *et al.* (2021)](https://doi.org/10.1111/nph.17697).
 
-**Batch staining plant roots is essential for high-throughput analyses.** It can be achieved using a hand-crafted device composed of 10 cell strainers (100 µm nylon mesh) tied together with adhesive sealing film for PCR plates. A single sieve can accommodate a 4-week-old *N. benthamiana* root system. The sieves are immersed in 10% KOH, water, or ink/vinegar staining solution contained in a plastic lid. The lid is incubated in a hot (95°C) water bath to achieve the desired staining conditions.
+**Batch staining plant roots is essential for high-throughput analyses.** It can be achieved using a hand-crafted device composed of 10 cell strainers (100 µm nylon mesh) tied together with adhesive sealing film for PCR plates. A single sieve can accommodate a 4-week-old *N. benthamiana* root system. The sieves containing roots are immersed in 10% KOH, water, or ink/vinegar staining solution poured in a plastic lid. Plastic lids are floated in a hot (95°C) water bath to achieve the desired staining conditions. Sieves are pulled out of the lid containing the KOH solution and transferred to the washing solution, then to the ink staining solution without the need to manipulate roots, thereby reducing the risk of damage.
 
-|View from above|View from below|Inside plastic lid|
+|View from above|View from below|With plastic lid|
 |-|-|-|
 |![](doc/Staining_sieves_1.jpg)|![](doc/Staining_sieves_2.jpg)|![](doc/Staining_sieves_3.jpg)
+
+Credit: devices from Dr [Albin Teulet](https://twitter.com/albinteulet) and [Alex Guyon](https://twitter.com/alexwguyon) (Schornack lab), derived from an original idea by Dr Clément Quan.
