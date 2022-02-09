@@ -340,9 +340,19 @@ def class_weights(one_hot_labels):
 
         # For instance, [[0, 0, 1], [1, 0 , 0]] returns [2, 0]
         hot_indexes = np.argmax(one_hot_labels, axis=1)
+        unique = np.unique(hot_indexes)
         class_weights = compute_class_weight('balanced',
-                                             classes=np.unique(hot_indexes),
+                                             classes=unique,
                                              y=hot_indexes)
+
+        # Annotation classes that do not ocurr in the input dataset.
+        missing = [x for x in [0, 1, 2] if x not in unique]
+
+        if missing != []:
+            all_indices = list(unique) + missing
+            all_weights = list(class_weights) + [0] * len(missing)
+            class_weights = sorted(list(zip(all_indices, all_weights)))
+            class_weights = [y for _, y in class_weights]
 
         for cls, num, w  in zip(AmfConfig.get('header'),
                                 np.bincount(hot_indexes),
