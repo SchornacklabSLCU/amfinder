@@ -25,7 +25,7 @@
 open GdkPixbuf
 
 let crop_pixbuf ~src_x ~src_y ~edge pixbuf =
-    let dest = create ~width:edge ~height:edge () in
+    let dest = create ~width:edge ~height:edge ~has_alpha:true () in
     copy_area ~dest ~src_x ~src_y pixbuf;
     dest
 
@@ -35,7 +35,7 @@ let resize_pixbuf ?(interp = `NEAREST) edge pixbuf =
     if width = edge && height = edge then pixbuf else begin
         let scale_x = float edge /. (float width)
         and scale_y = float edge /. (float height) in
-        let dest = create ~width:edge ~height:edge () in
+        let dest = create ~width:edge ~height:edge ~has_alpha:true () in
         scale ~dest ~scale_x ~scale_y ~interp pixbuf;
         dest
     end
