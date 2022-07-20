@@ -40,7 +40,7 @@ the Tensorflow website.
 
 ### Using the software
 
-**`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).**
+**`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode). As of July 2022, `amf` is also able to perform automatic conversion of computer predictions to annotations. Please note this is still an experimental feature.**
 
 #### Prediction mode<a name="amfpred"></a>
 
@@ -63,6 +63,13 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 |[CNN2v2.h5](amf/trained_networks/CNN2v2.h5)|CNN2|Same, but trained with data augmentation.|
 
 **Note:** the image datasets used to generate these trained networks are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
+
+#### Conversion mode<a name="amfconv"></a>
+
+**July 2022**: `amf` is now able to perform automatic conversion of computer predictions to annotations. **This is an experimental feature** (still under active development).
+
+For automatic conversion of computer predictions to annotations, use `amf convert <images>`. At the moment, `amf` can only convert CNN1 predictions and does not support files containing multiple predictions. The program prints image names and counts for the classes Myc+ (colonised root sections), Myc− (non-colonised root sections), and Other (background, dust, etc.).
+
 
 #### Training mode
 
