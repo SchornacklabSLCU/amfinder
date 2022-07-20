@@ -74,7 +74,7 @@ def process_row_1(cnn1, image, nrows, ncols, batch_size, r, sr_image):
     # Convert to NumPy array, and normalize.
     row = AmfSegm.preprocess(row)
     # Predict mycorrhizal structures.
-    prd = cnn1.predict(row, batch_size=batch_size)
+    prd = cnn1.predict(row, batch_size=batch_size, verbose=0)
     # Update the progress bar.
     AmfLog.progress_bar(r + 1, nrows, indent=1)
     # Return prediction as Pandas data frame.
