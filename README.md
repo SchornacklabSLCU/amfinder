@@ -185,6 +185,8 @@ set and does not have to be redefined manually.
 
     **Important:** `amfbrowser` is a graphical interface. It won't run on a text-based system such as an HPC.
 
+    **July 2022:** As an alternative, computer predictions can now be converted to annotations in batch mode using `amf convert <images>`. Please note that annotations should be checked with `amfbrowser`, especially when using new staining methods or imaging systems that may affect AMFinder performance.
+
 3. Predict intraradical hyphal structures: `amf predict -net your_CNN2.h5 *jpg`.
 4. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image.
 
