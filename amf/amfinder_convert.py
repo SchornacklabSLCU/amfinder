@@ -150,7 +150,7 @@ def run(input_images):
     print('WARNING: You are using an experimental feature.')
     print('         It is still under active development and may contain bugs.')
 
-    print('Image\t' + '\t'.join(AmfConfig.get('header')))
+    print('Image\tMyc+\tMyc−\tOther')
 
     for path in input_images:
     
