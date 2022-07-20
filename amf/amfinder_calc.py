@@ -24,7 +24,8 @@
 from copy import deepcopy 
 import numpy as np
 import tensorflow as tf
-from keras.models import Model, Input
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
 import tensorflow.keras.backend as K
 
 import matplotlib.pyplot as plt

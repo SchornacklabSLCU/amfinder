@@ -73,6 +73,7 @@ PAR = {
     'drop': True,
     'epochs': 100,
     'vfrac': 15,
+    'threshold': 0.5,
     'data_augm': False,
     'save_augmented_tiles': 0,
     'summary': False,
@@ -411,6 +412,26 @@ def diagnostic_subparser(subparsers):
 
 
 
+def conversion_subparser(subparsers):
+
+    parser = subparsers.add_parser('convert',
+        help='Runs AMFinder in conversion mode.',
+        formatter_class=RawTextHelpFormatter)
+
+    x = PAR['threshold']
+    parser.add_argument('-th', '--threshold',
+        action='store', dest='threshold', metavar='N', type=float, default=x,
+        help='threshold for conversion: {}'.format(x))
+
+    x = PAR['input_files']
+    parser.add_argument('image', nargs='*', default=x,
+        help='plant root scan to be processed.'
+             '\ndefault value: {}'.format(x))
+
+    return parser
+
+
+
 def build_arg_parser():
     """
     Builds AMFinder command-line parser.
@@ -426,6 +447,7 @@ def build_arg_parser():
     _ = training_subparser(subparsers)
     _ = prediction_subparser(subparsers)
     _ = diagnostic_subparser(subparsers)
+    _ = conversion_subparser(subparsers)
 
     return main
 
@@ -522,6 +544,10 @@ def initialize():
     elif par.run_mode == 'diagnose': 
         
         set('model', par.model)   
+    
+    elif par.run_mode == 'convert':
+    
+        set('threshold', par.threshold)
         
     else:
     
