@@ -40,7 +40,7 @@ the Tensorflow website.
 
 ### Using the software
 
-**`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode). As of July 2022, `amf` is also able to perform automatic conversion of computer predictions to annotations. Please note this is still an experimental feature.**
+**`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode). As of July 2022, `amf` is also able to perform automatic conversion of computer predictions to annotations. Please note this is an experimental feature.**
 
 #### Prediction mode<a name="amfpred"></a>
 
