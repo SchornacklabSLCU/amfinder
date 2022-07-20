@@ -29,6 +29,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
+import amfinder_convert as AmfConvert
 import amfinder_predict as AmfPredict
 import amfinder_diagnose as AmfDiagnose
 import amfinder_superresolution as AmfSR
@@ -60,6 +61,11 @@ def main():
 
         print('* Running in prediction mode')
         AmfPredict.run(input_files)
+
+    elif run_mode == 'convert':
+    
+        print('* Running in conversion mode')
+        AmfConvert.run(input_files)
 
     elif run_mode == 'diagnose':
     
