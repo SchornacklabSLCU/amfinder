@@ -1,3 +1,5 @@
+![](amfbrowser/data/amfbrowser.png)
+
 # AMFinder
 
 The Automatic Mycorrhiza Finder (AMFinder) allows for automatic computer
