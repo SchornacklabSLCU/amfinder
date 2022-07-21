@@ -78,8 +78,8 @@ $ source amfenv/bin/activate
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
-|`-1`|`--CNN1`|**Optional**. Convert CNN1 predictions (default).|
-|`-2`|`--CNN2`|**Optional**. Convert CNN21 predictions.|
+|`-1`|`--CNN1`|**Optional**. Convert CNN1 predictions.|yes|
+|`-2`|`--CNN2`|**Optional**. Convert CNN2 predictions.|no|
 |`-th X`|`--threshold X`|**Optional**. Use `X` as threshold for CNN2 conversions.|X = 0.5|
 
 
