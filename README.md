@@ -128,7 +128,7 @@ deactivate
 
 ## A typical pipeline<a name="pipeline"></a>
 
-Below is a bash script describing a typical pipeline:
+Below is a bash script describing a typical prediction/annotation pipeline:
 
 ```bash
 #! /bin/bash
