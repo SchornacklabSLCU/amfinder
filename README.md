@@ -23,7 +23,7 @@ Detailed installation instructions for Linux, Mac and Microsoft Windows can be f
 
 
 
-## Command-line tool `amf`<a name="amf"></a>
+## `amf`<a name="amf"></a>
 
 `amf` is a batch mode tool that predicts fungal structures, converts predictions into annotations, and train neural networks. It is used as follows :
 - `amf predict`: prediction of fungal colonisation (CNN1) and intraradical hyphal structures (CNN2), 
@@ -110,7 +110,7 @@ $ROOT/amf train <parameters> <images>
 deactivate
 ```
 
-## Standalone interface `amfbrowser`<a name="amfbrowser"></a>
+## `amfbrowser`<a name="amfbrowser"></a>
 
 **Browse, amend and validate `amf` predictions.**
 
