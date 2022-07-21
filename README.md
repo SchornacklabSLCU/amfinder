@@ -25,28 +25,25 @@ Detailed installation instructions for Linux, Mac and Microsoft Windows can be f
 
 ## `amf`<a name="amf"></a>
 
-The AMFinder tool `amf` is a batch mode program that predicts fungal structures, converts predictions into annotations, and train neural networks. It is used as follows :
-- `amf predict`: prediction of fungal colonisation (CNN1) and intraradical hyphal structures (CNN2), 
-- `amf convert`: automatic conversion of predictions to annotations,
-- `amf train`: neural network training.
-
-Details about these three commands are given below.
-
-
-
-### Prediction mode<a name="amfpred"></a>
-
-To predict fungal colonisation, open a terminal and run the program as follows.
-**Note**: if you are not familiar with Python virtual environments, you may want
+The AMFinder tool `amf` is a batch mode program that predicts fungal structures, converts predictions into annotations, and train neural networks.
+It is used as follows. **Note**: if you are not familiar with Python virtual environments, you may want
 to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
 
 ```
 $ source amfenv/bin/activate
-(amfenv) $ amf predict <parameters> <images> 
+(amfenv) $ amf <action> <parameters> <images> 
 ```
+where `<action>` is either:
+- `predict`: prediction of fungal colonisation (CNN1) and intraradical hyphal structures (CNN2), 
+- `convert`: automatic conversion of predictions to annotations, or
+- `train`: neural network training.
 
-`<parameters>` are either the short or long names listed below.  
-`<images>` are the paths to the JPEG or TIFF images to analyse.
+`<images>` are the paths to the JPEG or TIFF images to analyse.  
+Details about `<parameters>` are given in the following sections.
+
+
+
+### Prediction mode<a name="amfpred"></a>
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
@@ -66,16 +63,6 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 ### Conversion mode<a name="amfconv"></a>
 
-To automatically convert predictions to annotations, run the program as follows:
-
-```
-$ source amfenv/bin/activate
-(amfenv) $ amf convert <parameters> <images> 
-```
-
-`<parameters>` are either the short or long names listed below.  
-`<images>` are the paths to the JPEG or TIFF images to analyse.
-
 |Short|Long|Description|Default value|
 |-|-|-|-|
 |`-1`|`--CNN1`|**Optional**. Convert CNN1 predictions.|yes|
@@ -84,16 +71,6 @@ $ source amfenv/bin/activate
 
 
 ### Training mode
-
-To train AMFinder neural networks with `amf`, run the program as follows:
-
-```
-$ source amfenv/bin/activate
-(amfenv) $ amf train <parameters> <images> 
-```
-
-`<parameters>` are either the short or long names listed below (all optional).  
-`<images>` are the paths to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
