@@ -12,8 +12,8 @@ If you use AMFinder, please cite [Evangelisti _et al._, 2021, _New Phytologist_]
 ## Summary
 
 1. [Installation instructions](#install)
-1. [Command-line tool `amf`](#amf)
-2. [Standalone interface `amfbrowser`](#amfbrowser)
+1. [`amf`](#amf)
+2. [`amfbrowser`](#amfbrowser)
 3. [A typical pipeline](#pipeline)
 4. [How to batch stain plant roots?](#staining)
 
@@ -25,7 +25,7 @@ Detailed installation instructions for Linux, Mac and Microsoft Windows can be f
 
 ## `amf`<a name="amf"></a>
 
-`amf` is a batch mode tool that predicts fungal structures, converts predictions into annotations, and train neural networks. It is used as follows :
+The AMFinder tool `amf` is a batch mode program that predicts fungal structures, converts predictions into annotations, and train neural networks. It is used as follows :
 - `amf predict`: prediction of fungal colonisation (CNN1) and intraradical hyphal structures (CNN2), 
 - `amf convert`: automatic conversion of predictions to annotations,
 - `amf train`: neural network training.
