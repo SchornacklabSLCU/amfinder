@@ -17,17 +17,17 @@ If you use AMFinder, please cite [Evangelisti _et al._, 2021, _New Phytologist_]
 3. [A typical pipeline](#pipeline)
 4. [How to batch stain plant roots?](#staining)
 
-## Installation instructions<a name="install"></a>
+## Installation<a name="install"></a>
 
 Detailed installation instructions for Linux, Mac and Microsoft Windows can be found on [this page](INSTALL.md).
-
+**Note**: if you are not familiar with Python virtual environments, you may want
+to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
 
 
 ## `amf`<a name="amf"></a>
 
 The AMFinder tool `amf` is a batch mode program that predicts fungal structures, converts predictions into annotations, and train neural networks.
-It is used as follows. **Note**: if you are not familiar with Python virtual environments, you may want
-to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
+It is used as follows:
 
 ```
 $ source amfenv/bin/activate
