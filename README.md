@@ -136,16 +136,16 @@ Below is a bash script describing a typical pipeline:
 source amfenv/bin/activate
 
 # Predict fungal colonisation (CNN1) on a bunch of JPEG images.
-./amf predict ink_stained_images*.jpg
+./amf predict ink_stained_image{1-5}.jpg
 
 # Convert CNN1 predictions to annotations.
-./amf convert ink_stained_images*.jpg
+./amf convert ink_stained_image{1-5}.jpg
 
 # Predict intraradical structures (CNN2) on the same images.
-./amf predict --network CNN2v2.h5 ink_stained_images*.jpg
+./amf predict --network CNN2v2.h5 ink_stained_image{1-5}.jpg
 
 # Convert CNN2 predictions to annotations using a threshold of 0.6.
-./amf convert --CNN2 --threshold 0.6 ink_stained_images*.jpg
+./amf convert --CNN2 --threshold 0.6 ink_stained_image{1-5}.jpg
 
 deactivate
 ```
