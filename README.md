@@ -66,7 +66,7 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 ### Conversion mode<a name="amfconv"></a>
 
-To automatically convert predictions to annotations, run the program as follows.
+To automatically convert predictions to annotations, run the program as follows:
 
 ```
 $ source amfenv/bin/activate
@@ -85,9 +85,15 @@ $ source amfenv/bin/activate
 
 ### Training mode
 
-**Note:** To be able to run `amf`, you first need to reactivate the virtual environment by running the command `source amfenv/bin/activate` (see installation guidelines, step 4).
+To train AMFinder neural networks with `amf`, run the program as follows:
 
-For training, run in a terminal `amf train <parameters> <images>` where `<parameters>` are either the short or long names listed below (all training parameters are optional). Replace `<images>` with the path to the JPEG or TIFF images to analyse.
+```
+$ source amfenv/bin/activate
+(amfenv) $ amf train <parameters> <images> 
+```
+
+`<parameters>` are either the short or long names listed below (all optional).  
+`<images>` are the paths to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
