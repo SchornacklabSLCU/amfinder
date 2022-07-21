@@ -130,7 +130,7 @@ deactivate
 
 Below is a bash script describing a typical pipeline:
 
-```{bash}
+```bash
 #! /bin/bash
 
 source amfenv/bin/activate
