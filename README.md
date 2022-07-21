@@ -6,7 +6,6 @@ The Automatic Mycorrhiza Finder (AMFinder) allows for high-throughput computer
 vision-based identification and quantification of AM fungal colonisation
 and intraradical hyphal structures using
 convolutional neural networks. **The current version of AMFinder is v2.0.**
-
 If you use AMFinder in your manuscript, please cite: 
 [Evangelisti _et al._, 2021, Deep learning-based quantification of arbuscular mycorrhizal fungi in plant roots, _New Phytologist_ **232**(5): 2207-2219](https://doi.org/10.1111/nph.17697).
 
