@@ -36,7 +36,9 @@ Details about these three commands are given below.
 
 ### Prediction mode<a name="amfpred"></a>
 
-To predict fungal colonisation, open a terminal and run the program as follows:
+To predict fungal colonisation, open a terminal and run the program as follows.
+**Note**! if you are not familiar with Python virtual environments, you may want
+to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
 
 ```
 $ source amfenv/bin/activate
@@ -44,7 +46,7 @@ $ source amfenv/bin/activate
 ```
 
 `<parameters>` are either the short or long names listed below.
-Replace `<images>` with the path to the JPEG or TIFF images to analyse. You can use wildcards.
+`<images>` are the paths to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
