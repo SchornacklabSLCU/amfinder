@@ -128,22 +128,30 @@ deactivate
 
 ## A typical pipeline<a name="pipeline"></a>
 
-*Make sure `amf` and `amfbrowser.exe` are in `$PATH` or use `/path/to/amf` and `/path/to/amfbrowser.exe` when typing the commands below.*
+Below is a bash script describing a typical pipeline:
 
-1. Predict colonisation on ink-stained root images: `amf predict -net your_CNN1.h5 *jpg`.
+```{bash}
+#! /bin/bash
 
-   **Note 1**: `amf` parameters can be found in [this section](#amfpred).
-   
-   **Note 2**: H5 files containing trained networks can be found in `trained_networks`. If you trained AMFinder on a specific dataset, copy/paste your custom H5 file to this folder. AMFinder won't use H5 files stored in other folders.
-   
-2. Convert computer predictions to annotations by running `amfbrowser.exe your_image.jpg` on each image. AMFinder is a semi-automatic prediction pipeline. User supervision and validation of computer predictions for fungal colonisation is required before intraradical hyphal structures can be analysed.
+source amfenv/bin/activate
 
-    **Important:** `amfbrowser` is a graphical interface. It won't run on a text-based system such as an HPC.
+# Predict fungal colonisation (CNN1) on a bunch of JPEG images.
+./amf predict ink_stained_images*.jpg
 
-    **July 2022:** As an alternative, computer predictions can now be converted to annotations in batch mode using `amf convert <images>`. Please note that annotations should be checked with `amfbrowser`, especially when using new staining methods or imaging systems that may affect AMFinder performance.
+# Convert CNN1 predictions to annotations.
+./amf convert ink_stained_images*.jpg
 
-3. Predict intraradical hyphal structures: `amf predict -net your_CNN2.h5 *jpg`.
-4. Convert computer predictions to annotations by running `amfbrowser your_image.jpg` on each image.
+# Predict intraradical structures (CNN2) on the same images.
+./amf predict --network CNN2v2.h5 ink_stained_images*.jpg
+
+# Convert CNN2 predictions to annotations using a threshold of 0.6.
+./amf convert --CNN2 --threshold 0.6 ink_stained_images*.jpg
+
+deactivate
+```
+
+Computer predictions and annotations can be checked and amended by running `amfbrowser` on each image. Although not absolutely necessary, user supervision and validation of computer predictions are recommended for quality control.
+
 
 
 ## How to batch stain plant roots?<a name="staining"></a>
