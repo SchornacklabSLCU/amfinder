@@ -37,7 +37,7 @@ Details about these three commands are given below.
 ### Prediction mode<a name="amfpred"></a>
 
 To predict fungal colonisation, open a terminal and run the program as follows.
-**Note**! if you are not familiar with Python virtual environments, you may want
+**Note**: if you are not familiar with Python virtual environments, you may want
 to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
 
 ```
@@ -53,7 +53,7 @@ $ source amfenv/bin/activate
 |`-net CNN`|`--network CNN`|**Mandatory**. Use network `CNN` (see list below).|
 |`-t N`|`--tile_size N`|**Optional**. Use `N` pixels as tile size.|N = 126|
 
-Pre-trained networks to be used with the parameter `-net` are available in folder [`trained_networks`](amf/trained_networks). You can add your own trained networks to this folder. Below is a list of publicly available networks:
+Pre-trained networks to be used with the parameter `-net` are available in folder [`trained_networks`](amf/trained_networks). You can add your own trained networks to this folder. Below is a list of publicly available networks. The image datasets used to generate them are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
 
 |File name|Annotation level|Description|
 |-|-|-|
@@ -61,8 +61,6 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 |[CNN1v2.h5](amf/trained_networks/CNN1v2.h5)|CNN1|Same, but trained with data augmentation.|
 |[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|CNN2|Ink-stained, ClearSee-treated microscope root pictures.|
 |[CNN2v2.h5](amf/trained_networks/CNN2v2.h5)|CNN2|Same, but trained with data augmentation.|
-
-**Note:** the image datasets used to generate these trained networks are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
 
 
 
