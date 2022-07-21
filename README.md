@@ -45,6 +45,8 @@ Details about `<parameters>` are given in the following sections.
 
 ### Prediction mode<a name="amfpred"></a>
 
+This mode is used to predict fungal colonisation (CNN1) and intraradical hyphal structures (CNN2).
+
 |Short|Long|Description|Default value|
 |-|-|-|-|
 |`-net CNN`|`--network CNN`|**Mandatory**. Use network `CNN` (see list below).|
@@ -63,6 +65,8 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 ### Conversion mode<a name="amfconv"></a>
 
+This mode is used to convert `amf predict` predictions (i.e. probabilities) to annotations.
+
 |Short|Long|Description|Default value|
 |-|-|-|-|
 |`-1`|`--CNN1`|**Optional**. Convert CNN1 predictions.|yes|
@@ -71,6 +75,8 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 
 ### Training mode
+
+This mode is used to train AMFinder neural networks on different images. All parameters listed below are optional.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
