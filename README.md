@@ -85,7 +85,7 @@ This mode is used to train AMFinder neural networks on different images. All par
 |`-k`|`--keep_background`|Do not skip any background tile.|False|
 |`-a`|`--data_augmentation`|Activate data augmentation.|False|
 |`-s`|`--summary`|Save CNN architecture and graph.|False|
-|`-o PATH`|`--outdir PATH`|Save trained model and CNN architecture in `PATH`.|cwd|
+|`-o DIR`|`--outdir DIR`|Save trained model and CNN architecture in `DIR`.|cwd|
 |`-e N`|`--epochs N`|Perform `N` training cycles.|N = 100|
 |`-p N`|`--patience N`|Wait for `N` epochs before early stopping.|N = 12|
 |`-lr X`|`--learning_rate X`|Use `X` as learning rate for the Adam optimiser.|X = 0.001|
