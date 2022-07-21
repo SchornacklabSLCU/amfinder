@@ -7,7 +7,6 @@ convolutional neural networks. **The latest version of AMFinder is v2.0.**
 
 If you use AMFinder, please cite [Evangelisti _et al._, 2021, _New Phytologist_](https://doi.org/10.1111/nph.17697).
 
-
 **We would like to hear from you:** are you working with a system that appears challenging for AMFinder? Please get in touch! We would be happy to help generate specialised CNN1/2 networks and make them widely available to the research community.
 
 ## Summary
@@ -24,7 +23,10 @@ Detailed installation instructions for Linux, Mac and Microsoft Windows can be f
 
 ## Command-line tool `amf`<a name="amf"></a>
 
-**`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).** As of July 2022, `amf` is also able to perform automatic conversion of computer predictions to annotations. Please note this is an experimental feature.
+The command-line tool `amf` is used for the following tasks:
+- `amf predict`: prediction of fungal colonisation (CNN1) and intraradical hyphal structures (CNN2), 
+- `amf convert`: automatic conversion of predictions to annotations,
+- `amf train`: neural network training.
 
 ### Prediction mode<a name="amfpred"></a>
 
