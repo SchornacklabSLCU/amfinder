@@ -20,7 +20,7 @@ If you use AMFinder, please cite [Evangelisti _et al._, 2021, _New Phytologist_]
 
 ## Installation instructions<a name="install"></a>
 
-Detailed information for Linux, Mac and Microsoft Windows can be found on [this page](INSTALL.md)
+Detailed installation instructions for Linux, Mac and Microsoft Windows can be found on [this page](INSTALL.md).
 
 ## Command-line tool `amf`<a name="amf"></a>
 
