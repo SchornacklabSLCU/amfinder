@@ -13,10 +13,15 @@ See below how to compile, install and use AMFinder. We also provide tips for bat
 
 ## Summary
 
+1. [Installation instructions](#install)
 1. [Command-line tool `amf`](#amf)
 2. [Standalone interface `amfbrowser`](#amfbrowser)
 3. [A typical pipeline](#pipeline)
 4. [How to batch stain plant roots?](#staining)
+
+## Installation instructions<a name="install"></a>
+
+See [this page](INSTALL.md)
 
 ## Command-line tool `amf`<a name="amf"></a>
 
