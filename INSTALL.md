@@ -16,7 +16,7 @@ and may fail to run Tensorflow. If you encounter such error, you need to
 download and build Tensorflow from sources. Instructions can be found on
 the Tensorflow website.
 
-## Annotation browser `amfbrowser`
+## Standalone interface `amfbrowser`
 
 **Note:** As a graphical interface, `amfbrowser` **cannot** be installed on a
 text-based system such as an HPC. Ready-to-use binaries are available. Windows
@@ -24,7 +24,7 @@ users can use the linux version once [Windows Subsystem for Linux
 (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10) has been 
 activated.
 
-#### Linux
+### Linux
 
 1. Download and install OPAM from the [official webwsite](https://opam.ocaml.org/doc/Install.html) or from your package manager.
 
@@ -33,11 +33,11 @@ activated.
 **Note:** You may need to install development packages such as `libgtk2.0-dev` and `libgtksourceview2.0-dev`. Users with [miniconda](https://docs.conda.io/en/latest/miniconda.html) or similar tool suite installed may encounter problems if their `PATH` variable has been altered. You may have to temporarily mask miniconda directory from your `PATH` variable by running `PATH=<modified_path> opam install ...`.
 
 
-#### MacOS
+### MacOS
 
 Same as Linux, but you will need [Homebrew](https://brew.sh/index_fr) to install OPAM.
 
-#### Windows 10
+### Windows 10
 
 `amfbrowser` can be installed and run on Windows 10 after activation of
 Windows Subsystem for Linux (WSL).

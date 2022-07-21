@@ -27,7 +27,7 @@ See [this page](INSTALL.md)
 
 **`amf` is used either to predict fungal colonisation and intraradical hyphal structures within plant root images (prediction mode), or to train AMFinder neural networks (training mode).** As of July 2022, `amf` is also able to perform automatic conversion of computer predictions to annotations. Please note this is an experimental feature.
 
-#### Prediction mode<a name="amfpred"></a>
+### Prediction mode<a name="amfpred"></a>
 
 **Important**: Remember to activate `amf` virtual environment before use (see installation instructions).
 
@@ -49,14 +49,14 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 **Note:** the image datasets used to generate these trained networks are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
 
-#### Conversion mode<a name="amfconv"></a>
+### Conversion mode<a name="amfconv"></a>
 
 **July 2022**: `amf` is now able to perform automatic conversion of computer predictions to annotations. **This is an experimental feature** (still under active development).
 
 For automatic conversion of computer predictions to annotations, use `amf convert <images>`. At the moment, `amf` can only convert CNN1 predictions and does not support files containing multiple predictions. The program prints image names and counts for the classes Myc+ (colonised root sections), Myc− (non-colonised root sections), and Other (background, dust, etc.).
 
 
-#### Training mode
+### Training mode
 
 **Note:** To be able to run `amf`, you first need to reactivate the virtual environment by running the command `source amfenv/bin/activate` (see installation guidelines, step 4).
 
@@ -100,6 +100,7 @@ deactivate
 **Browse, amend and validate `amf` predictions.**
 
 ![](doc/amfbrowser.png)
+
 
 
 
