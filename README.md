@@ -45,8 +45,7 @@ $ source amfenv/bin/activate
 (amfenv) $ amf predict <parameters> <images> 
 ```
 
-`<parameters>` are either the short or long names listed below.
-
+`<parameters>` are either the short or long names listed below.  
 `<images>` are the paths to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
@@ -74,8 +73,7 @@ $ source amfenv/bin/activate
 (amfenv) $ amf convert <parameters> <images> 
 ```
 
-`<parameters>` are either the short or long names listed below.
-
+`<parameters>` are either the short or long names listed below.  
 `<images>` are the paths to the JPEG or TIFF images to analyse.
 
 |Short|Long|Description|Default value|
