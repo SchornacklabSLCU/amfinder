@@ -1,4 +1,6 @@
-![](doc/amfinder.png)
+<p align="center">
+  <img width="226" height="74" src="doc/amfinder.png">
+</p>
 
 The Automatic Mycorrhiza Finder (AMFinder) allows for automatic computer
 vision-based identification and quantification of AM fungal colonisation
