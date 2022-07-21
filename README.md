@@ -12,7 +12,7 @@ If you use AMFinder in your manuscript, please cite:
 
 ## Summary
 
-1. [Installation instructions](#install)
+1. [Installation](#install)
 1. [`amf`](#amf)
 2. [`amfbrowser`](#amfbrowser)
 3. [A typical pipeline](#pipeline)
