@@ -23,10 +23,12 @@ Detailed installation instructions for Linux, Mac and Microsoft Windows can be f
 
 ## Command-line tool `amf`<a name="amf"></a>
 
-The command-line tool `amf` is used for the following tasks:
+`amf` is a batch mode tool that predicts fungal structures, converts predictions into annotations, and train neural networks. It is used as follows :
 - `amf predict`: prediction of fungal colonisation (CNN1) and intraradical hyphal structures (CNN2), 
 - `amf convert`: automatic conversion of predictions to annotations,
 - `amf train`: neural network training.
+
+Details about these three commands are given below.
 
 ### Prediction mode<a name="amfpred"></a>
 
