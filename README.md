@@ -74,6 +74,7 @@ This mode is used to convert `amf predict` predictions (i.e. probabilities) to a
 |`-th X`|`--threshold X`|**Optional**. Use `X` as threshold for CNN2 conversions.|X = 0.5|
 
 
+
 ### Training mode
 
 This mode is used to train AMFinder neural networks on different images. All parameters listed below are optional.
