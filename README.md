@@ -80,7 +80,7 @@ This mode is used to train AMFinder neural networks on different images. All par
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
-|`-net N`|`--network N`|Use network `N`.|*ab initio* training|
+|`-net N`|`--network N`|Use network `N`.|*none*|
 |`-b N`|`--batch_size N`|Use a batch size of `N` tiles.|N = 32|
 |`-k`|`--keep_background`|Do not skip any background tile.|False|
 |`-a`|`--data_augmentation`|Activate data augmentation.|False|
