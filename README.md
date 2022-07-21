@@ -66,9 +66,21 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 
 ### Conversion mode<a name="amfconv"></a>
 
-**July 2022**: `amf` is now able to perform automatic conversion of computer predictions to annotations. **This is an experimental feature** (still under active development).
+To automatically convert predictions to annotations, run the program as follows.
 
-For automatic conversion of computer predictions to annotations, use `amf convert <images>`. At the moment, `amf` can only convert CNN1 predictions and does not support files containing multiple predictions. The program prints image names and counts for the classes Myc+ (colonised root sections), Myc− (non-colonised root sections), and Other (background, dust, etc.).
+```
+$ source amfenv/bin/activate
+(amfenv) $ amf convert <parameters> <images> 
+```
+
+`<parameters>` are either the short or long names listed below.
+`<images>` are the paths to the JPEG or TIFF images to analyse.
+
+|Short|Long|Description|Default value|
+|-|-|-|-|
+|`-1`|`--CNN1`|**Optional**. Convert CNN1 predictions (default).|
+|`-2`|`--CNN2`|**Optional**. Convert CNN21 predictions.|
+|`-th X`|`--threshold X`|**Optional**. Use `X` as threshold for CNN2 conversions.|X = 0.5|
 
 
 ### Training mode
