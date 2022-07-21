@@ -122,7 +122,7 @@ def predict_level2(path, image, nrows, ncols, model):
                 row = [AmfSegm.tile(image, x[0], x[1]) for x in batch]
                 row = AmfSegm.preprocess(row)
                 # Returns three prediction tables (one per class).
-                prd = model.predict(row, batch_size=25)
+                prd = model.predict(row, batch_size=25, verbose=0)
                 # Converts to a table of predictions.
                 ap = prd[0].tolist()
                 vp = prd[1].tolist()
