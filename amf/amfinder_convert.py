@@ -22,23 +22,48 @@
 # IN THE SOFTWARE.
 
 
-# Caution: EXPERIMENTAL FEATURE
-# This module implements unsupervised conversions of <amf> predictions to 
-# annotations. Use at your own risks!
-
 import io
 import os
+import json
+import imagesize
 import numpy as np
 import pandas as pd
-import zipfile as zf
+#import zipfile as zf
+# Reference: https://stackoverflow.com/a/69115481
+# Local version of zipfile to get access to <remove>.
+import amfinder_zipfile as zf
 import amfinder_save as AmfSave
 import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
 import amfinder_diagnose as AmfDiagnose
 
 
+NROWS = None
+NCOLS = None
+
+
+def initialize_size(path, zfile):
+    """
+    Retrieve the number of rows and columns based on image and tile sizes.
+    """
+    tile_size = None
+    width, height = imagesize.get(path)
+
+    with zf.ZipFile(zfile, 'r') as z:
+        data = z.read(AmfSave.IMG_SETTINGS).decode('utf-8')
+        tile_size = json.loads(data)['tile_edge']
+
+    global NROWS, NCOLS
+    assert tile_size is not None
+    NCOLS = width // tile_size
+    NROWS = height // tile_size
+
+
 
 def preds_to_python_annot_1(path, preds):
+    """
+    Convert level 1 predictions to Python annotations.
+    """
 
     # Only one file, nothing special to choose.
     preds = io.StringIO(preds)
@@ -64,16 +89,49 @@ def preds_to_python_annot_1(path, preds):
 
 
 
+def preds_to_python_annot_2(path, preds):
+    """
+    Convert level 2 predictions to Python annotations.
+    """
+
+    # Only one file, nothing special to choose.
+    preds = io.StringIO(preds)
+    preds = pd.read_csv(preds, sep='\t')
+
+    # Get the predictions for automatic conversion.
+    coord = preds[['row', 'col']]
+    preds = AmfDiagnose.remove_coordinates(preds)
+    preds = preds.to_numpy()
+
+    # Perform the conversion, ignoring ties.
+    conv = np.zeros_like(preds)
+    conv[preds >= AmfConfig.get('threshold')] = 1
+    
+    conv = conv.astype(np.uint8)
+    
+
+    print(os.path.basename(path) + '\t' + 
+          '\t'.join([str(x) for x in np.sum(conv, axis=0)]))
+
+    header = AmfConfig.get('header')
+    conv = pd.DataFrame(data=conv, columns=header)
+
+    # Generate the final table. 
+    final = pd.concat([coord, conv], axis=1)
+
+    # Remove the columns without annotations
+    final = final.loc[(final[header].sum(axis=1) != 0), ]
+
+    return final
+
+
 def python_annot_to_ocaml_1(out, zfile):
     """
-    Ocamlbrowser requires another type of file.
+    Convert level 1 predictions to OCaml annotations.
     """
     
-    rows = out['row'].max()
-    cols = out['col'].max()
-
-    mat1 = np.zeros((rows + 1, cols + 1)).astype('<U1')
-    mat2 = np.zeros((rows + 1, cols + 1)).astype('<U1')
+    mat1 = np.zeros((NROWS, NCOLS)).astype('<U1')
+    mat2 = np.zeros((NROWS, NCOLS)).astype('<U1')
     
     header = AmfConfig.get('header')
     out = out.reset_index()
@@ -89,68 +147,127 @@ def python_annot_to_ocaml_1(out, zfile):
         d1 = pd.DataFrame(mat1).to_csv(sep='\t', encoding='utf-8',
                                        index=False, header=False,
                                        mode='a', line_terminator='')
-        zi = AmfSave.get_zip_info('annotations/col.caml', True)
+        zi = AmfSave.get_zip_info('annotations/col.caml', 1)
         # There is still a trailing character at the end of the csv text.
         z.writestr(zi, d1[:-1])
         d2 = pd.DataFrame(mat2).to_csv(sep='\t', encoding='utf-8',
                                        index=False, header=False,
                                        mode='a', line_terminator='')
-        zi = AmfSave.get_zip_info('annotations/myc.caml', False)
+        zi = AmfSave.get_zip_info('annotations/myc.caml', 0)
         # There is still a trailing character at the end of the csv text.
         z.writestr(zi, d2[:-1])
 
 
 
+def python_annot_to_ocaml_2(out, zfile):
+    """
+    Convert level 2 predictions to OCaml annotations.
+    """
+
+    mat2 = np.zeros((NROWS, NCOLS), str).astype('<U4')
+    
+    header = AmfConfig.get('header')
+    out = out.reset_index()
+
+    for _, row in out.iterrows():
+        r = row['row']
+        c = row['col']
+        indices = [i for i, x in enumerate(row[header]) if x == 1]
+        mat2[r, c] = ''.join(sorted([header[i] for i in indices]))
+
+    with zf.ZipFile(zfile, 'a') as z:
+        z.remove('annotations/myc.caml')
+        d2 = pd.DataFrame(mat2).to_csv(sep='\t', encoding='utf-8',
+                                       index=False, header=False,
+                                       mode='a', line_terminator='')
+        zi = AmfSave.get_zip_info('annotations/myc.caml', 0)
+        # There is still a trailing character at the end of the csv text.
+        z.writestr(zi, d2[:-1])
+
+
+
+def preds_to_python_annot(path, preds):
+    """
+    Convert predictions to Python annotations.
+    """
+    if AmfConfig.get('level') == 1:
+    
+        return preds_to_python_annot_1(path, preds)
+    
+    else:
+    
+        return preds_to_python_annot_2(path, preds)
+
+
+
+def python_annot_to_ocaml(out, zfile):
+    """
+    Convert and save predictions to OCaml annotations.
+    """
+    if AmfConfig.get('level') == 1:
+    
+        python_annot_to_ocaml_1(out, zfile)
+    
+    else:
+    
+        python_annot_to_ocaml_2(out, zfile)
+
+    update_archive(out, zfile)
+
+
+def update_archive(out, zfile):
+    """
+    Save annotations in Python format.
+    """
+    with zf.ZipFile(zfile, 'a') as z:
+
+        data = out.to_csv(sep='\t', encoding='utf-8', index=False,
+                          mode='a', line_terminator='')
+        zi = AmfSave.get_zip_info(AmfConfig.tsv_name(), AmfConfig.string_of_level())
+        z.writestr(zi, data[:-1])
+
+
+
 def create_annotations(path, zfile):
 
-    out = None
     preds = []
 
     with zf.ZipFile(zfile, 'r') as z:
 
-        for elt in z.namelist():
+        if AmfConfig.tsv_name() in z.namelist():
 
-            if os.path.dirname(elt) == 'predictions':
+            print(f'INFO: Skipping {path} as annotations already exist')
+            return
+
+        for x in z.namelist():
+
+            if os.path.dirname(x) == 'predictions':
             
-                preds.append(elt)
+                if z.getinfo(x).comment.decode('utf-8') == AmfConfig.string_of_level():
+            
+                    preds.append(x)
 
         if preds == []:
         
-            print(f'Skipping {path}: predictions not found')
+            print(f'INFO: Skipping {path} as no predictions could be found')
 
-        # TODO: find a better way...
-        elif len(preds) == 1: # colonisation.
-
-            if 'col.tsv' in z.namelist():
-
-                print(f'Skipping {path}: annotations already exist')
-
-            else:
+        elif len(preds) == 1:
             
                 data = z.read(preds[0]).decode('utf-8')
-                out = preds_to_python_annot_1(path, data)
-                python_annot_to_ocaml_1(out, zfile)
+                out = preds_to_python_annot(path, data)
+                python_annot_to_ocaml(out, zfile)
 
-        elif len(preds) == 2: # mycorrhizal structures.
+        else:
 
-            pass
+            print(f'INFO: Skipping {path} as <amf predict> does not \
+                    support multiple prediction files.')
 
-
-    if out is not None:
-
-        with zf.ZipFile(zfile, 'a') as z:
-            data = out.to_csv(sep='\t', encoding='utf-8', index=False)
-            zi = AmfSave.get_zip_info('col.tsv', 'col')
-            z.writestr(zi, data)
 
 
 
 def run(input_images):
 
-    print('WARNING: You are using an experimental feature.')
-    print('         It is still under active development and may contain bugs.')
-
-    print('Image\tM+\tM−\tOther')
+    print('Image\t' + '\t'.join(AmfConfig.human_redable_header()))
 
     for path in input_images:
     
@@ -159,11 +276,9 @@ def run(input_images):
 
         if not zf.is_zipfile(zfile):
 
-            print(f'Skipping {path}: zip file not found.')
+            print(f'File {path} has no associated zip file.')
        
+        initialize_size(path, zfile)
         create_annotations(path, zfile)
-
-        # Make sure predictions are available.
-        
         
         

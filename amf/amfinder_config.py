@@ -29,22 +29,24 @@ Read command-line arguments and store user settings.
 
 Variables
 ------------
-HEADERS - Table headers for the different annotation levels. 
-PAR - User settings.
+:HEADERS: Table headers for the different annotation levels. 
+:PAR: User settings.
 
 Functions
 ------------
-tsv_name - Return the TSV file corresponding to the current annotation level.
-get - Retrieve the value associated with the given parameter ID.
-colonization - Indicate whether the current level is level 1 (colonization).
-intra_struct - Indicate whether the current level is level 2 (structures).
-set - Assign a new value to the given parameter ID.
-training_subparser - Define the command-line parser used in training mode.
-prediction_subparser - Define the command-line parser used in prediction mode.
-build_arg_parser - Build the full command-line parser.
-import_settings - Read tile size from `settings.json`.
-get_input_files - Return the list of vaid input images (based on MIME type).
-initialize - Read command-line arguments and store user-defined values.
+:function string_of_level: Returns the CNN name for the given prediction level.
+:function tsv_name: Return the TSV file corresponding to the current annotation level.
+:function human_redable_header: Human-readable annotation class labels.
+:function get: Retrieve the value associated with the given parameter ID.
+:function colonization: Indicate whether the current level is level 1 (colonization).
+:function intra_struct: Indicate whether the current level is level 2 (structures).
+:function set: Assign a new value to the given parameter ID.
+:function training_subparser: Define the command-line parser used in training mode.
+:function prediction_subparser: Define the command-line parser used in prediction mode.
+:function build_arg_parser: Build the full command-line parser.
+:function import_settings: Read tile size from `settings.json`.
+:function get_input_files: Return the list of vaid input images (based on MIME type).
+:function initialize: Read command-line arguments and store user-defined values.
 """
 
 
@@ -61,6 +63,7 @@ import amfinder_log as AmfLog
 
 
 HEADERS = [['Y', 'N', 'X'], ['A', 'V', 'H', 'I']]
+HUMAN_HEADERS = [['M+', 'M−', 'Other'], ['Arb', 'Ves', 'Hyp', 'IH']]
 
 PAR = {
     'run_mode': None,
@@ -105,18 +108,30 @@ def get_appdir():
 
 
 
+def string_of_level():
+    """
+    Return the name corresponding to the current annotation level. 
+    """
+
+    return 'col' if PAR['level'] == 1 else 'myc'
+
+
+
 def tsv_name():
     """
     Return the TSV file corresponding to the current annotation level. 
     """
 
-    if PAR['level'] == 1:
-    
-        return 'col.tsv'
-    
-    else:
+    return string_of_level() + '.tsv'
 
-        return 'myc.tsv'
+
+
+def human_redable_header():
+    """
+    Return the human-readable header of the current annotation level.
+    """
+
+    return HUMAN_HEADERS[PAR['level'] - 1]
 
 
 
@@ -423,6 +438,16 @@ def conversion_subparser(subparsers):
         action='store', dest='threshold', metavar='N', type=float, default=x,
         help='threshold for conversion: {}'.format(x))
 
+    level = parser.add_mutually_exclusive_group()
+
+    level.add_argument('-1', '--CNN1',
+        action='store_const', dest='level', const=1,
+        help='Convert root colonisation predictions (default)')
+
+    level.add_argument('-2', '--CNN2',
+        action='store_const', dest='level', const=2,
+        help='Convert fungal hyphal structure predictions.')
+
     x = PAR['input_files']
     parser.add_argument('image', nargs='*', default=x,
         help='plant root scan to be processed.'
@@ -546,7 +571,8 @@ def initialize():
         set('model', par.model)   
     
     elif par.run_mode == 'convert':
-    
+   
+        set('level', par.level)
         set('threshold', par.threshold)
         
     else:
