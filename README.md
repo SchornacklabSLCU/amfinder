@@ -21,6 +21,8 @@ If you use AMFinder, please cite [Evangelisti _et al._, 2021, _New Phytologist_]
 
 Detailed installation instructions for Linux, Mac and Microsoft Windows can be found on [this page](INSTALL.md).
 
+
+
 ## Command-line tool `amf`<a name="amf"></a>
 
 `amf` is a batch mode tool that predicts fungal structures, converts predictions into annotations, and train neural networks. It is used as follows :
@@ -30,18 +32,26 @@ Detailed installation instructions for Linux, Mac and Microsoft Windows can be f
 
 Details about these three commands are given below.
 
+
+
 ### Prediction mode<a name="amfpred"></a>
 
-**Important**: Remember to activate `amf` virtual environment before use (see installation instructions).
+To predict fungal colonisation, open a terminal and run the program as follows:
 
-For predictions, run in a terminal `amf predict <parameters> <images>` where `<parameters>` are either the short or long names listed below. Replace `<images>` with the path to the JPEG or TIFF images to analyse.
+```
+$ source amfenv/bin/activate
+(amfenv) $ amf predict <parameters> <images> 
+```
+
+`<parameters>` are either the short or long names listed below.
+Replace `<images>` with the path to the JPEG or TIFF images to analyse. You can use wildcards.
 
 |Short|Long|Description|Default value|
 |-|-|-|-|
 |`-net CNN`|`--network CNN`|**Mandatory**. Use network `CNN` (see list below).|
 |`-t N`|`--tile_size N`|**Optional**. Use `N` pixels as tile size.|N = 126|
 
-Pre-trained networks to be used with the parameter `-net` are available in folder [`trained_networks`](amf/trained_networks). You can add your own trained networks to this folder.
+Pre-trained networks to be used with the parameter `-net` are available in folder [`trained_networks`](amf/trained_networks). You can add your own trained networks to this folder. Below is a list of publicly available networks:
 
 |File name|Annotation level|Description|
 |-|-|-|
@@ -51,6 +61,8 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 |[CNN2v2.h5](amf/trained_networks/CNN2v2.h5)|CNN2|Same, but trained with data augmentation.|
 
 **Note:** the image datasets used to generate these trained networks are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
+
+
 
 ### Conversion mode<a name="amfconv"></a>
 
