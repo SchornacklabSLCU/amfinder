@@ -19,8 +19,8 @@ If you use AMFinder, please cite [Evangelisti _et al._, 2021, _New Phytologist_]
 
 ## Installation<a name="install"></a>
 
-Detailed installation instructions for Linux, Mac and Microsoft Windows can be found on [this page](INSTALL.md).
-**Note**: if you are not familiar with Python virtual environments, you may want
+Detailed installation instructions for Linux, Mac and Windows can be found [here](INSTALL.md).
+If you are not familiar with Python virtual environments, you may want
 to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
 
 
