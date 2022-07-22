@@ -12,7 +12,6 @@ convolutional neural networks.
 If you use AMFinder in your manuscript, please cite: 
 [Evangelisti _et al._, 2021, Deep learning-based quantification of arbuscular mycorrhizal fungi in plant roots, _New Phytologist_ **232**(5): 2207-2219](https://doi.org/10.1111/nph.17697).
 
-**We would like to hear from you:** are you working with a system that appears challenging for AMFinder? Please get in touch! We would be happy to help generate specialised CNN1/2 networks and make them widely available to the research community.
 
 ## Summary
 
@@ -66,6 +65,7 @@ Pre-trained networks to be used with the parameter `-net` are available in folde
 |[CNN2v1.h5](amf/trained_networks/CNN2v1.h5)|CNN2|Ink-stained, ClearSee-treated microscope root pictures.|
 |[CNN2v2.h5](amf/trained_networks/CNN2v2.h5)|CNN2|Same, but trained with data augmentation.|
 
+**Are you working with a system that appears challenging for AMFinder?** Please get in touch! We would be happy to help generate specialised CNN1/2 networks and make them widely available to the research community.
 
 
 ### Conversion mode<a name="amfconv"></a>
