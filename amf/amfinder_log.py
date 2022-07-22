@@ -47,6 +47,7 @@ Functions
 """
 
 import sys
+import datetime
 import traceback
 
 
@@ -62,6 +63,27 @@ ERR_CORRUPTED_ARCHIVE = 41
 
 
 
+def invite():
+    """
+    Command-line invite.
+    """
+    return f'[{datetime.datetime.now().strftime("%H:%M:%S")}]'
+
+
+
+def text(message, indent=0, **kwargs):
+    """
+    Prints an message on standard output.
+    
+    :param message: The message to be printed.
+    :param ident: Indentation level (defaults to 0).
+    :param kwargs: Any relevant keyword argument. 
+    """
+
+    print(f'{invite()} {message}.', **kwargs)
+
+
+
 def info(message, indent=0, **kwargs):
     """
     Prints an message on standard output.
@@ -71,7 +93,7 @@ def info(message, indent=0, **kwargs):
     :param kwargs: Any relevant keyword argument. 
     """
 
-    print(' ' * 4 * indent + f'INFO: {message}.', **kwargs)
+    print(f'{invite()} INFO: {message}.', **kwargs)
 
 
 
@@ -84,7 +106,7 @@ def warning(message, indent=0, **kwargs):
     :param kwargs: Any relevant keyword argument. 
     """
 
-    print(' ' * 4 * indent + f'WARNING: {message}.', file=sys.stderr, **kwargs)
+    print(f'{invite()} WARNING: {message}.', file=sys.stderr, **kwargs)
 
 
 
@@ -98,7 +120,7 @@ def error(message, exit_code, indent=0, **kwargs):
     :param kwargs: Any relevant keyword argument.
     """
 
-    print(' ' * 4 * indent + f'ERROR: {message}.', file=sys.stderr, **kwargs)
+    print(f'{invite()} ERROR: {message}.', file=sys.stderr, **kwargs)
 
     if exit_code is not None and exit_code != 0:
 

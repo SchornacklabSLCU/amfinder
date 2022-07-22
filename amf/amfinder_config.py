@@ -541,7 +541,7 @@ def get_input_files():
     raw_list = abspath(get('input_files'))
     valid_types = ['image/jpeg', 'image/tiff']
     images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
-    print(f'[{invite()}] Input images: {len(images)}')
+    AmfLog.text(f'Input images: {len(images)}')
     return images
 
 

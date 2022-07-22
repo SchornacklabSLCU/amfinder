@@ -203,7 +203,7 @@ def load(name=None):
 
     if path is not None and os.path.isfile(path):
     
-        print(f'[{AmfConfig.invite()}] Model: {path}')
+        AmfLog.text(f'Model: {path}')
         model = keras.models.load_model(path)
 
         if model.name == CNN1_NAME:
@@ -214,14 +214,14 @@ def load(name=None):
 
             AmfConfig.set('level', 2)
             
-        print(f'[{AmfConfig.invite()}] Classes: {AmfConfig.get_class_documentation()}.')
+        AmfLog.text(f'Classes: {AmfConfig.get_class_documentation()}.')
         return model
 
     else:
 
         if AmfConfig.get('run_mode') == 'train':
 
-            print('[{AmfConfig.invite()}] Initializes a new network.')
+            AmfLog.text('Initializes a new network.')
 
             if AmfConfig.get('level') == 1:
 

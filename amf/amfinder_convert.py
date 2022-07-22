@@ -32,6 +32,7 @@ import pandas as pd
 # Reference: https://stackoverflow.com/a/69115481
 # Local version of zipfile to get access to <remove>.
 import amfinder_zipfile as zf
+import amfinder_log as AmfLog
 import amfinder_save as AmfSave
 import amfinder_train as AmfTrain
 import amfinder_config as AmfConfig
@@ -236,7 +237,7 @@ def create_annotations(path, zfile):
 
         if AmfConfig.tsv_name() in z.namelist():
 
-            print(f'INFO: Skipping {path} as annotations already exist')
+            AmfLog.info(f'Skipping {path} as annotations already exist')
             return
 
         for x in z.namelist():
@@ -249,7 +250,7 @@ def create_annotations(path, zfile):
 
         if preds == []:
         
-            print(f'INFO: Skipping {path} as no predictions could be found')
+            AmfLog.info(f'Skipping {path} as no predictions could be found')
 
         elif len(preds) == 1:
             
@@ -259,7 +260,7 @@ def create_annotations(path, zfile):
 
         else:
 
-            print(f'INFO: Skipping {path} as <amf predict> does not \
+            AmfLog.info(f'Skipping {path} as <amf predict> does not \
                     support multiple prediction files.')
 
 
@@ -276,7 +277,7 @@ def run(input_images):
 
         if not zf.is_zipfile(zfile):
 
-            print(f'File {path} has no associated zip file.')
+            AmfLog.warning(f'File {path} has no associated zip file.')
        
         initialize_size(path, zfile)
         create_annotations(path, zfile)

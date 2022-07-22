@@ -284,7 +284,7 @@ def run(input_images, postprocess=None):
     for path in input_images:
 
         base = os.path.basename(path)
-        print(f'[{AmfConfig.invite()}] Image {base}')
+        AmfLog.text(f'Image {base}')
 
         edge = AmfConfig.update_tile_edge(path)
 
