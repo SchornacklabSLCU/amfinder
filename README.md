@@ -119,8 +119,8 @@ deactivate
 
 ## Annotation browser (`amfbrowser`)<a name="amfbrowser"></a>
 
-`amfbrowser` is a standalone graphical interface that enable the manual inspection of 
-predictions and annotations. The tool can display predictions and 
+The AMFinder standalone graphical interface `amfbrowser` enables the manual inspection of 
+predictions and annotations. This tool can display predictions and 
 annotations on top of the corresponding images. It enables users to edit values,
 to browse low-quality predictions, and to perform automatic conversion of `amf`
 predictions to annotations. You can run `amfbrowser` as follows:
