@@ -119,11 +119,10 @@ deactivate
 
 ## `amfbrowser`<a name="amfbrowser"></a>
 
-**Browse, amend and validate `amf` predictions.**
+This is a graphical interface for manual inspection of predictions and annotations.
+With `amfbrowser`, you can overlay image and predictions, and correct mispredictions.
 
 ![](doc/amfbrowser.png)
-
-
 
 
 ## A typical pipeline<a name="pipeline"></a>
