@@ -43,7 +43,7 @@ def main():
     run_mode = AmfConfig.get('run_mode')
     input_files = AmfConfig.get_input_files()
 
-    AmfLog.text(f' Mode: {run_mode.upper()}')
+    AmfLog.text(f'Mode: {run_mode.upper()}')
     if run_mode == 'train':
        
         if AmfConfig.get('super_resolution'):
