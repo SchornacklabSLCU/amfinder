@@ -62,7 +62,7 @@ random.seed(42)
 import pyvips
 import operator
 import functools
-import zipfile as zf
+import amfinder_zipfile as zf
 import numpy as np
 import pandas as pd
 #from PIL import Image # debug
@@ -260,7 +260,7 @@ def load_dataset(input_files):
     :rtype: tuple
     """
 
-    print('* Tile extraction.')
+    print(f'[{AmfConfig.invite()}] Tile extraction.')
 
     # Load image settings and annotations.
     settings = [import_settings(path) for path in input_files]
@@ -334,7 +334,7 @@ def class_weights(one_hot_labels):
     :rtype: dict
     """
 
-    print('* Class weights')
+    print(f'[{AmfConfig.invite()}] Class weights')
 
     if AmfConfig.colonization():
 

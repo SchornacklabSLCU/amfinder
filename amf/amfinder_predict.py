@@ -37,7 +37,7 @@ import os
 import pyvips
 import numpy as np
 import pandas as pd
-import zipfile as zf
+import amfinder_zipfile as zf
 from itertools import zip_longest
 # For intermediate images
 from PIL import Image
@@ -284,7 +284,7 @@ def run(input_images, postprocess=None):
     for path in input_images:
 
         base = os.path.basename(path)
-        print(f'* Image {base}')
+        print(f'[{AmfConfig.invite()}] Image {base}')
 
         edge = AmfConfig.update_tile_edge(path)
 

@@ -38,38 +38,31 @@ import amfinder_superresolution as AmfSR
 
 def main():
 
-    print('AMFinder script version 2.0')
     AmfConfig.initialize()
     run_mode = AmfConfig.get('run_mode')
     input_files = AmfConfig.get_input_files()
 
+    print(f'[{AmfConfig.invite()}] Mode: {run_mode.upper()}')
     if run_mode == 'train':
        
         if AmfConfig.get('super_resolution'):
-        
-            print('* Running in super-resolution training mode')
-        
+       
             AmfSR.train(input_files)
         
         else:
-
-            print('* Running in training mode')
-        
+       
             AmfTrain.run(input_files)
 
     elif run_mode == 'predict':
 
-        print('* Running in prediction mode')
         AmfPredict.run(input_files)
 
     elif run_mode == 'convert':
     
-        print('* Running in conversion mode')
         AmfConvert.run(input_files)
 
     elif run_mode == 'diagnose':
     
-        print('* Running in diagnostic mode')
         AmfDiagnose.run(input_files)
 
     else:

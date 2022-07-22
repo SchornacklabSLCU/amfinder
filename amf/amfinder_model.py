@@ -203,27 +203,25 @@ def load(name=None):
 
     if path is not None and os.path.isfile(path):
     
-        print(f'* Trained model: {path}')
+        print(f'[{AmfConfig.invite()}] Model: {path}')
         model = keras.models.load_model(path)
 
         if model.name == CNN1_NAME:
 
             AmfConfig.set('level', 1)
-            print('* Classes: colonised (M+), non-colonised (M−), background (Other).')
 
-        else: # elif model.name == CNN2_NAME
+        else:
 
             AmfConfig.set('level', 2)
-            print('* Classes: arbuscules (A), vesicles (V), '
-                  'hyphopodia (H), intraradical hyphae (IH).')
-
+            
+        print(f'[{AmfConfig.invite()}] Classes: {AmfConfig.get_class_documentation()}.')
         return model
 
     else:
 
         if AmfConfig.get('run_mode') == 'train':
 
-            print('* Initializes a new network.')
+            print('[{AmfConfig.invite()}] Initializes a new network.')
 
             if AmfConfig.get('level') == 1:
 

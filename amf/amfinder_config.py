@@ -53,8 +53,9 @@ Functions
 import os
 import glob
 import yaml
+import datetime
 import mimetypes
-import zipfile as zf
+import amfinder_zipfile as zf
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 
@@ -64,6 +65,8 @@ import amfinder_log as AmfLog
 
 HEADERS = [['Y', 'N', 'X'], ['A', 'V', 'H', 'I']]
 HUMAN_HEADERS = [['M+', 'M−', 'Other'], ['Arb', 'Ves', 'Hyp', 'IH']]
+DESCRIPTIONS = [['colonized', 'non-colonised', 'background'], 
+                ['arbuscules', 'vesicles', 'hyphopodia', 'intraradical hyphae']]
 
 PAR = {
     'run_mode': None,
@@ -106,6 +109,23 @@ def get_appdir():
 
     return APP_PATH
 
+
+
+def invite():
+    """
+    Command-line invite
+    """
+    return datetime.datetime.now().strftime('%H:%M:%S')
+
+
+def get_class_documentation():
+    """
+    Return class documentation.
+    """
+    data = [[f'{x} ({y})' for x, y in zip(b, a)]
+            for b, a in zip (HUMAN_HEADERS, DESCRIPTIONS)]
+
+    return ', '.join(data[PAR['level'] - 1])
 
 
 def string_of_level():
@@ -521,7 +541,7 @@ def get_input_files():
     raw_list = abspath(get('input_files'))
     valid_types = ['image/jpeg', 'image/tiff']
     images = [x for x in raw_list if mimetypes.guess_type(x)[0] in valid_types]
-    print('* Input images: {}'.format(len(images)))
+    print(f'[{invite()}] Input images: {len(images)}')
     return images
 
 

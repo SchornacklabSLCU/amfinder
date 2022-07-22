@@ -50,7 +50,7 @@ import io
 import os
 import numpy as np
 import pandas as pd
-import zipfile as zf
+import amfinder_zipfile as zf
 from PIL import Image
 from contextlib import redirect_stdout
 
