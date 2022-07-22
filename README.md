@@ -16,8 +16,8 @@ If you use AMFinder in your manuscript, please cite:
 ## Summary
 
 1. [Installation](#install)
-1. [`amf`](#amf)
-2. [`amfbrowser`](#amfbrowser)
+1. [Batch processing (`amf`)](#amf)
+2. [Annotation browser (`amfbrowser`)](#amfbrowser)
 3. [A typical pipeline](#pipeline)
 4. [How to batch stain plant roots?](#staining)
 
@@ -28,7 +28,7 @@ If you are not familiar with Python virtual environments, you may want
 to read [this page](https://docs.python.org/3/tutorial/venv.html) first.
 
 
-## `amf`<a name="amf"></a>
+## Batch processing (`amf`)<a name="amf"></a>
 
 The AMFinder tool `amf` is a batch mode program that predicts fungal structures, converts predictions into annotations, and train neural networks.
 It is used as follows:
@@ -117,7 +117,7 @@ $ROOT/amf train <parameters> <images>
 deactivate
 ```
 
-## `amfbrowser`<a name="amfbrowser"></a>
+## Annotation browser (`amfbrowser`)<a name="amfbrowser"></a>
 
 `amfbrowser` is a standalone graphical interface that enable the manual inspection of 
 predictions and annotations. The tool can display predictions and 
