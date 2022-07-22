@@ -123,7 +123,12 @@ deactivate
 predictions and annotations. The tool can display predictions and 
 annotations on top of the corresponding images. It enables users to edit values,
 to browse low-quality predictions, and to perform automatic conversion of `amf`
-predictions to annotations.
+predictions to annotations. A single command-line argument can be passed to
+`amfbrowser` in order to specify tile size:
+
+|Short|Long|Description|Default value|
+|-|-|-|-|
+|`-t N`|`--tile_size N`|**Optional**. Use `N` pixels as tile size.|N = 126|
 
 ![](doc/amfbrowser.png)
 
