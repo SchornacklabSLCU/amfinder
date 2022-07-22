@@ -136,7 +136,7 @@ where `<parameter>` can be used to specify tile size (see below).
 |`-t N`|`--tile_size N`|**Optional**. Use `N` pixels as tile size.|N = 126|
 
 <p align="center">
-  <img width="1296" height="738" src="doc/amfbrowser.gif">
+  <img width="648" height="369" src="doc/amfbrowser.gif">
 </p>
 
 
