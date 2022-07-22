@@ -18,7 +18,7 @@ If you use AMFinder in your manuscript, please cite:
 1. [Installation](#install)
 1. [Batch processing (`amf`)](#amf)
 2. [Annotation browser (`amfbrowser`)](#amfbrowser)
-3. [A typical pipeline](#pipeline)
+3. [A typical annotation pipeline](#pipeline)
 4. [How to batch stain plant roots?](#staining)
 
 ## Installation<a name="install"></a>
@@ -138,7 +138,7 @@ where `<parameter>` can be used to specify tile size (see below).
 ![](doc/amfbrowser.png)
 
 
-## A typical pipeline<a name="pipeline"></a>
+## A typical annotation pipeline<a name="pipeline"></a>
 
 Below is a bash script describing a typical prediction/annotation pipeline:
 
