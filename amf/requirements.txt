@@ -65,6 +65,6 @@ tf-agents==0.13.0
 threadpoolctl==3.1.0
 typing-extensions==4.3.0
 urllib3==1.26.10
-Werkzeug==2.1.2
+Werkzeug==2.2.3
 wrapt==1.14.1
 zipp==3.8.1
