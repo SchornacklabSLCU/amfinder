@@ -56,7 +56,7 @@ This mode is used to predict fungal colonisation (CNN1) and intraradical hyphal 
 |`-net CNN`|`--network CNN`|**Mandatory**. Use network `CNN` (see list below).|
 |`-t N`|`--tile_size N`|**Optional**. Use `N` pixels as tile size.|N = 126|
 
-Pre-trained networks to be used with the parameter `-net` are available in folder [`trained_networks`](amf/trained_networks). You can add your own trained networks to this folder. Below is a list of publicly available networks. The image datasets used to generate them are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
+Pre-trained networks to be used with the parameter `-net` are available in the folder [`trained_networks`](amf/trained_networks). **AMFinder is looking for trained networks in this folder only**. Below is a list of publicly available networks. The image datasets used to generate them are available on [Zenodo](https://doi.org/10.5281/zenodo.5118948).
 
 |File name|Annotation level|Description|
 |-|-|-|
